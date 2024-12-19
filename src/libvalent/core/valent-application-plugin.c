@@ -7,9 +7,10 @@
 
 #include <gio/gio.h>
 
-#include "valent-application-plugin.h"
 #include "valent-debug.h"
 #include "valent-extension.h"
+
+#include "valent-application-plugin.h"
 
 
 /**
@@ -35,12 +36,7 @@
  * Since: 1.0
  */
 
-typedef struct
-{
-  gpointer  reserved[1];
-} ValentApplicationPluginPrivate;
-
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentApplicationPlugin, valent_application_plugin, VALENT_TYPE_EXTENSION)
+G_DEFINE_ABSTRACT_TYPE (ValentApplicationPlugin, valent_application_plugin, VALENT_TYPE_EXTENSION)
 
 /* LCOV_EXCL_START */
 static gboolean

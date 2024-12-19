@@ -473,16 +473,7 @@ valent_component_constructed (GObject *object)
         priv->plugin_priority = g_strdup_printf ("X-%sPriority", type_name);
     }
 
-  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (priv->engine));
-  for (unsigned int i = 0; i < n_plugins; i++)
-    {
-      g_autoptr (PeasPluginInfo) info = NULL;
-
-      info = g_list_model_get_item (G_LIST_MODEL (priv->engine), i);
-      if (peas_plugin_info_is_loaded (info))
-        on_load_plugin (priv->engine, info, self);
-    }
-
+  priv->engine = valent_get_plugin_engine ();
   g_signal_connect_object (priv->engine,
                            "load-plugin",
                            G_CALLBACK (on_load_plugin),
@@ -493,6 +484,16 @@ valent_component_constructed (GObject *object)
                            G_CALLBACK (on_unload_plugin),
                            self,
                            G_CONNECT_DEFAULT);
+
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (priv->engine));
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (priv->engine), i);
+      if (peas_plugin_info_is_loaded (info))
+        on_load_plugin (priv->engine, info, self);
+    }
 }
 
 static void
@@ -642,7 +643,6 @@ valent_component_init (ValentComponent *self)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
-  priv->engine = valent_get_plugin_engine ();
   priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, component_plugin_free);
   priv->items = g_ptr_array_new_with_free_func (g_object_unref);
 }

@@ -79,16 +79,14 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentExtension, valent_extension, VALENT_TYPE
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_MAP, g_action_map_iface_init))
 
-enum {
-  PROP_0,
-  PROP_CONTEXT,
+typedef enum {
+  PROP_CONTEXT = 1,
   PROP_PLUGIN_INFO,
   PROP_PLUGIN_STATE,
   PROP_SETTINGS,
-  N_PROPERTIES
-};
+} ValentExtensionProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_SETTINGS + 1] = { NULL, };
 
 
 /*
@@ -301,7 +299,6 @@ valent_extension_destroy (ValentObject *object)
   GAction *action;
 
   g_hash_table_iter_init (&iter, priv->actions);
-
   while (g_hash_table_iter_next (&iter, (void **)&action_name, (void **)&action))
     {
       g_action_group_action_removed (G_ACTION_GROUP (self), action_name);
@@ -341,7 +338,7 @@ valent_extension_get_property (GObject    *object,
   ValentExtension *self = VALENT_EXTENSION (object);
   ValentExtensionPrivate *priv = valent_extension_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentExtensionProperty)prop_id)
     {
     case PROP_CONTEXT:
       g_value_set_object (value, valent_extension_get_context (self));
@@ -373,7 +370,7 @@ valent_extension_set_property (GObject      *object,
   ValentExtension *self = VALENT_EXTENSION (object);
   ValentExtensionPrivate *priv = valent_extension_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentExtensionProperty)prop_id)
     {
     case PROP_CONTEXT:
       priv->context = g_value_dup_object (value);
@@ -383,6 +380,8 @@ valent_extension_set_property (GObject      *object,
       priv->plugin_info = g_value_dup_object (value);
       break;
 
+    case PROP_PLUGIN_STATE:
+    case PROP_SETTINGS:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -459,7 +458,7 @@ valent_extension_class_init (ValentExtensionClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

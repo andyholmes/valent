@@ -29,10 +29,11 @@
  * Since: 1.0
  */
 
-typedef struct
+struct _ValentContext
 {
-  ValentContext *parent;
+  ValentObject   parent_instance;
 
+  ValentContext *parent;
   char          *domain;
   char          *id;
   char          *path;
@@ -40,9 +41,9 @@ typedef struct
   GFile         *cache;
   GFile         *config;
   GFile         *data;
-} ValentContextPrivate;
+};
 
-G_DEFINE_TYPE_WITH_PRIVATE (ValentContext, valent_context, VALENT_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentContext, valent_context, VALENT_TYPE_OBJECT)
 
 enum {
   PROP_0,
@@ -112,50 +113,48 @@ static void
 valent_context_constructed (GObject *object)
 {
   ValentContext *self = VALENT_CONTEXT (object);
-  ValentContextPrivate *priv = valent_context_get_instance_private (self);
 
-  if (priv->parent != NULL)
+  G_OBJECT_CLASS (valent_context_parent_class)->constructed (object);
+
+  if (self->parent != NULL)
     {
       const char *base_path;
 
-      base_path = valent_context_get_path (priv->parent);
-      priv->path = g_build_filename (base_path, priv->domain, priv->id, NULL);
+      base_path = valent_context_get_path (self->parent);
+      self->path = g_build_filename (base_path, self->domain, self->id, NULL);
     }
   else
     {
-      priv->path = g_build_filename (priv->domain, priv->id, NULL);
+      self->path = g_build_filename (self->domain, self->id, NULL);
     }
 
-  priv->cache = g_file_new_build_filename (g_get_user_cache_dir (),
+  self->cache = g_file_new_build_filename (g_get_user_cache_dir (),
                                            PACKAGE_NAME,
-                                           priv->path,
+                                           self->path,
                                            NULL);
-  priv->config = g_file_new_build_filename (g_get_user_config_dir (),
+  self->config = g_file_new_build_filename (g_get_user_config_dir (),
                                             PACKAGE_NAME,
-                                            priv->path,
+                                            self->path,
                                             NULL);
-  priv->data = g_file_new_build_filename (g_get_user_data_dir (),
+  self->data = g_file_new_build_filename (g_get_user_data_dir (),
                                           PACKAGE_NAME,
-                                          priv->path,
+                                          self->path,
                                           NULL);
-
-  G_OBJECT_CLASS (valent_context_parent_class)->constructed (object);
 }
 
 static void
-valent_context_finalize (GObject *object)
+valent_context_destroy (ValentObject *object)
 {
   ValentContext *self = VALENT_CONTEXT (object);
-  ValentContextPrivate *priv = valent_context_get_instance_private (self);
 
-  g_clear_object (&priv->cache);
-  g_clear_object (&priv->config);
-  g_clear_object (&priv->data);
-  g_clear_pointer (&priv->path, g_free);
-  g_clear_pointer (&priv->domain, g_free);
-  g_clear_pointer (&priv->id, g_free);
+  g_clear_object (&self->cache);
+  g_clear_object (&self->config);
+  g_clear_object (&self->data);
+  g_clear_pointer (&self->path, g_free);
+  g_clear_pointer (&self->domain, g_free);
+  g_clear_pointer (&self->id, g_free);
 
-  G_OBJECT_CLASS (valent_context_parent_class)->finalize (object);
+  VALENT_OBJECT_CLASS (valent_context_parent_class)->destroy (object);
 }
 
 static void
@@ -192,20 +191,19 @@ valent_context_set_property (GObject      *object,
                              GParamSpec   *pspec)
 {
   ValentContext *self = VALENT_CONTEXT (object);
-  ValentContextPrivate *priv = valent_context_get_instance_private (self);
 
   switch (prop_id)
     {
     case PROP_DOMAIN:
-      priv->domain = g_value_dup_string (value);
+      self->domain = g_value_dup_string (value);
       break;
 
     case PROP_ID:
-      priv->id = g_value_dup_string (value);
+      self->id = g_value_dup_string (value);
       break;
 
     case PROP_PARENT:
-      priv->parent = g_value_get_object (value);
+      self->parent = g_value_get_object (value);
       break;
 
     default:
@@ -217,11 +215,13 @@ static void
 valent_context_class_init (ValentContextClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
   object_class->constructed = valent_context_constructed;
-  object_class->finalize = valent_context_finalize;
   object_class->get_property = valent_context_get_property;
   object_class->set_property = valent_context_set_property;
+
+  vobject_class->destroy = valent_context_destroy;
 
   /**
    * ValentContext:domain: (getter get_domain)
@@ -321,11 +321,9 @@ valent_context_new (ValentContext *parent,
 const char *
 valent_context_get_domain (ValentContext *context)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
-
   g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
 
-  return priv->domain;
+  return context->domain;
 }
 
 /**
@@ -341,11 +339,9 @@ valent_context_get_domain (ValentContext *context)
 const char *
 valent_context_get_id (ValentContext *context)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
-
   g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
 
-  return priv->id;
+  return context->id;
 }
 
 /**
@@ -359,11 +355,9 @@ valent_context_get_id (ValentContext *context)
 ValentContext *
 valent_context_get_parent (ValentContext *context)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
-
   g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
 
-  return priv->parent;
+  return context->parent;
 }
 
 /**
@@ -379,11 +373,9 @@ valent_context_get_parent (ValentContext *context)
 const char *
 valent_context_get_path (ValentContext *context)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
-
   g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
 
-  return priv->path;
+  return context->path;
 }
 
 /**
@@ -399,12 +391,11 @@ valent_context_get_path (ValentContext *context)
 void
 valent_context_clear_cache (ValentContext *context)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
   g_autoptr (GError) error = NULL;
 
   g_return_if_fail (VALENT_IS_CONTEXT (context));
 
-  if (!remove_directory (priv->cache, NULL, &error) &&
+  if (!remove_directory (context->cache, NULL, &error) &&
       !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND))
     g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
@@ -422,21 +413,20 @@ valent_context_clear_cache (ValentContext *context)
 void
 valent_context_clear (ValentContext *context)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
   g_autoptr (GError) error = NULL;
 
   g_return_if_fail (VALENT_IS_CONTEXT (context));
 
   /* FIXME: We have to be careful not to remove device config directories */
-  if (priv->domain == NULL)
+  if (context->domain == NULL)
     return;
 
-  if (!remove_directory (priv->cache, NULL, &error) &&
+  if (!remove_directory (context->cache, NULL, &error) &&
       !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND))
     g_warning ("%s(): %s", G_STRFUNC, error->message);
   g_clear_error (&error);
 
-  if (!remove_directory (priv->config, NULL, &error) &&
+  if (!remove_directory (context->config, NULL, &error) &&
       !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND))
     g_warning ("%s(): %s", G_STRFUNC, error->message);
   g_clear_error (&error);
@@ -460,13 +450,11 @@ GFile *
 valent_context_get_cache_file (ValentContext *context,
                                const char    *filename)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
-
   g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
-  g_return_val_if_fail (ensure_directory (priv->cache), NULL);
+  g_return_val_if_fail (ensure_directory (context->cache), NULL);
   g_return_val_if_fail (filename != NULL && *filename != '\0', NULL);
 
-  return g_file_get_child (priv->cache, filename);
+  return g_file_get_child (context->cache, filename);
 }
 
 /**
@@ -487,13 +475,11 @@ GFile *
 valent_context_get_config_file (ValentContext *context,
                                 const char    *filename)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
-
   g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
-  g_return_val_if_fail (ensure_directory (priv->config), NULL);
+  g_return_val_if_fail (ensure_directory (context->config), NULL);
   g_return_val_if_fail (filename != NULL && *filename != '\0', NULL);
 
-  return g_file_get_child (priv->config, filename);
+  return g_file_get_child (context->config, filename);
 }
 
 /**
@@ -514,13 +500,11 @@ GFile *
 valent_context_get_data_file (ValentContext *context,
                               const char    *filename)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
-
   g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
-  g_return_val_if_fail (ensure_directory (priv->data), NULL);
+  g_return_val_if_fail (ensure_directory (context->data), NULL);
   g_return_val_if_fail (filename != NULL && *filename != '\0', NULL);
 
-  return g_file_get_child (priv->data, filename);
+  return g_file_get_child (context->data, filename);
 }
 
 /**
@@ -575,7 +559,6 @@ valent_context_get_plugin_settings (ValentContext  *context,
                                     PeasPluginInfo *plugin_info,
                                     const char     *plugin_key)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
   GSettingsSchemaSource *default_source;
   const char *schema_id = NULL;
   g_autoptr (GSettingsSchema) schema = NULL;
@@ -634,32 +617,9 @@ valent_context_get_plugin_settings (ValentContext  *context,
       return NULL;
     }
 
-  path = g_strdup_printf ("/ca/andyholmes/valent/%s/", priv->path);
+  path = g_strdup_printf ("/ca/andyholmes/valent/%s/", context->path);
 
   return g_settings_new_full (schema, NULL, path);
-}
-
-/**
- * valent_context_get_root:
- *
- * Get the root context.
- *
- * Returns: (transfer none): a `ValentContext`
- *
- * Since: 1.0
- */
-ValentContext *
-valent_context_get_root (ValentContext *context)
-{
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
-  ValentContext *root = context;
-
-  g_return_val_if_fail (VALENT_IS_CONTEXT (context), NULL);
-
-  if (priv->parent != NULL)
-    root = valent_context_get_root (priv->parent);
-
-  return root;
 }
 
 /**
@@ -681,7 +641,6 @@ GSettings *
 valent_context_create_settings (ValentContext *context,
                                 const char    *schema_id)
 {
-  ValentContextPrivate *priv = valent_context_get_instance_private (context);
   GSettingsSchemaSource *default_source;
   g_autoptr (GSettingsSchema) schema = NULL;
   g_autofree char *path = NULL;
@@ -698,7 +657,7 @@ valent_context_create_settings (ValentContext *context,
       return NULL;
     }
 
-  path = g_strdup_printf ("/ca/andyholmes/valent/%s/", priv->path);
+  path = g_strdup_printf ("/ca/andyholmes/valent/%s/", context->path);
 
   return g_settings_new_full (schema, NULL, path);
 }

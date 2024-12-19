@@ -32,7 +32,6 @@ channel_service_fixture_set_up (ChannelServiceFixture *fixture,
 
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "mock");
   fixture->service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
-                                   "name",        "Mock Service",
                                    "plugin-info", plugin_info,
                                    NULL);
 
@@ -253,14 +252,12 @@ test_channel_service_basic (void)
   g_autoptr (ValentContext) context_out = NULL;
   g_autofree char *id_out = NULL;
   g_autoptr (JsonNode) identity_out = NULL;
-  g_autofree char *name_out = NULL;
 
   /* ValentChannelService */
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "mock");
   context = valent_context_new (NULL, NULL, NULL);
   service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
                           "context",     context,
-                          "name",        "Mock Service",
                           "plugin-info", plugin_info,
                           NULL);
 
@@ -268,18 +265,15 @@ test_channel_service_basic (void)
                 "context",  &context_out,
                 "id",       &id_out,
                 "identity", &identity_out,
-                "name",     &name_out,
                 NULL);
 
   g_assert_true (context_out == context);
   g_assert_nonnull (id_out);
   g_assert_true (VALENT_IS_PACKET (identity_out));
-  g_assert_cmpstr (name_out, ==, "Mock Service");
 
   g_clear_pointer (&id_out, g_free);
   id_out = valent_channel_service_dup_id (service);
   g_assert_nonnull (id_out);
-  g_assert_cmpstr (valent_channel_service_get_name (service), ==, "Mock Service");
 }
 
 static void

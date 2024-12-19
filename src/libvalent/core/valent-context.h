@@ -16,52 +16,42 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_CONTEXT (valent_context_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentContext, valent_context, VALENT, CONTEXT, ValentObject)
-
-struct _ValentContextClass
-{
-  ValentObjectClass   parent_class;
-
-  /*< private >*/
-  gpointer            padding[8];
-};
+G_DECLARE_FINAL_TYPE (ValentContext, valent_context, VALENT, CONTEXT, ValentObject)
 
 VALENT_AVAILABLE_IN_1_0
-ValentContext * valent_context_new                    (ValentContext  *parent,
-                                                       const char     *domain,
-                                                       const char     *id);
+ValentContext * valent_context_new                 (ValentContext  *parent,
+                                                    const char     *domain,
+                                                    const char     *id);
 VALENT_AVAILABLE_IN_1_0
-GFile         * valent_context_get_cache_file         (ValentContext  *context,
-                                                       const char     *filename);
+GFile         * valent_context_get_cache_file      (ValentContext  *context,
+                                                    const char     *filename);
 VALENT_AVAILABLE_IN_1_0
-GFile         * valent_context_get_config_file        (ValentContext  *context,
-                                                       const char     *filename);
+GFile         * valent_context_get_config_file     (ValentContext  *context,
+                                                    const char     *filename);
 VALENT_AVAILABLE_IN_1_0
-GFile         * valent_context_get_data_file          (ValentContext  *context,
-                                                       const char     *filename);
+GFile         * valent_context_get_data_file       (ValentContext  *context,
+                                                    const char     *filename);
 VALENT_AVAILABLE_IN_1_0
-const char    * valent_context_get_domain             (ValentContext  *context);
+const char    * valent_context_get_domain          (ValentContext  *context);
 VALENT_AVAILABLE_IN_1_0
-const char    * valent_context_get_id                 (ValentContext  *context);
+const char    * valent_context_get_id              (ValentContext  *context);
 VALENT_AVAILABLE_IN_1_0
-ValentContext * valent_context_get_parent             (ValentContext  *context);
+ValentContext * valent_context_get_parent          (ValentContext  *context);
 VALENT_AVAILABLE_IN_1_0
-const char    * valent_context_get_path               (ValentContext  *context);
+const char    * valent_context_get_path            (ValentContext  *context);
 VALENT_AVAILABLE_IN_1_0
-ValentContext * valent_context_get_plugin_context     (ValentContext  *context,
-                                                       PeasPluginInfo *plugin_info);
+ValentContext * valent_context_get_plugin_context  (ValentContext  *context,
+                                                    PeasPluginInfo *plugin_info);
 VALENT_AVAILABLE_IN_1_0
-GSettings     * valent_context_get_plugin_settings    (ValentContext  *context,
-                                                       PeasPluginInfo *plugin_info,
-                                                       const char     *plugin_key);
+GSettings     * valent_context_get_plugin_settings (ValentContext  *context,
+                                                    PeasPluginInfo *plugin_info,
+                                                    const char     *plugin_key);
 VALENT_AVAILABLE_IN_1_0
-ValentContext * valent_context_get_root               (ValentContext  *context);
+void            valent_context_clear_cache         (ValentContext  *context);
 VALENT_AVAILABLE_IN_1_0
-void            valent_context_clear_cache            (ValentContext  *context);
+void            valent_context_clear               (ValentContext  *context);
 VALENT_AVAILABLE_IN_1_0
-void            valent_context_clear                  (ValentContext  *context);
-VALENT_AVAILABLE_IN_1_0
-GSettings     * valent_context_create_settings        (ValentContext  *context,
-                                                       const char     *schema_id);
+GSettings     * valent_context_create_settings     (ValentContext  *context,
+                                                    const char     *schema_id);
 
 G_END_DECLS

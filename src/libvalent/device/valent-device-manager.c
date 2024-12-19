@@ -40,10 +40,7 @@ struct _ValentDeviceManager
 
   GCancellable             *cancellable;
   ValentContext            *context;
-  GSettings                *settings;
   GTlsCertificate          *certificate;
-  const char               *id;
-  char                     *name;
 
   GPtrArray                *devices;
   GHashTable               *plugins;
@@ -51,7 +48,7 @@ struct _ValentDeviceManager
   JsonNode                 *state;
 
   GDBusObjectManagerServer *dbus;
-  GHashTable               *exported;
+  GHashTable               *exports;
 };
 
 static void           valent_device_manager_add_device    (ValentDeviceManager *manager,
@@ -65,14 +62,6 @@ static void   g_list_model_iface_init     (GListModelInterface *iface);
 
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, VALENT_TYPE_APPLICATION_PLUGIN,
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
-
-enum {
-  PROP_0,
-  PROP_NAME,
-  N_PROPERTIES
-};
-
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 
 static ValentDeviceManager *default_manager = NULL;
 
@@ -123,11 +112,27 @@ g_list_model_iface_init (GListModelInterface *iface)
  */
 typedef struct
 {
-  GDBusConnection *connection;
-  char            *object_path;
-  unsigned int     actions_id;
-  unsigned int     menu_id;
-} ExportedDevice;
+  GDBusObjectManagerServer *manager;
+  GDBusConnection          *connection;
+  char                     *object_path;
+  unsigned int              actions_id;
+  unsigned int              menu_id;
+} DeviceExport;
+
+static void
+device_export_free (gpointer data)
+{
+  DeviceExport *info = data;
+
+  g_dbus_object_manager_server_unexport (info->manager, info->object_path);
+  g_dbus_connection_unexport_action_group (info->connection, info->actions_id);
+  g_dbus_connection_unexport_menu_model (info->connection, info->menu_id);
+
+  g_clear_pointer (&info->object_path, g_free);
+  g_clear_object (&info->connection);
+  g_clear_object (&info->manager);
+  g_free (info);
+}
 
 static char *
 valent_device_manager_get_device_object_path (ValentDeviceManager *self,
@@ -168,7 +173,7 @@ valent_device_manager_export_device (ValentDeviceManager *self,
 {
   g_autoptr (GDBusObjectSkeleton) object = NULL;
   g_autoptr (GDBusInterfaceSkeleton) iface = NULL;
-  ExportedDevice *info;
+  DeviceExport *info;
   GActionGroup *action_group;
   GMenuModel *menu_model;
 
@@ -177,16 +182,15 @@ valent_device_manager_export_device (ValentDeviceManager *self,
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (VALENT_IS_DEVICE (device));
 
-  if (g_hash_table_contains (self->exported, device))
+  if (g_hash_table_contains (self->exports, device))
     VALENT_EXIT;
 
-  info = g_new0 (ExportedDevice, 1);
+  info = g_new0 (DeviceExport, 1);
+  info->manager = g_object_ref (self->dbus);
   info->connection = g_dbus_object_manager_server_get_connection (self->dbus);
   info->object_path = valent_device_manager_get_device_object_path (self,
                                                                     device);
 
-  /* Export the ValentDevice, GActionGroup and GMenuModel interfaces on the same
-   * connection and path */
   object = g_dbus_object_skeleton_new (info->object_path);
   iface = valent_device_impl_new (device);
   g_dbus_object_skeleton_add_interface (object, iface);
@@ -204,35 +208,7 @@ valent_device_manager_export_device (ValentDeviceManager *self,
                                                        NULL);
 
   g_dbus_object_manager_server_export (self->dbus, object);
-  g_hash_table_insert (self->exported, device, info);
-
-  VALENT_EXIT;
-}
-
-static void
-valent_device_manager_unexport_device (ValentDeviceManager *self,
-                                       ValentDevice        *device)
-{
-  gpointer data;
-  ExportedDevice *info = NULL;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_DEVICE_MANAGER (self));
-  g_assert (VALENT_IS_DEVICE (device));
-
-  if (!g_hash_table_steal_extended (self->exported, device, NULL, &data))
-    VALENT_EXIT;
-
-  info = (ExportedDevice *)data;
-
-  g_dbus_object_manager_server_unexport (self->dbus, info->object_path);
-  g_dbus_connection_unexport_action_group (info->connection, info->actions_id);
-  g_dbus_connection_unexport_menu_model (info->connection, info->menu_id);
-
-  g_clear_pointer (&info->object_path, g_free);
-  g_clear_object (&info->connection);
-  g_free (info);
+  g_hash_table_insert (self->exports, device, g_steal_pointer (&info));
 
   VALENT_EXIT;
 }
@@ -341,20 +317,17 @@ valent_device_manager_enable_plugin (ValentDeviceManager *self,
   plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_CHANNEL_SERVICE,
+                                                    "source",      self,
                                                     "context",     plugin->context,
                                                     "certificate", self->certificate,
-                                                    "name",        self->name,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
-
-  g_object_bind_property (self,              "name",
-                          plugin->extension, "name",
-                          G_BINDING_DEFAULT);
 
   g_signal_connect_object (plugin->extension,
                            "channel",
                            G_CALLBACK (on_channel),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   if (G_IS_ASYNC_INITABLE (plugin->extension))
     {
@@ -452,14 +425,6 @@ on_unload_service (PeasEngine          *engine,
 /*
  * Device Management
  */
-static gboolean
-valent_device_manager_remove_device_main (gpointer data)
-{
-  g_object_unref (VALENT_DEVICE (data));
-
-  return G_SOURCE_REMOVE;
-}
-
 static void
 on_device_state (ValentDevice        *device,
                  GParamSpec          *pspec,
@@ -467,7 +432,6 @@ on_device_state (ValentDevice        *device,
 {
   ValentDeviceState state = valent_device_get_state (device);
 
-  /* Devices that become connected and paired are remembered */
   if ((state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
       (state & VALENT_DEVICE_STATE_PAIRED) != 0)
     {
@@ -478,38 +442,18 @@ on_device_state (ValentDevice        *device,
         return;
 
       identity = valent_channel_get_peer_identity (channel);
-
       json_object_set_object_member (json_node_get_object (self->state),
                                      valent_device_get_id (device),
                                      json_node_dup_object (identity));
     }
-
-  /* Devices that become disconnected and unpaired are forgotten */
-  if ((state & VALENT_DEVICE_STATE_CONNECTED) == 0 &&
-      (state & VALENT_DEVICE_STATE_PAIRED) == 0)
+  else if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
     {
       json_object_remove_member (json_node_get_object (self->state),
                                  valent_device_get_id (device));
-      valent_device_manager_remove_device (self, device);
+
+      if ((state & VALENT_DEVICE_STATE_CONNECTED) == 0)
+        valent_device_manager_remove_device (self, device);
     }
-}
-
-static ValentDevice *
-valent_device_manager_lookup (ValentDeviceManager *manager,
-                              const char          *id)
-{
-  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
-  g_assert (id != NULL);
-
-  for (unsigned int i = 0, len = manager->devices->len; i < len; i++)
-    {
-      ValentDevice *device = g_ptr_array_index (manager->devices, i);
-
-      if (g_str_equal (id, valent_device_get_id (device)))
-        return device;
-    }
-
-  return NULL;
 }
 
 static void
@@ -524,13 +468,23 @@ valent_device_manager_add_device (ValentDeviceManager *self,
   g_assert (VALENT_IS_DEVICE (device));
 
   if (g_ptr_array_find (self->devices, device, NULL))
-    VALENT_EXIT;
+    {
+      g_warning ("Device \"%s\" not found in \"%s\"",
+                 valent_device_get_name (device),
+                 G_OBJECT_TYPE_NAME (self));
+      VALENT_EXIT;
+    }
 
   g_signal_connect_object (device,
                            "notify::state",
                            G_CALLBACK (on_device_state),
                            self,
-                           0);
+                           G_CONNECT_DEFAULT);
+  g_signal_connect_object (device,
+                           "destroy",
+                           G_CALLBACK (valent_device_manager_remove_device),
+                           self,
+                           G_CONNECT_SWAPPED);
 
   position = self->devices->len;
   g_ptr_array_add (self->devices, g_object_ref (device));
@@ -542,44 +496,21 @@ valent_device_manager_add_device (ValentDeviceManager *self,
   VALENT_EXIT;
 }
 
-static void
-valent_device_manager_remove_device (ValentDeviceManager *manager,
-                                     ValentDevice        *device)
+static inline gboolean
+find_device_by_id (gconstpointer a,
+                   gconstpointer b)
 {
-  unsigned int position = 0;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
-  g_assert (VALENT_IS_DEVICE (device));
-
-  g_object_ref (device);
-
-  if (g_ptr_array_find (manager->devices, device, &position))
-    {
-      valent_device_manager_unexport_device (manager, device);
-      g_signal_handlers_disconnect_by_data (device, manager);
-      g_ptr_array_remove_index (manager->devices, position);
-      g_list_model_items_changed (G_LIST_MODEL (manager), position, 1, 0);
-
-      // HACK: we are in a signal handler of a device's `notify::state`
-      //       emission, so if we drop the last reference the emitting object
-      //       and other handlers may be setup for a use-after-free error.
-      g_idle_add (valent_device_manager_remove_device_main, g_object_ref (device));
-    }
-
-  g_object_unref (device);
-
-  VALENT_EXIT;
+  return g_str_equal (valent_device_get_id ((ValentDevice *)a), (const char *)b);
 }
 
 static ValentDevice *
-valent_device_manager_ensure_device (ValentDeviceManager *manager,
+valent_device_manager_ensure_device (ValentDeviceManager *self,
                                      JsonNode            *identity)
 {
   const char *device_id;
+  unsigned int position = 0;
 
-  g_assert (VALENT_IS_DEVICE_MANAGER (manager));
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (VALENT_IS_PACKET (identity));
 
   if (!valent_packet_get_string (identity, "deviceId", &device_id))
@@ -589,18 +520,70 @@ valent_device_manager_ensure_device (ValentDeviceManager *manager,
       return NULL;
     }
 
-  if (valent_device_manager_lookup (manager, device_id) == NULL)
+  if (!g_ptr_array_find_with_equal_func (self->devices,
+                                         device_id,
+                                         find_device_by_id,
+                                         &position))
     {
       g_autoptr (ValentContext) context = NULL;
       g_autoptr (ValentDevice) device = NULL;
 
-      context = valent_context_new (manager->context, "device", device_id);
+      context = valent_context_new (self->context, "device", device_id);
       device = valent_device_new_full (identity, context);
 
-      valent_device_manager_add_device (manager, device);
+      valent_device_manager_add_device (self, device);
+      position = (self->devices->len - 1);
     }
 
-  return valent_device_manager_lookup (manager, device_id);
+  return g_ptr_array_index (self->devices, position);
+}
+
+static gboolean
+valent_device_manager_destroy_device (gpointer data)
+{
+  valent_object_destroy (VALENT_OBJECT (data));
+
+  return G_SOURCE_REMOVE;
+}
+
+static void
+valent_device_manager_remove_device (ValentDeviceManager *self,
+                                     ValentDevice        *device)
+{
+  unsigned int position = 0;
+  g_autoptr (ValentDevice) item = NULL;
+
+  VALENT_ENTRY;
+
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
+  g_assert (VALENT_IS_DEVICE (device));
+
+  if (!g_ptr_array_find (self->devices, device, &position))
+    {
+      g_warning ("Device \"%s\" not found in \"%s\"",
+                 valent_device_get_name (device),
+                 G_OBJECT_TYPE_NAME (self));
+      VALENT_EXIT;
+    }
+
+  g_signal_handlers_disconnect_by_data (device, self);
+
+  /* NOTE: Dropping the last reference in a device's `notify::state` handler
+   *       would result in a use-after-free for subsequent handlers
+   */
+  if (!valent_object_in_destruction (VALENT_OBJECT (device)))
+    {
+      g_idle_add_full (G_PRIORITY_DEFAULT,
+                       valent_device_manager_destroy_device,
+                       g_object_ref (device),
+                       g_object_unref);
+    }
+
+  g_hash_table_remove (self->exports, device);
+  item = g_ptr_array_steal_index (self->devices, position);
+  g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
+
+  VALENT_EXIT;
 }
 
 static void
@@ -617,11 +600,8 @@ valent_device_manager_load_state (ValentDeviceManager *self)
       g_autoptr (JsonParser) parser = NULL;
       g_autoptr (GFile) file = NULL;
 
-      file = valent_context_get_cache_file (self->context, "devices.json");
-
-      /* Try to load the state file */
       parser = json_parser_new ();
-
+      file = valent_context_get_cache_file (self->context, "devices.json");
       if (json_parser_load_from_file (parser, g_file_peek_path (file), NULL))
         self->state = json_parser_steal_root (parser);
 
@@ -633,9 +613,7 @@ valent_device_manager_load_state (ValentDeviceManager *self)
         }
     }
 
-  /* Load devices */
   json_object_iter_init (&iter, json_node_get_object (self->state));
-
   while (json_object_iter_next (&iter, &device_id, &identity))
     valent_device_manager_ensure_device (self, identity);
 }
@@ -654,8 +632,19 @@ valent_device_manager_save_state (ValentDeviceManager *self)
                             "root",   self->state,
                             NULL);
 
-  file = valent_context_get_cache_file (self->context, "devices.json");
+  for (unsigned int i = 0, len = self->devices->len; i < len; i++)
+    {
+      ValentDevice *device = g_ptr_array_index (self->devices, i);
+      ValentDeviceState state = valent_device_get_state (device);
 
+      if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
+        {
+          json_object_remove_member (json_node_get_object (self->state),
+                                     valent_device_get_id (device));
+        }
+    }
+
+  file = valent_context_get_cache_file (self->context, "devices.json");
   if (!json_generator_to_file (generator, g_file_peek_path (file), &error))
     g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
@@ -710,9 +699,7 @@ valent_device_manager_dbus_register (ValentApplicationPlugin  *plugin,
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (G_IS_DBUS_CONNECTION (connection));
   g_assert (g_variant_is_object_path (object_path));
-
-  if (self->dbus != NULL)
-    return TRUE;
+  g_return_val_if_fail (self->dbus == NULL, TRUE);
 
   self->dbus = g_dbus_object_manager_server_new (object_path);
   g_dbus_object_manager_server_set_connection (self->dbus, connection);
@@ -737,17 +724,9 @@ valent_device_manager_dbus_unregister (ValentApplicationPlugin *plugin,
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (G_IS_DBUS_CONNECTION (connection));
   g_assert (g_variant_is_object_path (object_path));
+  g_return_if_fail (G_IS_DBUS_OBJECT_MANAGER (self->dbus));
 
-  if (self->dbus == NULL)
-    return;
-
-  for (unsigned int i = 0, len = self->devices->len; i < len; i++)
-    {
-      ValentDevice *device = g_ptr_array_index (self->devices, i);
-
-      valent_device_manager_unexport_device (self, device);
-    }
-
+  g_hash_table_remove_all (self->exports);
   g_dbus_object_manager_server_set_connection (self->dbus, NULL);
   g_clear_object (&self->dbus);
 }
@@ -756,27 +735,19 @@ static void
 valent_device_manager_shutdown (ValentApplicationPlugin *plugin)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (plugin);
-  PeasEngine *engine = NULL;
   unsigned int n_devices = 0;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
+  g_return_if_fail (G_IS_CANCELLABLE (self->cancellable));
 
-  /* We're already stopped */
-  if (self->cancellable == NULL)
-    return;
-
-  /* Cancel any running operations */
   g_cancellable_cancel (self->cancellable);
   g_clear_object (&self->cancellable);
 
-  /* Stop and remove services */
-  engine = valent_get_plugin_engine ();
-  g_signal_handlers_disconnect_by_data (engine, self);
+  g_signal_handlers_disconnect_by_data (valent_get_plugin_engine (), self);
   g_hash_table_remove_all (self->plugins);
+  valent_device_manager_save_state (self);
 
-  /* Remove any devices */
   n_devices = self->devices->len;
-
   for (unsigned int i = 0; i < n_devices; i++)
     {
       ValentDevice *device = g_ptr_array_index (self->devices, i);
@@ -786,10 +757,6 @@ valent_device_manager_shutdown (ValentApplicationPlugin *plugin)
   g_ptr_array_remove_range (self->devices, 0, n_devices);
   g_list_model_items_changed (G_LIST_MODEL (self), 0, n_devices, 0);
 
-  valent_device_manager_save_state (self);
-  g_clear_object (&self->settings);
-
-  /* Remove actions from the `app` group, if available */
   if (self == default_manager)
     {
       GApplication *application = g_application_get_default ();
@@ -797,9 +764,10 @@ valent_device_manager_shutdown (ValentApplicationPlugin *plugin)
       if (application != NULL)
         {
           for (size_t i = 0; i < G_N_ELEMENTS (app_actions); i++)
-            g_action_map_remove_action (G_ACTION_MAP (application),
-                                        app_actions[i].name);
-
+            {
+              g_action_map_remove_action (G_ACTION_MAP (application),
+                                          app_actions[i].name);
+            }
         }
     }
 }
@@ -809,52 +777,36 @@ valent_device_manager_startup (ValentApplicationPlugin *plugin)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (plugin);
   PeasEngine *engine = NULL;
-  g_autofree char *name = NULL;
   unsigned int n_plugins = 0;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
+  g_return_if_fail (self->cancellable == NULL);
 
-  /* We're already started */
-  if (self->cancellable != NULL)
-    return;
-
-  /* Setup Manager */
   self->cancellable = g_cancellable_new ();
-  self->settings = g_settings_new ("ca.andyholmes.Valent");
-  g_settings_bind (self->settings, "name",
-                   self,           "name",
-                   G_SETTINGS_BIND_DEFAULT);
-  name = g_settings_get_string (self->settings, "name");
-  valent_device_manager_set_name (self, name);
   valent_device_manager_load_state (self);
 
-  /* Setup services */
   engine = valent_get_plugin_engine ();
-  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
-
-  for (unsigned int i = 0; i < n_plugins; i++)
-    {
-      g_autoptr (PeasPluginInfo) info = NULL;
-
-      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
-
-      if (peas_plugin_info_is_loaded (info))
-        on_load_service (engine, info, self);
-    }
-
   g_signal_connect_object (engine,
                            "load-plugin",
                            G_CALLBACK (on_load_service),
                            self,
                            G_CONNECT_AFTER);
-
   g_signal_connect_object (engine,
                            "unload-plugin",
                            G_CALLBACK (on_unload_service),
                            self,
-                           0);
+                           G_CONNECT_DEFAULT);
 
-  /* Add actions to the `app` group, if available */
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      if (peas_plugin_info_is_loaded (info))
+        on_load_service (engine, info, self);
+    }
+
   if (self == default_manager)
     {
       GApplication *application = g_application_get_default ();
@@ -878,32 +830,20 @@ valent_device_manager_constructed (GObject *object)
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
   g_autoptr (GFile) file = NULL;
   g_autoptr (GError) error = NULL;
-  const char *path = NULL;
 
-  g_assert (VALENT_IS_DEVICE_MANAGER (self));
+  G_OBJECT_CLASS (valent_device_manager_parent_class)->constructed (object);
 
-  /* Generate certificate */
   file = valent_context_get_config_file (self->context, ".");
-  path = g_file_peek_path (file);
+  self->certificate = valent_certificate_new_sync (g_file_peek_path (file), &error);
+  if (self->certificate == NULL)
+    g_critical ("%s(): %s", G_STRFUNC, error->message);
 
-  if ((self->certificate = valent_certificate_new_sync (path, &error)) != NULL)
-    self->id = valent_certificate_get_common_name (self->certificate);
-
-  if (self->id == NULL)
-    {
-      self->id = valent_device_generate_id ();
-      g_warning ("%s(): %s", G_STRFUNC, error->message);
-    }
-
-  /* ... */
   if (default_manager == NULL)
     {
       default_manager = self;
       g_object_add_weak_pointer (G_OBJECT (default_manager),
                                  (gpointer)&default_manager);
     }
-
-  G_OBJECT_CLASS (valent_device_manager_parent_class)->constructed (object);
 }
 
 static void
@@ -911,7 +851,7 @@ valent_device_manager_finalize (GObject *object)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
 
-  g_clear_pointer (&self->exported, g_hash_table_unref);
+  g_clear_pointer (&self->exports, g_hash_table_unref);
   g_clear_pointer (&self->plugins, g_hash_table_unref);
   g_clear_pointer (&self->plugins_context, g_object_unref);
   g_clear_pointer (&self->devices, g_ptr_array_unref);
@@ -919,47 +859,8 @@ valent_device_manager_finalize (GObject *object)
 
   g_clear_object (&self->certificate);
   g_clear_object (&self->context);
-  g_clear_pointer (&self->name, g_free);
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->finalize (object);
-}
-
-static void
-valent_device_manager_get_property (GObject    *object,
-                                    guint       prop_id,
-                                    GValue     *value,
-                                    GParamSpec *pspec)
-{
-  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
-
-  switch (prop_id)
-    {
-    case PROP_NAME:
-      g_value_set_string (value, self->name);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-valent_device_manager_set_property (GObject      *object,
-                                    guint         prop_id,
-                                    const GValue *value,
-                                    GParamSpec   *pspec)
-{
-  ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
-
-  switch (prop_id)
-    {
-    case PROP_NAME:
-      valent_device_manager_set_name (self, g_value_get_string (value));
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
 }
 
 static void
@@ -970,30 +871,11 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
 
   object_class->constructed = valent_device_manager_constructed;
   object_class->finalize = valent_device_manager_finalize;
-  object_class->get_property = valent_device_manager_get_property;
-  object_class->set_property = valent_device_manager_set_property;
 
   plugin_class->dbus_register = valent_device_manager_dbus_register;
   plugin_class->dbus_unregister = valent_device_manager_dbus_unregister;
   plugin_class->shutdown = valent_device_manager_shutdown;
   plugin_class->startup = valent_device_manager_startup;
-
-  /**
-   * ValentDeviceManager:name: (getter get_name) (setter set_name)
-   *
-   * The display name of the local device.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_NAME] =
-    g_param_spec_string ("name", NULL, NULL,
-                         "Valent",
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
 static void
@@ -1001,7 +883,7 @@ valent_device_manager_init (ValentDeviceManager *self)
 {
   self->context = valent_context_new (NULL, NULL, NULL);
   self->devices = g_ptr_array_new_with_free_func (g_object_unref);
-  self->exported = g_hash_table_new (NULL, NULL);
+  self->exports = g_hash_table_new_full (NULL, NULL, NULL, device_export_free);
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, manager_plugin_free);
   self->plugins_context = valent_context_new (self->context, "network", NULL);
 }
@@ -1022,44 +904,6 @@ valent_device_manager_get_default (void)
     return g_object_new (VALENT_TYPE_DEVICE_MANAGER, NULL);
 
   return default_manager;
-}
-
-/**
- * valent_device_manager_get_name: (get-property name)
- * @manager: a `ValentDeviceManager`
- *
- * Get the display name of the local device.
- *
- * Returns: (transfer none): the local display name
- *
- * Since: 1.0
- */
-const char *
-valent_device_manager_get_name (ValentDeviceManager *manager)
-{
-  g_return_val_if_fail (VALENT_IS_DEVICE_MANAGER (manager), NULL);
-
-  return manager->name;
-}
-
-/**
- * valent_device_manager_set_name: (set-property name)
- * @manager: a `ValentDeviceManager`
- * @name: (not nullable): a display name
- *
- * Set the display name of the local device to @name.
- *
- * Since: 1.0
- */
-void
-valent_device_manager_set_name (ValentDeviceManager *manager,
-                                const char          *name)
-{
-  g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
-  g_return_if_fail (name != NULL && *name != '\0');
-
-  if (g_set_str (&manager->name, name))
-    g_object_notify_by_pspec (G_OBJECT (manager), properties [PROP_NAME]);
 }
 
 /**
@@ -1084,7 +928,6 @@ valent_device_manager_refresh (ValentDeviceManager *manager)
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
 
   g_hash_table_iter_init (&iter, manager->plugins);
-
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
       if (plugin->extension == NULL)

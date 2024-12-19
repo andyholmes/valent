@@ -44,11 +44,6 @@ char            * valent_channel_service_dup_id          (ValentChannelService *
 VALENT_AVAILABLE_IN_1_0
 JsonNode        * valent_channel_service_ref_identity    (ValentChannelService *service);
 VALENT_AVAILABLE_IN_1_0
-const char      * valent_channel_service_get_name        (ValentChannelService *service);
-VALENT_AVAILABLE_IN_1_0
-void              valent_channel_service_set_name        (ValentChannelService *service,
-                                                          const char           *name);
-VALENT_AVAILABLE_IN_1_0
 void              valent_channel_service_build_identity  (ValentChannelService *service);
 VALENT_AVAILABLE_IN_1_0
 void              valent_channel_service_identify        (ValentChannelService *service,
