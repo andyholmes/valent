@@ -297,14 +297,14 @@ valent_contacts_adapter_open (ValentContactsAdapter  *self,
                               GError                **error)
 {
   ValentContactsAdapterPrivate *priv = valent_contacts_adapter_get_instance_private (self);
-  ValentContext *context = NULL;
+  ValentResource *source = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) ontology = NULL;
   const char *iri = NULL;
   g_autofree char *iri_pattern = NULL;
 
-  context = valent_extension_get_context (VALENT_EXTENSION (self));
-  file = valent_context_get_cache_file (context, "metadata");
+  source = valent_resource_get_source (VALENT_RESOURCE (self));
+  file = valent_data_source_get_cache_file (VALENT_DATA_SOURCE (source), "metadata");
   ontology = g_file_new_for_uri ("resource:///ca/andyholmes/Valent/ontologies/");
 
   priv->connection =

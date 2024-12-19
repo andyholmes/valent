@@ -393,16 +393,20 @@ static void
 sftp_session_begin (ValentSftpPlugin  *self,
                     ValentSftpSession *session)
 {
-  g_autoptr (ValentContext) context = NULL;
+  ValentResource *source = valent_data_source_get_local_default ();
+  g_autoptr (GFile) config_dir = NULL;
+  g_autoptr (GFile) private_key = NULL;
   g_autoptr (GSubprocess) proc = NULL;
   g_autoptr (GError) error = NULL;
-  g_autoptr (GFile) private_key = NULL;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
-  /* Get the root context and add the private key to the ssh-agent */
-  context = valent_context_new (NULL, NULL, NULL);
-  private_key = valent_context_get_config_file (context, "private.pem");
+  /* FIXME
+   * Get the root data source and add the private key to the ssh-agent
+   * */
+  config_dir = valent_data_source_get_config_file (VALENT_DATA_SOURCE (source),
+                                                   "..");
+  private_key = g_file_get_child (config_dir, "private.pem");
   proc = g_subprocess_new (G_SUBPROCESS_FLAGS_STDOUT_SILENCE |
                            G_SUBPROCESS_FLAGS_STDERR_MERGE,
                            &error,

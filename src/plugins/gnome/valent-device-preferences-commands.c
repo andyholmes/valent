@@ -281,6 +281,8 @@ valent_runcommand_preferences_constructed (GObject *object)
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
+  G_OBJECT_CLASS (valent_runcommand_preferences_parent_class)->constructed (object);
+
   gtk_list_box_set_sort_func (self->command_list, sort_commands, self, NULL);
 
   /* Setup GSettings */
@@ -291,8 +293,6 @@ valent_runcommand_preferences_constructed (GObject *object)
                            self,
                            G_CONNECT_SWAPPED);
   valent_runcommand_preferences_populate (self);
-
-  G_OBJECT_CLASS (valent_runcommand_preferences_parent_class)->constructed (object);
 }
 
 static void

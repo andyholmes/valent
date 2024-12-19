@@ -32,7 +32,6 @@
 typedef struct
 {
   PeasEngine      *engine;
-  ValentContext   *context;
   char            *plugin_domain;
   char            *plugin_priority;
   GType            plugin_type;
@@ -170,29 +169,24 @@ valent_component_enable_plugin (ValentComponent *self,
                                 ValentPlugin    *plugin)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
-  g_autofree char *urn = NULL;
-  const char *title = NULL;
-  const char *description = NULL;
-  const char *domain = NULL;
   const char *module = NULL;
+  g_autofree char *iri = NULL;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_COMPONENT (self));
   g_assert (plugin != NULL);
 
-  title = peas_plugin_info_get_name (plugin->info);
-  description = peas_plugin_info_get_description (plugin->info);
-  domain = valent_context_get_domain (priv->context);
   module = peas_plugin_info_get_module_name (plugin->info);
-  urn = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s", domain, module);
+  iri = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s",
+                                          plugin->domain,
+                                          module);
   plugin->extension = peas_engine_create_extension (priv->engine,
                                                     plugin->info,
                                                     priv->plugin_type,
-                                                    "iri",         urn,
-                                                    "source",      self,
-                                                    "title",       title,
-                                                    "description", description,
+                                                    "iri",           iri,
+                                                    "source",        plugin->source,
+                                                    "plugin-domain", plugin->domain,
                                                     NULL);
   g_return_if_fail (VALENT_IS_EXTENSION (plugin->extension));
 
@@ -310,7 +304,7 @@ on_load_plugin (PeasEngine      *engine,
                g_type_name (priv->plugin_type),
                peas_plugin_info_get_module_name (info));
 
-  plugin = valent_plugin_new (self, priv->context, info,
+  plugin = valent_plugin_new (self, info, priv->plugin_domain,
                               G_CALLBACK (on_plugin_enabled_changed));
   g_hash_table_insert (priv->plugins, info, plugin);
 
@@ -449,8 +443,6 @@ valent_component_constructed (GObject *object)
   g_assert (priv->plugin_domain != NULL);
   g_assert (priv->plugin_type != G_TYPE_NONE);
 
-  priv->context = valent_context_new (NULL, priv->plugin_domain, NULL);
-
   /* Infer the priority key */
   if (g_type_name (priv->plugin_type) != NULL)
     {
@@ -495,7 +487,6 @@ valent_component_finalize (GObject *object)
   g_clear_pointer (&priv->plugin_priority, g_free);
   g_clear_pointer (&priv->plugins, g_hash_table_unref);
   g_clear_pointer (&priv->items, g_ptr_array_unref);
-  g_clear_object (&priv->context);
 
   G_OBJECT_CLASS (valent_component_parent_class)->finalize (object);
 }

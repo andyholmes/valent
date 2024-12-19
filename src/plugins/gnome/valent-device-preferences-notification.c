@@ -276,6 +276,8 @@ valent_notification_preferences_constructed (GObject *object)
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
+  G_OBJECT_CLASS (valent_notification_preferences_parent_class)->constructed (object);
+
   settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,                    "forward-notifications",
                    self->forward_notifications, "enable-expansion",
@@ -291,8 +293,6 @@ valent_notification_preferences_constructed (GObject *object)
                               application_list_sort,
                               self, NULL);
   populate_applications (self);
-
-  G_OBJECT_CLASS (valent_notification_preferences_parent_class)->constructed (object);
 }
 
 static void

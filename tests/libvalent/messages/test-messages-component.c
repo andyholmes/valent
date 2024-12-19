@@ -41,7 +41,7 @@ test_messages_component_adapter (MessagesComponentFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_MESSAGES_ADAPTER,
                                           "iri",    "urn:valent:messages:mock",
-                                          "source", NULL,
+                                          "source", valent_data_source_get_local_default (),
                                           NULL);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
@@ -93,7 +93,7 @@ test_messages_component_message_list (MessagesComponentFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_MESSAGES_ADAPTER,
                                           "iri",    "urn:valent:messages:mock",
-                                          "source", NULL,
+                                          "source", valent_data_source_get_local_default (),
                                           NULL);
 
   // HACK: to address the lazy-load hack in ValentMessageThread

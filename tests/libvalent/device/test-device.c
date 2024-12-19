@@ -45,7 +45,7 @@ device_fixture_set_up (DeviceFixture *fixture,
 
   /* Init device */
   identity = get_packet (fixture, "identity");
-  fixture->device = valent_device_new_full (identity, NULL);
+  fixture->device = valent_device_new_full (NULL, identity);
 
   /* Init Channels */
   channels = valent_test_channel_pair (identity, identity);
@@ -176,7 +176,6 @@ static void
 test_device_basic (DeviceFixture *fixture,
                    gconstpointer  user_data)
 {
-  g_autoptr (ValentContext) context = NULL;
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
   g_autofree char *icon_name = NULL;
@@ -185,15 +184,13 @@ test_device_basic (DeviceFixture *fixture,
 
   /* Test properties */
   g_object_get (fixture->device,
-                "context",          &context,
-                "id",               &id,
-                "name",             &name,
-                "plugins",          &plugins,
-                "icon-name",        &icon_name,
-                "state",            &state,
+                "id",        &id,
+                "name",      &name,
+                "plugins",   &plugins,
+                "icon-name", &icon_name,
+                "state",     &state,
                 NULL);
 
-  g_assert_true (VALENT_IS_CONTEXT (context));
   g_assert_cmpstr (id, ==, "test-device");
   g_assert_cmpstr (valent_device_get_id (fixture->device), ==, "test-device");
   g_assert_cmpstr (name, ==, "Test Device");

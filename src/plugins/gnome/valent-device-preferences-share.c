@@ -124,6 +124,8 @@ valent_share_preferences_constructed (GObject *object)
   g_autofree char *download_folder = NULL;
   GSettings *settings;
 
+  G_OBJECT_CLASS (valent_share_preferences_parent_class)->constructed (object);
+
   settings = valent_device_preferences_group_get_settings (group);
   download_folder = g_settings_get_string (settings, "download-folder");
 
@@ -142,8 +144,6 @@ valent_share_preferences_constructed (GObject *object)
                                 on_download_folder_changed,
                                 NULL,
                                 NULL, NULL);
-
-  G_OBJECT_CLASS (valent_share_preferences_parent_class)->constructed (object);
 }
 
 static void

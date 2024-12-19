@@ -313,7 +313,6 @@ vdp_mpris_player_request_album_art (VdpMprisPlayer *self,
 {
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
-  ValentContext *context = NULL;
   g_autoptr (GFile) file = NULL;
   g_autofree char *filename = NULL;
 
@@ -321,9 +320,9 @@ vdp_mpris_player_request_album_art (VdpMprisPlayer *self,
   g_assert (url != NULL && *url != '\0');
   g_assert (metadata != NULL);
 
-  context = valent_device_get_context (self->device);
   filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
-  file = valent_context_get_cache_file (context, filename);
+  file = valent_data_source_get_cache_file (VALENT_DATA_SOURCE (self->device),
+                                            filename);
 
   /* If the album art has been cached, update the metadata dictionary */
   if (g_file_query_exists (file, NULL))
@@ -555,14 +554,10 @@ vdp_mpris_player_init (VdpMprisPlayer *self)
 VdpMprisPlayer *
 vdp_mpris_player_new (ValentDevice *device)
 {
-  g_autoptr (ValentContext) context = NULL;
   g_autofree char *iri = NULL;
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  context = valent_context_new (valent_device_get_context (device),
-                                "plugin",
-                                "systemvolume");
   iri = tracker_sparql_escape_uri_printf ("urn:valent:mixer:%s",
                                           valent_device_get_id (device));
   return g_object_new (VALENT_TYPE_MPRIS_PLAYER,

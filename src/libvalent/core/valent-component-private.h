@@ -4,7 +4,7 @@
 #pragma once
 
 #include "valent-component.h"
-#include "valent-context.h"
+#include "valent-data-source.h"
 
 #define VALENT_PLUGIN_SCHEMA "ca.andyholmes.Valent.Plugin"
 
@@ -13,7 +13,6 @@ G_BEGIN_DECLS
 /*< private >
  * ValentPlugin:
  * @parent: (type GObject.Object): the owner of the plugin
- * @context: the plugin context
  * @info: the plugin info
  * @extension: (type Valent.Extension): the plugin extension
  * @cancellable: the initialization cancellable
@@ -24,8 +23,9 @@ G_BEGIN_DECLS
 typedef struct
 {
   gpointer        parent;
-  ValentContext  *context;
+  gpointer        source;
   PeasPluginInfo *info;
+  char           *domain;
   gpointer        extension;
   GCancellable   *cancellable;
 
@@ -37,8 +37,9 @@ typedef struct
 /*< private >
  * valent_plugin_new:
  * @parent: (type GObject.Object): the parent
- * @parent_context: the parent context
- * @info: the plugin info
+ * @plugin_info: the plugin info
+ * @extension_domain: the extension domain
+ * @enable_func: a function to call when enabled/disabled
  *
  * Create a new `ValentPlugin`.
  *
@@ -46,22 +47,30 @@ typedef struct
  */
 static inline ValentPlugin *
 valent_plugin_new (gpointer        parent,
-                   ValentContext  *parent_context,
-                   PeasPluginInfo *info,
+                   PeasPluginInfo *plugin_info,
+                   const char     *extension_domain,
                    GCallback       enable_func)
 {
   ValentPlugin *plugin = NULL;
+  g_autofree char *path = NULL;
 
   g_assert (G_IS_OBJECT (parent));
-  g_assert (VALENT_IS_CONTEXT (parent_context));
-  g_assert (info != NULL);
+  g_assert (PEAS_IS_PLUGIN_INFO (plugin_info));
+  g_assert (extension_domain != NULL);
 
   plugin = g_new0 (ValentPlugin, 1);
   plugin->parent = parent;
-  plugin->info = g_object_ref (info);
-  plugin->context = valent_context_get_plugin_context (parent_context, info);
-  plugin->settings = valent_context_create_settings (plugin->context,
-                                                     VALENT_PLUGIN_SCHEMA);
+  plugin->source = parent;
+  plugin->info = g_object_ref (plugin_info);
+  plugin->domain = g_strdup (extension_domain);
+
+  if (!VALENT_IS_DATA_SOURCE (plugin->source))
+    plugin->source = valent_data_source_get_local_default ();
+
+  plugin->settings = valent_data_source_get_plugin_settings (plugin->source,
+                                                             plugin_info,
+                                                             NULL,
+                                                             extension_domain);
 
   g_signal_connect_swapped (plugin->settings,
                             "changed::enabled",
@@ -110,10 +119,10 @@ valent_plugin_free (gpointer data)
     }
 
   plugin->parent = NULL;
+  plugin->source = NULL;
   g_clear_object (&plugin->info);
+  g_clear_pointer (&plugin->domain, g_free);
   g_clear_object (&plugin->cancellable);
-  g_clear_object (&plugin->context);
-  g_clear_object (&plugin->extension);
   g_clear_object (&plugin->settings);
   g_clear_pointer (&plugin, g_free);
 }

@@ -585,7 +585,6 @@ valent_type_ensure (void)
   /* Core */
   g_type_ensure (VALENT_TYPE_APPLICATION);
   g_type_ensure (VALENT_TYPE_APPLICATION_PLUGIN);
-  g_type_ensure (VALENT_TYPE_CONTEXT);
   g_type_ensure (VALENT_TYPE_COMPONENT);
   g_type_ensure (VALENT_TYPE_DATA_SOURCE);
   g_type_ensure (VALENT_TYPE_EXTENSION);

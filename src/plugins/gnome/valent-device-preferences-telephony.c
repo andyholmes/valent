@@ -135,6 +135,8 @@ valent_telephony_preferences_constructed (GObject *object)
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
+  G_OBJECT_CLASS (valent_telephony_preferences_parent_class)->constructed (object);
+
   settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,            "ringing-pause",
                    self->ringing_pause, "active",
@@ -160,8 +162,6 @@ valent_telephony_preferences_constructed (GObject *object)
   g_settings_bind (settings,            "talking-pause",
                    self->talking_pause, "active",
                    G_SETTINGS_BIND_DEFAULT);
-
-  G_OBJECT_CLASS (valent_telephony_preferences_parent_class)->constructed (object);
 }
 
 static void

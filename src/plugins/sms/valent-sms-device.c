@@ -102,12 +102,11 @@ attachment_request_next (ValentSmsDevice *self)
   if (!g_queue_is_empty (&self->attachment_requests))
     {
       AttachmentRequest *request;
-      ValentContext *context;
       g_autoptr (GFile) file = NULL;
 
       request = g_queue_peek_head (&self->attachment_requests);
-      context = valent_extension_get_context (VALENT_EXTENSION (self));
-      file = valent_context_get_cache_file (context, request->unique_identifier);
+      file = valent_data_source_get_cache_file (VALENT_DATA_SOURCE (self->device),
+                                                request->unique_identifier);
       g_file_query_info_async (file,
                                G_FILE_ATTRIBUTE_STANDARD_TYPE,
                                G_FILE_QUERY_INFO_NONE,
@@ -932,19 +931,14 @@ valent_sms_device_init (ValentSmsDevice *self)
 ValentMessagesAdapter *
 valent_sms_device_new (ValentDevice *device)
 {
-  g_autoptr (ValentContext) context = NULL;
   g_autofree char *iri = NULL;
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  context = valent_context_new (valent_device_get_context (device),
-                                "plugin",
-                                "sms");
   iri = tracker_sparql_escape_uri_printf ("urn:valent:messages:%s",
                                           valent_device_get_id (device));
   return g_object_new (VALENT_TYPE_SMS_DEVICE,
                        "iri",     iri,
-                       "context", context,
                        "source",  device,
                        "title",   valent_device_get_name (device),
                        NULL);
@@ -1266,7 +1260,6 @@ void
 valent_sms_device_handle_attachment_file (ValentSmsDevice *self,
                                           JsonNode        *packet)
 {
-  ValentContext *context = NULL;
   g_autoptr (ValentTransfer) transfer = NULL;
   g_autoptr (GFile) file = NULL;
   const char *filename = NULL;
@@ -1281,8 +1274,8 @@ valent_sms_device_handle_attachment_file (ValentSmsDevice *self,
       return;
     }
 
-  context = valent_extension_get_context (VALENT_EXTENSION (self));
-  file = valent_context_get_cache_file (context, filename);
+  file = valent_data_source_get_cache_file (VALENT_DATA_SOURCE (self->device),
+                                            filename);
   transfer = valent_device_transfer_new (self->device, packet, file);
   valent_transfer_execute (transfer,
                            self->cancellable,

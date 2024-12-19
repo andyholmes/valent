@@ -55,6 +55,8 @@ valent_sftp_preferences_constructed (GObject *object)
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
+  G_OBJECT_CLASS (valent_sftp_preferences_parent_class)->constructed (object);
+
   settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,         "auto-mount",
                    self->auto_mount, "active",
@@ -65,8 +67,6 @@ valent_sftp_preferences_constructed (GObject *object)
   g_settings_bind (settings,         "local-port",
                    self->local_port, "value",
                    G_SETTINGS_BIND_DEFAULT);
-
-  G_OBJECT_CLASS (valent_sftp_preferences_parent_class)->constructed (object);
 }
 
 static void

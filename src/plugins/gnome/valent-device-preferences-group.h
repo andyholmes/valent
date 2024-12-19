@@ -20,7 +20,6 @@ struct _ValentDevicePreferencesGroupClass
   gpointer                   padding[8];
 };
 
-ValentContext * valent_device_preferences_group_get_context   (ValentDevicePreferencesGroup *group);
 GSettings     * valent_device_preferences_group_get_settings (ValentDevicePreferencesGroup *group);
 
 G_END_DECLS

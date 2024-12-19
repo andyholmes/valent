@@ -8,13 +8,14 @@
 G_BEGIN_DECLS
 
 _VALENT_EXTERN
-ValentDevice * valent_device_new_full      (JsonNode      *identity,
-                                            ValentContext *context);
+ValentDevice * valent_device_new_full    (ValentResource *source,
+                                          JsonNode       *identity);
 _VALENT_EXTERN
-void           valent_device_set_channel   (ValentDevice  *device,
-                                            ValentChannel *channel);
+void           valent_device_set_channel (ValentDevice   *device,
+                                          ValentChannel  *channel);
 _VALENT_EXTERN
-void           valent_device_set_paired    (ValentDevice  *device,
-                                            gboolean       paired);
+void           valent_device_set_paired  (ValentDevice   *device,
+                                          gboolean        paired);
 
 G_END_DECLS
+

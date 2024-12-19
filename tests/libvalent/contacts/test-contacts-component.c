@@ -41,7 +41,7 @@ test_contacts_component_adapter (ContactsComponentFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_CONTACTS_ADAPTER,
                                           "iri",    "urn:valent:contacts:mock",
-                                          "source", NULL,
+                                          "source", valent_data_source_get_local_default (),
                                           NULL);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
@@ -94,7 +94,7 @@ test_contacts_component_contact_list (ContactsComponentFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_CONTACTS_ADAPTER,
                                           "iri",    "urn:valent:contacts:mock",
-                                          "source", NULL,
+                                          "source", valent_data_source_get_local_default (),
                                           NULL);
 
   list = g_list_model_get_item (G_LIST_MODEL (adapter), 0);

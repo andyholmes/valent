@@ -168,10 +168,11 @@ valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
 
   if (valent_packet_get_string (packet, "payloadHash", &payload_hash))
     {
-      ValentContext *context = NULL;
+      ValentDevice *device = NULL;
 
-      context = valent_extension_get_context (VALENT_EXTENSION (self));
-      file = valent_context_get_cache_file (context, payload_hash);
+      device = valent_resource_get_source (VALENT_RESOURCE (self));
+      file = valent_data_source_get_cache_file (VALENT_DATA_SOURCE (device),
+                                                payload_hash);
     }
   else
     {

@@ -14,34 +14,55 @@
 
 typedef struct
 {
-  ValentContext  *context;
-  PeasPluginInfo *plugin_info;
-  GSettings      *settings;
+  ValentDataSource *data_source;
+  PeasPluginInfo   *plugin_info;
+  GSettings        *settings;
 } ValentDevicePreferencesGroupPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentDevicePreferencesGroup, valent_device_preferences_group, ADW_TYPE_PREFERENCES_GROUP)
 
-enum {
-  PROP_0,
-  PROP_CONTEXT,
+typedef enum {
+  PROP_DATA_SOURCE = 1,
   PROP_PLUGIN_INFO,
   PROP_SETTINGS,
-  N_PROPERTIES
-};
+} ValentDevicePreferencesGroupProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_SETTINGS + 1] = { NULL, };
 
 
 /*
  * GObject
  */
 static void
+valent_device_preferences_group_constructed (GObject *object)
+{
+  ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
+  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (self);
+
+  G_OBJECT_CLASS (valent_device_preferences_group_parent_class)->constructed (object);
+
+  if (priv->data_source == NULL)
+    {
+      ValentResource *resource = valent_data_source_get_local_default ();
+      priv->data_source = VALENT_DATA_SOURCE (g_object_ref (resource));
+    }
+
+  if (priv->plugin_info != NULL)
+    {
+      priv->settings = valent_data_source_get_plugin_settings (priv->data_source,
+                                                               priv->plugin_info,
+                                                               "X-DevicePluginSettings",
+                                                               "device");
+    }
+}
+
+static void
 valent_device_preferences_group_finalize (GObject *object)
 {
   ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
   ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (self);
 
-  g_clear_object (&priv->context);
+  g_clear_object (&priv->data_source);
   g_clear_object (&priv->plugin_info);
   g_clear_object (&priv->settings);
 
@@ -57,10 +78,10 @@ valent_device_preferences_group_get_property (GObject    *object,
   ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
   ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentDevicePreferencesGroupProperty)prop_id)
     {
-    case PROP_CONTEXT:
-      g_value_set_object (value, valent_device_preferences_group_get_context (self));
+    case PROP_DATA_SOURCE:
+      g_value_set_object (value, priv->data_source);
       break;
 
     case PROP_PLUGIN_INFO:
@@ -68,7 +89,7 @@ valent_device_preferences_group_get_property (GObject    *object,
       break;
 
     case PROP_SETTINGS:
-      g_value_set_object (value, valent_device_preferences_group_get_settings (self));
+      g_value_set_object (value, priv->settings);
       break;
 
     default:
@@ -85,16 +106,17 @@ valent_device_preferences_group_set_property (GObject      *object,
   ValentDevicePreferencesGroup *self = VALENT_DEVICE_PREFERENCES_GROUP (object);
   ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentDevicePreferencesGroupProperty)prop_id)
     {
-    case PROP_CONTEXT:
-      priv->context = g_value_dup_object (value);
+    case PROP_DATA_SOURCE:
+      priv->data_source = g_value_dup_object (value);
       break;
 
     case PROP_PLUGIN_INFO:
       priv->plugin_info = g_value_dup_object (value);
       break;
 
+    case PROP_SETTINGS:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -105,18 +127,19 @@ valent_device_preferences_group_class_init (ValentDevicePreferencesGroupClass *k
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->constructed = valent_device_preferences_group_constructed;
   object_class->finalize = valent_device_preferences_group_finalize;
   object_class->get_property = valent_device_preferences_group_get_property;
   object_class->set_property = valent_device_preferences_group_set_property;
 
   /**
-   * ValentDevicePreferencesGroup:context: (getter get_context)
+   * ValentDevicePreferencesGroup:data-source:
    *
-   * The [class@Valent.Context] for the [class@Valent.DevicePlugin].
+   * The [class@Valent.DataSource] for the [class@Valent.DevicePlugin].
    */
-  properties [PROP_CONTEXT] =
-    g_param_spec_object ("context", NULL, NULL,
-                         VALENT_TYPE_CONTEXT,
+  properties [PROP_DATA_SOURCE] =
+    g_param_spec_object ("data-source", NULL, NULL,
+                         VALENT_TYPE_DATA_SOURCE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -147,38 +170,12 @@ valent_device_preferences_group_class_init (ValentDevicePreferencesGroupClass *k
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
 valent_device_preferences_group_init (ValentDevicePreferencesGroup *self)
 {
-}
-
-/**
- * valent_device_preferences_group_get_context:
- * @group: a `ValentDevicePreferencesGroup`
- *
- * Get the [class@Valent.Context] for the [class@Valent.DevicePlugin].
- *
- * Returns: (transfer none) (nullable): a `ValentContext`
- */
-ValentContext *
-valent_device_preferences_group_get_context (ValentDevicePreferencesGroup *group)
-{
-  ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (group);
-
-  g_return_val_if_fail (VALENT_IS_DEVICE_PREFERENCES_GROUP (group), NULL);
-
-  if (priv->context == NULL)
-    {
-      g_autoptr (ValentContext) context = NULL;
-
-      context = valent_context_new (NULL, "device", "default");
-      priv->context = valent_context_get_plugin_context (context, priv->plugin_info);
-    }
-
-  return priv->context;
 }
 
 /**
@@ -195,16 +192,6 @@ valent_device_preferences_group_get_settings (ValentDevicePreferencesGroup *grou
   ValentDevicePreferencesGroupPrivate *priv = valent_device_preferences_group_get_instance_private (group);
 
   g_return_val_if_fail (VALENT_IS_DEVICE_PREFERENCES_GROUP (group), NULL);
-
-  if (priv->settings == NULL)
-    {
-      ValentContext *context = NULL;
-
-      context = valent_device_preferences_group_get_context (group);
-      priv->settings = valent_context_get_plugin_settings (context,
-                                                           priv->plugin_info,
-                                                           "X-DevicePluginSettings");
-    }
 
   return priv->settings;
 }

@@ -118,13 +118,12 @@ plugin_row_add_extensions (AdwExpanderRow *plugin_row,
                            PeasPluginInfo *info)
 {
   PeasEngine *engine = valent_get_plugin_engine ();
+  ValentResource *source = valent_data_source_get_local_default ();
   GtkWidget *row;
 
   for (unsigned int i = 0; i < N_EXTENSIONS; i++)
     {
       ExtensionDescription extension = extensions[i];
-      g_autoptr (ValentContext) domain = NULL;
-      g_autoptr (ValentContext) context = NULL;
       g_autoptr (GSettings) settings = NULL;
 
       if (!peas_engine_provides_extension (engine, info, extension.gtype))
@@ -136,10 +135,10 @@ plugin_row_add_extensions (AdwExpanderRow *plugin_row,
                           NULL);
       adw_expander_row_add_row (ADW_EXPANDER_ROW (plugin_row), row);
 
-      domain = valent_context_new (NULL, extension.domain, NULL);
-      context = valent_context_get_plugin_context (domain, info);
-      settings = valent_context_create_settings (context,
-                                                 "ca.andyholmes.Valent.Plugin");
+      settings = valent_data_source_get_plugin_settings (VALENT_DATA_SOURCE (source),
+                                                         info,
+                                                         NULL,
+                                                         extension.domain);
       g_settings_bind (settings, "enabled",
                        row,      "active",
                        G_SETTINGS_BIND_DEFAULT);

@@ -7,6 +7,7 @@
 
 #include <glib/gi18n-lib.h>
 #include <gio/gio.h>
+#include <libtracker-sparql/tracker-sparql.h>
 #include <libvalent-core.h>
 
 #include "valent-device-enums.h"
@@ -46,31 +47,30 @@
 
 struct _ValentDevice
 {
-  ValentResource   parent_instance;
+  ValentDataSource   parent_instance;
 
-  ValentContext   *context;
-  GSettings       *settings;
+  GSettings         *settings;
 
   /* Properties */
-  char            *icon_name;
-  char            *id;
-  char            *name;
-  char            *type;
-  char           **incoming_capabilities;
-  char           **outgoing_capabilities;
+  char              *icon_name;
+  char              *id;
+  char              *name;
+  char              *type;
+  char             **incoming_capabilities;
+  char             **outgoing_capabilities;
 
   /* State */
-  ValentChannel   *channel;
-  gboolean         paired;
-  unsigned int     incoming_pair;
-  unsigned int     outgoing_pair;
+  ValentChannel     *channel;
+  gboolean           paired;
+  unsigned int       incoming_pair;
+  unsigned int       outgoing_pair;
 
   /* Plugins */
-  PeasEngine      *engine;
-  GHashTable      *plugins;
-  GHashTable      *handlers;
-  GHashTable      *actions;
-  GMenu           *menu;
+  PeasEngine        *engine;
+  GHashTable        *plugins;
+  GHashTable        *handlers;
+  GHashTable        *actions;
+  GMenu             *menu;
 };
 
 static void       valent_device_reload_plugins  (ValentDevice   *device);
@@ -80,23 +80,18 @@ static gboolean   valent_device_supports_plugin (ValentDevice   *device,
 
 static void       g_action_group_iface_init     (GActionGroupInterface *iface);
 
-G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_RESOURCE,
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_DATA_SOURCE,
                                G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init))
 
-
-enum {
-  PROP_0,
-  PROP_CONTEXT,
-  PROP_ICON_NAME,
+typedef enum {
+  PROP_ICON_NAME = 1,
   PROP_ID,
   PROP_NAME,
   PROP_PLUGINS,
   PROP_STATE,
-  N_PROPERTIES
-};
+} ValentDeviceProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
-
+static GParamSpec *properties[PROP_STATE + 1] = { NULL, };
 
 /*
  * GActionGroup
@@ -263,24 +258,24 @@ static void
 valent_device_enable_plugin (ValentDevice *device,
                              ValentPlugin *plugin)
 {
+  const char *module = NULL;
+  g_autofree char *iri = NULL;
   g_auto (GStrv) actions = NULL;
-  g_autofree char *urn = NULL;
   const char *incoming = NULL;
-  const char *title = NULL;
-  const char *description = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
 
-  title = peas_plugin_info_get_name (plugin->info);
-  description = peas_plugin_info_get_description (plugin->info);
+  module = peas_plugin_info_get_module_name (plugin->info);
+  iri = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s",
+                                          plugin->domain,
+                                          module);
   plugin->extension = peas_engine_create_extension (device->engine,
                                                     plugin->info,
                                                     VALENT_TYPE_DEVICE_PLUGIN,
-                                                    "context",     plugin->context,
-                                                    "source",      plugin->parent,
-                                                    "title",       title,
-                                                    "description", description,
+                                                    "iri",           iri,
+                                                    "source",        plugin->source,
+                                                    "plugin-domain", plugin->domain,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
@@ -732,7 +727,7 @@ on_load_plugin (PeasEngine     *engine,
                peas_plugin_info_get_module_name (info));
 
   /* Register the plugin & data (hash tables are ref owners) */
-  plugin = valent_plugin_new (self, self->context, info,
+  plugin = valent_plugin_new (self, info, "device",
                               G_CALLBACK (on_plugin_enabled_changed));
   g_hash_table_insert (self->plugins, info, plugin);
 
@@ -841,9 +836,6 @@ valent_device_constructed (GObject *object)
   /* We must at least have a device ID */
   g_assert (self->id != NULL);
 
-  if (self->context == NULL)
-    self->context = valent_context_new (NULL, "device", self->id);
-
   path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/", self->id);
   self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", path);
   self->paired = g_settings_get_boolean (self->settings, "paired");
@@ -877,7 +869,6 @@ valent_device_finalize (GObject *object)
 {
   ValentDevice *self = VALENT_DEVICE (object);
 
-  g_clear_object (&self->context);
   g_clear_object (&self->settings);
 
   /* Properties */
@@ -908,12 +899,8 @@ valent_device_get_property (GObject    *object,
 {
   ValentDevice *self = VALENT_DEVICE (object);
 
-  switch (prop_id)
+  switch ((ValentDeviceProperty)prop_id)
     {
-    case PROP_CONTEXT:
-      g_value_set_object (value, self->context);
-      break;
-
     case PROP_ICON_NAME:
       g_value_set_string (value, self->icon_name);
       break;
@@ -947,16 +934,16 @@ valent_device_set_property (GObject      *object,
 {
   ValentDevice *self = VALENT_DEVICE (object);
 
-  switch (prop_id)
+  switch ((ValentDeviceProperty)prop_id)
     {
-    case PROP_CONTEXT:
-      self->context = g_value_dup_object (value);
-      break;
-
     case PROP_ID:
       self->id = g_value_dup_string (value);
       break;
 
+    case PROP_ICON_NAME:
+    case PROP_NAME:
+    case PROP_PLUGINS:
+    case PROP_STATE:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -1011,21 +998,6 @@ valent_device_class_init (ValentDeviceClass *klass)
   object_class->set_property = valent_device_set_property;
 
   vobject_class->destroy = valent_device_destroy;
-
-  /**
-   * ValentDevice:context: (getter get_context)
-   *
-   * The data context.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_CONTEXT] =
-    g_param_spec_object ("context", NULL, NULL,
-                         VALENT_TYPE_CONTEXT,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentDevice:icon-name: (getter get_icon_name)
@@ -1103,7 +1075,7 @@ valent_device_class_init (ValentDeviceClass *klass)
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 /**
@@ -1128,35 +1100,37 @@ valent_device_new (const char *id)
 
 /*< private >
  * valent_device_new_full:
+ * @source: (nullable): a source object
  * @identity: a KDE Connect identity packet
- * @context: (nullable): a `ValentContext`
  *
  * Create a new device for @identity.
  *
  * Returns: (transfer full) (nullable): a new `ValentDevice`
  */
 ValentDevice *
-valent_device_new_full (JsonNode      *identity,
-                        ValentContext *context)
+valent_device_new_full (ValentResource *source,
+                        JsonNode       *identity)
 {
   ValentDevice *ret;
   const char *id;
 
+  g_return_val_if_fail (source == NULL || VALENT_IS_RESOURCE (source), NULL);
   g_return_val_if_fail (VALENT_IS_PACKET (identity), NULL);
 
   if (!valent_packet_get_string (identity, "deviceId", &id))
     {
-      g_critical ("%s(): missing \"deviceId\" field", G_STRFUNC);
+      g_critical ("%s(): expected \"deviceId\" field holding a string",
+                  G_STRFUNC);
       return NULL;
     }
 
   ret = g_object_new (VALENT_TYPE_DEVICE,
-                      "id",      id,
-                      "context", context,
+                      "id",     id,
+                      "source", source,
                       NULL);
   valent_device_handle_identity (ret, identity);
 
-  return ret;
+  return g_steal_pointer (&ret);
 }
 
 static void
@@ -1401,24 +1375,6 @@ valent_device_set_channel (ValentDevice  *device,
 }
 
 /**
- * valent_device_get_context: (get-property context)
- * @device: a `ValentDevice`
- *
- * Get the data context.
- *
- * Returns: (transfer full): a `ValentContext`
- *
- * Since: 1.0
- */
-ValentContext *
-valent_device_get_context (ValentDevice *device)
-{
-  g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
-
-  return device->context;
-}
-
-/**
  * valent_device_get_icon_name: (get-property icon-name)
  * @device: a `ValentDevice`
  *
@@ -1522,9 +1478,9 @@ valent_device_set_paired (ValentDevice *device,
 
   /* FIXME: If we're connected store/clear connection data */
   if (paired && device->channel != NULL)
-    valent_channel_store_data (device->channel, device->context);
+    valent_channel_store_data (device->channel, VALENT_DATA_SOURCE (device));
   else if (!paired)
-    valent_context_clear (device->context);
+    valent_data_source_clear_data (VALENT_DATA_SOURCE (device));
 
   device->paired = paired;
   g_settings_set_boolean (device->settings, "paired", device->paired);

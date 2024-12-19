@@ -8,8 +8,8 @@
 #include <gio/gio.h>
 #include <libpeas.h>
 
-#include "valent-context.h"
 #include "valent-core-enums.h"
+#include "valent-data-source.h"
 #include "valent-object.h"
 #include "valent-resource.h"
 
@@ -21,8 +21,8 @@
  *
  * An abstract base class for extensions.
  *
- * `ValentExtension` is a base class for extensions with conveniences for
- * [iface@Gio.Action], [class@Gio.Settings] backed by [class@Valent.Context].
+ * `ValentExtension` is a base class for extensions in Valent, with conveniences
+ * for [iface@Gio.Action] and [class@Gio.Settings].
  *
  * ## Implementation Notes
  *
@@ -60,7 +60,7 @@
  * - [class@Gio.Settings] Schema Field
  *
  *     A [class@Gio.Settings] schema ID for the extensions's settings. See
- *     [method@Valent.Context.get_plugin_settings] for more information.
+ *     [method@Valent.DataSource.get_plugin_settings] for more information.
  *
  *     Field pattern: `X-<type name>Settings`
  *
@@ -70,11 +70,11 @@
 typedef struct
 {
   PeasPluginInfo    *plugin_info;
+  char              *plugin_domain;
   ValentPluginState  plugin_state;
   GError            *plugin_error;
 
   GHashTable        *actions;
-  ValentContext     *context;
   GSettings         *settings;
 } ValentExtensionPrivate;
 
@@ -87,7 +87,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentExtension, valent_extension, VALENT_TYPE
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_MAP, g_action_map_iface_init))
 
 typedef enum {
-  PROP_CONTEXT = 1,
+  PROP_PLUGIN_DOMAIN = 1,
   PROP_PLUGIN_INFO,
   PROP_PLUGIN_STATE,
   PROP_SETTINGS,
@@ -341,10 +341,10 @@ valent_extension_finalize (GObject *object)
   ValentExtension *self = VALENT_EXTENSION (object);
   ValentExtensionPrivate *priv = valent_extension_get_instance_private (self);
 
+  g_clear_object (&priv->plugin_info);
+  g_clear_pointer (&priv->plugin_domain, g_free);
   g_clear_error (&priv->plugin_error);
   g_clear_pointer (&priv->actions, g_hash_table_unref);
-  g_clear_object (&priv->context);
-  g_clear_object (&priv->plugin_info);
   g_clear_object (&priv->settings);
 
   G_OBJECT_CLASS (valent_extension_parent_class)->finalize (object);
@@ -361,8 +361,8 @@ valent_extension_get_property (GObject    *object,
 
   switch ((ValentExtensionProperty)prop_id)
     {
-    case PROP_CONTEXT:
-      g_value_set_object (value, valent_extension_get_context (self));
+    case PROP_PLUGIN_DOMAIN:
+      g_value_set_string (value, priv->plugin_domain);
       break;
 
     case PROP_PLUGIN_INFO:
@@ -393,8 +393,8 @@ valent_extension_set_property (GObject      *object,
 
   switch ((ValentExtensionProperty)prop_id)
     {
-    case PROP_CONTEXT:
-      priv->context = g_value_dup_object (value);
+    case PROP_PLUGIN_DOMAIN:
+      priv->plugin_domain = g_value_dup_string (value);
       break;
 
     case PROP_PLUGIN_INFO:
@@ -422,15 +422,15 @@ valent_extension_class_init (ValentExtensionClass *klass)
   vobject_class->destroy = valent_extension_destroy;
 
   /**
-   * ValentExtension:context: (getter get_context)
+   * ValentExtension:plugin-info:
    *
-   * The [class@Valent.Device] this plugin is bound to.
+   * The domain this plugin extension operates in.
    *
    * Since: 1.0
    */
-  properties [PROP_CONTEXT] =
-    g_param_spec_object ("context", NULL, NULL,
-                         VALENT_TYPE_CONTEXT,
+  properties [PROP_PLUGIN_DOMAIN] =
+    g_param_spec_string ("plugin-domain", NULL, NULL,
+                         NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -495,36 +495,6 @@ valent_extension_init (ValentExtension *self)
 }
 
 /**
- * valent_extension_get_context: (get-property context)
- * @extension: a `ValentExtension`
- *
- * Get the settings for this plugin.
- *
- * Returns: (transfer none) (nullable): a `ValentContext`
- *
- * Since: 1.0
- */
-ValentContext *
-valent_extension_get_context (ValentExtension *extension)
-{
-  ValentExtensionPrivate *priv = valent_extension_get_instance_private (extension);
-
-  g_return_val_if_fail (VALENT_IS_EXTENSION (extension), NULL);
-
-  if (priv->context == NULL)
-    {
-      ValentContext *context = NULL;
-      const char *module_name = NULL;
-
-      /* FIXME: context = valent_object_get_context (priv->object); */
-      module_name = peas_plugin_info_get_module_name (priv->plugin_info);
-      priv->context = valent_context_new (context, "plugin", module_name);
-    }
-
-  return priv->context;
-}
-
-/**
  * valent_extension_get_settings: (get-property settings)
  * @extension: a `ValentExtension`
  *
@@ -543,6 +513,7 @@ valent_extension_get_settings (ValentExtension *extension)
 
   if (priv->settings == NULL)
     {
+      ValentResource *source = NULL;
       GType type_base = g_type_parent (G_OBJECT_TYPE (extension));
       const char *type_name = g_type_name (type_base);
       g_autofree char *key = NULL;
@@ -552,9 +523,11 @@ valent_extension_get_settings (ValentExtension *extension)
       else
         key = g_strdup_printf ("X-%sSettings", type_name);
 
-      priv->settings = valent_context_get_plugin_settings (priv->context,
-                                                           priv->plugin_info,
-                                                           key);
+      source = valent_resource_get_source (VALENT_RESOURCE (extension));
+      priv->settings = valent_data_source_get_plugin_settings (VALENT_DATA_SOURCE (source),
+                                                               priv->plugin_info,
+                                                               key,
+                                                               priv->plugin_domain);
     }
 
   return priv->settings;

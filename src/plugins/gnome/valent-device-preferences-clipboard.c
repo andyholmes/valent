@@ -35,6 +35,8 @@ valent_clipboard_preferences_constructed (GObject *object)
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
+  G_OBJECT_CLASS (valent_clipboard_preferences_parent_class)->constructed (object);
+
   settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,        "auto-pull",
                    self->sync_pull, "active",
@@ -42,8 +44,6 @@ valent_clipboard_preferences_constructed (GObject *object)
   g_settings_bind (settings,        "auto-push",
                    self->sync_push, "active",
                    G_SETTINGS_BIND_DEFAULT);
-
-  G_OBJECT_CLASS (valent_clipboard_preferences_parent_class)->constructed (object);
 }
 
 static void

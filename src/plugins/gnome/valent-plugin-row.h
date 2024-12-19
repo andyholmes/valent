@@ -12,3 +12,4 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (ValentPluginRow, valent_plugin_row, VALENT, PLUGIN_ROW, AdwExpanderRow)
 
 G_END_DECLS
+

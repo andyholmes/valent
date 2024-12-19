@@ -77,7 +77,6 @@ static void
 vdp_mpris_adapter_receive_album_art (VdpMprisAdapter *self,
                                      JsonNode        *packet)
 {
-  ValentContext *context = NULL;
   const char *url;
   g_autofree char *filename = NULL;
   g_autoptr (GFile) file = NULL;
@@ -90,9 +89,9 @@ vdp_mpris_adapter_receive_album_art (VdpMprisAdapter *self,
       return;
     }
 
-  context = valent_device_get_context (self->device);
   filename = g_compute_checksum_for_string (G_CHECKSUM_MD5, url, -1);
-  file = valent_context_get_cache_file (context, filename);
+  file = valent_data_source_get_cache_file (VALENT_DATA_SOURCE (self->device),
+                                            filename);
 
   transfer = valent_device_transfer_new (self->device, packet, file);
   valent_transfer_execute (transfer,
@@ -254,19 +253,14 @@ vdp_mpris_adapter_init (VdpMprisAdapter *self)
 ValentMediaAdapter *
 vdp_mpris_adapter_new (ValentDevice *device)
 {
-  g_autoptr (ValentContext) context = NULL;
   g_autofree char *iri = NULL;
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  context = valent_context_new (valent_device_get_context (device),
-                                "plugin",
-                                "mpris");
-  iri = tracker_sparql_escape_uri_printf ("urn:valent:messages:%s",
+  iri = tracker_sparql_escape_uri_printf ("urn:valent:media:%s",
                                           valent_device_get_id (device));
   return g_object_new (VDP_TYPE_MPRIS_ADAPTER,
                        "iri",     iri,
-                       "context", context,
                        "source",  device,
                        "title",   valent_device_get_name (device),
                        NULL);

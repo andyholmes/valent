@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libtracker-sparql/tracker-sparql.h>
 #include <libvalent-core.h>
 
 #include "../core/valent-component-private.h"
@@ -39,12 +40,10 @@ struct _ValentDeviceManager
   ValentApplicationPlugin   parent_instance;
 
   GCancellable             *cancellable;
-  ValentContext            *context;
   GTlsCertificate          *certificate;
 
   GPtrArray                *devices;
   GHashTable               *plugins;
-  ValentContext            *plugins_context;
   JsonNode                 *state;
 
   GDBusObjectManagerServer *dbus;
@@ -297,15 +296,23 @@ static inline void
 valent_device_manager_enable_plugin (ValentDeviceManager *self,
                                      ValentPlugin        *plugin)
 {
+  const char *module = NULL;
+  g_autofree char *iri = NULL;
+
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (plugin != NULL);
 
+  module = peas_plugin_info_get_module_name (plugin->info);
+  iri = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s",
+                                          plugin->domain,
+                                          module);
   plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_CHANNEL_SERVICE,
-                                                    "source",      self,
-                                                    "context",     plugin->context,
-                                                    "certificate", self->certificate,
+                                                    "iri",           iri,
+                                                    "source",        plugin->source,
+                                                    "plugin-domain", plugin->domain,
+                                                    "certificate",   self->certificate,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
@@ -379,7 +386,7 @@ on_load_service (PeasEngine          *engine,
                g_type_name (VALENT_TYPE_CHANNEL_SERVICE),
                peas_plugin_info_get_module_name (info));
 
-  plugin = valent_plugin_new (self, self->plugins_context, info,
+  plugin = valent_plugin_new (self, info, "network",
                               G_CALLBACK (on_plugin_enabled_changed));
   g_hash_table_insert (self->plugins, info, plugin);
 
@@ -510,12 +517,9 @@ valent_device_manager_ensure_device (ValentDeviceManager *self,
                                          find_device_by_id,
                                          &position))
     {
-      g_autoptr (ValentContext) context = NULL;
       g_autoptr (ValentDevice) device = NULL;
 
-      context = valent_context_new (self->context, "device", device_id);
-      device = valent_device_new_full (identity, context);
-
+      device = valent_device_new_full (VALENT_RESOURCE (self), identity);
       valent_device_manager_add_device (self, device);
       position = (self->devices->len - 1);
     }
@@ -574,6 +578,7 @@ valent_device_manager_remove_device (ValentDeviceManager *self,
 static void
 valent_device_manager_load_state (ValentDeviceManager *self)
 {
+  ValentResource *source = valent_data_source_get_local_default ();
   JsonObjectIter iter;
   const char *device_id;
   JsonNode *identity;
@@ -586,7 +591,8 @@ valent_device_manager_load_state (ValentDeviceManager *self)
       g_autoptr (GFile) file = NULL;
 
       parser = json_parser_new ();
-      file = valent_context_get_cache_file (self->context, "devices.json");
+      file = valent_data_source_get_cache_file (VALENT_DATA_SOURCE (source),
+                                                "devices.json");
       if (json_parser_load_from_file (parser, g_file_peek_path (file), NULL))
         self->state = json_parser_steal_root (parser);
 
@@ -606,6 +612,7 @@ valent_device_manager_load_state (ValentDeviceManager *self)
 static void
 valent_device_manager_save_state (ValentDeviceManager *self)
 {
+  ValentResource *source = valent_data_source_get_local_default ();
   g_autoptr (JsonGenerator) generator = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GError) error = NULL;
@@ -629,7 +636,8 @@ valent_device_manager_save_state (ValentDeviceManager *self)
         }
     }
 
-  file = valent_context_get_cache_file (self->context, "devices.json");
+  file = valent_data_source_get_cache_file (VALENT_DATA_SOURCE (source),
+                                            "devices.json");
   if (!json_generator_to_file (generator, g_file_peek_path (file), &error))
     g_warning ("%s(): %s", G_STRFUNC, error->message);
 }
@@ -813,12 +821,14 @@ static void
 valent_device_manager_constructed (GObject *object)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
+  ValentResource *source = valent_data_source_get_local_default ();
   g_autoptr (GFile) file = NULL;
   g_autoptr (GError) error = NULL;
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->constructed (object);
 
-  file = valent_context_get_config_file (self->context, ".");
+  // FIXME
+  file = valent_data_source_get_config_file (VALENT_DATA_SOURCE (source), "..");
   self->certificate = valent_certificate_new_sync (g_file_peek_path (file), &error);
   if (self->certificate == NULL)
     g_critical ("%s(): %s", G_STRFUNC, error->message);
@@ -838,12 +848,10 @@ valent_device_manager_finalize (GObject *object)
 
   g_clear_pointer (&self->exports, g_hash_table_unref);
   g_clear_pointer (&self->plugins, g_hash_table_unref);
-  g_clear_pointer (&self->plugins_context, g_object_unref);
   g_clear_pointer (&self->devices, g_ptr_array_unref);
   g_clear_pointer (&self->state, json_node_unref);
 
   g_clear_object (&self->certificate);
-  g_clear_object (&self->context);
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->finalize (object);
 }
@@ -866,11 +874,9 @@ valent_device_manager_class_init (ValentDeviceManagerClass *klass)
 static void
 valent_device_manager_init (ValentDeviceManager *self)
 {
-  self->context = valent_context_new (NULL, NULL, NULL);
   self->devices = g_ptr_array_new_with_free_func (g_object_unref);
   self->exports = g_hash_table_new_full (NULL, NULL, NULL, device_export_free);
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
-  self->plugins_context = valent_context_new (self->context, "network", NULL);
 }
 
 /**

@@ -89,38 +89,27 @@ valent_contacts_preferences_create_row_func (gpointer item,
 {
   ValentContactsPreferences *self = VALENT_CONTACTS_PREFERENCES (user_data);
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
-  ValentContactsAdapter *adapter = VALENT_CONTACTS_ADAPTER (item);
-  ValentContext *context = NULL;
-  const char *device_id = NULL;
+  ValentResource *adapter = VALENT_RESOURCE (item);
   GSettings *settings;
   GtkWidget *row;
   GtkWidget *image;
-  const char *icon_name;
   const char *iri = NULL;
   g_autofree char *local_iri = NULL;
 
   g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
   g_assert (VALENT_IS_CONTACTS_PREFERENCES (self));
 
-  /* FIXME: select an icon name for the addressbook type */
-  context = valent_device_preferences_group_get_context (group);
-  device_id = valent_context_get_id (context);
-  iri = valent_resource_get_iri (VALENT_RESOURCE (adapter));
-
-  if (iri != NULL && g_strrstr (iri, device_id) != NULL)
-    icon_name = APPLICATION_ID"-symbolic";
-  else
-    icon_name = "x-office-address-book";
-
-  /* Row */
   row = g_object_new (ADW_TYPE_ACTION_ROW,
                       "activatable", TRUE,
-                      "title",       iri,
+                      "title",       valent_resource_get_title (adapter),
                       NULL);
   image = g_object_new (GTK_TYPE_IMAGE,
-                        "icon-name", icon_name,
+                        "icon-name", "x-office-address-book",
                         "icon-size", GTK_ICON_SIZE_NORMAL,
                         NULL);
+  g_object_bind_property (adapter, "title",
+                          row,     "title",
+                          G_BINDING_SYNC_CREATE);
   adw_action_row_add_prefix (ADW_ACTION_ROW (row), image);
 
   g_signal_connect_object (G_OBJECT (row),
@@ -128,9 +117,9 @@ valent_contacts_preferences_create_row_func (gpointer item,
                            G_CALLBACK (on_adapter_selected),
                            self, 0);
 
-  /* Check */
   settings = valent_device_preferences_group_get_settings (group);
   local_iri = g_settings_get_string (settings, "local-uid");
+  iri = valent_resource_get_iri (adapter);
   image = g_object_new (GTK_TYPE_IMAGE,
                         "icon-name", "object-select-symbolic",
                         "icon-size", GTK_ICON_SIZE_NORMAL,
@@ -138,10 +127,6 @@ valent_contacts_preferences_create_row_func (gpointer item,
                         NULL);
   adw_action_row_add_suffix (ADW_ACTION_ROW (row), image);
   g_object_set_data (G_OBJECT (row), "select", image);
-
-  g_object_bind_property (adapter, "iri",
-                          row,     "title",
-                          G_BINDING_SYNC_CREATE);
 
   return row;
 }

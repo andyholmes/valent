@@ -75,28 +75,21 @@ test_device_preferences_group (ValentTestFixture *fixture,
   PeasEngine *engine;
   PeasPluginInfo *info;
   g_autoptr (PeasPluginInfo) info_out = NULL;
-  ValentContext *context;
-  g_autoptr (ValentContext) plugin_context = NULL;
-  g_autoptr (ValentContext) plugin_context_out = NULL;
   GtkWidget *prefs;
 
   VALENT_TEST_CHECK ("Plugin can be constructed");
   engine = valent_get_plugin_engine ();
   info = peas_engine_get_plugin_info (engine, test->module);
-  context = valent_device_get_context (fixture->device);
-  plugin_context = valent_context_get_plugin_context (context, info);
   prefs = g_object_new (test->gtype,
-                        "context",     plugin_context,
+                        "source",      valent_data_source_get_local_default (),
                         "plugin-info", info,
                         NULL);
   g_object_ref_sink (prefs);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (prefs,
-                "context",     &plugin_context_out,
                 "plugin-info", &info_out,
                 NULL);
-  g_assert_true (plugin_context == plugin_context_out);
   g_assert_true (info == info_out);
 
   g_object_unref (prefs);

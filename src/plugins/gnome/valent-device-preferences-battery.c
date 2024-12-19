@@ -37,6 +37,8 @@ valent_battery_preferences_constructed (GObject *object)
   ValentDevicePreferencesGroup *group = VALENT_DEVICE_PREFERENCES_GROUP (self);
   GSettings *settings;
 
+  G_OBJECT_CLASS (valent_battery_preferences_parent_class)->constructed (object);
+
   settings = valent_device_preferences_group_get_settings (group);
   g_settings_bind (settings,                "full-notification",
                    self->full_notification, "enable-expansion",
@@ -50,8 +52,6 @@ valent_battery_preferences_constructed (GObject *object)
   g_settings_bind (settings,                     "low-notification-level",
                    self->low_notification_level, "value",
                    G_SETTINGS_BIND_DEFAULT);
-
-  G_OBJECT_CLASS (valent_battery_preferences_parent_class)->constructed (object);
 }
 
 static void

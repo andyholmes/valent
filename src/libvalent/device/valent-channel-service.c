@@ -358,13 +358,16 @@ valent_channel_service_constructed (GObject *object)
 
   if (priv->certificate == NULL)
     {
-      ValentContext *context = NULL;
-      g_autoptr (GFile) config = NULL;
+      ValentResource *source = valent_data_source_get_local_default ();
+      g_autoptr (GFile) file = NULL;
+      g_autoptr (GError) error = NULL;
 
-      context = valent_extension_get_context (VALENT_EXTENSION (self));
-      config = valent_context_get_config_file (context, ".");
-      priv->certificate = valent_certificate_new_sync (g_file_peek_path (config),
-                                                       NULL);
+      // FIXME
+      file = valent_data_source_get_config_file (VALENT_DATA_SOURCE (source), "..");
+      priv->certificate = valent_certificate_new_sync (g_file_peek_path (file),
+                                                       &error);
+      if (priv->certificate == NULL)
+        g_critical ("%s(): %s", G_STRFUNC, error->message);
     }
 
   priv->id = valent_certificate_get_common_name (priv->certificate);

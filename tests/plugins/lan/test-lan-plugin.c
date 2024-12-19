@@ -76,17 +76,15 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
                             gconstpointer      user_data)
 {
   g_autofree char *device_id = NULL;
-  g_autoptr (ValentContext) context = NULL;
   PeasPluginInfo *plugin_info;
   g_autofree char *path = NULL;
   JsonNode *identity;
   GError *error = NULL;
 
   device_id = valent_device_generate_id ();
-  context = valent_context_new (NULL, "network", device_id);
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "lan");
   fixture->service = g_object_new (VALENT_TYPE_LAN_CHANNEL_SERVICE,
-                                   "context",           context,
+                                   "source",            valent_data_source_get_local_default (),
                                    "plugin-info",       plugin_info,
                                    "broadcast-address", "127.0.0.255",
                                    "port",              SERVICE_PORT,

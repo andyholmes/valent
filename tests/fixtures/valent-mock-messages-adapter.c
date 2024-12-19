@@ -219,13 +219,12 @@ valent_mock_messages_adapter_send_message_finish (ValentMessagesAdapter  *adapte
 static void
 valent_mock_messages_adapter_destroy (ValentObject *object)
 {
-  ValentMockMessagesAdapter *self = VALENT_MOCK_MESSAGES_ADAPTER (object);
-  ValentContext *context;
+  ValentResource *source;
 
   VALENT_OBJECT_CLASS (valent_mock_messages_adapter_parent_class)->destroy (object);
 
-  context = valent_extension_get_context (VALENT_EXTENSION (self));
-  valent_context_clear_cache (context);
+  source = valent_resource_get_source (VALENT_RESOURCE (object));
+  valent_data_source_clear_cache (VALENT_DATA_SOURCE (source));
 }
 
 static void

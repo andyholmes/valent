@@ -30,7 +30,6 @@ struct _ValentApplication
   GApplication   parent_instance;
 
   GHashTable    *plugins;
-  ValentContext *plugins_context;
 };
 
 G_DEFINE_FINAL_TYPE (ValentApplication, valent_application, G_TYPE_APPLICATION)
@@ -43,25 +42,22 @@ static inline void
 valent_application_enable_plugin (ValentApplication *self,
                                   ValentPlugin      *plugin)
 {
-  g_autofree char *urn = NULL;
-  const char *title = NULL;
-  const char *description = NULL;
   const char *module = NULL;
+  g_autofree char *iri = NULL;
 
   g_assert (VALENT_IS_APPLICATION (self));
+  g_assert (plugin != NULL);
 
-  title = peas_plugin_info_get_name (plugin->info);
-  description = peas_plugin_info_get_description (plugin->info);
   module = peas_plugin_info_get_module_name (plugin->info);
-  urn = tracker_sparql_escape_uri_printf ("urn:valent:application:%s", module);
+  iri = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s",
+                                          plugin->domain,
+                                          module);
   plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_APPLICATION_PLUGIN,
-                                                    "iri",         urn,
-                                                    // FIXME: root source
-                                                    "source",      NULL,
-                                                    "title",       title,
-                                                    "description", description,
+                                                    "iri",           iri,
+                                                    "source",        plugin->source,
+                                                    "plugin-domain", plugin->domain,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 }
@@ -109,7 +105,7 @@ on_load_plugin (PeasEngine        *engine,
                g_type_name (VALENT_TYPE_APPLICATION_PLUGIN),
                peas_plugin_info_get_module_name (info));
 
-  plugin = valent_plugin_new (self, self->plugins_context, info,
+  plugin = valent_plugin_new (self, info, "application",
                               G_CALLBACK (on_plugin_enabled_changed));
   g_hash_table_insert (self->plugins, info, plugin);
 
@@ -354,7 +350,6 @@ valent_application_dispose (GObject *object)
   g_signal_handlers_disconnect_by_data (valent_get_plugin_engine (), self);
   g_hash_table_remove_all (self->plugins);
   g_clear_pointer (&self->plugins, g_hash_table_unref);
-  g_clear_object (&self->plugins_context);
 
   G_OBJECT_CLASS (valent_application_parent_class)->dispose (object);
 }
@@ -380,7 +375,6 @@ static void
 valent_application_init (ValentApplication *self)
 {
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
-  self->plugins_context = valent_context_new (NULL, "application", NULL);
 }
 
 GApplication *

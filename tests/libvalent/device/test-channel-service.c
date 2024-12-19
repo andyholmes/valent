@@ -247,27 +247,21 @@ static void
 test_channel_service_basic (void)
 {
   g_autoptr (ValentChannelService) service = NULL;
-  g_autoptr (ValentContext) context = NULL;
   PeasPluginInfo *plugin_info;
-  g_autoptr (ValentContext) context_out = NULL;
   g_autofree char *id_out = NULL;
   g_autoptr (JsonNode) identity_out = NULL;
 
   /* ValentChannelService */
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "mock");
-  context = valent_context_new (NULL, NULL, NULL);
   service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
-                          "context",     context,
                           "plugin-info", plugin_info,
                           NULL);
 
   g_object_get (service,
-                "context",  &context_out,
                 "id",       &id_out,
                 "identity", &identity_out,
                 NULL);
 
-  g_assert_true (context_out == context);
   g_assert_nonnull (id_out);
   g_assert_true (VALENT_IS_PACKET (identity_out));
 

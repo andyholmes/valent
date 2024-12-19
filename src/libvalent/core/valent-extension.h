@@ -7,7 +7,6 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include "valent-context.h"
 #include "valent-resource.h"
 
 G_BEGIN_DECLS
@@ -42,8 +41,6 @@ struct _ValentExtensionClass
   gpointer              padding[8];
 };
 
-VALENT_AVAILABLE_IN_1_0
-ValentContext     * valent_extension_get_context          (ValentExtension    *extension);
 VALENT_AVAILABLE_IN_1_0
 GSettings         * valent_extension_get_settings         (ValentExtension    *extension);
 VALENT_AVAILABLE_IN_1_0

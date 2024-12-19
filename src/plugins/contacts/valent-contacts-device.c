@@ -282,19 +282,14 @@ valent_contacts_device_init (ValentContactsDevice *self)
 ValentContactsAdapter *
 valent_contacts_device_new (ValentDevice *device)
 {
-  g_autoptr (ValentContext) context = NULL;
   g_autofree char *iri = NULL;
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  context = valent_context_new (valent_device_get_context (device),
-                                "plugin",
-                                "contacts");
   iri = tracker_sparql_escape_uri_printf ("urn:valent:contacts:%s",
                                           valent_device_get_id (device));
   return g_object_new (VALENT_TYPE_CONTACTS_DEVICE,
                        "iri",     iri,
-                       "context", context,
                        "source",  device,
                        "title",   valent_device_get_name (device),
                        NULL);

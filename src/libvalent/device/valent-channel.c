@@ -212,13 +212,13 @@ valent_channel_real_upload_finish (ValentChannel  *channel,
 }
 
 static void
-valent_channel_real_store_data (ValentChannel *channel,
-                                ValentContext *context)
+valent_channel_real_store_data (ValentChannel    *channel,
+                                ValentDataSource *source)
 {
   ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
 
   g_assert (VALENT_IS_CHANNEL (channel));
-  g_assert (VALENT_IS_CONTEXT (context));
+  g_assert (VALENT_IS_DATA_SOURCE (source));
 
   if (priv->certificate != NULL)
     {
@@ -229,8 +229,8 @@ valent_channel_real_store_data (ValentChannel *channel,
       g_object_get (priv->certificate,
                     "certificate-pem", &certificate_pem,
                     NULL);
-      certificate_file = valent_context_get_config_file (context,
-                                                         "certificate.pem");
+      certificate_file = valent_data_source_get_config_file (source,
+                                                             "certificate.pem");
       g_file_set_contents_full (g_file_peek_path (certificate_file),
                                 certificate_pem,
                                 strlen (certificate_pem),
@@ -1053,7 +1053,7 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
 /**
  * valent_channel_store_data: (virtual store_data)
  * @channel: a `ValentChannel`
- * @context: a `ValentContext`
+ * @source: a `ValentDataSource`
  *
  * Store channel metadata.
  *
@@ -1066,15 +1066,15 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
  * Since: 1.0
  */
 void
-valent_channel_store_data (ValentChannel *channel,
-                           ValentContext  *context)
+valent_channel_store_data (ValentChannel    *channel,
+                           ValentDataSource *source)
 {
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_CHANNEL (channel));
-  g_return_if_fail (VALENT_IS_CONTEXT (context));
+  g_return_if_fail (VALENT_IS_DATA_SOURCE (source));
 
-  VALENT_CHANNEL_GET_CLASS (channel)->store_data (channel, context);
+  VALENT_CHANNEL_GET_CLASS (channel)->store_data (channel, source);
 
   VALENT_EXIT;
 }

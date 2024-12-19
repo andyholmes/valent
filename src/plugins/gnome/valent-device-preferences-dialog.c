@@ -94,9 +94,6 @@ static void
 valent_device_preferences_dialog_add_plugin (ValentDevicePreferencesDialog *self,
                                              const char                    *module)
 {
-  ValentContext *context = NULL;
-  g_autoptr (ValentContext) plugin_context = NULL;
-  PeasEngine *engine;
   PeasPluginInfo *info;
   PluginData *plugin;
   const char *title;
@@ -105,24 +102,21 @@ valent_device_preferences_dialog_add_plugin (ValentDevicePreferencesDialog *self
   g_assert (VALENT_IS_DEVICE_PREFERENCES_DIALOG (self));
   g_assert (module != NULL && *module != '\0');
 
-  engine = valent_get_plugin_engine ();
-  info = peas_engine_get_plugin_info (engine, module);
-  plugin = g_new0 (PluginData, 1);
-  plugin->window = ADW_PREFERENCES_DIALOG (self);
-
+  info = peas_engine_get_plugin_info (valent_get_plugin_engine (), module);
   title = peas_plugin_info_get_name (info);
   subtitle = peas_plugin_info_get_description (info);
 
+  plugin = g_new0 (PluginData, 1);
+  plugin->window = ADW_PREFERENCES_DIALOG (self);
+
   /* Plugin Row
    */
-  context = valent_device_get_context (self->device);
-  plugin_context = valent_context_get_plugin_context (context, info);
-
   plugin->row = g_object_new (VALENT_TYPE_PLUGIN_ROW,
-                              "context",     plugin_context,
-                              "plugin-info", info,
-                              "title",       title,
-                              "subtitle",    subtitle,
+                              "data-source",   self->device,
+                              "plugin-domain", "device",
+                              "plugin-info",   info,
+                              "title",         title,
+                              "subtitle",      subtitle,
                               NULL);
   gtk_list_box_insert (self->plugin_list, plugin->row, -1);
 
@@ -188,7 +182,7 @@ valent_device_preferences_dialog_add_plugin (ValentDevicePreferencesDialog *self
       if (g_str_equal (preferences[i].name, module))
         {
           plugin->group = g_object_new (preferences[i].type,
-                                        "context",     plugin_context,
+                                        "data-source", self->device,
                                         "plugin-info", info,
                                         "name",        module,
                                         "title",       title,
@@ -258,23 +252,20 @@ valent_device_preferences_dialog_constructed (GObject *object)
 {
   ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (object);
 
-  /* Device */
+  G_OBJECT_CLASS (valent_device_preferences_dialog_parent_class)->constructed (object);
+
   g_object_bind_property (self->device, "name",
                           self,         "title",
                           G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
-
   gtk_widget_insert_action_group (GTK_WIDGET (self),
                                   "device",
                                   G_ACTION_GROUP (self->device));
 
-  /* Device_plugins */
   g_signal_connect_object (self->device,
                            "notify::plugins",
                            G_CALLBACK (on_plugins_changed),
                            self, 0);
   on_plugins_changed (self->device, NULL, self);
-
-  G_OBJECT_CLASS (valent_device_preferences_dialog_parent_class)->constructed (object);
 }
 
 static void
