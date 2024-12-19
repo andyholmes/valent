@@ -176,7 +176,9 @@ valent_lan_channel_finalize (GObject *object)
 {
   ValentLanChannel *self = VALENT_LAN_CHANNEL (object);
 
+  valent_object_lock (VALENT_OBJECT (self));
   g_clear_pointer (&self->host, g_free);
+  valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_lan_channel_parent_class)->finalize (object);
 }

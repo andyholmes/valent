@@ -18,13 +18,7 @@ G_DECLARE_FINAL_TYPE (ValentDeviceManager, valent_device_manager, VALENT, DEVICE
 
 VALENT_AVAILABLE_IN_1_0
 ValentDeviceManager * valent_device_manager_get_default (void);
-
 VALENT_AVAILABLE_IN_1_0
-const char          * valent_device_manager_get_name    (ValentDeviceManager  *manager);
-VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_set_name    (ValentDeviceManager  *manager,
-                                                         const char           *name);
-VALENT_AVAILABLE_IN_1_0
-void                  valent_device_manager_refresh     (ValentDeviceManager  *manager);
+void                  valent_device_manager_refresh     (ValentDeviceManager *manager);
 
 G_END_DECLS

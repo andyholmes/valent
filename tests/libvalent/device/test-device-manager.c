@@ -49,8 +49,6 @@ static void
 manager_fixture_tear_down (ManagerFixture *fixture,
                            gconstpointer   user_data)
 {
-  valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
-
   while (valent_mock_channel_service_get_instance () != NULL)
     g_main_context_iteration (NULL, FALSE);
 
@@ -79,19 +77,6 @@ on_devices_changed (GListModel     *list,
 }
 
 static void
-test_manager_basic (ManagerFixture *fixture,
-                    gconstpointer   user_data)
-{
-  g_autofree char *name = NULL;
-
-  VALENT_TEST_CHECK ("GObject properties function correctly");
-  g_object_get (fixture->manager,
-                "name", &name,
-                NULL);
-  g_assert_cmpstr (name, ==, "Valent");
-}
-
-static void
 test_manager_management (ManagerFixture *fixture,
                          gconstpointer   user_data)
 {
@@ -102,7 +87,7 @@ test_manager_management (ManagerFixture *fixture,
                     G_CALLBACK (on_devices_changed),
                     fixture);
 
-  /* Wait for the manager to start */
+  VALENT_TEST_CHECK ("Manager starts up with the application");
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
   valent_test_await_pointer (&fixture->device);
 
@@ -127,6 +112,12 @@ test_manager_management (ManagerFixture *fixture,
   VALENT_TEST_CHECK ("Manager retains paired devices when they disconnect");
   g_object_notify (G_OBJECT (fixture->device), "state");
   g_assert_true (VALENT_IS_DEVICE (fixture->device));
+
+  VALENT_TEST_CHECK ("Manager shuts down with the application");
+  valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
+  valent_test_await_nullptr (&fixture->device);
+
+  g_signal_handlers_disconnect_by_data (fixture->manager, fixture);
 }
 
 static void
@@ -159,7 +150,7 @@ test_manager_dbus (ManagerFixture *fixture,
                     G_CALLBACK (on_devices_changed),
                     fixture);
 
-  /* Wait for the manager to start */
+  VALENT_TEST_CHECK ("Manager starts up with the application");
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
   valent_test_await_pointer (&fixture->device);
 
@@ -211,6 +202,12 @@ test_manager_dbus (ManagerFixture *fixture,
                                              connection,
                                              TEST_OBJECT_PATH);
   valent_test_await_signal (manager, "object-removed");
+
+  VALENT_TEST_CHECK ("Manager shuts down with the application");
+  valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
+  valent_test_await_nullptr (&fixture->device);
+
+  g_signal_handlers_disconnect_by_data (fixture->manager, fixture);
 }
 
 static void
@@ -255,9 +252,9 @@ test_manager_dispose (ManagerFixture *fixture,
 
   VALENT_TEST_CHECK ("Manager shuts down with the application");
   valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
+  valent_test_await_nullptr (&fixture->device);
 
-  while ((service = valent_mock_channel_service_get_instance ()) != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  g_signal_handlers_disconnect_by_data (fixture->manager, fixture);
 }
 
 int
@@ -265,12 +262,6 @@ main (int   argc,
       char *argv[])
 {
   valent_test_init (&argc, &argv, NULL);
-
-  g_test_add ("/libvalent/device/device-manager/basic",
-              ManagerFixture, NULL,
-              manager_fixture_set_up,
-              test_manager_basic,
-              manager_fixture_tear_down);
 
   g_test_add ("/libvalent/device/device-manager/management",
               ManagerFixture, NULL,

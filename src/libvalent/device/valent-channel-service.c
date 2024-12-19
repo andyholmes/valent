@@ -42,27 +42,24 @@ typedef struct
   const char      *id;
   JsonNode        *identity;
   char            *name;
+  GSettings       *settings;
 } ValentChannelServicePrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_EXTENSION);
 
-enum {
-  PROP_0,
-  PROP_CERTIFICATE,
+typedef enum {
+  PROP_CERTIFICATE = 1,
   PROP_ID,
   PROP_IDENTITY,
-  PROP_NAME,
-  N_PROPERTIES
-};
+} ValentChannelServiceProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_IDENTITY + 1] = { NULL, };
 
-enum {
+typedef enum {
   CHANNEL,
-  N_SIGNALS
-};
+} ValentChannelServiceSignal;
 
-static guint signals[N_SIGNALS] = { 0, };
+static guint signals[CHANNEL + 1] = { 0, };
 
 
 typedef struct
@@ -222,6 +219,36 @@ collect_capabilities (PeasPluginInfo *info,
     }
 }
 
+static void
+on_device_name_changed (GSettings            *settings,
+                        const char           *key_name,
+                        ValentChannelService *self)
+{
+  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
+  g_autofree char *name = NULL;
+
+  g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (self));
+
+  name = g_settings_get_string (settings, "name");
+  if (name == NULL || *name == '\0')
+    {
+      g_settings_set_string (settings, "name", g_get_host_name ());
+      return;
+    }
+
+  if (g_set_str (&priv->name, name))
+    {
+      valent_object_lock (VALENT_OBJECT (self));
+      if (priv->identity)
+        {
+          JsonObject *body = valent_packet_get_body (priv->identity);
+          json_object_set_string_member (body, "deviceName", priv->name);
+          g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_IDENTITY]);
+        }
+      valent_object_unlock (VALENT_OBJECT (self));
+    }
+}
+
 /* LCOV_EXCL_START */
 static void
 valent_channel_service_real_build_identity (ValentChannelService *service)
@@ -327,6 +354,8 @@ valent_channel_service_constructed (GObject *object)
   ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
 
+  G_OBJECT_CLASS (valent_channel_service_parent_class)->constructed (object);
+
   if (priv->certificate == NULL)
     {
       ValentContext *context = NULL;
@@ -339,10 +368,15 @@ valent_channel_service_constructed (GObject *object)
     }
 
   priv->id = valent_certificate_get_common_name (priv->certificate);
+  priv->settings = g_settings_new ("ca.andyholmes.Valent");
+  g_signal_connect_object (priv->settings,
+                           "changed::name",
+                           G_CALLBACK (on_device_name_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
+  on_device_name_changed (priv->settings, NULL, self);
 
   valent_channel_service_build_identity (self);
-
-  G_OBJECT_CLASS (valent_channel_service_parent_class)->constructed (object);
 }
 
 static void
@@ -354,6 +388,7 @@ valent_channel_service_finalize (GObject *object)
   g_clear_object (&priv->certificate);
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_pointer (&priv->name, g_free);
+  g_clear_object (&priv->settings);
 
   G_OBJECT_CLASS (valent_channel_service_parent_class)->finalize (object);
 }
@@ -367,7 +402,7 @@ valent_channel_service_get_property (GObject    *object,
   ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentChannelServiceProperty)prop_id)
     {
     case PROP_CERTIFICATE:
       g_value_take_object (value, valent_channel_service_ref_certificate (self));
@@ -379,10 +414,6 @@ valent_channel_service_get_property (GObject    *object,
 
     case PROP_IDENTITY:
       g_value_take_boxed (value, valent_channel_service_ref_identity (self));
-      break;
-
-    case PROP_NAME:
-      g_value_set_string (value, priv->name);
       break;
 
     default:
@@ -399,15 +430,15 @@ valent_channel_service_set_property (GObject      *object,
   ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentChannelServiceProperty)prop_id)
     {
     case PROP_CERTIFICATE:
       priv->certificate = g_value_dup_object (value);
       break;
 
-    case PROP_NAME:
-      valent_channel_service_set_name (self, g_value_get_string (value));
-      break;
+    case PROP_ID:
+    case PROP_IDENTITY:
+      g_assert_not_reached ();
 
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -481,28 +512,7 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
-  /**
-   * ValentChannelService:name: (getter get_name) (setter set_name)
-   *
-   * The local display name.
-   *
-   * This is the user-visible label packet used to identify the local device in
-   * user interfaces.
-   *
-   * This property is thread-safe. Emissions of [signal@GObject.Object::notify]
-   * are guaranteed to happen in the main thread.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_NAME] =
-    g_param_spec_string ("name", NULL, NULL,
-                         "Valent",
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 
   /**
    * ValentChannelService::channel:
@@ -605,58 +615,6 @@ valent_channel_service_ref_identity (ValentChannelService *service)
   valent_object_unlock (VALENT_OBJECT (service));
 
   return g_steal_pointer (&ret);
-}
-
-/**
- * valent_channel_service_get_name: (get-property name)
- * @service: a `ValentChannelService`
- *
- * Get the local display name.
- *
- * Returns: (transfer none): the local display name
- *
- * Since: 1.0
- */
-const char *
-valent_channel_service_get_name (ValentChannelService *service)
-{
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL_SERVICE (service), NULL);
-
-  return priv->name;
-}
-
-/**
- * valent_channel_service_set_name: (set-property name)
- * @service: a `ValentChannelService`
- * @name: (not nullable): a display name
- *
- * Set the local display name.
- *
- * Since: 1.0
- */
-void
-valent_channel_service_set_name (ValentChannelService *service,
-                                 const char           *name)
-{
-  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (service);
-  JsonObject *body;
-
-  g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
-  g_return_if_fail (name != NULL && *name != '\0');
-
-  if (g_set_str (&priv->name, name))
-    g_object_notify_by_pspec (G_OBJECT (service), properties [PROP_NAME]);
-
-  valent_object_lock (VALENT_OBJECT (service));
-  if (priv->identity)
-    {
-      body = valent_packet_get_body (priv->identity);
-      json_object_set_string_member (body, "deviceName", priv->name);
-      g_object_notify_by_pspec (G_OBJECT (service), properties [PROP_IDENTITY]);
-    }
-  valent_object_unlock (VALENT_OBJECT (service));
 }
 
 /**

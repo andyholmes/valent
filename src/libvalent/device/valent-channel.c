@@ -103,15 +103,11 @@ valent_channel_real_download_task (GTask        *task,
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  stream = VALENT_CHANNEL_GET_CLASS (self)->download (self,
-                                                      packet,
-                                                      cancellable,
-                                                      &error);
-
-  if (stream == NULL)
-    return g_task_return_error (task, error);
-
-  g_task_return_pointer (task, g_steal_pointer (&stream), g_object_unref);
+  stream = valent_channel_download (self, packet, cancellable, &error);
+  if (stream != NULL)
+    g_task_return_pointer (task, g_steal_pointer (&stream), g_object_unref);
+  else
+    g_task_return_error (task, error);
 }
 
 static void
@@ -175,15 +171,11 @@ valent_channel_upload_task (GTask        *task,
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  stream = VALENT_CHANNEL_GET_CLASS (self)->upload (self,
-                                                    packet,
-                                                    cancellable,
-                                                    &error);
-
-  if (stream == NULL)
-    return g_task_return_error (task, error);
-
-  g_task_return_pointer (task, g_steal_pointer (&stream), g_object_unref);
+  stream = valent_channel_upload (self, packet, cancellable, &error);
+  if (stream != NULL)
+    g_task_return_pointer (task, g_steal_pointer (&stream), g_object_unref);
+  else
+    g_task_return_error (task, error);
 }
 
 static void

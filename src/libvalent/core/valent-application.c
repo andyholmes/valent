@@ -72,7 +72,11 @@ valent_application_disable_plugin (ValentApplication *self,
 {
   g_assert (VALENT_IS_APPLICATION (self));
 
-  g_clear_object (&plugin->extension);
+  if (plugin->extension != NULL)
+    {
+      valent_object_destroy (VALENT_OBJECT (plugin->extension));
+      g_clear_object (&plugin->extension);
+    }
 }
 
 static void
@@ -162,7 +166,6 @@ valent_application_activate (GApplication *application)
   g_assert (VALENT_IS_APPLICATION (self));
 
   g_hash_table_iter_init (&iter, self->plugins);
-
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
       if (plugin->extension == NULL)
@@ -188,7 +191,6 @@ valent_application_open (GApplication  *application,
   g_assert (VALENT_IS_APPLICATION (self));
 
   g_hash_table_iter_init (&iter, self->plugins);
-
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
       if (plugin->extension == NULL)
@@ -201,7 +203,6 @@ valent_application_open (GApplication  *application,
         return;
     }
 
-  /* If no plugin takes ownership of the files, print a warning. */
   g_warning ("%s(): %i unhandled files", G_STRFUNC, n_files);
 }
 
@@ -224,7 +225,6 @@ valent_application_startup (GApplication *application)
                                    application);
 
   g_hash_table_iter_init (&iter, self->plugins);
-
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
       if (plugin->extension == NULL)
@@ -242,7 +242,6 @@ valent_application_shutdown (GApplication *application)
   ValentPlugin *plugin;
 
   g_hash_table_iter_init (&iter, self->plugins);
-
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
       if (plugin->extension == NULL)
@@ -270,7 +269,6 @@ valent_application_dbus_register (GApplication     *application,
     return FALSE;
 
   g_hash_table_iter_init (&iter, self->plugins);
-
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
       if (plugin->extension == NULL)
@@ -297,7 +295,6 @@ valent_application_dbus_unregister (GApplication    *application,
   ValentPlugin *plugin;
 
   g_hash_table_iter_init (&iter, self->plugins);
-
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
       if (plugin->extension == NULL)
@@ -325,22 +322,7 @@ valent_application_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_application_parent_class)->constructed (object);
 
-  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
-  self->plugins_context = valent_context_new (NULL, "application", NULL);
-
   engine = valent_get_plugin_engine ();
-  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
-
-  for (unsigned int i = 0; i < n_plugins; i++)
-    {
-      g_autoptr (PeasPluginInfo) info = NULL;
-
-      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
-
-      if (peas_plugin_info_is_loaded (info))
-        on_load_plugin (engine, info, self);
-    }
-
   g_signal_connect_object (engine,
                            "load-plugin",
                            G_CALLBACK (on_load_plugin),
@@ -352,17 +334,24 @@ valent_application_constructed (GObject *object)
                            G_CALLBACK (on_unload_plugin),
                            self,
                            0);
+
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      if (peas_plugin_info_is_loaded (info))
+        on_load_plugin (engine, info, self);
+    }
 }
 
 static void
 valent_application_dispose (GObject *object)
 {
   ValentApplication *self = VALENT_APPLICATION (object);
-  PeasEngine *engine = NULL;
 
-  engine = valent_get_plugin_engine ();
-  g_signal_handlers_disconnect_by_data (engine, self);
-
+  g_signal_handlers_disconnect_by_data (valent_get_plugin_engine (), self);
   g_hash_table_remove_all (self->plugins);
   g_clear_pointer (&self->plugins, g_hash_table_unref);
   g_clear_object (&self->plugins_context);
@@ -390,6 +379,8 @@ valent_application_class_init (ValentApplicationClass *klass)
 static void
 valent_application_init (ValentApplication *self)
 {
+  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
+  self->plugins_context = valent_context_new (NULL, "application", NULL);
 }
 
 GApplication *

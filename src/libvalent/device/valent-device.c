@@ -853,28 +853,14 @@ valent_device_constructed (GObject *object)
   /* We must at least have a device ID */
   g_assert (self->id != NULL);
 
-  /* Context */
   if (self->context == NULL)
     self->context = valent_context_new (NULL, "device", self->id);
 
-  /* GSettings*/
   path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/", self->id);
   self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", path);
   self->paired = g_settings_get_boolean (self->settings, "paired");
 
-  /* Load plugins and watch for changes */
-  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (self->engine));
-
-  for (unsigned int i = 0; i < n_plugins; i++)
-    {
-      g_autoptr (PeasPluginInfo) info = NULL;
-
-      info = g_list_model_get_item (G_LIST_MODEL (self->engine), i);
-
-      if (peas_plugin_info_is_loaded (info))
-        on_load_plugin (self->engine, info, self);
-    }
-
+  self->engine = valent_get_plugin_engine ();
   g_signal_connect_object (self->engine,
                            "load-plugin",
                            G_CALLBACK (on_load_plugin),
@@ -885,7 +871,17 @@ valent_device_constructed (GObject *object)
                            "unload-plugin",
                            G_CALLBACK (on_unload_plugin),
                            self,
-                           0);
+                           G_CONNECT_DEFAULT);
+
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (self->engine));
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (self->engine), i);
+      if (peas_plugin_info_is_loaded (info))
+        on_load_plugin (self->engine, info, self);
+    }
 }
 
 static void
@@ -984,7 +980,6 @@ valent_device_init (ValentDevice *self)
   GSimpleAction *action = NULL;
 
   /* Plugins */
-  self->engine = valent_get_plugin_engine ();
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, device_plugin_free);
   self->handlers = g_hash_table_new_full (g_str_hash,
                                           g_str_equal,

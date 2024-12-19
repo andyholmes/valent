@@ -76,8 +76,7 @@ on_channel_destroyed (ValentLanChannelService *self,
   device_id = valent_certificate_get_common_name (certificate);
 
   valent_object_lock (VALENT_OBJECT (self));
-  if (g_hash_table_remove (self->channels, device_id))
-    g_signal_handlers_disconnect_by_data (channel, self);
+  g_hash_table_remove (self->channels, device_id);
   valent_object_unlock (VALENT_OBJECT (self));
 }
 

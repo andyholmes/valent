@@ -78,11 +78,6 @@
  * Since: 1.0
  */
 
-typedef struct
-{
-  gpointer  reserved[1];
-} ValentDevicePluginPrivate;
-
 G_DEFINE_ABSTRACT_TYPE (ValentDevicePlugin, valent_device_plugin, VALENT_TYPE_EXTENSION)
 
 /* LCOV_EXCL_START */
