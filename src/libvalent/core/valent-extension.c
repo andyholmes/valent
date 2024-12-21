@@ -603,7 +603,7 @@ valent_extension_plugin_state_check (ValentExtension  *extension,
 void
 valent_extension_plugin_state_changed (ValentExtension   *extension,
                                        ValentPluginState  state,
-                                       GError            *error)
+                                       const GError      *error)
 {
   ValentExtensionPrivate *priv = valent_extension_get_instance_private (extension);
 
@@ -611,7 +611,6 @@ valent_extension_plugin_state_changed (ValentExtension   *extension,
   g_return_if_fail (state != VALENT_PLUGIN_STATE_ERROR || error != NULL);
 
   g_clear_error (&priv->plugin_error);
-
   if (state == VALENT_PLUGIN_STATE_ERROR && error != NULL)
     priv->plugin_error = g_error_copy (error);
 
