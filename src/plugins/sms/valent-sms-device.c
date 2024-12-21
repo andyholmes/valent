@@ -532,7 +532,7 @@ valent_sms_device_add_json (ValentSmsDevice *self,
 {
   g_autoptr (TrackerBatch) batch = NULL;
   g_autoptr (TrackerResource) thread = NULL;
-  g_autofree char *base_urn = NULL;
+  const char *base_urn = NULL;
   g_autofree char *thread_urn = NULL;
   int64_t thread_id;
   JsonArray *messages_;
@@ -559,7 +559,7 @@ valent_sms_device_add_json (ValentSmsDevice *self,
     }
 
   thread_id = json_node_get_int (node);
-  base_urn = valent_object_dup_iri (VALENT_OBJECT (self));
+  base_urn = valent_resource_get_iri (VALENT_RESOURCE (self));
   thread_urn = g_strdup_printf ("%s:%"PRId64, base_urn, thread_id);
   thread = tracker_resource_new (thread_urn);
   tracker_resource_set_uri (thread, "rdf:type", "vmo:CommunicationChannel");

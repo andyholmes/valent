@@ -34,6 +34,7 @@ typedef struct
   char           *description;
   char           *format;
   char           *identifier;
+  char           *iri;
   char           *language;
   char           *publisher;
   GStrv           relation;
@@ -55,6 +56,7 @@ typedef enum
   PROP_DESCRIPTION,
   PROP_FORMAT,
   PROP_IDENTIFIER,
+  PROP_IRI,
   PROP_LANGUAGE,
   PROP_PUBLISHER,
   PROP_RELATION,
@@ -101,6 +103,7 @@ valent_resource_finalize (GObject *object)
   g_clear_pointer (&priv->description, g_free);
   g_clear_pointer (&priv->format, g_free);
   g_clear_pointer (&priv->identifier, g_free);
+  g_clear_pointer (&priv->iri, g_free);
   g_clear_pointer (&priv->language, g_free);
   g_clear_pointer (&priv->publisher, g_free);
   g_clear_pointer (&priv->relation, g_strfreev);
@@ -151,6 +154,10 @@ valent_resource_get_property (GObject    *object,
       g_value_set_string (value, priv->identifier);
       break;
 
+    case PROP_IRI:
+      g_value_set_string (value, priv->iri);
+      break;
+
     case PROP_LANGUAGE:
       g_value_set_string (value, priv->language);
       break;
@@ -195,6 +202,7 @@ valent_resource_set_property (GObject      *object,
                               GParamSpec   *pspec)
 {
   ValentResource *self = VALENT_RESOURCE (object);
+  ValentResourcePrivate *priv = valent_resource_get_instance_private (self);
 
   switch (prop_id)
     {
@@ -224,6 +232,11 @@ valent_resource_set_property (GObject      *object,
 
     case PROP_IDENTIFIER:
       valent_resource_set_identifier (self, g_value_get_string (value));
+      break;
+
+    case PROP_IRI:
+      g_assert (priv->iri == NULL);
+      priv->iri = g_value_dup_string (value);
       break;
 
     case PROP_LANGUAGE:
@@ -409,6 +422,20 @@ valent_resource_class_init (ValentResourceClass *klass)
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentResource:iri: (getter get_iri)
+   *
+   * The resource IRI (Internationalized Resource Identifier).
+   *
+   * Since: 1.0
+   */
+  properties[PROP_IRI] =
+    g_param_spec_string ("iri", NULL, NULL,
+                         NULL,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
@@ -858,6 +885,26 @@ valent_resource_set_identifier (ValentResource *resource,
 
   if (g_set_str (&priv->identifier, identifier))
     g_object_notify_by_pspec (G_OBJECT (resource), properties[PROP_IDENTIFIER]);
+}
+
+/**
+ * valent_resource_get_iri: (get-property iri)
+ * @resource: a `ValentResource`
+ *
+ * Gets the IRI of @resource.
+ *
+ * Returns: (transfer none) (nullable): the IRI of @resource
+ *
+ * Since: 1.0
+ */
+const char *
+valent_resource_get_iri (ValentResource *resource)
+{
+  ValentResourcePrivate *priv = valent_resource_get_instance_private (resource);
+
+  g_return_val_if_fail (VALENT_IS_RESOURCE (resource), NULL);
+
+  return priv->iri;
 }
 
 /**

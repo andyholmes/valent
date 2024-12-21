@@ -16,6 +16,7 @@ test_resource_basic (void)
   g_autofree char *description = g_uuid_string_random ();
   g_autofree char *format = g_uuid_string_random ();
   g_autofree char *identifier = g_uuid_string_random ();
+  g_autofree char *iri = g_strdup_printf ("urn:valent:%s", identifier);
   g_autofree char *language = g_uuid_string_random ();
   g_autofree char *publisher = g_uuid_string_random ();
   g_auto (GStrv) relation = NULL;
@@ -32,6 +33,7 @@ test_resource_basic (void)
   g_autofree char *description_out = NULL;
   g_autofree char *format_out = NULL;
   g_autofree char *identifier_out = NULL;
+  g_autofree char *iri_out = NULL;
   g_autofree char *language_out = NULL;
   g_autofree char *publisher_out = NULL;
   g_auto (GStrv) relation_out = NULL;
@@ -50,6 +52,7 @@ test_resource_basic (void)
                            "description", description,
                            "format",      format,
                            "identifier",  identifier,
+                           "iri",         iri,
                            "language",    language,
                            "publisher",   publisher,
                            "relation",    relation,
@@ -69,6 +72,7 @@ test_resource_basic (void)
                 "description", &description_out,
                 "format",      &format_out,
                 "identifier",  &identifier_out,
+                "iri",         &iri_out,
                 "language",    &language_out,
                 "publisher",   &publisher_out,
                 "relation",    &relation_out,
@@ -88,6 +92,7 @@ test_resource_basic (void)
   g_assert_cmpstr (description, ==, description_out);
   g_assert_cmpstr (format, ==, format_out);
   g_assert_cmpstr (identifier, ==, identifier_out);
+  g_assert_cmpstr (iri, ==, iri_out);
   g_assert_cmpstr (language, ==, language_out);
   g_assert_cmpstr (publisher, ==, publisher_out);
   g_assert_true (relation == relation_out ||
@@ -108,6 +113,7 @@ test_resource_basic (void)
   g_assert_cmpstr (valent_resource_get_description (resource), ==, description_out);
   g_assert_cmpstr (valent_resource_get_format (resource), ==, format_out);
   g_assert_cmpstr (valent_resource_get_identifier (resource), ==, identifier_out);
+  g_assert_cmpstr (valent_resource_get_iri (resource), ==, iri_out);
   g_assert_cmpstr (valent_resource_get_language (resource), ==, language_out);
   g_assert_cmpstr (valent_resource_get_publisher (resource), ==, publisher_out);
   g_assert_true (valent_resource_get_relation (resource) == relation_out ||
