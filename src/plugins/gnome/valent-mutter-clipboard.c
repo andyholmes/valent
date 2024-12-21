@@ -819,10 +819,7 @@ valent_mutter_clipboard_constructed (GObject *object)
 {
   ValentMutterClipboard *self = VALENT_MUTTER_CLIPBOARD (object);
 
-  /* Cede the primary position until the clipboard is enabled */
-  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
-                                         VALENT_PLUGIN_STATE_INACTIVE,
-                                         NULL);
+  G_OBJECT_CLASS (valent_mutter_clipboard_parent_class)->constructed (object);
 
   self->watcher_id = g_bus_watch_name (G_BUS_TYPE_SESSION,
                                        REMOTE_DESKTOP_NAME,
@@ -830,8 +827,6 @@ valent_mutter_clipboard_constructed (GObject *object)
                                        (GBusNameAppearedCallback)on_name_appeared,
                                        (GBusNameVanishedCallback)on_name_vanished,
                                        self, NULL);
-
-  G_OBJECT_CLASS (valent_mutter_clipboard_parent_class)->constructed (object);
 }
 
 static void

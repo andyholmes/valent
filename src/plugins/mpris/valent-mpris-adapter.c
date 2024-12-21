@@ -204,11 +204,6 @@ valent_mpris_adapter_init_async (GAsyncInitable      *initable,
 
   g_assert (VALENT_IS_MPRIS_ADAPTER (self));
 
-  /* Cede the primary position until complete */
-  valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
-                                         VALENT_PLUGIN_STATE_INACTIVE,
-                                         NULL);
-
   /* Cancel initialization if the object is destroyed */
   destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
                                              cancellable);

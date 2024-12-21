@@ -88,7 +88,6 @@ valent_component_update_preferred (ValentComponent *self)
   g_assert (VALENT_IS_COMPONENT (self));
 
   g_hash_table_iter_init (&iter, priv->plugins);
-
   while (g_hash_table_iter_next (&iter, (void **)&info, (void **)&plugin))
     {
       ValentPluginState state;
@@ -139,9 +138,10 @@ on_plugin_state_changed (ValentExtension *extension,
   g_assert (VALENT_IS_COMPONENT (self));
 
   state = valent_extension_plugin_state_check (extension, &error);
-
   if (state == VALENT_PLUGIN_STATE_ERROR)
     g_warning ("%s(): %s", G_OBJECT_TYPE_NAME (extension), error->message);
+  else if (error != NULL)
+    g_debug ("%s(): %s", G_OBJECT_TYPE_NAME (extension), error->message);
 
   valent_component_update_preferred (self);
 }
@@ -198,18 +198,18 @@ valent_component_enable_plugin (ValentComponent *self,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
-  valent_component_export_adapter (self, VALENT_EXTENSION (plugin->extension));
-  valent_component_update_preferred (self);
-
-  /* If the extension state changes, update the preferred adapter */
+  /* If the extension state changes, update the preferred adapter
+   */
   g_signal_connect_object (plugin->extension,
                            "notify::plugin-state",
                            G_CALLBACK (on_plugin_state_changed),
                            self,
                            G_CONNECT_DEFAULT);
+  valent_component_export_adapter (self, VALENT_EXTENSION (plugin->extension));
 
-  /* If the extension requires initialization, use a chained cancellable in case
-   * the plugin is unloaded or the component is destroyed. */
+  /* If the extension requires initialization, wait for the state to change
+   * before updating the primary adapter.
+   */
   if (G_IS_ASYNC_INITABLE (plugin->extension))
     {
       GAsyncInitable *initable = G_ASYNC_INITABLE (plugin->extension);
@@ -242,6 +242,10 @@ valent_component_enable_plugin (ValentComponent *self,
                      G_OBJECT_TYPE_NAME (initable),
                      error->message);
         }
+    }
+  else
+    {
+      valent_component_update_preferred (self);
     }
 
   VALENT_EXIT;

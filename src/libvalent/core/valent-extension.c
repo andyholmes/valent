@@ -24,6 +24,13 @@
  * `ValentExtension` is a base class for extensions with conveniences for
  * [iface@Gio.Action], [class@Gio.Settings] backed by [class@Valent.Context].
  *
+ * ## Implementation Notes
+ *
+ * Implementations that also implement [iface@Gio.Initable] or
+ * [iface@Gio.AsyncInitable] are marked as `VALENT_PLUGIN_STATE_INACTIVE` during
+ * construction and must call [method@Valent.Extension.plugin_state_changed] to
+ * reflect the result of initialization.
+ *
  * ## Plugin Actions
  *
  * `ValentExtension` implements the [iface@Gio.ActionGroup] and
@@ -315,6 +322,20 @@ valent_extension_destroy (ValentObject *object)
  * GObject
  */
 static void
+valent_extension_constructed (GObject *object)
+{
+  ValentExtension *self = VALENT_EXTENSION (object);
+  ValentExtensionPrivate *priv = valent_extension_get_instance_private (self);
+
+  G_OBJECT_CLASS (valent_extension_parent_class)->constructed (object);
+
+  /* If this is an extension with failable initialization, it is
+   * expected to update the state with the result.
+   */
+  if (G_IS_INITABLE (object) || G_IS_ASYNC_INITABLE (object))
+    priv->plugin_state = VALENT_PLUGIN_STATE_INACTIVE;
+}
+static void
 valent_extension_finalize (GObject *object)
 {
   ValentExtension *self = VALENT_EXTENSION (object);
@@ -393,6 +414,7 @@ valent_extension_class_init (ValentExtensionClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
+  object_class->constructed = valent_extension_constructed;
   object_class->finalize = valent_extension_finalize;
   object_class->get_property = valent_extension_get_property;
   object_class->set_property = valent_extension_set_property;
