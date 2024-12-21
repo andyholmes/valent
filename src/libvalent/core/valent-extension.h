@@ -52,7 +52,7 @@ ValentPluginState   valent_extension_plugin_state_check   (ValentExtension    *e
 VALENT_AVAILABLE_IN_1_0
 void                valent_extension_plugin_state_changed (ValentExtension    *extension,
                                                            ValentPluginState   state,
-                                                           GError             *error);
+                                                           const GError       *error);
 VALENT_AVAILABLE_IN_1_0
 void                valent_extension_toggle_actions       (ValentExtension    *extension,
                                                            gboolean            enabled);
