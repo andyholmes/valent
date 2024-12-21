@@ -181,11 +181,8 @@ valent_object_constructed (GObject *object)
 {
   if G_UNLIKELY (G_OBJECT_GET_CLASS (object)->dispose != valent_object_dispose)
     {
-      V_GNUC_BEGIN_IGNORE_INFINITE_LOOP;
-      g_error ("%s overrides GObject.Object.dispose() instead of "
-               "Valent.Object.destroy(), which is not thread safe",
-               G_OBJECT_TYPE_NAME (object));
-      V_GNUC_END_IGNORE_INFINITE_LOOP;
+      g_critical ("%s overrides dispose() instead of destroy()",
+                  G_OBJECT_TYPE_NAME (object));
     }
 
   G_OBJECT_CLASS (valent_object_parent_class)->constructed (object);
