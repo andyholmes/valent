@@ -12,6 +12,7 @@ G_BEGIN_DECLS
 #include "valent-component.h"
 #include "valent-context.h"
 #include "valent-core-enums.h"
+#include "valent-data-source.h"
 #include "valent-debug.h"
 #include "valent-extension.h"
 #include "valent-global.h"

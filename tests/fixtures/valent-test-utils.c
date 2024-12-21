@@ -52,10 +52,12 @@ valent_test_init (int    *argcp,
   /* Core */
   g_type_ensure (VALENT_TYPE_APPLICATION);
   g_type_ensure (VALENT_TYPE_APPLICATION_PLUGIN);
+  g_type_ensure (VALENT_TYPE_COMPONENT);
   g_type_ensure (VALENT_TYPE_CONTEXT);
+  g_type_ensure (VALENT_TYPE_DATA_SOURCE);
   g_type_ensure (VALENT_TYPE_EXTENSION);
   g_type_ensure (VALENT_TYPE_OBJECT);
-  g_type_ensure (VALENT_TYPE_COMPONENT);
+  g_type_ensure (VALENT_TYPE_RESOURCE);
   g_type_ensure (VALENT_TYPE_TRANSFER);
 
   /* Components */
