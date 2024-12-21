@@ -75,10 +75,8 @@ on_adapter_selected (AdwActionRow              *row,
 
       if (row == store_row)
         {
-          g_autofree char *local_iri = NULL;
-
-          local_iri = valent_object_dup_iri (VALENT_OBJECT (adapter));
-          g_settings_set_string (settings, "local-uid", local_iri);
+          const char *iri = valent_resource_get_iri (VALENT_RESOURCE (self));
+          g_settings_set_string (settings, "local-uid", iri != NULL ? iri : "");
         }
 
       gtk_widget_set_visible (check, (row == store_row));
@@ -98,7 +96,7 @@ valent_contacts_preferences_create_row_func (gpointer item,
   GtkWidget *row;
   GtkWidget *image;
   const char *icon_name;
-  g_autofree char *iri = NULL;
+  const char *iri = NULL;
   g_autofree char *local_iri = NULL;
 
   g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
@@ -107,7 +105,7 @@ valent_contacts_preferences_create_row_func (gpointer item,
   /* FIXME: select an icon name for the addressbook type */
   context = valent_device_preferences_group_get_context (group);
   device_id = valent_context_get_id (context);
-  iri = valent_object_dup_iri (VALENT_OBJECT (adapter));
+  iri = valent_resource_get_iri (VALENT_RESOURCE (adapter));
 
   if (iri != NULL && g_strrstr (iri, device_id) != NULL)
     icon_name = APPLICATION_ID"-symbolic";

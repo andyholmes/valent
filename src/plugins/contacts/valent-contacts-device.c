@@ -230,7 +230,7 @@ static void
 valent_contacts_device_constructed (GObject *object)
 {
   ValentContactsDevice *self = VALENT_CONTACTS_DEVICE (object);
-  g_autofree char *iri = NULL;
+  const char *iri = NULL;
 
   G_OBJECT_CLASS (valent_contacts_device_parent_class)->constructed (object);
 
@@ -241,7 +241,7 @@ valent_contacts_device_constructed (GObject *object)
                            self,
                            G_CONNECT_DEFAULT);
 
-  iri = valent_object_dup_iri (VALENT_OBJECT (self));
+  iri = valent_resource_get_iri (VALENT_RESOURCE (self));
   self->default_iri = tracker_sparql_escape_uri_printf ("%s:default", iri);
 }
 

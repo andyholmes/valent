@@ -66,6 +66,8 @@ VALENT_AVAILABLE_IN_1_0
 void             valent_resource_set_identifier  (ValentResource *resource,
                                                   const char     *identifier);
 VALENT_AVAILABLE_IN_1_0
+const char     * valent_resource_get_iri         (ValentResource *resource);
+VALENT_AVAILABLE_IN_1_0
 const char     * valent_resource_get_language    (ValentResource *resource);
 VALENT_AVAILABLE_IN_1_0
 void             valent_resource_set_language    (ValentResource *resource,

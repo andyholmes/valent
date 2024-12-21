@@ -265,7 +265,7 @@ static inline gboolean
 find_item (gconstpointer a,
            gconstpointer b)
 {
-  g_autofree char *iri = valent_object_dup_iri ((ValentObject *)a);
+  const char *iri = valent_resource_get_iri ((ValentResource *)a);
 
   return g_strcmp0 (iri, (const char *)b) == 0;
 }
@@ -300,7 +300,7 @@ valent_contacts_adapter_open (ValentContactsAdapter  *self,
   ValentContext *context = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFile) ontology = NULL;
-  g_autofree char *iri = NULL;
+  const char *iri = NULL;
   g_autofree char *iri_pattern = NULL;
 
   context = valent_extension_get_context (VALENT_EXTENSION (self));
@@ -317,7 +317,7 @@ valent_contacts_adapter_open (ValentContactsAdapter  *self,
   if (priv->connection == NULL)
     return FALSE;
 
-  iri = valent_object_dup_iri (VALENT_OBJECT (self));
+  iri = valent_resource_get_iri (VALENT_RESOURCE (self));
   iri_pattern = g_strdup_printf ("^%s:([^:]+)$", iri);
   priv->iri_pattern = g_regex_new (iri_pattern,
                                    G_REGEX_OPTIMIZE,

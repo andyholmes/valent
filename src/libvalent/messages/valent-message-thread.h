@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "../core/valent-object.h"
+#include "../core/valent-resource.h"
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_MESSAGE_THREAD (valent_message_thread_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentMessageThread, valent_message_thread, VALENT, MESSAGE_THREAD, ValentObject)
+G_DECLARE_FINAL_TYPE (ValentMessageThread, valent_message_thread, VALENT, MESSAGE_THREAD, ValentResource)
 
 G_END_DECLS

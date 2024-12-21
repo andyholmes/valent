@@ -569,7 +569,7 @@ on_conversation_activated (GtkListBox           *box,
   ValentMessage *message;
   const char *sender;
   int64_t thread_id;
-  g_autofree char *adapter_urn = NULL;
+  const char *adapter_urn = NULL;
   g_autofree char *thread_urn = NULL;
 
   g_assert (VALENT_IS_MESSAGES_WINDOW (self));
@@ -582,7 +582,7 @@ on_conversation_activated (GtkListBox           *box,
   contact = valent_message_row_get_contact (VALENT_MESSAGE_ROW (row));
   message = valent_message_row_get_message (VALENT_MESSAGE_ROW (row));
   thread_id = valent_message_get_thread_id (message);
-  adapter_urn = valent_object_dup_iri (VALENT_OBJECT (self->messages_adapter));
+  adapter_urn = valent_resource_get_iri (VALENT_RESOURCE (self->messages_adapter));
   thread_urn = g_strdup_printf ("%s:%"PRId64, adapter_urn, thread_id);
 
   page = valent_messages_window_ensure_conversation (self, thread_urn);
@@ -833,13 +833,13 @@ valent_messages_window_set_active_message (ValentMessagesWindow *window,
   GtkWidget *widget;
   ValentConversationPage *conversation;
   int64_t thread_id;
-  g_autofree char *adapter_urn = NULL;
+  const char *adapter_urn = NULL;
   g_autofree char *thread_urn = NULL;
 
   g_return_if_fail (VALENT_IS_MESSAGES_WINDOW (window));
 
   thread_id = valent_message_get_thread_id (message);
-  adapter_urn = valent_object_dup_iri (VALENT_OBJECT (window->messages_adapter));
+  adapter_urn = valent_resource_get_iri (VALENT_RESOURCE (window->messages_adapter));
   thread_urn = g_strdup_printf ("%s:%"PRId64, adapter_urn, thread_id);
 
   widget = valent_messages_window_ensure_conversation (window, thread_urn);

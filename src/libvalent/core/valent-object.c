@@ -22,11 +22,6 @@
  * Instances have a `GRecMutex` and a `GCancellable` that is created on-demand
  * and triggered when the object is destroyed.
  *
- * An IRI may be provided at construct-time to uniquely identify the object.
- * Object IRIs should generally reflect the associated [class@Valent.Context]
- * and are most useful for well-known components and objects that represent
- * SPARQL resources.
- *
  * Since: 1.0
  */
 
@@ -34,7 +29,6 @@ typedef struct
 {
   GRecMutex     mutex;
   GCancellable *cancellable;
-  char         *iri;
   unsigned int  in_destruction : 1;
   unsigned int  destroyed : 1;
 } ValentObjectPrivate;
@@ -43,10 +37,9 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentObject, valent_object, G_TYPE_OBJECT)
 
 typedef enum {
   PROP_CANCELLABLE = 1,
-  PROP_IRI,
 } ValentObjectProperty;
 
-static GParamSpec *properties[PROP_IRI + 1] = { NULL, };
+static GParamSpec *properties[PROP_CANCELLABLE + 1] = { NULL, };
 
 enum {
   DESTROY,
@@ -205,7 +198,6 @@ valent_object_finalize (GObject *object)
   ValentObjectPrivate *priv = valent_object_get_instance_private (self);
 
   g_clear_object (&priv->cancellable);
-  g_clear_pointer (&priv->iri, g_free);
   g_rec_mutex_clear (&priv->mutex);
 
   G_OBJECT_CLASS (valent_object_parent_class)->finalize (object);
@@ -223,10 +215,6 @@ valent_object_get_property (GObject    *object,
     {
     case PROP_CANCELLABLE:
       g_value_take_object (value, valent_object_ref_cancellable (self));
-      break;
-
-    case PROP_IRI:
-      g_value_take_string (value, valent_object_dup_iri (self));
       break;
 
     default:
@@ -247,10 +235,6 @@ valent_object_set_property (GObject      *object,
     {
     case PROP_CANCELLABLE:
       priv->cancellable = g_value_dup_object (value);
-      break;
-
-    case PROP_IRI:
-      priv->iri = g_value_dup_string (value);
       break;
 
     default:
@@ -284,25 +268,6 @@ valent_object_class_init (ValentObjectClass *klass)
   properties [PROP_CANCELLABLE] =
     g_param_spec_object ("cancellable", NULL, NULL,
                          G_TYPE_CANCELLABLE,
-                         (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentObject:iri: (getter dup_iri)
-   *
-   * The object IRI.
-   *
-   * An IRI that uniquely identifies the object as a resource. This is mostly
-   * useful for objects representing a SPARQL resource and well-known objects
-   * in Valent's architecture.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_IRI] =
-    g_param_spec_string ("iri", NULL, NULL,
-                         NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -469,31 +434,6 @@ valent_object_chain_cancellable (ValentObject *object,
     {
       ret = g_object_ref (priv->cancellable);
     }
-  valent_object_private_unlock (priv);
-
-  return g_steal_pointer (&ret);
-}
-
-/**
- * valent_object_dup_iri:
- * @object: a `ValentObject`
- *
- * Get a copy of the IRI for the object.
- *
- * Returns: (transfer full) (nullable): @object's IRI
- *
- * Since: 1.0
- */
-char *
-valent_object_dup_iri (ValentObject *object)
-{
-  ValentObjectPrivate *priv = valent_object_get_instance_private (object);
-  char *ret;
-
-  g_return_val_if_fail (VALENT_IS_OBJECT (object), NULL);
-
-  valent_object_private_lock (priv);
-  ret = g_strdup (priv->iri);
   valent_object_private_unlock (priv);
 
   return g_steal_pointer (&ret);

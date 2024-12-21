@@ -285,10 +285,10 @@ valent_contacts_plugin_constructed (GObject *object)
       for (unsigned int i = 0; i < n_adapters; i++)
         {
           g_autoptr (GListModel) adapter = NULL;
-          g_autofree char *iri = NULL;
+          const char *iri = NULL;
 
           adapter = g_list_model_get_item (G_LIST_MODEL (contacts), i);
-          iri = valent_object_dup_iri (VALENT_OBJECT (adapter));
+          iri = valent_resource_get_iri (VALENT_RESOURCE (adapter));
           if (g_strcmp0 (local_iri, iri) == 0)
             {
               self->local_contacts = g_list_model_get_item (adapter, i);
