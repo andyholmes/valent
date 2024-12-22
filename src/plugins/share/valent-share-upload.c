@@ -38,13 +38,11 @@ static gboolean   valent_share_upload_idle (gpointer             data);
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentShareUpload, valent_share_upload, VALENT_TYPE_TRANSFER,
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES,
-};
+typedef enum {
+  PROP_DEVICE = 1,
+} ValentShareUploadProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { 0, };
+static GParamSpec *properties[PROP_DEVICE + 1] = { NULL, };
 
 
 static void
@@ -232,7 +230,7 @@ valent_share_upload_get_property (GObject    *object,
 {
   ValentShareUpload *self = VALENT_SHARE_UPLOAD (object);
 
-  switch (prop_id)
+  switch ((ValentShareUploadProperty)prop_id)
     {
     case PROP_DEVICE:
       valent_object_lock (VALENT_OBJECT (self));
@@ -253,7 +251,7 @@ valent_share_upload_set_property (GObject      *object,
 {
   ValentShareUpload *self = VALENT_SHARE_UPLOAD (object);
 
-  switch (prop_id)
+  switch ((ValentShareUploadProperty)prop_id)
     {
     case PROP_DEVICE:
       valent_object_lock (VALENT_OBJECT (self));
@@ -291,7 +289,7 @@ valent_share_upload_class_init (ValentShareUploadClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

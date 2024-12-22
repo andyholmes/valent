@@ -31,14 +31,12 @@ struct _ValentRuncommandEditor
 
 G_DEFINE_TYPE (ValentRuncommandEditor, valent_runcommand_editor, GTK_TYPE_WINDOW)
 
-enum {
-  PROP_0,
-  PROP_COMMAND,
+typedef enum {
+  PROP_COMMAND = 1,
   PROP_UUID,
-  N_PROPERTIES
-};
+} ValentRuncommandEditorProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_UUID + 1] = { NULL, };
 
 
 static void
@@ -173,7 +171,7 @@ valent_runcommand_editor_get_property (GObject    *object,
 {
   ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (object);
 
-  switch (prop_id)
+  switch ((ValentRuncommandEditorProperty)prop_id)
     {
     case PROP_COMMAND:
       g_value_set_variant (value, self->command);
@@ -196,7 +194,7 @@ valent_runcommand_editor_set_property (GObject      *object,
 {
   ValentRuncommandEditor *self = VALENT_RUNCOMMAND_EDITOR (object);
 
-  switch (prop_id)
+  switch ((ValentRuncommandEditorProperty)prop_id)
     {
     case PROP_COMMAND:
       valent_runcommand_editor_set_command (self, g_value_get_variant (value));
@@ -253,7 +251,7 @@ valent_runcommand_editor_class_init (ValentRuncommandEditorClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-device-preferences-commands-editor.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentRuncommandEditor, save_button);

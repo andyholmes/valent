@@ -25,9 +25,8 @@
 
 G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, VALENT_TYPE_RESOURCE)
 
-enum {
-  PROP_0,
-  PROP_FLAGS,
+typedef enum {
+  PROP_FLAGS = 1,
   PROP_METADATA,
   PROP_NAME,
   PROP_POSITION,
@@ -35,10 +34,9 @@ enum {
   PROP_SHUFFLE,
   PROP_STATE,
   PROP_VOLUME,
-  N_PROPERTIES
-};
+} ValentMediaPlayerProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_VOLUME + 1] = { NULL, };
 
 
 /* LCOV_EXCL_START */
@@ -161,7 +159,7 @@ valent_media_player_get_property (GObject    *object,
 {
   ValentMediaPlayer *self = VALENT_MEDIA_PLAYER (object);
 
-  switch (prop_id)
+  switch ((ValentMediaPlayerProperty)prop_id)
     {
     case PROP_FLAGS:
       g_value_set_flags (value, valent_media_player_get_flags (self));
@@ -208,7 +206,7 @@ valent_media_player_set_property (GObject      *object,
 {
   ValentMediaPlayer *self = VALENT_MEDIA_PLAYER (object);
 
-  switch (prop_id)
+  switch ((ValentMediaPlayerProperty)prop_id)
     {
     case PROP_POSITION:
       valent_media_player_set_position (self, g_value_get_double (value));
@@ -226,6 +224,10 @@ valent_media_player_set_property (GObject      *object,
       valent_media_player_set_volume (self, g_value_get_double (value));
       break;
 
+    case PROP_FLAGS:
+    case PROP_METADATA:
+    case PROP_NAME:
+    case PROP_STATE:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -416,7 +418,7 @@ valent_media_player_class_init (ValentMediaPlayerClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

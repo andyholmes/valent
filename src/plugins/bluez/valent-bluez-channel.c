@@ -20,13 +20,11 @@ struct _ValentBluezChannel
 
 G_DEFINE_FINAL_TYPE (ValentBluezChannel, valent_bluez_channel, VALENT_TYPE_CHANNEL)
 
-enum {
-  PROP_0,
-  PROP_MUXER,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_MUXER = 1,
+} ValentBluezChannelProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_MUXER + 1] = { NULL, };
 
 
 /*
@@ -128,7 +126,7 @@ valent_bluez_channel_get_property (GObject    *object,
 {
   ValentBluezChannel *self = VALENT_BLUEZ_CHANNEL (object);
 
-  switch (prop_id)
+  switch ((ValentBluezChannelProperty)prop_id)
     {
     case PROP_MUXER:
       valent_object_lock (VALENT_OBJECT (self));
@@ -149,7 +147,7 @@ valent_bluez_channel_set_property (GObject      *object,
 {
   ValentBluezChannel *self = VALENT_BLUEZ_CHANNEL (object);
 
-  switch (prop_id)
+  switch ((ValentBluezChannelProperty)prop_id)
     {
     case PROP_MUXER:
       valent_object_lock (VALENT_OBJECT (self));
@@ -188,7 +186,7 @@ valent_bluez_channel_class_init (ValentBluezChannelClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

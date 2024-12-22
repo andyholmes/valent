@@ -30,14 +30,12 @@ struct _ValentBluezDevice
 
 G_DEFINE_FINAL_TYPE (ValentBluezDevice, valent_bluez_device, G_TYPE_OBJECT)
 
-enum {
-  PROP_0,
-  PROP_CONNECTION,
+typedef enum {
+  PROP_CONNECTION = 1,
   PROP_OBJECT_PATH,
-  N_PROPERTIES
-};
+} ValentBluezDeviceProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_OBJECT_PATH + 1] = { NULL, };
 
 
 static GWeakRef *
@@ -169,7 +167,7 @@ valent_bluez_device_get_property (GObject    *object,
 {
   ValentBluezDevice *self = VALENT_BLUEZ_DEVICE (object);
 
-  switch (prop_id)
+  switch ((ValentBluezDeviceProperty)prop_id)
     {
     case PROP_CONNECTION:
       g_value_set_object (value, self->connection);
@@ -192,7 +190,7 @@ valent_bluez_device_set_property (GObject      *object,
 {
   ValentBluezDevice *self = VALENT_BLUEZ_DEVICE (object);
 
-  switch (prop_id)
+  switch ((ValentBluezDeviceProperty)prop_id)
     {
     case PROP_CONNECTION:
       self->connection = g_value_dup_object (value);
@@ -244,7 +242,7 @@ valent_bluez_device_class_init (ValentBluezDeviceClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

@@ -70,7 +70,7 @@ typedef enum
   PROP_CONNECTION = 1,
 } ValentContactsAdapterProperty;
 
-static GParamSpec *properties[PROP_CONNECTION + 1] = { 0, };
+static GParamSpec *properties[PROP_CONNECTION + 1] = { NULL, };
 
 gboolean
 valent_contacts_adapter_event_is_contact_list (ValentContactsAdapter *self,

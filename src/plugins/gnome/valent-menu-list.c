@@ -26,14 +26,12 @@ struct _ValentMenuList
 
 G_DEFINE_FINAL_TYPE (ValentMenuList, valent_menu_list, GTK_TYPE_WIDGET)
 
-enum {
-  PROP_0,
-  PROP_MENU_MODEL,
+typedef enum {
+  PROP_MENU_MODEL = 1,
   PROP_SUBMENU_OF,
-  N_PROPERTIES
-};
+} ValentMenuListProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_SUBMENU_OF + 1] = { NULL, };
 
 
 static void
@@ -507,7 +505,7 @@ valent_menu_list_class_init (ValentMenuListClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

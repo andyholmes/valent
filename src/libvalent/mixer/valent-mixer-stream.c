@@ -33,17 +33,15 @@ typedef struct
 
 G_DEFINE_TYPE_WITH_PRIVATE (ValentMixerStream, valent_mixer_stream, VALENT_TYPE_RESOURCE)
 
-enum {
-  PROP_0,
-  PROP_DESCRIPTION,
+typedef enum {
+  PROP_DESCRIPTION = 1,
   PROP_DIRECTION,
   PROP_LEVEL,
   PROP_MUTED,
   PROP_NAME,
-  N_PROPERTIES
-};
+} ValentMixerStreamProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_NAME + 1] = { NULL, };
 
 /* LCOV_EXCL_START */
 static const char *
@@ -142,7 +140,7 @@ valent_mixer_stream_get_property (GObject    *object,
 {
   ValentMixerStream *self = VALENT_MIXER_STREAM (object);
 
-  switch (prop_id)
+  switch ((ValentMixerStreamProperty)prop_id)
     {
     case PROP_DESCRIPTION:
       g_value_set_string (value, valent_mixer_stream_get_description (self));
@@ -178,7 +176,7 @@ valent_mixer_stream_set_property (GObject      *object,
   ValentMixerStream *self = VALENT_MIXER_STREAM (object);
   ValentMixerStreamPrivate *priv = valent_mixer_stream_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentMixerStreamProperty)prop_id)
     {
     case PROP_DESCRIPTION:
       priv->description = g_value_dup_string (value);
@@ -301,7 +299,7 @@ valent_mixer_stream_class_init (ValentMixerStreamClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

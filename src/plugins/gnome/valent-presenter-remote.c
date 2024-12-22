@@ -22,13 +22,11 @@ struct _ValentPresenterRemote
 
 G_DEFINE_FINAL_TYPE (ValentPresenterRemote, valent_presenter_remote, ADW_TYPE_WINDOW)
 
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_DEVICE = 1,
+} ValentPresenterRemoteProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_DEVICE + 1] = { NULL, };
 
 /*
  * File Filter
@@ -152,7 +150,7 @@ valent_presenter_remote_get_property (GObject    *object,
 {
   ValentPresenterRemote *self = VALENT_PRESENTER_REMOTE (object);
 
-  switch (prop_id)
+  switch ((ValentPresenterRemoteProperty)prop_id)
     {
     case PROP_DEVICE:
       g_value_set_object (value, self->device);
@@ -171,7 +169,7 @@ valent_presenter_remote_set_property (GObject      *object,
 {
   ValentPresenterRemote *self = VALENT_PRESENTER_REMOTE (object);
 
-  switch (prop_id)
+  switch ((ValentPresenterRemoteProperty)prop_id)
     {
     case PROP_DEVICE:
       self->device = g_value_get_object (value);
@@ -205,7 +203,7 @@ valent_presenter_remote_class_init (ValentPresenterRemoteClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

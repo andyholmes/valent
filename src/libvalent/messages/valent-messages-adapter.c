@@ -71,7 +71,7 @@ typedef enum
   PROP_CONNECTION = 1,
 } ValentMessagesAdapterProperty;
 
-static GParamSpec *properties[PROP_CONNECTION + 1] = { 0, };
+static GParamSpec *properties[PROP_CONNECTION + 1] = { NULL, };
 
 static void
 valent_messages_adapter_load_thread_cb (GObject      *object,

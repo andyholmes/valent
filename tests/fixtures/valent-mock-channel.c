@@ -27,14 +27,12 @@ struct _ValentMockChannel
 
 G_DEFINE_FINAL_TYPE (ValentMockChannel, valent_mock_channel, VALENT_TYPE_CHANNEL)
 
-enum {
-  PROP_0,
-  PROP_HOST,
+typedef enum {
+  PROP_HOST = 1,
   PROP_PORT,
-  N_PROPERTIES
-};
+} ValentMockChannelProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_PORT + 1] = { NULL, };
 
 
 /*
@@ -153,7 +151,7 @@ valent_mock_channel_get_property (GObject    *object,
 {
   ValentMockChannel *self = VALENT_MOCK_CHANNEL (object);
 
-  switch (prop_id)
+  switch ((ValentMockChannelProperty)prop_id)
     {
     case PROP_HOST:
       valent_object_lock (VALENT_OBJECT (self));
@@ -180,7 +178,7 @@ valent_mock_channel_set_property (GObject      *object,
 {
   ValentMockChannel *self = VALENT_MOCK_CHANNEL (object);
 
-  switch (prop_id)
+  switch ((ValentMockChannelProperty)prop_id)
     {
     case PROP_HOST:
       valent_object_lock (VALENT_OBJECT (self));
@@ -245,7 +243,7 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
                         G_PARAM_EXPLICIT_NOTIFY |
                         G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

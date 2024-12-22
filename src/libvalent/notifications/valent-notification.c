@@ -35,21 +35,19 @@ struct _ValentNotification
   GNotificationPriority  priority;
 };
 
-enum {
-  PROP_0,
-  PROP_ACTION,
+typedef enum {
+  PROP_ACTION = 1,
   PROP_APPLICATION,
   PROP_BODY,
   PROP_ICON,
   PROP_ID,
   PROP_PRIORITY,
   PROP_TIME,
-  N_PROPERTIES
-};
+} ValentNotificationProperty;
 
 G_DEFINE_FINAL_TYPE (ValentNotification, valent_notification, VALENT_TYPE_RESOURCE)
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_TIME + 1] = { NULL, };
 
 
 /*
@@ -151,7 +149,7 @@ valent_notification_get_property (GObject    *object,
 {
   ValentNotification *self = VALENT_NOTIFICATION (object);
 
-  switch (prop_id)
+  switch ((ValentNotificationProperty)prop_id)
     {
     case PROP_APPLICATION:
       g_value_set_string (value, valent_notification_get_application (self));
@@ -177,6 +175,7 @@ valent_notification_get_property (GObject    *object,
       g_value_set_int64 (value, valent_notification_get_time (self));
       break;
 
+    case PROP_ACTION:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -190,7 +189,7 @@ valent_notification_set_property (GObject      *object,
 {
   ValentNotification *self = VALENT_NOTIFICATION (object);
 
-  switch (prop_id)
+  switch ((ValentNotificationProperty)prop_id)
     {
     case PROP_ACTION:
       valent_notification_set_action (self, g_value_get_string (value));
@@ -347,7 +346,7 @@ valent_notification_class_init (ValentNotificationClass *klass)
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 /**

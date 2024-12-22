@@ -29,15 +29,13 @@ struct _ValentPipewireStream
 
 G_DEFINE_FINAL_TYPE (ValentPipewireStream, valent_pipewire_stream, VALENT_TYPE_MIXER_STREAM)
 
-enum {
-  PROP_0,
-  PROP_ADAPTER,
+typedef enum {
+  PROP_ADAPTER = 1,
   PROP_DEVICE_ID,
   PROP_NODE_ID,
-  N_PROPERTIES
-};
+} ValentPipewireStreamProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_NODE_ID + 1] = { NULL, };
 
 
 /*
@@ -120,7 +118,7 @@ valent_pipewire_stream_get_property (GObject    *object,
 {
   ValentPipewireStream *self = VALENT_PIPEWIRE_STREAM (object);
 
-  switch (prop_id)
+  switch ((ValentPipewireStreamProperty)prop_id)
     {
     case PROP_ADAPTER:
       g_value_set_object (value, self->adapter);
@@ -147,7 +145,7 @@ valent_pipewire_stream_set_property (GObject      *object,
 {
   ValentPipewireStream *self = VALENT_PIPEWIRE_STREAM (object);
 
-  switch (prop_id)
+  switch ((ValentPipewireStreamProperty)prop_id)
     {
     case PROP_ADAPTER:
       self->adapter = g_value_get_object (value);
@@ -236,7 +234,7 @@ valent_pipewire_stream_class_init (ValentPipewireStreamClass *klass)
                         G_PARAM_EXPLICIT_NOTIFY |
                         G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

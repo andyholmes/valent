@@ -41,13 +41,11 @@ struct _ValentDevicePage
 
 G_DEFINE_FINAL_TYPE (ValentDevicePage, valent_device_page, ADW_TYPE_NAVIGATION_PAGE)
 
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_DEVICE = 1,
+} ValentDevicePageProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_DEVICE + 1] = { NULL, };
 
 /*
  * Pairing
@@ -472,7 +470,7 @@ valent_device_page_get_property (GObject    *object,
 {
   ValentDevicePage *self = VALENT_DEVICE_PAGE (object);
 
-  switch (prop_id)
+  switch ((ValentDevicePageProperty)prop_id)
     {
     case PROP_DEVICE:
       g_value_set_object (value, self->device);
@@ -491,7 +489,7 @@ valent_device_page_set_property (GObject      *object,
 {
   ValentDevicePage *self = VALENT_DEVICE_PAGE (object);
 
-  switch (prop_id)
+  switch ((ValentDevicePageProperty)prop_id)
     {
     case PROP_DEVICE:
       self->device = g_value_dup_object (value);
@@ -545,7 +543,7 @@ valent_device_page_class_init (ValentDevicePageClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 
   /* Ensure the private types we need are ready */
   g_type_ensure (VALENT_TYPE_MENU_LIST);

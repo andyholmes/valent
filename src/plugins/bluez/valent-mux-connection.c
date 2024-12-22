@@ -37,14 +37,12 @@ struct _ValentMuxConnection
 
 G_DEFINE_FINAL_TYPE (ValentMuxConnection, valent_mux_connection, VALENT_TYPE_OBJECT)
 
-enum {
-  PROP_0,
-  PROP_BASE_STREAM,
+typedef enum {
+  PROP_BASE_STREAM = 1,
   PROP_BUFFER_SIZE,
-  N_PROPERTIES
-};
+} ValentMuxConnectionProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_BUFFER_SIZE + 1] = { NULL, };
 
 
 /*
@@ -796,7 +794,7 @@ valent_mux_connection_get_property (GObject    *object,
 {
   ValentMuxConnection *self = VALENT_MUX_CONNECTION (object);
 
-  switch (prop_id)
+  switch ((ValentMuxConnectionProperty)prop_id)
     {
     case PROP_BASE_STREAM:
       g_value_set_object (value, self->base_stream);
@@ -819,7 +817,7 @@ valent_mux_connection_set_property (GObject      *object,
 {
   ValentMuxConnection *self = VALENT_MUX_CONNECTION (object);
 
-  switch (prop_id)
+  switch ((ValentMuxConnectionProperty)prop_id)
     {
     case PROP_BASE_STREAM:
       self->base_stream = g_value_dup_object (value);
@@ -874,7 +872,7 @@ valent_mux_connection_class_init (ValentMuxConnectionClass *klass)
                         G_PARAM_EXPLICIT_NOTIFY |
                         G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
