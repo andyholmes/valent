@@ -18,6 +18,7 @@ G_BEGIN_DECLS
 #include "valent-global.h"
 #include "valent-macros.h"
 #include "valent-object.h"
+#include "valent-plugin.h"
 #include "valent-resource.h"
 #include "valent-transfer.h"
 #include "valent-version.h"
