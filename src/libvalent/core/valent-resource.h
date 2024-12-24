@@ -88,6 +88,8 @@ VALENT_AVAILABLE_IN_1_0
 void             valent_resource_set_rights      (ValentResource *resource,
                                                   const char     *rights);
 VALENT_AVAILABLE_IN_1_0
+gpointer         valent_resource_get_root        (ValentResource *resource);
+VALENT_AVAILABLE_IN_1_0
 gpointer         valent_resource_get_source      (ValentResource *resource);
 VALENT_AVAILABLE_IN_1_0
 void             valent_resource_set_source      (ValentResource *resource,

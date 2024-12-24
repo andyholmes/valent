@@ -22,7 +22,7 @@ typedef struct
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentDevicePreferencesGroup, valent_device_preferences_group, ADW_TYPE_PREFERENCES_GROUP)
 
 typedef enum {
-  PROP_DATA_SOURCE = 1,
+  PROP_DEVICE = 1,
   PROP_PLUGIN_INFO,
   PROP_SETTINGS,
 } ValentDevicePreferencesGroupProperty;
@@ -80,7 +80,7 @@ valent_device_preferences_group_get_property (GObject    *object,
 
   switch ((ValentDevicePreferencesGroupProperty)prop_id)
     {
-    case PROP_DATA_SOURCE:
+    case PROP_DEVICE:
       g_value_set_object (value, priv->data_source);
       break;
 
@@ -108,7 +108,7 @@ valent_device_preferences_group_set_property (GObject      *object,
 
   switch ((ValentDevicePreferencesGroupProperty)prop_id)
     {
-    case PROP_DATA_SOURCE:
+    case PROP_DEVICE:
       priv->data_source = g_value_dup_object (value);
       break;
 
@@ -133,13 +133,13 @@ valent_device_preferences_group_class_init (ValentDevicePreferencesGroupClass *k
   object_class->set_property = valent_device_preferences_group_set_property;
 
   /**
-   * ValentDevicePreferencesGroup:data-source:
+   * ValentDevicePreferencesGroup:device:
    *
    * The [class@Valent.DataSource] for the [class@Valent.DevicePlugin].
    */
-  properties [PROP_DATA_SOURCE] =
-    g_param_spec_object ("data-source", NULL, NULL,
-                         VALENT_TYPE_DATA_SOURCE,
+  properties [PROP_DEVICE] =
+    g_param_spec_object ("device", NULL, NULL,
+                         VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |

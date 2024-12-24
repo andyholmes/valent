@@ -8,12 +8,13 @@
 #include <gio/gio.h>
 #include <libtracker-sparql/tracker-sparql.h>
 
-#include "valent-application.h"
 #include "valent-application-plugin.h"
-#include "valent-component-private.h"
+#include "valent-data-source.h"
 #include "valent-debug.h"
 #include "valent-global.h"
+#include "valent-plugin.h"
 
+#include "valent-application.h"
 
 /**
  * ValentApplication:
@@ -38,53 +39,25 @@ G_DEFINE_FINAL_TYPE (ValentApplication, valent_application, G_TYPE_APPLICATION)
 /*
  * PeasEngine
  */
-static inline void
-valent_application_enable_plugin (ValentApplication *self,
-                                  ValentPlugin      *plugin)
-{
-  const char *module = NULL;
-  g_autofree char *iri = NULL;
-
-  g_assert (VALENT_IS_APPLICATION (self));
-  g_assert (plugin != NULL);
-
-  module = peas_plugin_info_get_module_name (plugin->info);
-  iri = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s",
-                                          plugin->domain,
-                                          module);
-  plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
-                                                    plugin->info,
-                                                    VALENT_TYPE_APPLICATION_PLUGIN,
-                                                    "iri",           iri,
-                                                    "source",        plugin->source,
-                                                    "plugin-domain", plugin->domain,
-                                                    NULL);
-  g_return_if_fail (G_IS_OBJECT (plugin->extension));
-}
-
-static inline void
-valent_application_disable_plugin (ValentApplication *self,
-                                   ValentPlugin      *plugin)
-{
-  g_assert (VALENT_IS_APPLICATION (self));
-
-  if (plugin->extension != NULL)
-    {
-      valent_object_destroy (VALENT_OBJECT (plugin->extension));
-      g_clear_object (&plugin->extension);
-    }
-}
-
 static void
-on_plugin_enabled_changed (ValentPlugin *plugin)
+on_plugin_enabled_changed (ValentPlugin      *plugin,
+                           GParamSpec        *pspec,
+                           ValentApplication *self)
 {
-  g_assert (plugin != NULL);
-  g_assert (VALENT_IS_APPLICATION (plugin->parent));
+  g_assert (VALENT_IS_PLUGIN (plugin));
+  g_assert (VALENT_IS_APPLICATION (self));
 
   if (valent_plugin_get_enabled (plugin))
-    valent_application_enable_plugin (plugin->parent, plugin);
+    {
+      g_autoptr (ValentExtension) extension = NULL;
+
+      extension = valent_plugin_create_extension (plugin);
+      valent_plugin_set_extension (plugin, extension);
+    }
   else
-    valent_application_disable_plugin (plugin->parent, plugin);
+    {
+      valent_plugin_set_extension (plugin, NULL);
+    }
 }
 
 static void
@@ -105,12 +78,17 @@ on_load_plugin (PeasEngine        *engine,
                g_type_name (VALENT_TYPE_APPLICATION_PLUGIN),
                peas_plugin_info_get_module_name (info));
 
-  plugin = valent_plugin_new (self, info, "application",
-                              G_CALLBACK (on_plugin_enabled_changed));
+  plugin = valent_plugin_new (valent_data_source_get_local_default (),
+                              info,
+                              VALENT_TYPE_APPLICATION_PLUGIN,
+                              "application");
+  g_signal_connect_object (plugin,
+                           "notify::enabled",
+                           G_CALLBACK (on_plugin_enabled_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
   g_hash_table_insert (self->plugins, info, plugin);
-
-  if (valent_plugin_get_enabled (plugin))
-    valent_application_enable_plugin (self, plugin);
+  on_plugin_enabled_changed (plugin, NULL, self);
 }
 
 static void
@@ -164,10 +142,9 @@ valent_application_activate (GApplication *application)
   g_hash_table_iter_init (&iter, self->plugins);
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      if (plugin->extension == NULL)
-        continue;
+      ValentApplicationPlugin *extension = valent_plugin_get_extension (plugin);
 
-      if (valent_application_plugin_activate (VALENT_APPLICATION_PLUGIN (plugin->extension)))
+      if (extension != NULL && valent_application_plugin_activate (extension))
         return;
     }
 
@@ -189,13 +166,12 @@ valent_application_open (GApplication  *application,
   g_hash_table_iter_init (&iter, self->plugins);
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      if (plugin->extension == NULL)
+      ValentApplicationPlugin *extension = valent_plugin_get_extension (plugin);
+
+      if (extension == NULL)
         continue;
 
-      if (valent_application_plugin_open (VALENT_APPLICATION_PLUGIN (plugin->extension),
-                                          files,
-                                          n_files,
-                                          hint))
+      if (valent_application_plugin_open (extension, files, n_files, hint))
         return;
     }
 
@@ -223,10 +199,10 @@ valent_application_startup (GApplication *application)
   g_hash_table_iter_init (&iter, self->plugins);
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      if (plugin->extension == NULL)
-        continue;
+      ValentApplicationPlugin *extension = valent_plugin_get_extension (plugin);
 
-      valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (plugin->extension));
+      if (extension != NULL)
+        valent_application_plugin_startup (extension);
     }
 }
 
@@ -240,10 +216,10 @@ valent_application_shutdown (GApplication *application)
   g_hash_table_iter_init (&iter, self->plugins);
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      if (plugin->extension == NULL)
-        continue;
+      ValentApplicationPlugin *extension = valent_plugin_get_extension (plugin);
 
-      valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (plugin->extension));
+      if (extension != NULL)
+        valent_application_plugin_shutdown (extension);
     }
 
   G_APPLICATION_CLASS (valent_application_parent_class)->shutdown (application);
@@ -267,10 +243,12 @@ valent_application_dbus_register (GApplication     *application,
   g_hash_table_iter_init (&iter, self->plugins);
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      if (plugin->extension == NULL)
+      ValentApplicationPlugin *extension = valent_plugin_get_extension (plugin);
+
+      if (extension == NULL)
         continue;
 
-      if (!valent_application_plugin_dbus_register (VALENT_APPLICATION_PLUGIN (plugin->extension),
+      if (!valent_application_plugin_dbus_register (extension,
                                                     connection,
                                                     object_path,
                                                     error))
@@ -293,10 +271,12 @@ valent_application_dbus_unregister (GApplication    *application,
   g_hash_table_iter_init (&iter, self->plugins);
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      if (plugin->extension == NULL)
+      ValentApplicationPlugin *extension = valent_plugin_get_extension (plugin);
+
+      if (extension == NULL)
         continue;
 
-      valent_application_plugin_dbus_unregister (VALENT_APPLICATION_PLUGIN (plugin->extension),
+      valent_application_plugin_dbus_unregister (extension,
                                                  connection,
                                                  object_path);
     }
@@ -374,7 +354,7 @@ valent_application_class_init (ValentApplicationClass *klass)
 static void
 valent_application_init (ValentApplication *self)
 {
-  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
+  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
 }
 
 GApplication *

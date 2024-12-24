@@ -7,6 +7,7 @@
 
 #include <gio/gio.h>
 
+#include "valent-data-source.h"
 #include "valent-object.h"
 
 #include "valent-resource.h"
@@ -1094,6 +1095,34 @@ valent_resource_get_source (ValentResource *resource)
   g_return_val_if_fail (VALENT_IS_RESOURCE (resource), NULL);
 
   return priv->source;
+}
+
+/**
+ * valent_resource_get_root:
+ * @resource: a `ValentResource`
+ *
+ * Get the root source of @resource.
+ *
+ * Returns: (type Valent.Resource) (transfer none) (nullable): the source
+ *   of @resource
+ *
+ * Since: 1.0
+ */
+gpointer
+valent_resource_get_root (ValentResource *resource)
+{
+  ValentResourcePrivate *priv = valent_resource_get_instance_private (resource);
+  ValentResource *root = resource;
+
+  g_return_val_if_fail (VALENT_IS_RESOURCE (resource), NULL);
+
+  while (priv->source != NULL)
+    {
+      root = priv->source;
+      priv = valent_resource_get_instance_private (root);
+    }
+
+  return root;
 }
 
 /**

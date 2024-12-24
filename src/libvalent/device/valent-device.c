@@ -12,7 +12,7 @@
 
 #include "valent-device-enums.h"
 
-#include "../core/valent-component-private.h"
+#include "../core/valent-plugin.h"
 #include "valent-channel.h"
 #include "valent-device.h"
 #include "valent-device-plugin.h"
@@ -185,25 +185,33 @@ g_action_group_iface_init (GActionGroupInterface *iface)
 /*
  * Private plugin methods
  */
+static inline char *
+_valent_plugin_get_action_name (ValentPlugin *plugin,
+                                const char   *action_name)
+{
+  PeasPluginInfo *plugin_info = valent_plugin_get_plugin_info (plugin);
+  return g_strdup_printf ("%s.%s",
+                          peas_plugin_info_get_module_name (plugin_info),
+                          action_name);
+}
+
 static void
 on_plugin_action_added (GActionGroup *action_group,
                         const char   *action_name,
                         ValentPlugin *plugin)
 {
-  ValentDevice *self = VALENT_DEVICE (plugin->parent);
+  ValentDevice *self = VALENT_DEVICE (valent_plugin_get_source (plugin));
   g_autofree char *full_name = NULL;
   GAction *action;
 
-  full_name = g_strdup_printf ("%s.%s",
-                               peas_plugin_info_get_module_name (plugin->info),
-                               action_name);
+  full_name = _valent_plugin_get_action_name (plugin, action_name);
   action = g_action_map_lookup_action (G_ACTION_MAP (action_group),
                                        action_name);
 
   g_hash_table_replace (self->actions,
                         g_strdup (full_name),
                         g_object_ref (action));
-  g_action_group_action_added (G_ACTION_GROUP (plugin->parent), full_name);
+  g_action_group_action_added (G_ACTION_GROUP (self), full_name);
 }
 
 static void
@@ -212,12 +220,11 @@ on_plugin_action_enabled_changed (GActionGroup *action_group,
                                   gboolean      enabled,
                                   ValentPlugin *plugin)
 {
+  ValentDevice *self = VALENT_DEVICE (valent_plugin_get_source (plugin));
   g_autofree char *full_name = NULL;
 
-  full_name = g_strdup_printf ("%s.%s",
-                               peas_plugin_info_get_module_name (plugin->info),
-                               action_name);
-  g_action_group_action_enabled_changed (G_ACTION_GROUP (plugin->parent),
+  full_name = _valent_plugin_get_action_name (plugin, action_name);
+  g_action_group_action_enabled_changed (G_ACTION_GROUP (self),
                                          full_name,
                                          enabled);
 }
@@ -227,14 +234,11 @@ on_plugin_action_removed (GActionGroup *action_group,
                           const char   *action_name,
                           ValentPlugin *plugin)
 {
-  ValentDevice *self = VALENT_DEVICE (plugin->parent);
+  ValentDevice *self = VALENT_DEVICE (valent_plugin_get_source (plugin));
   g_autofree char *full_name = NULL;
 
-  full_name = g_strdup_printf ("%s.%s",
-                               peas_plugin_info_get_module_name (plugin->info),
-                               action_name);
-
-  g_action_group_action_removed (G_ACTION_GROUP (plugin->parent), full_name);
+  full_name = _valent_plugin_get_action_name (plugin, action_name);
+  g_action_group_action_removed (G_ACTION_GROUP (self), full_name);
   g_hash_table_remove (self->actions, full_name);
 }
 
@@ -244,43 +248,32 @@ on_plugin_action_state_changed (GActionGroup *action_group,
                                 GVariant     *value,
                                 ValentPlugin *plugin)
 {
+  ValentDevice *self = VALENT_DEVICE (valent_plugin_get_source (plugin));
   g_autofree char *full_name = NULL;
 
-  full_name = g_strdup_printf ("%s.%s",
-                               peas_plugin_info_get_module_name (plugin->info),
-                               action_name);
-  g_action_group_action_state_changed (G_ACTION_GROUP (plugin->parent),
-                                       full_name,
-                                       value);
+  full_name = _valent_plugin_get_action_name (plugin, action_name);
+  g_action_group_action_state_changed (G_ACTION_GROUP (self), full_name, value);
 }
 
 static void
 valent_device_enable_plugin (ValentDevice *device,
                              ValentPlugin *plugin)
 {
-  const char *module = NULL;
-  g_autofree char *iri = NULL;
+  g_autoptr (ValentDevicePlugin) extension = NULL;
+  PeasPluginInfo *plugin_info = NULL;
   g_auto (GStrv) actions = NULL;
   const char *incoming = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
 
-  module = peas_plugin_info_get_module_name (plugin->info);
-  iri = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s",
-                                          plugin->domain,
-                                          module);
-  plugin->extension = peas_engine_create_extension (device->engine,
-                                                    plugin->info,
-                                                    VALENT_TYPE_DEVICE_PLUGIN,
-                                                    "iri",           iri,
-                                                    "source",        plugin->source,
-                                                    "plugin-domain", plugin->domain,
-                                                    NULL);
-  g_return_if_fail (G_IS_OBJECT (plugin->extension));
+  extension = valent_plugin_create_extension (plugin);
+  valent_plugin_set_extension (plugin, VALENT_EXTENSION (extension));
+  g_return_if_fail (VALENT_IS_EXTENSION (extension));
 
   /* Register packet handlers */
-  incoming = peas_plugin_info_get_external_data (plugin->info,
+  plugin_info = valent_plugin_get_plugin_info (plugin);
+  incoming = peas_plugin_info_get_external_data (plugin_info,
                                                  "DevicePluginIncoming");
 
   if (incoming != NULL)
@@ -300,74 +293,70 @@ valent_device_enable_plugin (ValentDevice *device,
               g_hash_table_insert (device->handlers, g_strdup (type), handlers);
             }
 
-          g_ptr_array_add (handlers, plugin->extension);
+          g_ptr_array_add (handlers, extension);
         }
     }
 
-  /* Register plugin actions */
-  actions = g_action_group_list_actions (G_ACTION_GROUP (plugin->extension));
-
+  /* Register plugin actions
+   */
+  actions = g_action_group_list_actions (G_ACTION_GROUP (extension));
   for (unsigned int i = 0; actions[i] != NULL; i++)
-    {
-      on_plugin_action_added (G_ACTION_GROUP (plugin->extension),
-                              actions[i],
-                              plugin);
-    }
+    on_plugin_action_added (G_ACTION_GROUP (extension), actions[i], plugin);
 
-  g_signal_connect (plugin->extension,
+  g_signal_connect (extension,
                     "action-added",
                     G_CALLBACK (on_plugin_action_added),
                     plugin);
-  g_signal_connect (plugin->extension,
+  g_signal_connect (extension,
                     "action-enabled-changed",
                     G_CALLBACK (on_plugin_action_enabled_changed),
                     plugin);
-  g_signal_connect (plugin->extension,
+  g_signal_connect (extension,
                     "action-removed",
                     G_CALLBACK (on_plugin_action_removed),
                     plugin);
-  g_signal_connect (plugin->extension,
+  g_signal_connect (extension,
                     "action-state-changed",
                     G_CALLBACK (on_plugin_action_state_changed),
                     plugin);
 
   /* Bootstrap the newly instantiated plugin */
-  valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (plugin->extension),
-                                     valent_device_get_state (device));
+  valent_device_plugin_update_state (extension, valent_device_get_state (device));
 }
 
 static void
 valent_device_disable_plugin (ValentDevice *device,
                               ValentPlugin *plugin)
 {
+  ValentDevicePlugin *extension;
+  PeasPluginInfo *plugin_info = NULL;
   g_auto (GStrv) actions = NULL;
   const char *incoming = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
+  g_assert (VALENT_IS_PLUGIN (plugin));
   g_assert (plugin != NULL);
-  g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
-  /* Unregister actions */
-  g_signal_handlers_disconnect_by_data (plugin->extension, plugin);
-  actions = g_action_group_list_actions (G_ACTION_GROUP (plugin->extension));
+  extension = valent_plugin_get_extension (plugin);
+  g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (extension));
 
+  /* Device Actions
+   */
+  g_signal_handlers_disconnect_by_data (extension, plugin);
+  actions = g_action_group_list_actions (G_ACTION_GROUP (extension));
   for (unsigned int i = 0; actions[i]; i++)
-    {
-      on_plugin_action_removed (G_ACTION_GROUP (plugin->extension),
-                                actions[i],
-                                plugin);
-    }
+    on_plugin_action_removed (G_ACTION_GROUP (extension), actions[i], plugin);
 
-  /* Unregister packet handlers */
-  incoming = peas_plugin_info_get_external_data (plugin->info,
+  /* Packet Handlers
+   */
+  plugin_info = valent_plugin_get_plugin_info (plugin);
+  incoming = peas_plugin_info_get_external_data (plugin_info,
                                                  "DevicePluginIncoming");
-
   if (incoming != NULL)
     {
       g_auto (GStrv) capabilities = NULL;
 
       capabilities = g_strsplit (incoming, ";", -1);
-
       for (unsigned int i = 0; capabilities[i] != NULL; i++)
         {
           const char *type = capabilities[i];
@@ -376,26 +365,28 @@ valent_device_disable_plugin (ValentDevice *device,
           if ((handlers = g_hash_table_lookup (device->handlers, type)) == NULL)
             continue;
 
-          if (g_ptr_array_remove (handlers, plugin->extension) && handlers->len == 0)
+          if (g_ptr_array_remove (handlers, extension) && handlers->len == 0)
             g_hash_table_remove (device->handlers, type);
         }
     }
 
   /* `::action-removed` needs to be emitted before the plugin is freed */
-  valent_object_destroy (VALENT_OBJECT (plugin->extension));
-  g_clear_object (&plugin->extension);
+  valent_object_destroy (VALENT_OBJECT (extension));
+  valent_plugin_set_extension (plugin, NULL);
 }
 
 static void
-on_plugin_enabled_changed (ValentPlugin *plugin)
+on_plugin_enabled_changed (ValentPlugin *plugin,
+                           GParamSpec   *pspec,
+                           ValentDevice *self)
 {
-  g_assert (plugin != NULL);
-  g_assert (VALENT_IS_DEVICE (plugin->parent));
+  g_assert (VALENT_IS_PLUGIN (plugin));
+  g_assert (VALENT_IS_DEVICE (self));
 
   if (valent_plugin_get_enabled (plugin))
-    valent_device_enable_plugin (plugin->parent, plugin);
+    valent_device_enable_plugin (self, plugin);
   else
-    valent_device_disable_plugin (plugin->parent, plugin);
+    valent_device_disable_plugin (self, plugin);
 }
 
 
@@ -727,12 +718,17 @@ on_load_plugin (PeasEngine     *engine,
                peas_plugin_info_get_module_name (info));
 
   /* Register the plugin & data (hash tables are ref owners) */
-  plugin = valent_plugin_new (self, info, "device",
-                              G_CALLBACK (on_plugin_enabled_changed));
+  plugin = valent_plugin_new (VALENT_RESOURCE (self),
+                              info,
+                              VALENT_TYPE_DEVICE_PLUGIN,
+                              "device");
+  g_signal_connect_object (plugin,
+                           "notify::enabled",
+                           G_CALLBACK (on_plugin_enabled_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
   g_hash_table_insert (self->plugins, info, plugin);
-
-  if (valent_plugin_get_enabled (plugin))
-    valent_device_enable_plugin (self, plugin);
+  on_plugin_enabled_changed (plugin, NULL, self);
 
   g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_PLUGINS]);
 }
@@ -846,7 +842,6 @@ valent_device_constructed (GObject *object)
                            G_CALLBACK (on_load_plugin),
                            self,
                            G_CONNECT_AFTER);
-
   g_signal_connect_object (self->engine,
                            "unload-plugin",
                            G_CALLBACK (on_unload_plugin),
@@ -955,7 +950,7 @@ valent_device_init (ValentDevice *self)
   GSimpleAction *action = NULL;
 
   /* Plugins */
-  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
+  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
   self->handlers = g_hash_table_new_full (g_str_hash,
                                           g_str_equal,
                                           g_free,
@@ -1667,7 +1662,6 @@ valent_device_reload_plugins (ValentDevice *device)
       g_autoptr (PeasPluginInfo) info = NULL;
 
       info = g_list_model_get_item (G_LIST_MODEL (device->engine), i);
-
       if (valent_device_supports_plugin (device, info))
         on_load_plugin (device->engine, info, device);
       else
@@ -1695,14 +1689,12 @@ valent_device_update_plugins (ValentDevice *device)
   state = valent_device_get_state (device);
 
   g_hash_table_iter_init (&iter, device->plugins);
-
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      if (plugin->extension == NULL)
-        continue;
+      ValentDevicePlugin *extension = valent_plugin_get_extension (plugin);
 
-      valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (plugin->extension),
-                                         state);
+      if (extension != NULL)
+        valent_device_plugin_update_state (extension, state);
     }
 }
 

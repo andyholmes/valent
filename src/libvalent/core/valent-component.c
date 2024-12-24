@@ -10,12 +10,13 @@
 #include <libtracker-sparql/tracker-sparql.h>
 
 #include "valent-debug.h"
+#include "valent-data-source.h"
 #include "valent-extension.h"
 #include "valent-global.h"
 #include "valent-object.h"
+#include "valent-plugin.h"
 
 #include "valent-component.h"
-#include "valent-component-private.h"
 
 /**
  * ValentComponent:
@@ -89,20 +90,22 @@ valent_component_update_preferred (ValentComponent *self)
   g_hash_table_iter_init (&iter, priv->plugins);
   while (g_hash_table_iter_next (&iter, (void **)&info, (void **)&plugin))
     {
+      ValentExtension *current;
       ValentPluginState state;
       int64_t priority;
 
-      if (plugin->extension == NULL)
+      current = valent_plugin_get_extension (plugin);
+      if (current == NULL)
         continue;
 
-      state = valent_extension_plugin_state_check (plugin->extension, NULL);
+      state = valent_extension_plugin_state_check (current, NULL);
       if (state != VALENT_PLUGIN_STATE_ACTIVE)
         continue;
 
       priority = _peas_plugin_info_get_priority (info, priv->plugin_priority);
       if (extension == NULL || priority < extension_priority)
         {
-          extension = plugin->extension;
+          extension = current;
           extension_priority = priority;
         }
     }
@@ -168,70 +171,57 @@ static void
 valent_component_enable_plugin (ValentComponent *self,
                                 ValentPlugin    *plugin)
 {
-  ValentComponentPrivate *priv = valent_component_get_instance_private (self);
-  const char *module = NULL;
-  g_autofree char *iri = NULL;
+  g_autoptr (ValentExtension) extension = NULL;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_COMPONENT (self));
   g_assert (plugin != NULL);
 
-  module = peas_plugin_info_get_module_name (plugin->info);
-  iri = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s",
-                                          plugin->domain,
-                                          module);
-  plugin->extension = peas_engine_create_extension (priv->engine,
-                                                    plugin->info,
-                                                    priv->plugin_type,
-                                                    "iri",           iri,
-                                                    "source",        plugin->source,
-                                                    "plugin-domain", plugin->domain,
-                                                    NULL);
-  g_return_if_fail (VALENT_IS_EXTENSION (plugin->extension));
+  extension = valent_plugin_create_extension (plugin);
+  valent_plugin_set_extension (plugin, extension);
+  g_return_if_fail (VALENT_IS_EXTENSION (extension));
 
   /* If the extension state changes, update the preferred adapter
    */
-  g_signal_connect_object (plugin->extension,
+  g_signal_connect_object (extension,
                            "notify::plugin-state",
                            G_CALLBACK (on_plugin_state_changed),
                            self,
                            G_CONNECT_DEFAULT);
-  valent_component_export_adapter (self, VALENT_EXTENSION (plugin->extension));
+  valent_component_export_adapter (self, VALENT_EXTENSION (extension));
 
   /* If the extension requires initialization, wait for the state to change
    * before updating the primary adapter.
    */
-  if (G_IS_ASYNC_INITABLE (plugin->extension))
+  if (G_IS_ASYNC_INITABLE (extension))
     {
-      GAsyncInitable *initable = G_ASYNC_INITABLE (plugin->extension);
       g_autoptr (GCancellable) destroy = NULL;
 
-      plugin->cancellable = g_cancellable_new ();
-      destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
-                                                 plugin->cancellable);
+      /* plugin->cancellable = g_cancellable_new (); */
+      /* destroy = valent_object_chain_cancellable (VALENT_OBJECT (self), */
+      /*                                            plugin->cancellable); */
 
-      g_async_initable_init_async (initable,
+      g_async_initable_init_async (G_ASYNC_INITABLE (extension),
                                    G_PRIORITY_DEFAULT,
                                    destroy,
                                    g_async_initable_init_async_cb,
                                    NULL);
     }
-  else if (G_IS_INITABLE (plugin->extension))
+  else if (G_IS_INITABLE (extension))
     {
-      GInitable *initable = G_INITABLE (plugin->extension);
       g_autoptr (GCancellable) destroy = NULL;
       g_autoptr (GError) error = NULL;
 
-      plugin->cancellable = g_cancellable_new ();
-      destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
-                                                 plugin->cancellable);
+      /* plugin->cancellable = g_cancellable_new (); */
+      /* destroy = valent_object_chain_cancellable (VALENT_OBJECT (self), */
+      /*                                            plugin->cancellable); */
 
-      if (!g_initable_init (initable, destroy, &error) &&
+      if (!g_initable_init (G_INITABLE (extension), destroy, &error) &&
           !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         {
           g_warning ("%s initialization failed: %s",
-                     G_OBJECT_TYPE_NAME (initable),
+                     G_OBJECT_TYPE_NAME (extension),
                      error->message);
         }
     }
@@ -253,30 +243,23 @@ valent_component_disable_plugin (ValentComponent *self,
   g_assert (VALENT_IS_COMPONENT (self));
   g_assert (plugin != NULL);
 
-  /* Ensure any in-progress initialization is cancelled */
-  g_cancellable_cancel (plugin->cancellable);
-  g_clear_object (&plugin->cancellable);
-
-  /* Steal the object and reset the preferred adapter */
-  extension = g_steal_pointer (&plugin->extension);
-  g_return_if_fail (VALENT_IS_EXTENSION (extension));
-
+  valent_plugin_set_extension (plugin, NULL);
   if (priv->primary_adapter == extension)
     valent_component_update_preferred (self);
-
-  valent_object_destroy (VALENT_OBJECT (extension));
 }
 
 static void
-on_plugin_enabled_changed (ValentPlugin *plugin)
+on_plugin_enabled_changed (ValentPlugin    *plugin,
+                           GParamSpec      *pspec,
+                           ValentComponent *self)
 {
-  g_assert (plugin != NULL);
-  g_assert (VALENT_IS_COMPONENT (plugin->parent));
+  g_assert (VALENT_IS_PLUGIN (plugin));
+  g_assert (VALENT_IS_COMPONENT (self));
 
   if (valent_plugin_get_enabled (plugin))
-    valent_component_enable_plugin (plugin->parent, plugin);
+    valent_component_enable_plugin (self, plugin);
   else
-    valent_component_disable_plugin (plugin->parent, plugin);
+    valent_component_disable_plugin (self, plugin);
 }
 
 /*
@@ -304,8 +287,15 @@ on_load_plugin (PeasEngine      *engine,
                g_type_name (priv->plugin_type),
                peas_plugin_info_get_module_name (info));
 
-  plugin = valent_plugin_new (self, info, priv->plugin_domain,
-                              G_CALLBACK (on_plugin_enabled_changed));
+  plugin = valent_plugin_new (valent_data_source_get_local_default (),
+                              info,
+                              priv->plugin_type,
+                              priv->plugin_domain);
+  g_signal_connect_object (plugin,
+                           "notify::enabled",
+                           G_CALLBACK (on_plugin_enabled_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
   g_hash_table_insert (priv->plugins, info, plugin);
 
   if (valent_plugin_get_enabled (plugin))
@@ -623,7 +613,7 @@ valent_component_init (ValentComponent *self)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
 
-  priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
+  priv->plugins = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
   priv->items = g_ptr_array_new_with_free_func (g_object_unref);
 }
 

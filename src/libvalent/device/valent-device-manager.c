@@ -9,7 +9,7 @@
 #include <libtracker-sparql/tracker-sparql.h>
 #include <libvalent-core.h>
 
-#include "../core/valent-component-private.h"
+#include "../core/valent-plugin.h"
 #include "valent-certificate.h"
 #include "valent-channel.h"
 #include "valent-channel-service.h"
@@ -296,75 +296,41 @@ static inline void
 valent_device_manager_enable_plugin (ValentDeviceManager *self,
                                      ValentPlugin        *plugin)
 {
-  const char *module = NULL;
-  g_autofree char *iri = NULL;
+  g_autoptr (ValentExtension) extension = NULL;
 
+  g_assert (VALENT_IS_PLUGIN (plugin));
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
-  g_assert (plugin != NULL);
 
-  module = peas_plugin_info_get_module_name (plugin->info);
-  iri = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s",
-                                          plugin->domain,
-                                          module);
-  plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
-                                                    plugin->info,
-                                                    VALENT_TYPE_CHANNEL_SERVICE,
-                                                    "iri",           iri,
-                                                    "source",        plugin->source,
-                                                    "plugin-domain", plugin->domain,
-                                                    "certificate",   self->certificate,
-                                                    NULL);
-  g_return_if_fail (G_IS_OBJECT (plugin->extension));
-
-  g_signal_connect_object (plugin->extension,
+  extension = valent_plugin_create_extension (plugin);
+  valent_plugin_set_extension (plugin, VALENT_EXTENSION (extension));
+  g_signal_connect_object (extension,
                            "channel",
                            G_CALLBACK (on_channel),
                            self,
                            G_CONNECT_DEFAULT);
 
-  if (G_IS_ASYNC_INITABLE (plugin->extension))
+  if (G_IS_ASYNC_INITABLE (extension))
     {
-      g_autoptr (GCancellable) destroy = NULL;
-
-      /* Use a cancellable in case the plugin is unloaded before the operation
-       * completes. Chain to the manager in case it's destroyed. */
-      plugin->cancellable = g_cancellable_new ();
-      destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
-                                                 plugin->cancellable);
-
-      g_async_initable_init_async (G_ASYNC_INITABLE (plugin->extension),
+      g_async_initable_init_async (G_ASYNC_INITABLE (extension),
                                    G_PRIORITY_DEFAULT,
-                                   destroy,
+                                   NULL,
                                    (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                    NULL);
     }
 }
 
-static inline void
-valent_device_manager_disable_plugin (ValentDeviceManager *self,
-                                      ValentPlugin        *plugin)
-{
-  g_assert (VALENT_IS_DEVICE_MANAGER (self));
-  g_assert (plugin != NULL);
-  g_return_if_fail (G_IS_OBJECT (plugin->extension));
-
-  if (plugin->extension != NULL)
-    {
-      valent_object_destroy (VALENT_OBJECT (plugin->extension));
-      g_clear_object (&plugin->extension);
-    }
-}
-
 static void
-on_plugin_enabled_changed (ValentPlugin *plugin)
+on_plugin_enabled_changed (ValentPlugin        *plugin,
+                           GParamSpec          *pspec,
+                           ValentDeviceManager *self)
 {
-  g_assert (plugin != NULL);
-  g_assert (VALENT_IS_DEVICE_MANAGER (plugin->parent));
+  g_assert (VALENT_IS_PLUGIN (plugin));
+  g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
   if (valent_plugin_get_enabled (plugin))
-    valent_device_manager_enable_plugin (plugin->parent, plugin);
+    valent_device_manager_enable_plugin (self, plugin);
   else
-    valent_device_manager_disable_plugin (plugin->parent, plugin);
+    valent_plugin_set_extension (plugin, NULL);
 }
 
 static void
@@ -378,7 +344,6 @@ on_load_service (PeasEngine          *engine,
   g_assert (info != NULL);
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
-  /* We're only interested in one GType */
   if (!peas_engine_provides_extension (engine, info, VALENT_TYPE_CHANNEL_SERVICE))
     return;
 
@@ -386,12 +351,17 @@ on_load_service (PeasEngine          *engine,
                g_type_name (VALENT_TYPE_CHANNEL_SERVICE),
                peas_plugin_info_get_module_name (info));
 
-  plugin = valent_plugin_new (self, info, "network",
-                              G_CALLBACK (on_plugin_enabled_changed));
+  plugin = valent_plugin_new (valent_data_source_get_local_default (),
+                              info,
+                              VALENT_TYPE_CHANNEL_SERVICE,
+                              "network");
+  g_signal_connect_object (plugin,
+                           "notify::enabled",
+                           G_CALLBACK (on_plugin_enabled_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
   g_hash_table_insert (self->plugins, info, plugin);
-
-  if (valent_plugin_get_enabled (plugin))
-    valent_device_manager_enable_plugin (self, plugin);
+  on_plugin_enabled_changed (plugin, NULL, self);
 }
 
 static void
@@ -876,7 +846,7 @@ valent_device_manager_init (ValentDeviceManager *self)
 {
   self->devices = g_ptr_array_new_with_free_func (g_object_unref);
   self->exports = g_hash_table_new_full (NULL, NULL, NULL, device_export_free);
-  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
+  self->plugins = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
 }
 
 /**
@@ -921,11 +891,10 @@ valent_device_manager_refresh (ValentDeviceManager *manager)
   g_hash_table_iter_init (&iter, manager->plugins);
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
     {
-      if (plugin->extension == NULL)
-        continue;
+      ValentChannelService *extension = valent_plugin_get_extension (plugin);
 
-      valent_channel_service_identify (VALENT_CHANNEL_SERVICE (plugin->extension),
-                                       NULL);
+      if (extension != NULL)
+        valent_channel_service_identify (extension, NULL);
     }
 
   VALENT_EXIT;

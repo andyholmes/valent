@@ -23,7 +23,6 @@ libvalent_core_public_headers = [
 ]
 
 libvalent_core_private_headers = [
-  'valent-component-private.h',
 ]
 
 libvalent_core_enum_headers = [

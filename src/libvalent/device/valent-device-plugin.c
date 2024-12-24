@@ -78,7 +78,12 @@
  * Since: 1.0
  */
 
-G_DEFINE_ABSTRACT_TYPE (ValentDevicePlugin, valent_device_plugin, VALENT_TYPE_EXTENSION)
+typedef struct
+{
+  ValentDeviceState state;
+} ValentDevicePluginPrivate;
+
+G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentDevicePlugin, valent_device_plugin, VALENT_TYPE_EXTENSION)
 
 /* LCOV_EXCL_START */
 static void
@@ -273,11 +278,23 @@ valent_device_plugin_handle_packet (ValentDevicePlugin *plugin,
                                     const char         *type,
                                     JsonNode           *packet)
 {
+  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
   g_return_if_fail (type != NULL && *type != '\0');
   g_return_if_fail (VALENT_IS_PACKET (packet));
+
+  if ((priv->state & VALENT_DEVICE_STATE_CONNECTED) == 0)
+    {
+      ValentDevice *device = valent_resource_get_source (VALENT_RESOURCE (plugin));
+
+      g_critical ("%s(): device \"%s\" is not connected",
+                  G_STRFUNC,
+                  valent_device_get_name (device));
+      return;
+    }
 
   VALENT_DEVICE_PLUGIN_GET_CLASS (plugin)->handle_packet (plugin, type, packet);
 
@@ -304,10 +321,13 @@ void
 valent_device_plugin_update_state (ValentDevicePlugin *plugin,
                                    ValentDeviceState   state)
 {
+  ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (plugin);
+
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
 
+  priv->state = state;
   VALENT_DEVICE_PLUGIN_GET_CLASS (plugin)->update_state (plugin, state);
 
   VALENT_EXIT;
