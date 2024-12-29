@@ -91,8 +91,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/libical/libical.git",
-                    "commit": "1b28a846d2dca16e5d15a433c6011cc2483555bb",
-                    "tag": "v3.0.18",
+                    "commit": "3ba66a6dadd1ee69c94f971f0ea8898e330c6550",
+                    "tag": "v3.0.19",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 1637,
@@ -286,8 +286,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/flatpak/libportal.git",
-                    "commit": "26c15008cbe579f57f89468384f8efc033f25f6f",
-                    "tag": "0.8.1",
+                    "commit": "731e7410fa5765e7c4eb76a51140a19637620c13",
+                    "tag": "0.9.0",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 230124,
