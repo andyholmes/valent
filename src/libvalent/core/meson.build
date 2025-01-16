@@ -19,6 +19,7 @@ libvalent_core_public_headers = [
   'valent-macros.h',
   'valent-object.h',
   'valent-resource.h',
+  'valent-settings.h',
   'valent-transfer.h',
 ]
 
@@ -48,6 +49,7 @@ libvalent_core_public_sources = [
   'valent-global.c',
   'valent-object.c',
   'valent-resource.c',
+  'valent-settings.c',
   'valent-transfer.c',
   'valent-version.c',
 ]

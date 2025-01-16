@@ -13,6 +13,7 @@ libvalent_core_tests = [
   'test-data-source',
   'test-object',
   'test-resource',
+  'test-settings',
   'test-utils',
 ]
 

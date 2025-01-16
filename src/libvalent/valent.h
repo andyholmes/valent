@@ -22,6 +22,7 @@ G_BEGIN_DECLS
 #include "core/valent-macros.h"
 #include "core/valent-object.h"
 #include "core/valent-resource.h"
+#include "core/valent-settings.h"
 #include "core/valent-transfer.h"
 #include "core/valent-version.h"
 
