@@ -25,11 +25,11 @@ struct _ValentComponentClass
 
   /* virtual functions */
   void                  (*bind_extension)   (ValentComponent *component,
-                                             GObject         *extension);
+                                             ValentExtension *extension);
   void                  (*unbind_extension) (ValentComponent *component,
-                                             GObject         *extension);
+                                             ValentExtension *extension);
   void                  (*bind_preferred)   (ValentComponent *component,
-                                             GObject         *extension);
+                                             ValentExtension *extension);
 
   /*< private >*/
   gpointer            padding[8];

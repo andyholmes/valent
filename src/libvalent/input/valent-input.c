@@ -9,9 +9,9 @@
 #include <libpeas.h>
 #include <libvalent-core.h>
 
-#include "valent-input.h"
 #include "valent-input-adapter.h"
 
+#include "valent-input.h"
 
 /**
  * ValentInput:
@@ -40,7 +40,7 @@ G_DEFINE_FINAL_TYPE (ValentInput, valent_input, VALENT_TYPE_COMPONENT)
  */
 static void
 valent_input_bind_preferred (ValentComponent *component,
-                             GObject         *extension)
+                             ValentExtension *extension)
 {
   ValentInput *self = VALENT_INPUT (component);
   ValentInputAdapter *adapter = VALENT_INPUT_ADAPTER (extension);

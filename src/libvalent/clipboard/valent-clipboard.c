@@ -9,9 +9,9 @@
 #include <libpeas.h>
 #include <libvalent-core.h>
 
-#include "valent-clipboard.h"
 #include "valent-clipboard-adapter.h"
 
+#include "valent-clipboard.h"
 
 /**
  * ValentClipboard:
@@ -138,7 +138,7 @@ on_clipboard_adapter_changed (ValentClipboardAdapter *clipboard,
  */
 static void
 valent_clipboard_bind_preferred (ValentComponent *component,
-                                 GObject         *extension)
+                                 ValentExtension *extension)
 {
   ValentClipboard *self = VALENT_CLIPBOARD (component);
   ValentClipboardAdapter *adapter = VALENT_CLIPBOARD_ADAPTER (extension);
@@ -162,7 +162,8 @@ valent_clipboard_bind_preferred (ValentComponent *component,
       g_signal_connect_object (self->default_adapter,
                                "changed",
                                G_CALLBACK (on_clipboard_adapter_changed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
     }
 
   VALENT_EXIT;

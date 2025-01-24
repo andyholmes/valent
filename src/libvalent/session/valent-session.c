@@ -9,9 +9,9 @@
 #include <libpeas.h>
 #include <libvalent-core.h>
 
-#include "valent-session.h"
 #include "valent-session-adapter.h"
 
+#include "valent-session.h"
 
 /**
  * ValentSession:
@@ -35,14 +35,12 @@ struct _ValentSession
 
 G_DEFINE_FINAL_TYPE (ValentSession, valent_session, VALENT_TYPE_COMPONENT)
 
-enum {
-  PROP_0,
-  PROP_ACTIVE,
+typedef enum {
+  PROP_ACTIVE = 1,
   PROP_LOCKED,
-  N_PROPERTIES
-};
+} ValentSessionProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_LOCKED + 1] = { NULL, };
 
 static void
 on_active_changed (ValentSessionAdapter *adapter,
@@ -75,7 +73,7 @@ on_locked_changed (ValentSessionAdapter *adapter,
  */
 static void
 valent_session_bind_preferred (ValentComponent *component,
-                               GObject         *extension)
+                               ValentExtension *extension)
 {
   ValentSession *self = VALENT_SESSION (component);
   ValentSessionAdapter *adapter = VALENT_SESSION_ADAPTER (extension);
@@ -127,7 +125,7 @@ valent_session_get_property (GObject    *object,
 {
   ValentSession *self = VALENT_SESSION (object);
 
-  switch (prop_id)
+  switch ((ValentSessionProperty)prop_id)
     {
     case PROP_ACTIVE:
       g_value_set_boolean (value, valent_session_get_active (self));
@@ -150,12 +148,13 @@ valent_session_set_property (GObject      *object,
 {
   ValentSession *self = VALENT_SESSION (object);
 
-  switch (prop_id)
+  switch ((ValentSessionProperty)prop_id)
     {
     case PROP_LOCKED:
       valent_session_set_locked (self, g_value_get_boolean (value));
       break;
 
+    case PROP_ACTIVE:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -200,7 +199,7 @@ valent_session_class_init (ValentSessionClass *klass)
                            G_PARAM_EXPLICIT_NOTIFY |
                            G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
