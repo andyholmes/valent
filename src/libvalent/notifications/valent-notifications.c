@@ -37,13 +37,12 @@ struct _ValentNotifications
 
 G_DEFINE_FINAL_TYPE (ValentNotifications, valent_notifications, VALENT_TYPE_COMPONENT)
 
-enum {
+typedef enum {
   NOTIFICATION_ADDED,
   NOTIFICATION_REMOVED,
-  N_SIGNALS
-};
+} ValentNotificationsSignal;
 
-static guint signals[N_SIGNALS] = { 0, };
+static guint signals[NOTIFICATION_REMOVED + 1] = { 0, };
 
 
 static GVariant *
@@ -181,7 +180,7 @@ on_notification_removed (ValentNotificationsAdapter *adapter,
  */
 static void
 valent_notifications_bind_extension (ValentComponent *component,
-                                     GObject         *extension)
+                                     ValentExtension *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);
@@ -194,19 +193,20 @@ valent_notifications_bind_extension (ValentComponent *component,
   g_signal_connect_object (adapter,
                            "notification-added",
                            G_CALLBACK (on_notification_added),
-                           self, 0);
-
+                           self,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (adapter,
                            "notification-removed",
                            G_CALLBACK (on_notification_removed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   VALENT_EXIT;
 }
 
 static void
 valent_notifications_unbind_extension (ValentComponent *component,
-                                       GObject         *extension)
+                                       ValentExtension *extension)
 {
   ValentNotifications *self = VALENT_NOTIFICATIONS (component);
   ValentNotificationsAdapter *adapter = VALENT_NOTIFICATIONS_ADAPTER (extension);

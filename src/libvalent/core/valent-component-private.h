@@ -15,7 +15,7 @@ G_BEGIN_DECLS
  * @parent: (type GObject.Object): the owner of the plugin
  * @context: the plugin context
  * @info: the plugin info
- * @extension: the plugin extension
+ * @extension: (type Valent.Extension): the plugin extension
  * @cancellable: the initialization cancellable
  * @settings: the plugin settings
  *
@@ -26,7 +26,7 @@ typedef struct
   gpointer        parent;
   ValentContext  *context;
   PeasPluginInfo *info;
-  GObject        *extension;
+  gpointer        extension;
   GCancellable   *cancellable;
 
   /*< private >*/

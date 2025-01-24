@@ -9,10 +9,10 @@
 #include <libpeas.h>
 #include <libvalent-core.h>
 
-#include "valent-mixer.h"
 #include "valent-mixer-adapter.h"
 #include "valent-mixer-stream.h"
 
+#include "valent-mixer.h"
 
 /**
  * ValentMixer:
@@ -36,14 +36,12 @@ struct _ValentMixer
 
 G_DEFINE_FINAL_TYPE (ValentMixer, valent_mixer, VALENT_TYPE_COMPONENT)
 
-enum {
-  PROP_0,
-  PROP_DEFAULT_INPUT,
+typedef enum {
+  PROP_DEFAULT_INPUT = 1,
   PROP_DEFAULT_OUTPUT,
-  N_PROPERTIES
-};
+} ValentMixerProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_DEFAULT_OUTPUT + 1] = { NULL, };
 
 /*
  * ValentMixerAdapter Callbacks
@@ -75,7 +73,7 @@ on_default_output_changed (ValentMixerAdapter *adapter,
  */
 static void
 valent_mixer_bind_preferred (ValentComponent *component,
-                             GObject         *extension)
+                             ValentExtension *extension)
 {
   ValentMixer *self = VALENT_MIXER (component);
   ValentMixerAdapter *adapter = VALENT_MIXER_ADAPTER (extension);
@@ -127,7 +125,7 @@ valent_mixer_get_property (GObject    *object,
 {
   ValentMixer *self = VALENT_MIXER (object);
 
-  switch (prop_id)
+  switch ((ValentMixerProperty)prop_id)
     {
     case PROP_DEFAULT_INPUT:
       g_value_set_object (value, valent_mixer_get_default_input (self));
@@ -150,7 +148,7 @@ valent_mixer_set_property (GObject      *object,
 {
   ValentMixer *self = VALENT_MIXER (object);
 
-  switch (prop_id)
+  switch ((ValentMixerProperty)prop_id)
     {
     case PROP_DEFAULT_INPUT:
       valent_mixer_set_default_input (self, g_value_get_object (value));
@@ -204,7 +202,7 @@ valent_mixer_class_init (ValentMixerClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
