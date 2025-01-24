@@ -333,7 +333,7 @@ valent_application_constructed (GObject *object)
                            "unload-plugin",
                            G_CALLBACK (on_unload_plugin),
                            self,
-                           0);
+                           G_CONNECT_DEFAULT);
 
   n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
   for (unsigned int i = 0; i < n_plugins; i++)

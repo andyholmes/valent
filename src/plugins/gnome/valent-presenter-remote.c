@@ -127,11 +127,11 @@ valent_presenter_remote_constructed (GObject *object)
 {
   ValentPresenterRemote *self = VALENT_PRESENTER_REMOTE (object);
 
+  G_OBJECT_CLASS (valent_presenter_remote_parent_class)->constructed (object);
+
   gtk_widget_insert_action_group (GTK_WIDGET (self),
                                   "device",
                                   G_ACTION_GROUP (self->device));
-
-  G_OBJECT_CLASS (valent_presenter_remote_parent_class)->constructed (object);
 }
 
 static void

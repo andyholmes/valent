@@ -560,14 +560,14 @@ valent_mpris_impl_constructed (GObject *object)
 {
   ValentMPRISImpl *self = VALENT_MPRIS_IMPL (object);
 
+  G_OBJECT_CLASS (valent_mpris_impl_parent_class)->constructed (object);
+
   g_assert (VALENT_IS_MEDIA_PLAYER (self->player));
 
   g_signal_connect_object (self->player,
                            "notify",
                            G_CALLBACK (valent_mpris_impl_propagate_notify),
                            self, 0);
-
-  G_OBJECT_CLASS (valent_mpris_impl_parent_class)->constructed (object);
 }
 
 static void

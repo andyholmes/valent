@@ -317,14 +317,14 @@ valent_pa_mixer_constructed (GObject *object)
 {
   ValentPaMixer *self = VALENT_PA_MIXER (object);
 
+  G_OBJECT_CLASS (valent_pa_mixer_parent_class)->constructed (object);
+
   g_signal_connect_object (self->control,
                            "state-changed",
                            G_CALLBACK (on_state_changed),
                            self,
                            G_CONNECT_DEFAULT);
   gvc_mixer_control_open (self->control);
-
-  G_OBJECT_CLASS (valent_pa_mixer_parent_class)->constructed (object);
 }
 
 static void

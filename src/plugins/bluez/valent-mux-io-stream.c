@@ -94,6 +94,8 @@ valent_mux_io_stream_constructed (GObject *object)
 {
   ValentMuxIOStream *self = VALENT_MUX_IO_STREAM (object);
 
+  G_OBJECT_CLASS (valent_mux_io_stream_parent_class)->constructed (object);
+
   if (self->muxer != NULL && self->uuid != NULL)
     {
       self->input_stream = g_object_new (VALENT_TYPE_MUX_INPUT_STREAM,
@@ -105,8 +107,6 @@ valent_mux_io_stream_constructed (GObject *object)
                                           "uuid",  self->uuid,
                                           NULL);
     }
-
-  G_OBJECT_CLASS (valent_mux_io_stream_parent_class)->constructed (object);
 }
 
 static void

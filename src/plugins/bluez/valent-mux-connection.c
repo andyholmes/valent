@@ -765,12 +765,12 @@ valent_mux_connection_constructed (GObject *object)
 
   g_assert (G_IS_IO_STREAM (self->base_stream));
 
+  G_OBJECT_CLASS (valent_mux_connection_parent_class)->constructed (object);
+
   valent_object_lock (VALENT_OBJECT (self));
   self->input_stream = g_io_stream_get_input_stream (self->base_stream);
   self->output_stream = g_io_stream_get_output_stream (self->base_stream);
   valent_object_unlock (VALENT_OBJECT (self));
-
-  G_OBJECT_CLASS (valent_mux_connection_parent_class)->constructed (object);
 }
 
 static void

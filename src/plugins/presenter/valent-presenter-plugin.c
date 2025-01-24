@@ -172,13 +172,13 @@ valent_presenter_plugin_constructed (GObject *object)
   ValentPresenterPlugin *self = VALENT_PRESENTER_PLUGIN (object);
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
+  G_OBJECT_CLASS (valent_presenter_plugin_parent_class)->constructed (object);
+
   self->input = valent_input_get_default ();
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-
-  G_OBJECT_CLASS (valent_presenter_plugin_parent_class)->constructed (object);
 }
 
 static void

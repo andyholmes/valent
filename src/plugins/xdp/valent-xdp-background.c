@@ -200,6 +200,8 @@ valent_xdp_background_constructed (GObject *object)
 {
   ValentXdpBackground *self = VALENT_XDP_BACKGROUND (object);
 
+  G_OBJECT_CLASS (valent_xdp_background_parent_class)->constructed (object);
+
   self->settings = g_settings_new ("ca.andyholmes.Valent.Plugin.xdp");
 
 #if defined(HAVE_GTK4) && defined(HAVE_LIBPORTAL_GTK4)
@@ -209,8 +211,6 @@ valent_xdp_background_constructed (GObject *object)
                            self, 0);
   on_autostart_changed (self->settings, "autostart", self);
 #endif /* HAVE_GTK4 && HAVE_LIBPORTAL_GTK4 */
-
-  G_OBJECT_CLASS (valent_xdp_background_parent_class)->constructed (object);
 }
 
 static void

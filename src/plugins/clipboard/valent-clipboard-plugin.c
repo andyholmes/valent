@@ -446,6 +446,8 @@ valent_clipboard_plugin_constructed (GObject *object)
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
   GSettings *settings = NULL;
 
+  G_OBJECT_CLASS (valent_clipboard_plugin_parent_class)->constructed (object);
+
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
@@ -466,8 +468,6 @@ valent_clipboard_plugin_constructed (GObject *object)
 
   self->clipboard = valent_clipboard_get_default ();
   self->local_timestamp = valent_clipboard_get_timestamp (self->clipboard);
-
-  G_OBJECT_CLASS (valent_clipboard_plugin_parent_class)->constructed (object);
 }
 
 static void

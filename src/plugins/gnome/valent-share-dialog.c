@@ -701,6 +701,8 @@ valent_share_dialog_constructed (GObject *object)
 {
   ValentShareDialog *self = VALENT_SHARE_DIALOG (object);
 
+  G_OBJECT_CLASS (valent_share_dialog_parent_class)->constructed (object);
+
   self->manager = valent_device_manager_get_default ();
   g_signal_connect_object (self->manager,
                            "items-changed",
@@ -719,8 +721,6 @@ valent_share_dialog_constructed (GObject *object)
                                                  valent_share_dialog_refresh,
                                                  g_object_ref (self->manager),
                                                  g_object_unref);
-
-  G_OBJECT_CLASS (valent_share_dialog_parent_class)->constructed (object);
 }
 
 static void

@@ -303,6 +303,8 @@ valent_device_impl_constructed (GObject *object)
   ValentDeviceImpl *self = VALENT_DEVICE_IMPL (object);
   GVariant *value = NULL;
 
+  G_OBJECT_CLASS (valent_device_impl_parent_class)->constructed (object);
+
   g_assert (VALENT_IS_DEVICE (self->device));
 
   value = g_variant_new_string (valent_device_get_icon_name (self->device));
@@ -325,9 +327,8 @@ valent_device_impl_constructed (GObject *object)
   g_signal_connect_object (self->device,
                            "notify",
                            G_CALLBACK (on_property_changed),
-                           self, 0);
-
-  G_OBJECT_CLASS (valent_device_impl_parent_class)->constructed (object);
+                           self,
+                           G_CONNECT_DEFAULT);
 }
 
 static void

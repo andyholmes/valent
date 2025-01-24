@@ -939,6 +939,8 @@ valent_notification_plugin_constructed (GObject *object)
   ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (object);
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
+  G_OBJECT_CLASS (valent_notification_plugin_parent_class)->constructed (object);
+
   self->cancellable = g_cancellable_new ();
   self->notifications = valent_notifications_get_default();
   self->session = valent_session_get_default ();
@@ -952,8 +954,6 @@ valent_notification_plugin_constructed (GObject *object)
                                        g_str_equal,
                                        g_free,
                                        (GDestroyNotify)json_node_unref);
-
-  G_OBJECT_CLASS (valent_notification_plugin_parent_class)->constructed (object);
 }
 
 static void

@@ -281,6 +281,8 @@ valent_gdk_clipboard_constructed (GObject *object)
   ValentGdkClipboard *self = VALENT_GDK_CLIPBOARD (object);
   GdkDisplay *display;
 
+  G_OBJECT_CLASS (valent_gdk_clipboard_parent_class)->constructed (object);
+
   if ((display = gdk_display_get_default ()) != NULL)
     {
       self->clipboard = gdk_display_get_clipboard (display);
@@ -295,8 +297,6 @@ valent_gdk_clipboard_constructed (GObject *object)
                                              VALENT_PLUGIN_STATE_INACTIVE,
                                              NULL);
     }
-
-  G_OBJECT_CLASS (valent_gdk_clipboard_parent_class)->constructed (object);
 }
 
 static void

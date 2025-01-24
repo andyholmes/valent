@@ -392,6 +392,8 @@ valent_device_page_constructed (GObject *object)
   GMenuModel *menu;
   gboolean enabled;
 
+  G_OBJECT_CLASS (valent_device_page_parent_class)->constructed (object);
+
   g_object_bind_property (self->device, "id",
                           self,         "tag",
                           G_BINDING_DEFAULT | G_BINDING_SYNC_CREATE);
@@ -447,8 +449,6 @@ valent_device_page_constructed (GObject *object)
 
   enabled = g_action_group_get_action_enabled (action_group, "connectivity_report.state");
   on_connectivity_enabled_changed (action_group, "connectivity_report.state", enabled, self);
-
-  G_OBJECT_CLASS (valent_device_page_parent_class)->constructed (object);
 }
 
 static void
