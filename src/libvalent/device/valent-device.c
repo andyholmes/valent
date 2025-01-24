@@ -1631,9 +1631,12 @@ valent_device_generate_id (void)
  *
  * Validate a KDE Connect device ID.
  *
- * A compliant device ID is a UUIDv4 string with hyphens (`-`) replaced with
- * underscores (`_`), although for backward compatibility strings of any length
- * and content are accepted.
+ * A compliant device ID matches the pattern `/^[a-zA-Z0-9_]{32,38}$/`, being
+ * alphanumeric with a length of 32-38 characters. Recommended practice is to
+ * generate a UUIDv4 and remove the hyphens (`-`), or replace them with
+ * underscores (`_`).
+ *
+ * This became a requirement in version 8 or the KDE Connect protocol.
  *
  * Returns: %TRUE if valid, or %FALSE
  *
@@ -1647,7 +1650,7 @@ valent_device_validate_id (const char *id)
 
   if (g_once_init_enter (&guard))
     {
-      id_pattern = g_regex_new ("^[a-fA-F0-9]{8}_[a-fA-F0-9]{4}_[a-fA-F0-9]{4}_[a-fA-F0-9]{4}_[a-fA-F0-9]{12}$",
+      id_pattern = g_regex_new ("^[a-zA-Z0-9_]{32,38}$",
                                 G_REGEX_OPTIMIZE,
                                 G_REGEX_MATCH_DEFAULT,
                                 NULL);
@@ -1663,8 +1666,10 @@ valent_device_validate_id (const char *id)
  *
  * Validate a KDE Connect device name.
  *
- * A compliant device name is 1 to 32 characters in length and must not contain
- * the characters `"',;:.!?()[]<>`.
+ * A compliant device name matches the pattern `/^[^"',;:.!?()\[\]<>]{1,32}$/`,
+ * containing none of `"',;:.!?()[]<>` with a length of 1-32 characters.
+ *
+ * This became a requirement in version 8 or the KDE Connect protocol.
  *
  * Returns: %TRUE if valid, or %FALSE
  *
