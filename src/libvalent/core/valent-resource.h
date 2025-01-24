@@ -90,9 +90,6 @@ void             valent_resource_set_rights      (ValentResource *resource,
 VALENT_AVAILABLE_IN_1_0
 gpointer         valent_resource_get_source      (ValentResource *resource);
 VALENT_AVAILABLE_IN_1_0
-void             valent_resource_set_source      (ValentResource *resource,
-                                                  ValentResource *source);
-VALENT_AVAILABLE_IN_1_0
 const char     * valent_resource_get_subject     (ValentResource *resource);
 VALENT_AVAILABLE_IN_1_0
 void             valent_resource_set_subject     (ValentResource *resource,
