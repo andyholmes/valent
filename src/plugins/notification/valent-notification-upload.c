@@ -39,15 +39,13 @@ struct _ValentNotificationUpload
 
 G_DEFINE_FINAL_TYPE (ValentNotificationUpload, valent_notification_upload, VALENT_TYPE_TRANSFER)
 
-enum {
-  PROP_0,
-  PROP_DEVICE,
+typedef enum {
+  PROP_DEVICE = 1,
   PROP_ICON,
   PROP_PACKET,
-  N_PROPERTIES,
-};
+} ValentNotificationUploadProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { 0, };
+static GParamSpec *properties[PROP_PACKET + 1] = { NULL, };
 
 
 #ifdef HAVE_GTK4
@@ -375,7 +373,7 @@ valent_notification_upload_get_property (GObject    *object,
 {
   ValentNotificationUpload *self = VALENT_NOTIFICATION_UPLOAD (object);
 
-  switch (prop_id)
+  switch ((ValentNotificationUploadProperty)prop_id)
     {
     case PROP_DEVICE:
       valent_object_lock (VALENT_OBJECT (self));
@@ -408,7 +406,7 @@ valent_notification_upload_set_property (GObject      *object,
 {
   ValentNotificationUpload *self = VALENT_NOTIFICATION_UPLOAD (object);
 
-  switch (prop_id)
+  switch ((ValentNotificationUploadProperty)prop_id)
     {
     case PROP_DEVICE:
       valent_object_lock (VALENT_OBJECT (self));
@@ -484,7 +482,7 @@ valent_notification_upload_class_init (ValentNotificationUploadClass *klass)
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

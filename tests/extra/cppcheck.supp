@@ -8,16 +8,16 @@ preprocessorErrorDirective:src/libvalent/core/valent-global.c:35
 memleak:src/libvalent/device/valent-channel.c:334
 
 # src/libvalent/notifications/
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:87
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:88
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:759
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:763
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:768
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:772
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:783
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:788
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:807
-leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:811
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:85
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:86
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:758
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:762
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:767
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:771
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:782
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:787
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:806
+leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:810
 
 # src/plugins/battery/
 memleak:src/plugins/battery/valent-battery-gadget.c
@@ -59,6 +59,6 @@ leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:119
 # tests/plugins/lan/
 memleak:src/plugins/lan/valent-lan-channel-service.c:544
 memleak:src/plugins/lan/valent-lan-channel-service.c:559
-memleak:src/plugins/lan/valent-lan-dnssd.c:86
-memleak:src/plugins/lan/valent-lan-dnssd.c:96
+memleak:src/plugins/lan/valent-lan-dnssd.c:84
+memleak:src/plugins/lan/valent-lan-dnssd.c:94
 

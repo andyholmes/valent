@@ -28,15 +28,13 @@ struct _ValentDateLabel
 
 G_DEFINE_FINAL_TYPE (ValentDateLabel, valent_date_label, GTK_TYPE_WIDGET)
 
-enum {
-  PROP_0,
-  PROP_DATE,
+typedef enum {
+  PROP_DATE = 1,
   PROP_MODE,
   PROP_XALIGN,
-  N_PROPERTIES
-};
+} ValentDateLabelProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_XALIGN + 1] = { NULL, };
 
 static GPtrArray *label_cache = NULL;
 static unsigned int label_source = 0;
@@ -242,7 +240,7 @@ valent_date_label_get_property (GObject    *object,
 {
   ValentDateLabel *self = VALENT_DATE_LABEL (object);
 
-  switch (prop_id)
+  switch ((ValentDateLabelProperty)prop_id)
     {
     case PROP_DATE:
       g_value_set_int64 (value, valent_date_label_get_date (self));
@@ -269,7 +267,7 @@ valent_date_label_set_property (GObject      *object,
 {
   ValentDateLabel *self = VALENT_DATE_LABEL (object);
 
-  switch (prop_id)
+  switch ((ValentDateLabelProperty)prop_id)
     {
     case PROP_DATE:
       valent_date_label_set_date (self, g_value_get_int64 (value));
@@ -340,7 +338,7 @@ valent_date_label_class_init (ValentDateLabelClass *klass)
                           G_PARAM_CONSTRUCT |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

@@ -45,14 +45,12 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMixerAdapter, valent_mixer_adapter, VALE
                                   G_ADD_PRIVATE (ValentMixerAdapter)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
-enum {
-  PROP_0,
-  PROP_DEFAULT_INPUT,
+typedef enum {
+  PROP_DEFAULT_INPUT = 1,
   PROP_DEFAULT_OUTPUT,
-  N_PROPERTIES
-};
+} ValentMixerAdapterProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_DEFAULT_OUTPUT + 1] = { NULL, };
 
 
 /*
@@ -157,7 +155,7 @@ valent_mixer_adapter_get_property (GObject    *object,
 {
   ValentMixerAdapter *self = VALENT_MIXER_ADAPTER (object);
 
-  switch (prop_id)
+  switch ((ValentMixerAdapterProperty)prop_id)
     {
     case PROP_DEFAULT_INPUT:
       g_value_set_object (value, valent_mixer_adapter_get_default_input (self));
@@ -180,7 +178,7 @@ valent_mixer_adapter_set_property (GObject      *object,
 {
   ValentMixerAdapter *self = VALENT_MIXER_ADAPTER (object);
 
-  switch (prop_id)
+  switch ((ValentMixerAdapterProperty)prop_id)
     {
     case PROP_DEFAULT_INPUT:
       valent_mixer_adapter_set_default_input (self, g_value_get_object (value));
@@ -245,7 +243,7 @@ valent_mixer_adapter_class_init (ValentMixerAdapterClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

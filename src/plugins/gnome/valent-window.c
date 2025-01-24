@@ -38,13 +38,11 @@ struct _ValentWindow
 
 G_DEFINE_FINAL_TYPE (ValentWindow, valent_window, ADW_TYPE_APPLICATION_WINDOW)
 
-enum {
-  PROP_0,
-  PROP_DEVICE_MANAGER,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_DEVICE_MANAGER = 1,
+} ValentWindowProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_DEVICE_MANAGER + 1] = { NULL, };
 
 
 static JsonNode *
@@ -399,7 +397,7 @@ valent_window_get_property (GObject    *object,
 {
   ValentWindow *self = VALENT_WINDOW (object);
 
-  switch (prop_id)
+  switch ((ValentWindowProperty)prop_id)
     {
     case PROP_DEVICE_MANAGER:
       g_value_set_object (value, self->manager);
@@ -418,7 +416,7 @@ valent_window_set_property (GObject      *object,
 {
   ValentWindow *self = VALENT_WINDOW (object);
 
-  switch (prop_id)
+  switch ((ValentWindowProperty)prop_id)
     {
     case PROP_DEVICE_MANAGER:
       self->manager = g_value_dup_object (value);
@@ -464,7 +462,7 @@ valent_window_class_init (ValentWindowClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

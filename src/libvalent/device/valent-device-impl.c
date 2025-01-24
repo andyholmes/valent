@@ -21,13 +21,11 @@ struct _ValentDeviceImpl
 
 G_DEFINE_FINAL_TYPE (ValentDeviceImpl, valent_device_impl, G_TYPE_DBUS_INTERFACE_SKELETON);
 
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES,
-};
+typedef enum {
+  PROP_DEVICE = 1,
+} ValentDeviceImplProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_DEVICE + 1] = { NULL, };
 
 
 /*
@@ -361,7 +359,7 @@ valent_device_impl_get_property (GObject    *object,
 {
   ValentDeviceImpl *self = VALENT_DEVICE_IMPL (object);
 
-  switch (prop_id)
+  switch ((ValentDeviceImplProperty)prop_id)
     {
     case PROP_DEVICE:
       g_value_set_object (value, self->device);
@@ -380,7 +378,7 @@ valent_device_impl_set_property (GObject      *object,
 {
   ValentDeviceImpl *self = VALENT_DEVICE_IMPL (object);
 
-  switch (prop_id)
+  switch ((ValentDeviceImplProperty)prop_id)
     {
     case PROP_DEVICE:
       self->device = g_value_get_object (value);
@@ -416,7 +414,7 @@ valent_device_impl_class_init (ValentDeviceImplClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

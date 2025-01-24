@@ -21,13 +21,11 @@ struct _ValentMenuStack
 
 G_DEFINE_FINAL_TYPE (ValentMenuStack, valent_menu_stack, GTK_TYPE_WIDGET)
 
-enum {
-  PROP_0,
-  PROP_MENU_MODEL,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_MENU_MODEL = 1,
+} ValentMenuStackProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_MENU_MODEL + 1] = { NULL, };
 
 
 /*
@@ -51,7 +49,7 @@ valent_menu_stack_get_property (GObject    *object,
 {
   ValentMenuStack *self = VALENT_MENU_STACK (object);
 
-  switch (prop_id)
+  switch ((ValentMenuStackProperty)prop_id)
     {
     case PROP_MENU_MODEL:
       g_value_set_object (value, valent_menu_stack_get_menu_model (self));
@@ -70,7 +68,7 @@ valent_menu_stack_set_property (GObject      *object,
 {
   ValentMenuStack *self = VALENT_MENU_STACK (object);
 
-  switch (prop_id)
+  switch ((ValentMenuStackProperty)prop_id)
     {
     case PROP_MENU_MODEL:
       valent_menu_stack_set_menu_model (self, g_value_get_object (value));
@@ -106,7 +104,7 @@ valent_menu_stack_class_init (ValentMenuStackClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

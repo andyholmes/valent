@@ -30,13 +30,11 @@ static void   g_async_initable_iface_init    (GAsyncInitableIface *iface);
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMPRISPlayer, valent_mpris_player, VALENT_TYPE_MEDIA_PLAYER,
                                G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
-enum {
-  PROP_0,
-  PROP_BUS_NAME,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_BUS_NAME = 1,
+} ValentMPRISPlayerProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_BUS_NAME + 1] = { NULL, };
 
 
 /*
@@ -658,7 +656,7 @@ valent_mpris_player_get_property (GObject    *object,
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (object);
 
-  switch (prop_id)
+  switch ((ValentMPRISPlayerProperty)prop_id)
     {
     case PROP_BUS_NAME:
       g_value_set_string (value, self->bus_name);
@@ -677,7 +675,7 @@ valent_mpris_player_set_property (GObject      *object,
 {
   ValentMPRISPlayer *self = VALENT_MPRIS_PLAYER (object);
 
-  switch (prop_id)
+  switch ((ValentMPRISPlayerProperty)prop_id)
     {
     case PROP_BUS_NAME:
       self->bus_name = g_value_dup_string (value);
@@ -754,7 +752,7 @@ valent_mpris_player_class_init (ValentMPRISPlayerClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

@@ -22,13 +22,11 @@ struct _ValentMuxInputStream
 G_DEFINE_FINAL_TYPE (ValentMuxInputStream, valent_mux_input_stream, G_TYPE_INPUT_STREAM)
 
 enum {
-  PROP_0,
-  PROP_MUXER,
+  PROP_MUXER = 1,
   PROP_UUID,
-  N_PROPERTIES
-};
+} ValentMuxInputStreamProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_UUID + 1] = { NULL, };
 
 
 /*
@@ -75,7 +73,7 @@ valent_mux_input_stream_get_property (GObject    *object,
 {
   ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (object);
 
-  switch (prop_id)
+  switch ((ValentMuxInputStreamProperty)prop_id)
     {
     case PROP_MUXER:
       g_value_set_object (value, self->muxer);
@@ -98,7 +96,7 @@ valent_mux_input_stream_set_property (GObject      *object,
 {
   ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (object);
 
-  switch (prop_id)
+  switch ((ValentMuxInputStreamProperty)prop_id)
     {
     case PROP_MUXER:
       self->muxer = g_value_dup_object (value);
@@ -151,7 +149,7 @@ valent_mux_input_stream_class_init (ValentMuxInputStreamClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

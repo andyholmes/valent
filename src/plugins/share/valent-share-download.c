@@ -45,13 +45,11 @@ static gboolean   valent_share_download_timeout (gpointer             data);
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentShareDownload, valent_share_download, VALENT_TYPE_TRANSFER,
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES,
-};
+typedef enum {
+  PROP_DEVICE = 1,
+} ValentShareDownloadProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { 0, };
+static GParamSpec *properties[PROP_DEVICE + 1] = { NULL, };
 
 
 /*
@@ -227,7 +225,7 @@ valent_share_download_get_property (GObject    *object,
 {
   ValentShareDownload *self = VALENT_SHARE_DOWNLOAD (object);
 
-  switch (prop_id)
+  switch ((ValentShareDownloadProperty)prop_id)
     {
     case PROP_DEVICE:
       g_value_set_object (value, self->device);
@@ -246,7 +244,7 @@ valent_share_download_set_property (GObject      *object,
 {
   ValentShareDownload *self = VALENT_SHARE_DOWNLOAD (object);
 
-  switch (prop_id)
+  switch ((ValentShareDownloadProperty)prop_id)
     {
     case PROP_DEVICE:
       self->device = g_value_dup_object (value);
@@ -282,7 +280,7 @@ valent_share_download_class_init (ValentShareDownloadClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

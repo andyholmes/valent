@@ -37,13 +37,11 @@ struct _ValentMPRISImpl
 G_DEFINE_FINAL_TYPE (ValentMPRISImpl, valent_mpris_impl, G_TYPE_OBJECT)
 
 
-enum {
-  PROP_0,
-  PROP_PLAYER,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_PLAYER = 1,
+} ValentMPRISImplProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_PLAYER + 1] = { NULL, };
 
 
 /*
@@ -604,7 +602,7 @@ valent_mpris_impl_get_property (GObject    *object,
 {
   ValentMPRISImpl *self = VALENT_MPRIS_IMPL (object);
 
-  switch (prop_id)
+  switch ((ValentMPRISImplProperty)prop_id)
     {
     case PROP_PLAYER:
       g_value_set_object (value, self->player);
@@ -623,7 +621,7 @@ valent_mpris_impl_set_property (GObject      *object,
 {
   ValentMPRISImpl *self = VALENT_MPRIS_IMPL (object);
 
-  switch (prop_id)
+  switch ((ValentMPRISImplProperty)prop_id)
     {
     case PROP_PLAYER:
       self->player = g_value_dup_object (value);
@@ -658,7 +656,7 @@ valent_mpris_impl_class_init (ValentMPRISImplClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
