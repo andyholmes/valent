@@ -189,6 +189,8 @@ valent_pa_stream_constructed (GObject *object)
 {
   ValentPaStream *self = VALENT_PA_STREAM (object);
 
+  G_OBJECT_CLASS (valent_pa_stream_parent_class)->constructed (object);
+
   g_assert (self->stream != NULL);
 
   g_signal_connect_object (self->stream,
@@ -196,8 +198,6 @@ valent_pa_stream_constructed (GObject *object)
                            G_CALLBACK (on_port_changed),
                            self, 0);
   on_port_changed (self->stream, NULL, self);
-
-  G_OBJECT_CLASS (valent_pa_stream_parent_class)->constructed (object);
 }
 
 static void

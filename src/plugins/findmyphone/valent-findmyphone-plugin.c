@@ -116,6 +116,8 @@ valent_findmyphone_plugin_constructed (GObject *object)
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
   ValentFindmyphonePlugin *self = VALENT_FINDMYPHONE_PLUGIN (object);
 
+  G_OBJECT_CLASS (valent_findmyphone_plugin_parent_class)->constructed (object);
+
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
@@ -125,8 +127,6 @@ valent_findmyphone_plugin_constructed (GObject *object)
                                         _("Ring"),
                                         "phonelink-ring-symbolic");
   self->ringer = valent_findmyphone_ringer_acquire ();
-
-  G_OBJECT_CLASS (valent_findmyphone_plugin_parent_class)->constructed (object);
 }
 
 static void

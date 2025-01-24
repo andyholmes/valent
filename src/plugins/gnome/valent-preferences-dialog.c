@@ -157,7 +157,6 @@ on_load_plugin (PeasEngine              *engine,
                 PeasPluginInfo          *info,
                 ValentPreferencesDialog *self)
 {
-  GtkWidget *row = NULL;
   const char *title;
   const char *subtitle;
   const char *icon_name;
@@ -169,7 +168,6 @@ on_load_plugin (PeasEngine              *engine,
   if (peas_plugin_info_is_hidden (info))
     return;
 
-  engine = valent_get_plugin_engine ();
   title = peas_plugin_info_get_name (info);
   subtitle = peas_plugin_info_get_description (info);
   icon_name = peas_plugin_info_get_icon_name (info);
@@ -184,6 +182,7 @@ on_load_plugin (PeasEngine              *engine,
       peas_engine_provides_extension (engine, info, VALENT_TYPE_NOTIFICATIONS_ADAPTER) ||
       peas_engine_provides_extension (engine, info, VALENT_TYPE_SESSION_ADAPTER))
     {
+      GtkWidget *row;
       GtkWidget *icon;
 
       row = g_object_new (ADW_TYPE_EXPANDER_ROW,
@@ -242,8 +241,10 @@ valent_preferences_dialog_constructed (GObject *object)
 {
   ValentPreferencesDialog *self = VALENT_PREFERENCES_DIALOG (object);
   g_autofree char *name = NULL;
-  PeasEngine *engine = valent_get_plugin_engine ();
+  PeasEngine *engine = NULL;
   unsigned int n_plugins = 0;
+
+  G_OBJECT_CLASS (valent_preferences_dialog_parent_class)->constructed (object);
 
   /* Application Settings */
   self->settings = g_settings_new ("ca.andyholmes.Valent");
@@ -254,32 +255,27 @@ valent_preferences_dialog_constructed (GObject *object)
   name = g_settings_get_string (self->settings, "name");
   gtk_editable_set_text (GTK_EDITABLE (self->name_entry), name);
 
-  /* Application Plugins */
-  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
-
-  for (unsigned int i = 0; i < n_plugins; i++)
-    {
-      g_autoptr (PeasPluginInfo) info = NULL;
-
-      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
-
-      if (peas_plugin_info_is_loaded (info))
-        on_load_plugin (engine, info, self);
-    }
-
+  engine = valent_get_plugin_engine ();
   g_signal_connect_object (engine,
                            "load-plugin",
                            G_CALLBACK (on_load_plugin),
                            self,
                            G_CONNECT_AFTER);
-
   g_signal_connect_object (engine,
                            "unload-plugin",
                            G_CALLBACK (on_unload_plugin),
                            self,
-                           0);
+                           G_CONNECT_DEFAULT);
 
-  G_OBJECT_CLASS (valent_preferences_dialog_parent_class)->constructed (object);
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) info = NULL;
+
+      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      if (peas_plugin_info_is_loaded (info))
+        on_load_plugin (engine, info, self);
+    }
 }
 
 static void

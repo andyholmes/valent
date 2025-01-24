@@ -354,12 +354,12 @@ valent_window_constructed (GObject *object)
 
   g_assert (self->manager != NULL);
 
+  G_OBJECT_CLASS (valent_window_parent_class)->constructed (object);
+
   gtk_list_box_bind_model (self->device_list,
                            G_LIST_MODEL (self->manager),
                            valent_window_create_row_func,
                            self, NULL);
-
-  G_OBJECT_CLASS (valent_window_parent_class)->constructed (object);
 }
 
 static void

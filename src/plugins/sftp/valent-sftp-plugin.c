@@ -671,6 +671,8 @@ valent_sftp_plugin_constructed (GObject *object)
   ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (object);
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
+  G_OBJECT_CLASS (valent_sftp_plugin_parent_class)->constructed (object);
+
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
@@ -690,8 +692,6 @@ valent_sftp_plugin_constructed (GObject *object)
                            "mount-removed",
                            G_CALLBACK (on_mount_removed),
                            self, 0);
-
-  G_OBJECT_CLASS (valent_sftp_plugin_parent_class)->constructed (object);
 }
 
 static void

@@ -401,12 +401,12 @@ valent_connectivity_report_plugin_constructed (GObject *object)
 {
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
 
+  G_OBJECT_CLASS (valent_connectivity_report_plugin_parent_class)->constructed (object);
+
   g_action_map_add_action_entries (G_ACTION_MAP (plugin),
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-
-  G_OBJECT_CLASS (valent_connectivity_report_plugin_parent_class)->constructed (object);
 }
 
 static void

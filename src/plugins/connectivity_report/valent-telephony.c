@@ -292,6 +292,8 @@ valent_telephony_constructed (GObject *object)
 {
   ValentTelephony *self = VALENT_TELEPHONY (object);
 
+  G_OBJECT_CLASS (valent_telephony_parent_class)->constructed (object);
+
   g_dbus_object_manager_client_new_for_bus (G_BUS_TYPE_SYSTEM,
                                             G_DBUS_OBJECT_MANAGER_CLIENT_FLAGS_DO_NOT_AUTO_START,
                                             "org.freedesktop.ModemManager1",
@@ -300,8 +302,6 @@ valent_telephony_constructed (GObject *object)
                                             NULL,
                                             (GAsyncReadyCallback)g_dbus_object_manager_client_new_for_bus_cb,
                                             g_object_ref (self));
-
-  G_OBJECT_CLASS (valent_telephony_parent_class)->constructed (object);
 }
 
 static void

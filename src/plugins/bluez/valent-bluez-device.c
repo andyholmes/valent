@@ -115,6 +115,8 @@ valent_bluez_device_constructed (GObject *object)
 {
   ValentBluezDevice *self = VALENT_BLUEZ_DEVICE (object);
 
+  G_OBJECT_CLASS (valent_bluez_device_parent_class)->constructed (object);
+
   self->properties_changed_id =
     g_dbus_connection_signal_subscribe (self->connection,
                                         BLUEZ_NAME,
@@ -126,8 +128,6 @@ valent_bluez_device_constructed (GObject *object)
                                         on_properties_changed,
                                         weak_ref_new (object),
                                         weak_ref_free);
-
-  G_OBJECT_CLASS (valent_bluez_device_parent_class)->constructed (object);
 }
 
 static void

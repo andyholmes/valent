@@ -1313,9 +1313,9 @@ valent_pipewire_mixer_constructed (GObject *object)
 {
   ValentPipewireMixer *self = VALENT_PIPEWIRE_MIXER (object);
 
-  valent_pipewire_mixer_open (self);
-
   G_OBJECT_CLASS (valent_pipewire_mixer_parent_class)->constructed (object);
+
+  valent_pipewire_mixer_open (self);
 }
 
 static void
