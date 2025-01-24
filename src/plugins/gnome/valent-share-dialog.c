@@ -42,14 +42,12 @@ struct _ValentShareDialog
 
 G_DEFINE_FINAL_TYPE (ValentShareDialog, valent_share_dialog, ADW_TYPE_WINDOW)
 
-enum {
-  PROP_0,
-  PROP_FILES,
+typedef enum {
+  PROP_FILES = 1,
   PROP_SELECTION_MODE,
-  N_PROPERTIES
-};
+} ValentShareDialogProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_SELECTION_MODE + 1] = { NULL, };
 
 static void   valent_share_dialog_set_files (ValentShareDialog *self,
                                              GListModel        *files);
@@ -759,7 +757,7 @@ valent_share_dialog_get_property (GObject    *object,
 {
   ValentShareDialog *self = VALENT_SHARE_DIALOG (object);
 
-  switch (prop_id)
+  switch ((ValentShareDialogProperty)prop_id)
     {
     case PROP_FILES:
       g_value_set_object (value, self->files);
@@ -782,7 +780,7 @@ valent_share_dialog_set_property (GObject      *object,
 {
   ValentShareDialog *self = VALENT_SHARE_DIALOG (object);
 
-  switch (prop_id)
+  switch ((ValentShareDialogProperty)prop_id)
     {
     case PROP_FILES:
       valent_share_dialog_set_files (self, g_value_get_object (value));
@@ -849,7 +847,7 @@ valent_share_dialog_class_init (ValentShareDialogClass *klass)
                            G_PARAM_EXPLICIT_NOTIFY |
                            G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

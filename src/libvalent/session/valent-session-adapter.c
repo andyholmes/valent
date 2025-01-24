@@ -40,14 +40,12 @@ typedef struct
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentSessionAdapter, valent_session_adapter, VALENT_TYPE_EXTENSION)
 
-enum {
-  PROP_0,
-  PROP_ACTIVE,
+typedef enum {
+  PROP_ACTIVE = 1,
   PROP_LOCKED,
-  N_PROPERTIES
-};
+} ValentSessionAdapterProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_LOCKED + 1] = { NULL, };
 
 
 /* LCOV_EXCL_START */
@@ -98,7 +96,7 @@ valent_session_adapter_get_property (GObject    *object,
 {
   ValentSessionAdapter *self = VALENT_SESSION_ADAPTER (object);
 
-  switch (prop_id)
+  switch ((ValentSessionAdapterProperty)prop_id)
     {
     case PROP_ACTIVE:
       g_value_set_boolean (value, valent_session_adapter_get_active (self));
@@ -121,12 +119,13 @@ valent_session_adapter_set_property (GObject      *object,
 {
   ValentSessionAdapter *self = VALENT_SESSION_ADAPTER (object);
 
-  switch (prop_id)
+  switch ((ValentSessionAdapterProperty)prop_id)
     {
     case PROP_LOCKED:
       valent_session_adapter_set_locked (self, g_value_get_boolean (value));
       break;
 
+    case PROP_ACTIVE:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -172,7 +171,7 @@ valent_session_adapter_class_init (ValentSessionAdapterClass *klass)
                            G_PARAM_EXPLICIT_NOTIFY |
                            G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

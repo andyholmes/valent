@@ -47,13 +47,11 @@ struct _ValentInputRemote
 
 G_DEFINE_FINAL_TYPE (ValentInputRemote, valent_input_remote, ADW_TYPE_WINDOW)
 
-enum {
-  PROP_0,
-  PROP_ADAPTERS,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_ADAPTERS = 1,
+} ValentInputRemoteProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_ADAPTERS + 1] = { NULL, };
 
 static gboolean
 valent_input_remote_filter (gpointer item,
@@ -425,7 +423,7 @@ valent_input_remote_get_property (GObject    *object,
 {
   ValentInputRemote *self = VALENT_INPUT_REMOTE (object);
 
-  switch (prop_id)
+  switch ((ValentInputRemoteProperty)prop_id)
     {
     case PROP_ADAPTERS:
       g_value_set_object (value, self->adapters);
@@ -444,7 +442,7 @@ valent_input_remote_set_property (GObject      *object,
 {
   ValentInputRemote *self = VALENT_INPUT_REMOTE (object);
 
-  switch (prop_id)
+  switch ((ValentInputRemoteProperty)prop_id)
     {
     case PROP_ADAPTERS:
       self->adapters = g_value_dup_object (value);
@@ -497,7 +495,7 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

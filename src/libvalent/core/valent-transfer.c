@@ -34,16 +34,13 @@ typedef struct
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentTransfer, valent_transfer, VALENT_TYPE_OBJECT)
 
-
-enum {
-  PROP_0,
-  PROP_ID,
+typedef enum {
+  PROP_ID = 1,
   PROP_PROGRESS,
   PROP_STATE,
-  N_PROPERTIES
-};
+} ValentTransferProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_STATE + 1] = { NULL, };
 
 
 /* LCOV_EXCL_START */
@@ -102,7 +99,7 @@ valent_transfer_get_property (GObject    *object,
 {
   ValentTransfer *self = VALENT_TRANSFER (object);
 
-  switch (prop_id)
+  switch ((ValentTransferProperty)prop_id)
     {
     case PROP_ID:
       g_value_take_string (value, valent_transfer_dup_id (self));
@@ -130,7 +127,7 @@ valent_transfer_set_property (GObject      *object,
   ValentTransfer *self = VALENT_TRANSFER (object);
   ValentTransferPrivate *priv = valent_transfer_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentTransferProperty)prop_id)
     {
     case PROP_ID:
       valent_object_lock (VALENT_OBJECT (self));
@@ -142,6 +139,7 @@ valent_transfer_set_property (GObject      *object,
       valent_transfer_set_progress (self, g_value_get_double (value));
       break;
 
+    case PROP_STATE:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -226,7 +224,7 @@ valent_transfer_class_init (ValentTransferClass *klass)
                         G_PARAM_EXPLICIT_NOTIFY |
                         G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

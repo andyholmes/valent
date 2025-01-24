@@ -43,15 +43,13 @@ struct _ValentDeviceTransfer
 G_DEFINE_FINAL_TYPE (ValentDeviceTransfer, valent_device_transfer, VALENT_TYPE_TRANSFER)
 
 
-enum {
-  PROP_0,
-  PROP_DEVICE,
+typedef enum {
+  PROP_DEVICE = 1,
   PROP_FILE,
   PROP_PACKET,
-  N_PROPERTIES
-};
+} ValentDeviceTransferProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_PACKET + 1] = { NULL, };
 
 
 static void
@@ -320,7 +318,7 @@ valent_device_transfer_get_property (GObject    *object,
 {
   ValentDeviceTransfer *self = VALENT_DEVICE_TRANSFER (object);
 
-  switch (prop_id)
+  switch ((ValentDeviceTransferProperty)prop_id)
     {
     case PROP_DEVICE:
       g_value_take_object (value, valent_device_transfer_ref_device (self));
@@ -347,7 +345,7 @@ valent_device_transfer_set_property (GObject      *object,
 {
   ValentDeviceTransfer *self = VALENT_DEVICE_TRANSFER (object);
 
-  switch (prop_id)
+  switch ((ValentDeviceTransferProperty)prop_id)
     {
     case PROP_DEVICE:
       valent_object_lock (VALENT_OBJECT (self));
@@ -432,7 +430,7 @@ valent_device_transfer_class_init (ValentDeviceTransferClass *klass)
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

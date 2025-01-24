@@ -42,13 +42,11 @@ struct _ValentDevicePreferencesDialog
 
 G_DEFINE_FINAL_TYPE (ValentDevicePreferencesDialog, valent_device_preferences_dialog, ADW_TYPE_PREFERENCES_DIALOG)
 
-enum {
-  PROP_0,
-  PROP_DEVICE,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_DEVICE = 1,
+} ValentDevicePreferencesDialogProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_DEVICE + 1] = { NULL, };
 
 
 static int
@@ -301,7 +299,7 @@ valent_device_preferences_dialog_get_property (GObject    *object,
 {
   ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (object);
 
-  switch (prop_id)
+  switch ((ValentDevicePreferencesDialogProperty)prop_id)
     {
     case PROP_DEVICE:
       g_value_set_object (value, self->device);
@@ -320,7 +318,7 @@ valent_device_preferences_dialog_set_property (GObject      *object,
 {
   ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (object);
 
-  switch (prop_id)
+  switch ((ValentDevicePreferencesDialogProperty)prop_id)
     {
     case PROP_DEVICE:
       self->device = g_value_dup_object (value);
@@ -362,7 +360,7 @@ valent_device_preferences_dialog_class_init (ValentDevicePreferencesDialogClass 
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

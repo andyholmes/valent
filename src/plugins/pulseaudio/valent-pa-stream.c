@@ -24,13 +24,11 @@ struct _ValentPaStream
 
 G_DEFINE_FINAL_TYPE (ValentPaStream, valent_pa_stream, VALENT_TYPE_MIXER_STREAM)
 
-enum {
-  PROP_0,
-  PROP_BASE_STREAM,
-  N_PROPERTIES
-};
+typedef enum {
+  PROP_BASE_STREAM = 1,
+} ValentPaStreamProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_BASE_STREAM + 1] = { NULL, };
 
 
 static void
@@ -154,7 +152,7 @@ valent_pa_stream_get_property (GObject    *object,
 {
   ValentPaStream *self = VALENT_PA_STREAM (object);
 
-  switch (prop_id)
+  switch ((ValentPaStreamProperty)prop_id)
     {
     case PROP_BASE_STREAM:
       g_value_set_object (value, self->stream);
@@ -173,7 +171,7 @@ valent_pa_stream_set_property (GObject      *object,
 {
   ValentPaStream *self = VALENT_PA_STREAM (object);
 
-  switch (prop_id)
+  switch ((ValentPaStreamProperty)prop_id)
     {
     case PROP_BASE_STREAM:
       self->stream = g_value_dup_object (value);
@@ -242,7 +240,7 @@ valent_pa_stream_class_init (ValentPaStreamClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

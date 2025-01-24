@@ -66,14 +66,12 @@ static void   g_list_model_iface_init (GListModelInterface *iface);
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentLanDNSSD, valent_lan_dnssd, VALENT_TYPE_OBJECT,
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
-enum {
-  PROP_0,
-  PROP_IDENTITY,
+typedef enum {
+  PROP_IDENTITY = 1,
   PROP_SERVICE_TYPE,
-  N_PROPERTIES
-};
+} ValentLanDNSSDProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_SERVICE_TYPE + 1] = { NULL, };
 
 
 static inline GVariant *
@@ -1105,7 +1103,7 @@ valent_lan_dnssd_get_property (GObject    *object,
 {
   ValentLanDNSSD *self = VALENT_LAN_DNSSD (object);
 
-  switch (prop_id)
+  switch ((ValentLanDNSSDProperty)prop_id)
     {
     case PROP_IDENTITY:
       valent_object_lock (VALENT_OBJECT (self));
@@ -1132,7 +1130,7 @@ valent_lan_dnssd_set_property (GObject      *object,
 {
   ValentLanDNSSD *self = VALENT_LAN_DNSSD (object);
 
-  switch (prop_id)
+  switch ((ValentLanDNSSDProperty)prop_id)
     {
     case PROP_IDENTITY:
       valent_object_lock (VALENT_OBJECT (self));
@@ -1188,7 +1186,7 @@ valent_lan_dnssd_class_init (ValentLanDNSSDClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
