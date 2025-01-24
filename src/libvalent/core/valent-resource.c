@@ -73,7 +73,12 @@ static void
 on_source_destroyed (ValentObject   *object,
                      ValentResource *self)
 {
-  valent_resource_set_source (VALENT_RESOURCE (self), NULL);
+  ValentResourcePrivate *priv = valent_resource_get_instance_private (self);
+
+  g_assert (VALENT_IS_OBJECT (object));
+  g_assert (VALENT_IS_RESOURCE (self));
+
+  priv->source = NULL;
 }
 
 /*
@@ -85,6 +90,26 @@ valent_resource_real_update (ValentResource *resource,
 {
   g_assert (VALENT_IS_RESOURCE (resource));
   g_assert (VALENT_IS_RESOURCE (update));
+}
+
+static void
+valent_resource_set_source (ValentResource *resource,
+                            ValentResource *source)
+{
+  ValentResourcePrivate *priv = valent_resource_get_instance_private (resource);
+
+  g_assert (VALENT_IS_RESOURCE (resource));
+  g_assert (source == NULL || VALENT_IS_RESOURCE (source));
+
+  if (source != NULL)
+    {
+      priv->source = source;
+      g_signal_connect_object (source,
+                               "destroy",
+                               G_CALLBACK (on_source_destroyed),
+                               resource,
+                               G_CONNECT_DEFAULT);
+    }
 }
 
 /*
@@ -421,7 +446,7 @@ valent_resource_class_init (ValentResourceClass *klass)
     g_param_spec_string ("identifier", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
-                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
@@ -511,7 +536,7 @@ valent_resource_class_init (ValentResourceClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentResource:source: (getter get_source) (setter set_source)
+   * ValentResource:source: (getter get_source)
    *
    * A related resource from which the described resource is derived.
    *
@@ -525,8 +550,7 @@ valent_resource_class_init (ValentResourceClass *klass)
     g_param_spec_object ("source", NULL, NULL,
                          VALENT_TYPE_RESOURCE,
                          (G_PARAM_READWRITE |
-                          G_PARAM_CONSTRUCT |
-                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_STATIC_STRINGS));
 
   /**
@@ -1076,6 +1100,36 @@ valent_resource_set_rights (ValentResource *resource,
 }
 
 /**
+ * valent_resource_get_root:
+ * @resource: a `ValentResource`
+ *
+ * Get the root source of @resource.
+ *
+ * In practice, the root of every resource should be a [class@Valent.DataSource].
+ *
+ * Returns: (type Valent.Resource) (transfer none) (nullable): the source
+ *   of @resource
+ *
+ * Since: 1.0
+ */
+gpointer
+valent_resource_get_root (ValentResource *resource)
+{
+  ValentResourcePrivate *priv = valent_resource_get_instance_private (resource);
+  ValentResource *root = resource;
+
+  g_return_val_if_fail (VALENT_IS_RESOURCE (resource), NULL);
+
+  while (priv->source != NULL)
+    {
+      root = priv->source;
+      priv = valent_resource_get_instance_private (root);
+    }
+
+  return root;
+}
+
+/**
  * valent_resource_get_source: (get-property source)
  * @resource: a `ValentResource`
  *
@@ -1094,47 +1148,6 @@ valent_resource_get_source (ValentResource *resource)
   g_return_val_if_fail (VALENT_IS_RESOURCE (resource), NULL);
 
   return priv->source;
-}
-
-/**
- * valent_resource_set_source: (set-property source)
- * @resource: a `ValentResource`
- * @source: (nullable): the new source
- *
- * Set the source of @resource to @source.
- *
- * Since: 1.0
- */
-void
-valent_resource_set_source (ValentResource *resource,
-                            ValentResource *source)
-{
-  ValentResourcePrivate *priv = valent_resource_get_instance_private (resource);
-
-  g_return_if_fail (VALENT_IS_RESOURCE (resource));
-  g_return_if_fail (source == NULL || VALENT_IS_RESOURCE (source));
-
-  if (priv->source == source)
-    return;
-
-  if (priv->source != NULL)
-    {
-      g_signal_handlers_disconnect_by_func (priv->source,
-                                            on_source_destroyed,
-                                            resource);
-      priv->source = NULL;
-    }
-
-  if (source != NULL)
-    {
-      priv->source = source;
-      g_signal_connect_object (priv->source,
-                               "destroy",
-                               G_CALLBACK (on_source_destroyed),
-                               resource,
-                               G_CONNECT_DEFAULT);
-      g_object_notify_by_pspec (G_OBJECT (resource), properties[PROP_SOURCE]);
-    }
 }
 
 /**
