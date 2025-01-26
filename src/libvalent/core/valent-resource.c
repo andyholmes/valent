@@ -612,6 +612,39 @@ valent_resource_init (ValentResource *self)
 }
 
 /**
+ * valent_resource_get_ancestor:
+ * @resource: a `ValentResource`
+ * @rtype: a `GType`
+ *
+ * Get the closest @rtype ancestor of @resource.
+ *
+ * Returns: (type Valent.Resource) (transfer none) (nullable): the ancestor
+ *   of @resource
+ *
+ * Since: 1.0
+ */
+gpointer
+valent_resource_get_ancestor (ValentResource *resource,
+                              GType           rtype)
+{
+  ValentResourcePrivate *priv = valent_resource_get_instance_private (resource);
+  ValentResource *ancestor = NULL;
+
+  g_return_val_if_fail (VALENT_IS_RESOURCE (resource), NULL);
+
+  while (priv->source != NULL)
+    {
+      if (g_type_is_a (G_OBJECT_TYPE (priv->source), rtype))
+        return priv->source;
+
+      ancestor = priv->source;
+      priv = valent_resource_get_instance_private (ancestor);
+    }
+
+  return NULL;
+}
+
+/**
  * valent_resource_get_contributor: (get-property contributor)
  * @resource: a `ValentResource`
  *

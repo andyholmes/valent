@@ -31,6 +31,9 @@ struct _ValentResourceClass
 };
 
 VALENT_AVAILABLE_IN_1_0
+gpointer         valent_resource_get_ancestor    (ValentResource *resource,
+                                                  GType           rtype);
+VALENT_AVAILABLE_IN_1_0
 GStrv            valent_resource_get_contributor (ValentResource *resource);
 VALENT_AVAILABLE_IN_1_0
 void             valent_resource_set_contributor (ValentResource *resource,
