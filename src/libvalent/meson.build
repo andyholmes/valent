@@ -3,7 +3,6 @@
 
 libvalent_api_version = meson.project_version().split('.')[0]
 libvalent_api_name = 'libvalent-@0@'.format(libvalent_api_version)
-libvalent_so_version = valent_version
 
 # The subdirs update these before libvalent is compiled
 libvalent_c_args = ['-DVALENT_COMPILATION']
@@ -49,8 +48,8 @@ libvalent = shared_library('valent-@0@'.format(libvalent_api_version),
                  c_args: libvalent_c_args + release_args,
               link_args: libvalent_link_args,
   gnu_symbol_visibility: 'hidden',
-                version: libvalent_api_version,
-              soversion: libvalent_so_version,
+                version: valent_version,
+              soversion: libvalent_api_version,
                 install: true,
 )
 
@@ -65,7 +64,7 @@ libvalent_dep = declare_dependency(
 pkgconfig.generate(
          name: 'Valent',
   description: 'Core implementation and plugin API for Valent.',
-      version: libvalent_so_version,
+      version: valent_version,
      filebase: libvalent_api_name,
     libraries: [libvalent],
       subdirs: [libvalent_header_subdir],
