@@ -91,8 +91,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/libical/libical.git",
-                    "commit": "1b28a846d2dca16e5d15a433c6011cc2483555bb",
-                    "tag": "v3.0.18",
+                    "commit": "3ba66a6dadd1ee69c94f971f0ea8898e330c6550",
+                    "tag": "v3.0.19",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 1637,
