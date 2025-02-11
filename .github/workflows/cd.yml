@@ -48,9 +48,7 @@ jobs:
 
   flatpak:
     name: Flatpak
-    # GCC on qemu segfaults on s390x and arm64v8 when using 24.04
-    # See also https://github.com/actions/runner-images/issues/11471
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-22.04-arm' || 'ubuntu-latest' }}
     container:
       image: ghcr.io/andyholmes/flatter/gnome:47
       options: --privileged
@@ -68,13 +66,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-
-      - name: Setup QEMU
-        if: ${{ matrix.arch == 'aarch64' }}
-        id: qemu
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
 
       - name: Setup GPG
         id: gpg
