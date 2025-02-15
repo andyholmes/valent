@@ -4,10 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'build-aux/docker/Dockerfile'
+      - build-aux/docker/Dockerfile
+      - build-aux/docker/Dockerfile.toolbox
   pull_request:
     paths:
-      - 'build-aux/docker/Dockerfile'
+      - build-aux/docker/Dockerfile
+      - build-aux/docker/Dockerfile.toolbox
   schedule:
     # Once a week to keep dependencies up to date
     - cron: 0 0 * * 0
@@ -16,11 +18,6 @@ on:
 permissions:
   contents: read
 
-env:
-  REGISTRY: ghcr.io
-  USERNAME: ${{ github.actor }}
-  PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   container:
     name: Container
@@ -28,12 +25,22 @@ jobs:
     permissions:
       packages: write
 
+    strategy:
+      matrix:
+        file:
+          - ./build-aux/docker/Dockerfile
+          - ./build-aux/docker/Dockerfile.toolbox
+        image:
+          - ghcr.io/${{ github.repository }}
+          - ghcr.io/${{ github.repository }}-toolbox
+      fail-fast: false
+
     steps:
       - name: Metadata
         id: metadata
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ matrix.image }}
           tags: |
             # set latest tag for main branch
             type=raw,value=latest,enable={{is_default_branch}}
@@ -43,14 +50,14 @@ jobs:
         if: ${{ github.event_name != 'pull_request' }}
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ env.USERNAME }}
-          password: ${{ env.PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
         uses: docker/build-push-action@v6
         with:
-          file: ./build-aux/docker/Dockerfile
+          file: ${{ matrix.file }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
