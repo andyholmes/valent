@@ -27,13 +27,14 @@ jobs:
 
     strategy:
       matrix:
-        config:
-          file:
-            - ./build-aux/docker/Dockerfile
-            - ./build-aux/docker/Dockerfile.toolbox
-          image:
-            - ghcr.io/${{ github.repository }}
-            - ghcr.io/${{ github.repository }}-toolbox
+        label: [CI, Toolbox]
+        include:
+          - label: CI
+            file: ./build-aux/docker/Dockerfile
+            image: ghcr.io/${{ github.repository }}
+          - label: Toolbox
+            file: ./build-aux/docker/Dockerfile.toolbox
+            image: ghcr.io/${{ github.repository }}-toolbox
       fail-fast: false
 
     steps:
@@ -41,7 +42,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@v5
         with:
-          images: ${{ matrix.config.image }}
+          images: ${{ matrix.image }}
           tags: |
             # set latest tag for main branch
             type=raw,value=latest,enable={{is_default_branch}}
@@ -58,7 +59,7 @@ jobs:
       - name: Build
         uses: docker/build-push-action@v6
         with:
-          file: ${{ matrix.config.file }}
+          file: ${{ matrix.file }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
