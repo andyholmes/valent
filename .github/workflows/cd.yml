@@ -48,7 +48,7 @@ jobs:
 
   flatpak:
     name: Flatpak
-    runs-on: ${{ matrix.arch == 'aarch64' && 'ubuntu-22.04-arm' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     container:
       image: ghcr.io/andyholmes/flatter/gnome:47
       options: --privileged
