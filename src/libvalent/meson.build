@@ -3,6 +3,7 @@
 
 libvalent_api_version = meson.project_version().split('.')[0]
 libvalent_api_name = 'libvalent-@0@'.format(libvalent_api_version)
+libvalent_soversion = libvalent_api_version.to_int() - 1
 
 # The subdirs update these before libvalent is compiled
 libvalent_c_args = ['-DVALENT_COMPILATION']
@@ -49,7 +50,7 @@ libvalent = shared_library('valent-@0@'.format(libvalent_api_version),
               link_args: libvalent_link_args,
   gnu_symbol_visibility: 'hidden',
                 version: valent_version,
-              soversion: libvalent_api_version,
+              soversion: libvalent_soversion,
                 install: true,
 )
 
