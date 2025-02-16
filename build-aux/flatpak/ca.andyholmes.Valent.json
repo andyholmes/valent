@@ -286,8 +286,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/flatpak/libportal.git",
-                    "commit": "731e7410fa5765e7c4eb76a51140a19637620c13",
-                    "tag": "0.9.0",
+                    "commit": "8f5dc8d192f6e31dafe69e35219e3b707bde71ce",
+                    "tag": "0.9.1",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 230124,
@@ -313,8 +313,8 @@
                 {
                     "type": "git",
                     "url": "https://gitlab.freedesktop.org/pipewire/pipewire.git",
-                    "commit": "7e5cd195acb1d189e5b9b36633ac7da30022c84f",
-                    "tag": "1.3.82",
+                    "commit": "cc7439187f61dd73b81ca69f5dbccbb52ce970b2",
+                    "tag": "1.2.7",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 57357,
