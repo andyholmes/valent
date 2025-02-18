@@ -61,13 +61,6 @@ valent_packet_is_valid (JsonNode *packet)
 
   root = json_node_get_object (packet);
 
-  /* TODO: kdeconnect-kde stringifies this in identity packets
-   *       https://invent.kde.org/network/kdeconnect-kde/-/merge_requests/380 */
-  if G_UNLIKELY ((node = json_object_get_member (root, "id")) == NULL ||
-                 (json_node_get_value_type (node) != G_TYPE_INT64 &&
-                  json_node_get_value_type (node) != G_TYPE_STRING))
-    return FALSE;
-
   if G_UNLIKELY ((node = json_object_get_member (root, "type")) == NULL ||
                  json_node_get_value_type (node) != G_TYPE_STRING)
     return FALSE;
