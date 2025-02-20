@@ -612,11 +612,6 @@ valent_device_manager_save_state (ValentDeviceManager *self)
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
 
-  generator = g_object_new (JSON_TYPE_GENERATOR,
-                            "pretty", TRUE,
-                            "root",   self->state,
-                            NULL);
-
   for (unsigned int i = 0, len = self->devices->len; i < len; i++)
     {
       ValentDevice *device = g_ptr_array_index (self->devices, i);
@@ -628,6 +623,11 @@ valent_device_manager_save_state (ValentDeviceManager *self)
                                      valent_device_get_id (device));
         }
     }
+
+  generator = g_object_new (JSON_TYPE_GENERATOR,
+                            "pretty", TRUE,
+                            "root",   self->state,
+                            NULL);
 
   file = valent_context_get_cache_file (self->context, "devices.json");
   if (!json_generator_to_file (generator, g_file_peek_path (file), &error))
