@@ -72,10 +72,9 @@ on_channel_destroyed (ValentLanChannelService *self,
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
   g_assert (VALENT_IS_LAN_CHANNEL (channel));
 
+  valent_object_lock (VALENT_OBJECT (self));
   certificate = valent_channel_get_certificate (VALENT_CHANNEL (channel));
   device_id = valent_certificate_get_common_name (certificate);
-
-  valent_object_lock (VALENT_OBJECT (self));
   g_hash_table_remove (self->channels, device_id);
   valent_object_unlock (VALENT_OBJECT (self));
 }
@@ -130,7 +129,7 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
 
   valent_object_lock (VALENT_OBJECT (self));
   channel = g_hash_table_lookup (self->channels, device_id);
-  if (channel != NULL)
+  if (channel != NULL && !valent_object_in_destruction (VALENT_OBJECT (channel)))
     certificate = valent_channel_get_peer_certificate (VALENT_CHANNEL (channel));
   valent_object_unlock (VALENT_OBJECT (self));
 
@@ -896,7 +895,9 @@ valent_lan_channel_service_channel (ValentChannelService *service,
   device_id = valent_certificate_get_common_name (peer_certificate);
 
   valent_object_lock (VALENT_OBJECT (service));
-  g_hash_table_replace (self->channels, g_strdup (device_id), channel);
+  g_hash_table_replace (self->channels,
+                        g_strdup (device_id),
+                        g_object_ref (channel));
   g_signal_connect_object (channel,
                            "destroy",
                            G_CALLBACK (on_channel_destroyed),
@@ -1160,7 +1161,7 @@ valent_lan_channel_service_init (ValentLanChannelService *self)
   self->channels = g_hash_table_new_full (g_str_hash,
                                           g_str_equal,
                                           g_free,
-                                          NULL);
+                                          g_object_unref);
   self->monitor = g_network_monitor_get_default ();
 }
 
