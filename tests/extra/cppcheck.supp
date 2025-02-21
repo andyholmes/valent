@@ -57,8 +57,8 @@ leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:117
 leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:119
 
 # tests/plugins/lan/
-memleak:src/plugins/lan/valent-lan-channel-service.c:544
-memleak:src/plugins/lan/valent-lan-channel-service.c:559
+memleak:src/plugins/lan/valent-lan-channel-service.c:543
+memleak:src/plugins/lan/valent-lan-channel-service.c:558
 memleak:src/plugins/lan/valent-lan-dnssd.c:84
 memleak:src/plugins/lan/valent-lan-dnssd.c:94
 
