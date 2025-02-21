@@ -19,18 +19,10 @@ leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:787
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:806
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:810
 
-# src/plugins/battery/
-memleak:src/plugins/battery/valent-battery-gadget.c
-
-# src/plugins/pipewire/
-memleak:src/plugins/pipewire/valent-pipewire-mixer.c:698
-
-# src/plugins/sms/
-leakNoVarFunctionCall:src/plugins/sms/valent-conversation-page.c:568
-leakNoVarFunctionCall:src/plugins/sms/valent-conversation-page.c:573
+# tests/plugins/bluez/
+memleak:tests/plugins/bluez/test-bluez-plugin.c:183
 
 # tests/plugins/connectivity_report/
-memleak:src/plugins/connectivity_report/valent-connectivity_report-gadget.c:206
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:258
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:260
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:262
@@ -40,25 +32,12 @@ leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:279
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:281
 
-# tests/plugins/gnome/
-leakNoVarFunctionCall:src/plugins/gnome/valent-mutter-input.c:174
-
-# tests/plugins/bluez/
-memleak:tests/plugins/bluez/test-bluez-plugin.c:183
-
-# tests/plugins/fdo/
-leakNoVarFunctionCall:tests/plugins/fdo/test-fdo-notifications.c:122
-leakNoVarFunctionCall:tests/plugins/fdo/test-fdo-session.c:65
-memleak:tests/plugins/fdo/test-fdo-notifications.c:164
-
-# tests/plugins/gtk/
-leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:115
-leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:117
-leakNoVarFunctionCall:tests/plugins/gtk/test-gtk-notifications.c:119
-
 # tests/plugins/lan/
 memleak:src/plugins/lan/valent-lan-channel-service.c:543
 memleak:src/plugins/lan/valent-lan-channel-service.c:558
 memleak:src/plugins/lan/valent-lan-dnssd.c:84
 memleak:src/plugins/lan/valent-lan-dnssd.c:94
+
+# src/plugins/pipewire/
+memleak:src/plugins/pipewire/valent-pipewire-mixer.c:698
 
