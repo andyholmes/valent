@@ -226,7 +226,7 @@ valent_channel_real_store_data (ValentChannel *channel,
       g_autoptr (GFile) certificate_file = NULL;
       g_autoptr (GError) error = NULL;
 
-      g_object_get (priv->certificate,
+      g_object_get (priv->peer_certificate,
                     "certificate-pem", &certificate_pem,
                     NULL);
       certificate_file = valent_context_get_config_file (context,
