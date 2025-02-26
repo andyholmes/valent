@@ -118,8 +118,8 @@ lan_service_fixture_tear_down (LanBackendFixture *fixture,
   v_await_finalize_object (fixture->channel);
   v_await_finalize_object (fixture->endpoint);
 
-  v_assert_finalize_object (fixture->certificate);
-  v_assert_finalize_object (fixture->socket);
+  v_await_finalize_object (fixture->certificate);
+  v_await_finalize_object (fixture->socket);
 }
 
 /*

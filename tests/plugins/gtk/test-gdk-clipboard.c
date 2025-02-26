@@ -29,7 +29,7 @@ static void
 gdk_clipboard_fixture_tear_down (GdkClipboardFixture *fixture,
                                  gconstpointer        user_data)
 {
-  v_assert_finalize_object (fixture->clipboard);
+  v_await_finalize_object (fixture->clipboard);
 }
 
 static void

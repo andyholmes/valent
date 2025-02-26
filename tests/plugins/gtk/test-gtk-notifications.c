@@ -52,7 +52,7 @@ gtk_notifications_fixture_tear_down (GtkNotificationsFixture *fixture,
                                      gconstpointer            user_data)
 {
   g_clear_object (&fixture->connection);
-  v_assert_finalize_object (fixture->notifications);
+  v_await_finalize_object (fixture->notifications);
 }
 
 

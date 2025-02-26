@@ -25,7 +25,7 @@ test_window_tear_down (TestWindowFixture *fixture,
                        gconstpointer      user_data)
 {
   valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
-  v_assert_finalize_object (fixture->manager);
+  v_await_finalize_object (fixture->manager);
 }
 
 static void

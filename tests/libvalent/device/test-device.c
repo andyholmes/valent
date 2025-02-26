@@ -166,7 +166,7 @@ test_device_new (void)
   menu = valent_device_get_menu (device);
   g_assert_true (G_IS_MENU (menu));
 
-  v_assert_finalize_object (device);
+  v_await_finalize_object (device);
 }
 
 /*
