@@ -161,7 +161,7 @@ valent_test_mute_fuzzing (const char     *log_domain,
   return TRUE;
 }
 
-static GQueue *events = NULL;
+static GQueue events = G_QUEUE_INIT;
 
 /**
  * valent_test_event_free:
@@ -172,11 +172,7 @@ static GQueue *events = NULL;
 void
 valent_test_event_free (GDestroyNotify free_func)
 {
-  if (events == NULL)
-    return;
-
-  g_queue_free_full (events, free_func);
-  events = NULL;
+  g_queue_clear_full (&events, free_func);
 }
 
 /**
@@ -191,7 +187,7 @@ valent_test_event_pop (void)
 {
   gpointer event = NULL;
 
-  while (events == NULL || (event = g_queue_pop_head (events)) == NULL)
+  while ((event = g_queue_pop_head (&events)) == NULL)
     g_main_context_iteration (NULL, FALSE);
 
   return event;
@@ -206,10 +202,7 @@ valent_test_event_pop (void)
 void
 valent_test_event_push (gpointer event)
 {
-  if (events == NULL)
-    events = g_queue_new ();
-
-  g_queue_push_tail (events, event);
+  g_queue_push_tail (&events, event);
 }
 
 /**

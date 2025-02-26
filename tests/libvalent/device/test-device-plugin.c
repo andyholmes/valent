@@ -64,13 +64,6 @@ on_activate (GSimpleAction *action,
 }
 
 static void
-on_action_signal (gboolean *emitted)
-{
-  if (emitted != NULL)
-    *emitted = TRUE;
-}
-
-static void
 test_device_plugin_actions (DevicePluginFixture *fixture,
                             gconstpointer        user_data)
 {
@@ -81,7 +74,7 @@ test_device_plugin_actions (DevicePluginFixture *fixture,
   const GVariantType *state_type = NULL;
   GVariant *state_hint = NULL;
   GVariant *state = NULL;
-  gboolean emitted = FALSE;
+  gboolean watch = FALSE;
 
   VALENT_TEST_CHECK ("Actions can be queried");
   has_action = g_action_group_query_action (G_ACTION_GROUP (fixture->extension),
@@ -100,18 +93,16 @@ test_device_plugin_actions (DevicePluginFixture *fixture,
   g_clear_pointer (&state, g_variant_unref);
 
   /* Signals */
-  g_object_connect (G_OBJECT (fixture->extension),
-                    "swapped-signal::action-added",           on_action_signal, &emitted,
-                    "swapped-signal::action-enabled-changed", on_action_signal, &emitted,
-                    "swapped-signal::action-removed",         on_action_signal, &emitted,
-                    "swapped-signal::action-state-changed",   on_action_signal, &emitted,
-                    NULL);
+  valent_test_watch_signal (fixture->extension, "action-added", &watch);
+  valent_test_watch_signal (fixture->extension, "action-enabled-changed", &watch);
+  valent_test_watch_signal (fixture->extension, "action-removed", &watch);
+  valent_test_watch_signal (fixture->extension, "action-state-changed", &watch);
 
   VALENT_TEST_CHECK ("Stateful actions can be changed");
   g_action_group_change_action_state (G_ACTION_GROUP (fixture->extension),
                                       "state",
                                       g_variant_new_boolean (FALSE));
-  valent_test_await_boolean (&emitted);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Stateful actions can be read");
   state = g_action_group_get_action_state (G_ACTION_GROUP (fixture->extension),
@@ -123,31 +114,31 @@ test_device_plugin_actions (DevicePluginFixture *fixture,
   action = g_simple_action_new ("action", G_VARIANT_TYPE_BOOLEAN);
   g_action_map_add_action (G_ACTION_MAP (fixture->extension),
                            G_ACTION (action));
-  valent_test_await_boolean (&emitted);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Actions can be disabled");
   g_simple_action_set_enabled (action, FALSE);
-  valent_test_await_boolean (&emitted);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Actions can be enabled");
   g_simple_action_set_enabled (action, TRUE);
-  valent_test_await_boolean (&emitted);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Actions can be activated");
   g_signal_connect (action,
                     "activate",
                     G_CALLBACK (on_activate),
-                    &emitted);
+                    &watch);
   g_action_group_activate_action (G_ACTION_GROUP (fixture->extension),
                                   "action",
                                   g_variant_new_boolean (TRUE));
-  valent_test_await_boolean (&emitted);
+  valent_test_await_boolean (&watch);
 
   VALENT_TEST_CHECK ("Actions can be removed");
   g_action_map_remove_action (G_ACTION_MAP (fixture->extension), "action");
-  valent_test_await_boolean (&emitted);
+  valent_test_await_boolean (&watch);
 
-  g_signal_handlers_disconnect_by_data (fixture->extension, &emitted);
+  valent_test_watch_clear (fixture->extension, &watch);
 }
 
 int

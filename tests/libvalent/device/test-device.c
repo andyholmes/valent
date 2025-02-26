@@ -317,53 +317,6 @@ toggle_plugin (const char   *module_name,
 }
 
 static void
-on_action_added (GActionGroup *action_group,
-                 const char   *action_name,
-                 gboolean     *emitted)
-{
-  g_assert_cmpstr (action_name, ==, "packetless.action");
-
-  if (emitted)
-    *emitted = TRUE;
-}
-
-static void
-on_action_enabled_changed (GActionGroup *action_group,
-                           const char   *action_name,
-                           gboolean      enabled,
-                           gboolean     *emitted)
-{
-  g_assert_true (g_str_equal (action_name, "mock.echo") ||
-                 g_str_equal (action_name, "mock.state"));
-
-  if (emitted)
-    *emitted = TRUE;
-}
-
-static void
-on_action_removed (GActionGroup *action_group,
-                   const char   *action_name,
-                   gboolean     *emitted)
-{
-  g_assert_cmpstr (action_name, ==, "packetless.action");
-
-  if (emitted)
-    *emitted = TRUE;
-}
-
-static void
-on_action_state_changed (GActionGroup *action_group,
-                         const char   *action_name,
-                         GVariant     *value,
-                         gboolean     *emitted)
-{
-  g_assert_cmpstr (action_name, ==, "mock.state");
-
-  if (emitted)
-    *emitted = TRUE;
-}
-
-static void
 test_device_actions (DeviceFixture *fixture,
                      gconstpointer  user_data)
 {
@@ -375,7 +328,7 @@ test_device_actions (DeviceFixture *fixture,
   const GVariantType *state_type = NULL;
   GVariant *state_hint = NULL;
   GVariant *state = NULL;
-  gboolean emitted = FALSE;
+  gboolean watch = FALSE;
   PeasPluginInfo *plugin_info;
   g_autoptr (JsonNode) packet = NULL;
 
@@ -386,22 +339,10 @@ test_device_actions (DeviceFixture *fixture,
   action_names = g_action_group_list_actions (actions);
   g_assert_cmpuint (g_strv_length (action_names), ==, 5);
 
-  g_signal_connect (actions,
-                    "action-added",
-                    G_CALLBACK (on_action_added),
-                    &emitted);
-  g_signal_connect (actions,
-                    "action-enabled-changed",
-                    G_CALLBACK (on_action_enabled_changed),
-                    &emitted);
-  g_signal_connect (actions,
-                    "action-removed",
-                    G_CALLBACK (on_action_removed),
-                    &emitted);
-  g_signal_connect (actions,
-                    "action-state-changed",
-                    G_CALLBACK (on_action_state_changed),
-                    &emitted);
+  valent_test_watch_signal (actions, "action-added", &watch);
+  valent_test_watch_signal (actions, "action-enabled-changed", &watch);
+  valent_test_watch_signal (actions, "action-removed", &watch);
+  valent_test_watch_signal (actions, "action-state-changed", &watch);
 
   /* Query */
   has_action = g_action_group_query_action (actions,
@@ -423,8 +364,7 @@ test_device_actions (DeviceFixture *fixture,
   g_action_group_change_action_state (actions,
                                       "mock.state",
                                       g_variant_new_boolean (FALSE));
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&watch);
 
   state = g_action_group_get_action_state (actions, "mock.state");
   g_assert_false (g_variant_get_boolean (state));
@@ -432,12 +372,10 @@ test_device_actions (DeviceFixture *fixture,
 
   /* Enable/Disable */
   valent_device_set_paired (fixture->device, FALSE);
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&watch);
 
   valent_device_set_paired (fixture->device, TRUE);
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&watch);
 
   /* Activate */
   g_action_group_activate_action (actions, "mock.echo", NULL);
@@ -455,15 +393,13 @@ test_device_actions (DeviceFixture *fixture,
 
   peas_engine_unload_plugin (valent_get_plugin_engine (), plugin_info);
   g_assert_false (g_action_group_has_action (actions, "packetless.action"));
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&watch);
 
   peas_engine_load_plugin (valent_get_plugin_engine (), plugin_info);
   g_assert_true (g_action_group_has_action (actions, "packetless.action"));
-  g_assert_true (emitted);
-  emitted = FALSE;
+  valent_test_await_boolean (&watch);
 
-  g_signal_handlers_disconnect_by_data (actions, &emitted);
+  valent_test_watch_clear (actions, &watch);
 }
 
 static void

@@ -14,10 +14,8 @@
 
 typedef struct
 {
-  ValentDeviceManager  *manager;
-  ValentChannelService *service;
-  ValentDevice         *device;
-  gpointer              data;
+  ValentDeviceManager *manager;
+  ValentDevice        *device;
 } ManagerFixture;
 
 
@@ -49,9 +47,6 @@ static void
 manager_fixture_tear_down (ManagerFixture *fixture,
                            gconstpointer   user_data)
 {
-  while (valent_mock_channel_service_get_instance () != NULL)
-    g_main_context_iteration (NULL, FALSE);
-
   v_await_finalize_object (fixture->manager);
 }
 
@@ -215,40 +210,24 @@ test_manager_dispose (ManagerFixture *fixture,
                       gconstpointer   user_data)
 {
   PeasEngine *engine;
-  ValentChannelService *service = NULL;
   g_autoptr (GSettings) settings = NULL;
 
   VALENT_TEST_CHECK ("Manager starts up with the application");
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (fixture->manager));
 
-  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
   VALENT_TEST_CHECK ("Manager stops channel services when a plugin is disabled");
   settings = valent_test_mock_settings ("network");
   g_settings_set_boolean (settings, "enabled", FALSE);
 
-  while ((service = valent_mock_channel_service_get_instance ()) != NULL)
-    g_main_context_iteration (NULL, FALSE);
-
   VALENT_TEST_CHECK ("Manager starts channel services when a plugin is enabled");
   g_settings_set_boolean (settings, "enabled", TRUE);
-
-  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
 
   VALENT_TEST_CHECK ("Manager stops channel services when a plugin is unloaded");
   engine = valent_get_plugin_engine ();
   peas_engine_unload_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
 
-  while ((service = valent_mock_channel_service_get_instance ()) != NULL)
-    g_main_context_iteration (NULL, FALSE);
-
   VALENT_TEST_CHECK ("Manager starts channel services when a plugin is loaded");
   peas_engine_load_plugin (engine, peas_engine_get_plugin_info (engine, "mock"));
-
-  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
 
   VALENT_TEST_CHECK ("Manager shuts down with the application");
   valent_application_plugin_shutdown (VALENT_APPLICATION_PLUGIN (fixture->manager));
