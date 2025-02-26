@@ -21,7 +21,7 @@ metainfo_file = i18n.merge_file(
 
 appstreamcli = find_program('appstreamcli', required: false)
 if appstreamcli.found()
-  test('Validate AppStream file', appstreamcli,
+  test('validate-appstream-metadata', appstreamcli,
        args: ['validate', '--no-net', metainfo_file],
     depends: [metainfo_file],
   )

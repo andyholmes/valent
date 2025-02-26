@@ -38,9 +38,8 @@ autostart_file = i18n.merge_file(
 )
 
 desktop_utils = find_program('desktop-file-validate', required: false)
-
 if desktop_utils.found()
-  test('Validate Desktop files', desktop_utils,
+  test('validate-desktop-files', desktop_utils,
        args: [desktop_file, autostart_file],
     depends: [desktop_file, autostart_file],
   )
