@@ -188,23 +188,27 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 #endif
 
 /**
- * v_assert_finalize_object:
+ * v_await_finalize_object:
  * @object: (type GObject.Object): a `GObject`
  *
- * Assert that @object is non-%NULL, then release one reference to it with
- * g_object_unref() and assert that it has been finalized (i.e. that there
- * are no more references).
+ * Assert that @object is non-%NULL, then iterate the main context until its
+ * reference count reaches `1`. Then release one reference to it with
+ * g_object_unref() and assert that it has been finalized.
  *
- * This macro is like g_assert_finalize_object(), but with the advantage of
- * printing the location and variable name of @object.
+ * This macro is similar to g_assert_finalize_object(), but with the advantage
+ * supporting objects that need operations to resolve (ie. GTasks) before being
+ * finalized.
  */
-#define v_assert_finalize_object(object)                                \
+#define v_await_finalize_object(object)                                 \
   G_STMT_START {                                                        \
     gpointer weak_pointer = object;                                     \
                                                                         \
     if G_UNLIKELY (!G_IS_OBJECT (weak_pointer))                         \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
                            "'" #object "' should be a GObject");        \
+                                                                        \
+    while (g_atomic_int_get (&((GObject *)object)->ref_count) > 1)      \
+      g_main_context_iteration (NULL, FALSE);                           \
                                                                         \
     g_object_add_weak_pointer ((GObject *)object, &weak_pointer);       \
     g_object_unref (weak_pointer);                                      \
@@ -213,30 +217,6 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
                            "'" #object "' should be finalized");        \
   } G_STMT_END
-
-/**
- * v_await_finalize_object:
- * @object: (type GObject.Object): a `GObject`
- *
- * Assert that @object is non-%NULL, then iterate the main context until its
- * reference count reaches `1`. Then release one reference to it with
- * g_object_unref() and assert that it has been finalized.
- */
-static inline void
-(v_await_finalize_object) (GObject *object)
-{
-  gpointer weak_pointer = object;
-
-  g_assert_true (G_IS_OBJECT (weak_pointer));
-
-  while (g_atomic_int_get (&object->ref_count) > 1)
-    g_main_context_iteration (NULL, FALSE);
-
-  g_object_add_weak_pointer (object, &weak_pointer);
-  g_object_unref (weak_pointer);
-  g_assert_null (weak_pointer);
-}
-#define v_await_finalize_object(object) (v_await_finalize_object ((GObject *) object))
 
 /**
  * v_assert_packet_type:

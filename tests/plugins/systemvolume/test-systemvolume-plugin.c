@@ -19,7 +19,7 @@ mixer_info_free (gpointer data)
   MixerInfo *info = data;
 
   /* NOTE: we need to finalize the mixer singleton between tests */
-  v_assert_finalize_object (valent_mixer_get_default ());
+  v_await_finalize_object (valent_mixer_get_default ());
 
   g_clear_object (&info->sink1);
   g_clear_object (&info->sink2);

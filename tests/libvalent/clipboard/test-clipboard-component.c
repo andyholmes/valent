@@ -25,7 +25,7 @@ static void
 clipboard_component_fixture_tear_down (ClipboardComponentFixture *fixture,
                                        gconstpointer              user_data)
 {
-  v_assert_finalize_object (fixture->clipboard);
+  v_await_finalize_object (fixture->clipboard);
   v_await_finalize_object (fixture->adapter);
 }
 

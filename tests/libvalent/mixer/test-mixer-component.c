@@ -103,12 +103,12 @@ static void
 mixer_component_fixture_tear_down (MixerComponentFixture *fixture,
                                    gconstpointer          user_data)
 {
-  v_assert_finalize_object (fixture->mixer);
+  v_await_finalize_object (fixture->mixer);
   v_await_finalize_object (fixture->adapter);
-  v_assert_finalize_object (fixture->input1);
-  v_assert_finalize_object (fixture->input2);
-  v_assert_finalize_object (fixture->output1);
-  v_assert_finalize_object (fixture->output2);
+  v_await_finalize_object (fixture->input1);
+  v_await_finalize_object (fixture->input2);
+  v_await_finalize_object (fixture->output1);
+  v_await_finalize_object (fixture->output2);
 }
 
 static void

@@ -26,7 +26,7 @@ static void
 input_component_fixture_tear_down (InputComponentFixture *fixture,
                                    gconstpointer          user_data)
 {
-  v_assert_finalize_object (fixture->input);
+  v_await_finalize_object (fixture->input);
   v_await_finalize_object (fixture->adapter);
 }
 

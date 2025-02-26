@@ -51,7 +51,7 @@ contacts_plugin_fixture_clear (ValentTestFixture *fixture,
   valent_test_fixture_clear (fixture, user_data);
 
   /* NOTE: we need to finalize the singletons between tests */
-  v_assert_finalize_object (valent_contacts_get_default ());
+  v_await_finalize_object (valent_contacts_get_default ());
 }
 
 static void

@@ -41,7 +41,7 @@ mpris_adapter_fixture_tear_down (MPRISAdapterFixture *fixture,
 {
   g_clear_object (&fixture->player);
   g_clear_object (&fixture->export);
-  v_assert_finalize_object (valent_media_get_default ());
+  v_await_finalize_object (valent_media_get_default ());
 }
 
 static void

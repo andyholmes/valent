@@ -32,9 +32,9 @@ static void
 media_component_fixture_tear_down (MediaComponentFixture *fixture,
                                    gconstpointer          user_data)
 {
-  v_assert_finalize_object (fixture->media);
+  v_await_finalize_object (fixture->media);
   v_await_finalize_object (fixture->adapter);
-  v_assert_finalize_object (fixture->player);
+  v_await_finalize_object (fixture->player);
 
   valent_test_await_pending ();
 }
@@ -136,7 +136,7 @@ test_media_component_player (MediaComponentFixture *fixture,
   fixture->emitter = NULL;
 
   g_signal_handlers_disconnect_by_data (player, fixture);
-  v_assert_finalize_object (player);
+  v_await_finalize_object (player);
 }
 
 static void
@@ -169,7 +169,7 @@ test_media_component_adapter (MediaComponentFixture *fixture,
   valent_media_unexport_player (media, player);
   valent_media_adapter_player_removed (fixture->adapter, player);
 
-  v_assert_finalize_object (player);
+  v_await_finalize_object (player);
 }
 
 static void
@@ -201,7 +201,7 @@ test_media_component_self (MediaComponentFixture *fixture,
   valent_media_unexport_player (media, player);
   valent_media_adapter_player_removed (fixture->adapter, player);
 
-  v_assert_finalize_object (player);
+  v_await_finalize_object (player);
 }
 
 int

@@ -37,7 +37,7 @@ mutter_clipboard_fixture_tear_down (MutterClipboardFixture *fixture,
                                     gconstpointer           user_data)
 {
   g_clear_object (&fixture->connection);
-  v_assert_finalize_object (fixture->clipboard);
+  v_await_finalize_object (fixture->clipboard);
 }
 
 static void

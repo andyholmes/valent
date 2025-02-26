@@ -27,7 +27,7 @@ static void
 session_component_fixture_tear_down (SessionComponentFixture *fixture,
                                      gconstpointer            user_data)
 {
-  v_assert_finalize_object (fixture->session);
+  v_await_finalize_object (fixture->session);
   v_await_finalize_object (fixture->adapter);
 }
 

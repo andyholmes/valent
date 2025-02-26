@@ -25,8 +25,8 @@ mixer_info_free (gpointer data)
   MixerInfo *info = data;
 
   /* NOTE: we need to finalize the singletons between tests */
-  v_assert_finalize_object (valent_mixer_get_default ());
-  v_assert_finalize_object (valent_media_get_default ());
+  v_await_finalize_object (valent_mixer_get_default ());
+  v_await_finalize_object (valent_media_get_default ());
 
   g_clear_object (&info->speakers);
   g_clear_object (&info->headphones);
