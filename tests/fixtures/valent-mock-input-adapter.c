@@ -19,7 +19,6 @@ struct _ValentMockInputAdapter
 
 G_DEFINE_FINAL_TYPE (ValentMockInputAdapter, valent_mock_input_adapter, VALENT_TYPE_INPUT_ADAPTER)
 
-
 /*
  * ValentInputAdapter
  */
@@ -28,13 +27,10 @@ valent_mock_input_adapter_keyboard_keysym (ValentInputAdapter *adapter,
                                            uint32_t            keysym,
                                            gboolean            state)
 {
-  char *event;
-
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_MOCK_INPUT_ADAPTER (adapter));
 
-  event = g_strdup_printf ("KEYSYM %u %i", keysym, state);
-  valent_test_event_push (event);
+  valent_test_event_push (g_strdup_printf ("KEYSYM %u %i", keysym, state));
 }
 
 static void
@@ -42,14 +38,11 @@ valent_mock_input_adapter_pointer_axis (ValentInputAdapter *adapter,
                                         double              dx,
                                         double              dy)
 {
-  char *event;
-
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_MOCK_INPUT_ADAPTER (adapter));
   g_assert (!G_APPROX_VALUE (dx, 0.0, 0.01) || !G_APPROX_VALUE (dy, 0.0, 0.01));
 
-  event = g_strdup_printf ("POINTER AXIS %.1f %.1f", dx, dy);
-  valent_test_event_push (event);
+  valent_test_event_push (g_strdup_printf ("POINTER AXIS %.1f %.1f", dx, dy));
 }
 
 static void
@@ -57,13 +50,10 @@ valent_mock_input_adapter_pointer_button (ValentInputAdapter *adapter,
                                           unsigned int        button,
                                           gboolean            pressed)
 {
-  char *event;
-
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_MOCK_INPUT_ADAPTER (adapter));
 
-  event = g_strdup_printf ("POINTER BUTTON %u %i", button, pressed);
-  valent_test_event_push (event);
+  valent_test_event_push (g_strdup_printf ("POINTER BUTTON %u %i", button, pressed));
 }
 
 static void
@@ -71,14 +61,11 @@ valent_mock_input_adapter_pointer_motion (ValentInputAdapter *adapter,
                                           double              dx,
                                           double              dy)
 {
-  char *event;
-
   g_assert (VALENT_IS_INPUT_ADAPTER (adapter));
   g_assert (VALENT_IS_MOCK_INPUT_ADAPTER (adapter));
   g_assert (!G_APPROX_VALUE (dx, 0.0, 0.01) || !G_APPROX_VALUE (dy, 0.0, 0.01));
 
-  event = g_strdup_printf ("POINTER MOTION %.1f %.1f", dx, dy);
-  valent_test_event_push (event);
+  valent_test_event_push (g_strdup_printf ("POINTER MOTION %.1f %.1f", dx, dy));
 }
 
 

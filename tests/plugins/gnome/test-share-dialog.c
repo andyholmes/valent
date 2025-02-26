@@ -13,7 +13,6 @@ static void
 test_share_dialog (void)
 {
   GtkWindow *window = NULL;
-  ValentChannelService *service = NULL;
   g_autoptr (ValentDeviceManager) manager = NULL;
   g_autoptr (GListStore) files = NULL;
   g_autoptr (GListStore) files_out = NULL;
@@ -42,9 +41,6 @@ test_share_dialog (void)
 
   VALENT_TEST_CHECK ("Window adds devices");
   valent_application_plugin_startup (VALENT_APPLICATION_PLUGIN (manager));
-
-  while ((service = valent_mock_channel_service_get_instance ()) == NULL)
-    g_main_context_iteration (NULL, FALSE);
 
   valent_device_manager_refresh (manager);
   valent_test_await_pending ();

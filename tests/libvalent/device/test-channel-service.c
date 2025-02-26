@@ -65,7 +65,11 @@ on_channel (ValentChannelService  *service,
   fixture->channel = channel;
   g_object_add_weak_pointer (G_OBJECT (fixture->channel),
                              (gpointer)&fixture->channel);
-  g_main_loop_quit (fixture->loop);
+
+  fixture->endpoint = g_object_get_data (G_OBJECT (service),
+                                         "valent-test-endpoint");
+  g_object_add_weak_pointer (G_OBJECT (fixture->endpoint),
+                             (gpointer)&fixture->endpoint);
 }
 
 
@@ -286,10 +290,11 @@ test_channel_service_identify (ChannelServiceFixture *fixture,
                     fixture);
   valent_channel_service_identify (fixture->service, NULL);
 
-  fixture->endpoint = valent_mock_channel_service_get_endpoint ();
+  valent_test_await_pointer (&fixture->channel);
+  g_assert_true (VALENT_IS_CHANNEL (fixture->channel));
+
+  valent_test_await_pointer (&fixture->endpoint);
   g_assert_true (VALENT_IS_CHANNEL (fixture->endpoint));
-  g_object_add_weak_pointer (G_OBJECT (fixture->endpoint),
-                             (gpointer)&fixture->endpoint);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
   valent_object_destroy (VALENT_OBJECT (fixture->service));
@@ -314,10 +319,11 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
                     fixture);
   valent_channel_service_identify (fixture->service, NULL);
 
-  fixture->endpoint = valent_mock_channel_service_get_endpoint ();
+  valent_test_await_pointer (&fixture->channel);
+  g_assert_true (VALENT_IS_CHANNEL (fixture->channel));
+
+  valent_test_await_pointer (&fixture->endpoint);
   g_assert_true (VALENT_IS_CHANNEL (fixture->endpoint));
-  g_object_add_weak_pointer (G_OBJECT (fixture->endpoint),
-                             (gpointer)&fixture->endpoint);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->channel,
