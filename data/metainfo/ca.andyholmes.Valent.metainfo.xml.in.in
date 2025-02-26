@@ -85,16 +85,12 @@
   <url type="help">https://github.com/andyholmes/valent/discussions</url>
   <content_rating type="oars-1.1" />
 
-  <developer_name>Andy Holmes</developer_name>
-  <update_contact>andrew.g.r.holmes@gmail.com</update_contact>
+  <developer id="ca.andyholmes">
+    <name>Andy Holmes</name>
+  </developer>
+  <update_contact>valent@andyholmes.ca</update_contact>
   <translation type="gettext">@gettext_package@</translation>
   <launchable type="desktop-id">@application_id@.desktop</launchable>
-
-  <kudos>
-    <kudo>HiDpiIcon</kudo>
-    <kudo>ModernToolkit</kudo>
-    <kudo>Notifications</kudo>
-  </kudos>
 
   <!-- Device Type -->
   <recommends>
