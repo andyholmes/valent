@@ -1688,7 +1688,7 @@ valent_device_generate_id (void)
 
 /**
  * valent_device_validate_id:
- * @id: a KDE Connect device ID
+ * @id: (nullable) a KDE Connect device ID
  *
  * Validate a KDE Connect device ID.
  *
@@ -1709,6 +1709,9 @@ valent_device_validate_id (const char *id)
   static size_t guard = 0;
   static GRegex *id_pattern = NULL;
 
+  if G_UNLIKELY (id == NULL || *id == '\0')
+    return FALSE;
+
   if (g_once_init_enter (&guard))
     {
       id_pattern = g_regex_new ("^[a-zA-Z0-9_]{32,38}$",
@@ -1723,7 +1726,7 @@ valent_device_validate_id (const char *id)
 
 /**
  * valent_device_validate_name:
- * @name: a KDE Connect device name
+ * @name: (nullable): a KDE Connect device name
  *
  * Validate a KDE Connect device name.
  *
@@ -1741,6 +1744,9 @@ valent_device_validate_name (const char *name)
 {
   static size_t guard = 0;
   static GRegex *name_pattern = NULL;
+
+  if G_UNLIKELY (name == NULL || *name == '\0')
+    return FALSE;
 
   if (g_once_init_enter (&guard))
     {
