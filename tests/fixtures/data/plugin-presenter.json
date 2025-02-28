@@ -3,9 +3,8 @@
     "id": 0,
     "type": "kdeconnect.identity",
     "body": {
-      "deviceId": "test-device",
+      "deviceId": "00000000_0000_0000_0000_000000000001",
       "deviceName": "Test Device",
-      "protocolVersion": 7,
       "deviceType": "phone",
       "incomingCapabilities": [
         "kdeconnect.mousepad.request",
@@ -14,7 +13,26 @@
       "outgoingCapabilities": [
         "kdeconnect.mousepad.request",
         "kdeconnect.presenter"
-      ]
+      ],
+      "protocolVersion": 7
+    }
+  },
+  "peer-identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "00000000_0000_0000_0000_000000000002",
+      "deviceName": "Peer Device",
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.mousepad.request",
+        "kdeconnect.presenter"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.mousepad.request",
+        "kdeconnect.presenter"
+      ],
+      "protocolVersion": 7
     }
   },
   "presenter-motion1": {

@@ -309,6 +309,8 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
   g_autoptr (GIOStream) base_stream_out = NULL;
   g_autoptr (JsonNode) identity_out = NULL;
   g_autoptr (JsonNode) peer_identity_out = NULL;
+  g_autoptr (GTlsCertificate) certificate_out = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate_out = NULL;
   g_autoptr (GFile) file = NULL;
 
   g_signal_connect (fixture->service,
@@ -325,15 +327,21 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->channel,
-                "base-stream",   &base_stream_out,
-                "identity",      &identity_out,
-                "peer-identity", &peer_identity_out,
+                "base-stream",      &base_stream_out,
+                "certificate",      &certificate_out,
+                "identity",         &identity_out,
+                "peer-certificate", &peer_certificate_out,
+                "peer-identity",    &peer_identity_out,
                 NULL);
 
   g_assert_true (G_IS_IO_STREAM (base_stream_out));
+  g_assert_true (G_IS_TLS_CERTIFICATE (certificate_out));
+  g_assert_true (G_IS_TLS_CERTIFICATE (peer_certificate_out));
   g_assert_true (VALENT_IS_PACKET (identity_out));
   g_assert_true (VALENT_IS_PACKET (peer_identity_out));
 
+  g_assert_true (valent_channel_get_certificate (fixture->channel) == certificate_out);
+  g_assert_true (valent_channel_get_peer_certificate (fixture->channel) == peer_certificate_out);
   g_assert_true (json_node_equal (valent_channel_get_identity (fixture->channel), identity_out));
   g_assert_true (json_node_equal (valent_channel_get_peer_identity (fixture->channel), peer_identity_out));
 

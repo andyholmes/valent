@@ -61,21 +61,21 @@ valent_test_fixture_init (ValentTestFixture *fixture,
   const char *path = (const char *)user_data;
   g_autofree ValentChannel **channels = NULL;
   g_auto (GStrv) plugins = NULL;
-  JsonNode *identity;
+  JsonNode *identity, *peer_identity;
 
   g_assert (path != NULL && *path != '\0');
 
   fixture->packets = valent_test_load_json (path);
-
-  /* Init device */
   identity = valent_test_fixture_lookup_packet (fixture, "identity");
-  fixture->device = valent_device_new_full (identity, NULL);
-  valent_device_set_paired (fixture->device, TRUE);
+  peer_identity = valent_test_fixture_lookup_packet (fixture, "peer-identity");
 
-  /* Init channels */
-  channels = valent_test_channel_pair (identity, identity);
-  fixture->channel = g_steal_pointer (&channels[0]);
-  fixture->endpoint = g_steal_pointer(&channels[1]);
+  /* Init channels & device */
+  valent_test_channel_pair (identity,
+                            peer_identity,
+                            &fixture->channel,
+                            &fixture->endpoint);
+  fixture->device = valent_device_new_full (peer_identity, NULL);
+  valent_device_set_paired (fixture->device, TRUE);
 
   /* Init settings */
   plugins = valent_device_get_plugins (fixture->device);
