@@ -479,6 +479,7 @@ valent_device_send_pair (ValentDevice *device,
   json_builder_add_boolean_value (builder, pair);
   packet = valent_packet_end (&builder);
 
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (device));
   valent_channel_write_packet (device->channel,
                                packet,
                                cancellable,
@@ -1208,6 +1209,7 @@ valent_device_send_packet (ValentDevice        *device,
                            gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
 
   g_return_if_fail (VALENT_IS_DEVICE (device));
   g_return_if_fail (VALENT_IS_PACKET (packet));
@@ -1238,13 +1240,15 @@ valent_device_send_packet (ValentDevice        *device,
                                       "%s is unpaired", device->name);
     }
 
-  task = g_task_new (device, cancellable, callback, user_data);
+  destroy = valent_object_chain_cancellable (VALENT_OBJECT (device),
+                                             cancellable);
+  task = g_task_new (device, destroy, callback, user_data);
   g_task_set_source_tag (task, valent_device_send_packet);
 
   VALENT_JSON (packet, device->name);
   valent_channel_write_packet (device->channel,
                                packet,
-                               cancellable,
+                               destroy,
                                (GAsyncReadyCallback)valent_device_send_packet_cb,
                                g_steal_pointer (&task));
 
@@ -1317,10 +1321,9 @@ read_packet_cb (ValentChannel *channel,
   if (packet != NULL)
     {
       valent_channel_read_packet (channel,
-                                  NULL,
+                                  g_task_get_cancellable (G_TASK (result)),
                                   (GAsyncReadyCallback)read_packet_cb,
                                   g_object_ref (device));
-
       valent_device_handle_packet (device, packet);
     }
 
@@ -1377,6 +1380,7 @@ valent_device_set_channel (ValentDevice  *device,
    * read operation before notifying of the state change. */
   if ((is_connected = g_set_object (&device->channel, channel)))
     {
+      g_autoptr (GCancellable) cancellable = NULL;
       JsonNode *peer_identity;
 
       /* Handle the peer identity packet */
@@ -1384,8 +1388,9 @@ valent_device_set_channel (ValentDevice  *device,
       valent_device_handle_identity (device, peer_identity);
 
       /* Start receiving packets */
+      cancellable = valent_object_ref_cancellable (VALENT_OBJECT (device));
       valent_channel_read_packet (channel,
-                                  NULL,
+                                  cancellable,
                                   (GAsyncReadyCallback)read_packet_cb,
                                   g_object_ref (device));
     }
