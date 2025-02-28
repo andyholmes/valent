@@ -30,6 +30,37 @@ G_DEFINE_FINAL_TYPE (ValentContactsPlugin, valent_contacts_plugin, VALENT_TYPE_D
  * Local Contacts
  */
 static void
+on_local_uid_changed (GSettings            *settings,
+                      const char           *key,
+                      ValentContactsPlugin *self)
+{
+  ValentContacts *contacts = valent_contacts_get_default ();
+  g_autofree char *local_iri = NULL;
+
+  g_clear_object (&self->local_contacts);
+
+  local_iri = g_settings_get_string (settings, "local-uid");
+  if (local_iri != NULL && *local_iri != '\0')
+    {
+      unsigned int n_adapters = g_list_model_get_n_items (G_LIST_MODEL (contacts));
+
+      for (unsigned int i = 0; i < n_adapters; i++)
+        {
+          g_autoptr (GListModel) adapter = NULL;
+          const char *iri = NULL;
+
+          adapter = g_list_model_get_item (G_LIST_MODEL (contacts), i);
+          iri = valent_resource_get_iri (VALENT_RESOURCE (adapter));
+          if (g_strcmp0 (local_iri, iri) == 0)
+            {
+              self->local_contacts = g_list_model_get_item (adapter, i);
+              break;
+            }
+        }
+    }
+}
+
+static void
 valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
                                                     JsonNode             *packet)
 {
@@ -252,10 +283,8 @@ valent_contacts_plugin_constructed (GObject *object)
 {
   ValentContactsPlugin *self = VALENT_CONTACTS_PLUGIN (object);
   ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (object);
-  ValentContacts *contacts = valent_contacts_get_default ();
   ValentComponent *component = NULL;
   ValentDevice *device = NULL;
-  g_autofree char *local_iri = NULL;
   GSettings *settings;
 
   G_OBJECT_CLASS (valent_contacts_plugin_parent_class)->constructed (object);
@@ -277,25 +306,12 @@ valent_contacts_plugin_constructed (GObject *object)
 
   /* Local address book, shared with remote device
    */
-  local_iri = g_settings_get_string (settings, "local-uid");
-  if (local_iri != NULL && *local_iri != '\0')
-    {
-      unsigned int n_adapters = g_list_model_get_n_items (G_LIST_MODEL (contacts));
-
-      for (unsigned int i = 0; i < n_adapters; i++)
-        {
-          g_autoptr (GListModel) adapter = NULL;
-          const char *iri = NULL;
-
-          adapter = g_list_model_get_item (G_LIST_MODEL (contacts), i);
-          iri = valent_resource_get_iri (VALENT_RESOURCE (adapter));
-          if (g_strcmp0 (local_iri, iri) == 0)
-            {
-              self->local_contacts = g_list_model_get_item (adapter, i);
-              break;
-            }
-        }
-    }
+  g_signal_connect_object (settings,
+                           "changed::local-uid",
+                           G_CALLBACK (on_local_uid_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
+  on_local_uid_changed (settings, "local-uid", self);
 }
 
 static void
