@@ -42,8 +42,10 @@ void             valent_test_watch_clear   (gpointer          object,
 void             valent_test_await_timeout (unsigned int      duration);
 JsonNode       * valent_test_load_json     (const char       *path);
 GSettings      * valent_test_mock_settings (const char       *domain);
-ValentChannel ** valent_test_channel_pair  (JsonNode         *identity,
-                                            JsonNode         *peer_identity);
+void             valent_test_channel_pair  (JsonNode         *identity,
+                                            JsonNode         *peer_identity,
+                                            ValentChannel   **channel_out,
+                                            ValentChannel   **peer_channel_out);
 gboolean         valent_test_download      (ValentChannel    *channel,
                                             JsonNode         *packet,
                                             GError          **error);

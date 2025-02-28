@@ -24,24 +24,24 @@ struct _ValentMockChannelService
 G_DEFINE_FINAL_TYPE (ValentMockChannelService, valent_mock_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
 
 static const char peer_identity_json[] =
-"{                                   "
-"  \"id\": 0,                        "
-"  \"type\": \"kdeconnect.identity\","
-"  \"body\": {                       "
-"    \"deviceId\": \"mock-device\",  "
-"    \"deviceName\": \"Mock Device\","
-"    \"protocolVersion\": 7,         "
-"    \"deviceType\": \"phone\",      "
-"    \"incomingCapabilities\": [     "
-"      \"kdeconnect.mock.echo\",     "
-"      \"kdeconnect.mock.transfer\"  "
-"    ],                              "
-"    \"outgoingCapabilities\": [     "
-"      \"kdeconnect.mock.echo\",     "
-"      \"kdeconnect.mock.transfer\"  "
-"    ]                               "
-"  }                                 "
-"}                                   ";
+"{                                                          "
+"  \"id\": 0,                                               "
+"  \"type\": \"kdeconnect.identity\",                       "
+"  \"body\": {                                              "
+"    \"deviceId\": \"00000000_0000_0000_0000_000000000002\","
+"    \"deviceName\": \"Mock Device\",                       "
+"    \"protocolVersion\": 7,                                "
+"    \"deviceType\": \"phone\",                             "
+"    \"incomingCapabilities\": [                            "
+"      \"kdeconnect.mock.echo\",                            "
+"      \"kdeconnect.mock.transfer\"                         "
+"    ],                                                     "
+"    \"outgoingCapabilities\": [                            "
+"      \"kdeconnect.mock.echo\",                            "
+"      \"kdeconnect.mock.transfer\"                         "
+"    ]                                                      "
+"  }                                                        "
+"}                                                          ";
 
 
 /*
@@ -54,42 +54,61 @@ valent_mock_channel_service_identify (ValentChannelService *service,
   ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (service);
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
-  int fds[2] = { 0, };
-  g_autoptr (GSocket) channel_socket = NULL;
-  g_autoptr (GSocket) endpoint_socket = NULL;
-  g_autoptr (GSocketConnection) channel_connection = NULL;
-  g_autoptr (GSocketConnection) endpoint_connection = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  int sv[2] = { 0, };
+  g_autoptr (GSocket) socket = NULL;
+  g_autoptr (GSocket) peer_socket = NULL;
+  g_autoptr (GSocketConnection) connection = NULL;
+  g_autoptr (GSocketConnection) peer_connection = NULL;
   g_autoptr (ValentChannel) endpoint = NULL;
+  g_autofree char *peer_path = NULL;
 
   g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
+  /* Generate certificates and update the identity packets
+   */
   identity = valent_channel_service_ref_identity (service);
   peer_identity = json_from_string (peer_identity_json, NULL);
+  peer_path = g_dir_make_tmp (NULL, NULL);
+  peer_certificate = valent_certificate_new_sync (peer_path, NULL);
+  json_object_set_string_member (valent_packet_get_body (peer_identity),
+                                 "deviceId",
+                                 valent_certificate_get_common_name (peer_certificate));
 
-  g_assert_no_errno (socketpair (AF_UNIX, SOCK_STREAM, 0, fds));
+  /* Open a socket pair to back the connections
+   */
+  g_assert_no_errno (socketpair (AF_UNIX, SOCK_STREAM, 0, sv));
 
-  /* This is the "local" representation of the mock "remote" device */
-  channel_socket = g_socket_new_from_fd (fds[0], NULL);
-  channel_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
-                                     "socket", channel_socket,
-                                     NULL);
+  /* This is the channel associated with the ValentDevice object
+   */
+  certificate = valent_channel_service_ref_certificate (service);
+  socket = g_socket_new_from_fd (sv[0], NULL);
+  connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                             "socket", socket,
+                             NULL);
   self->channel = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
-                                "base-stream",   channel_connection,
-                                "identity",      identity,
-                                "peer-identity", peer_identity,
+                                "base-stream",      connection,
+                                "certificate",      certificate,
+                                "identity",         identity,
+                                "peer-certificate", peer_certificate,
+                                "peer-identity",    peer_identity,
                                 NULL);
   g_object_add_weak_pointer (G_OBJECT (self->channel),
                              (gpointer)&self->channel);
 
-  /* This is the "remote" representation of our mock "local" service */
-  endpoint_socket = g_socket_new_from_fd (fds[1], NULL);
-  endpoint_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
-                                      "socket", endpoint_socket,
-                                      NULL);
+  /* This is the channel associated with the mock endpoint
+   */
+  peer_socket = g_socket_new_from_fd (sv[1], NULL);
+  peer_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                                  "socket", peer_socket,
+                                  NULL);
   endpoint = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
-                           "base-stream",   endpoint_connection,
-                           "identity",      peer_identity,
-                           "peer-identity", identity,
+                           "base-stream",      peer_connection,
+                           "certificate",      peer_certificate,
+                           "identity",         peer_identity,
+                           "peer-certificate", certificate,
+                           "peer-identity",    identity,
                            NULL);
   g_object_set_data_full (G_OBJECT (self),
                           "valent-test-endpoint",

@@ -3,9 +3,8 @@
     "id": 0,
     "type": "kdeconnect.identity",
     "body": {
-      "deviceId": "test-device",
+      "deviceId": "00000000_0000_0000_0000_000000000001",
       "deviceName": "Test Device",
-      "protocolVersion": 7,
       "deviceType": "phone",
       "incomingCapabilities": [
         "kdeconnect.telephony",
@@ -13,7 +12,25 @@
       ],
       "outgoingCapabilities": [
         "kdeconnect.telephony.request"
-      ]
+      ],
+      "protocolVersion": 7
+    }
+  },
+  "peer-identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "00000000_0000_0000_0000_000000000002",
+      "deviceName": "Peer Device",
+      "deviceType": "phone",
+      "incomingCapabilities": [
+        "kdeconnect.telephony",
+        "kdeconnect.telephony.request_mute"
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.telephony.request"
+      ],
+      "protocolVersion": 7
     }
   },
   "ringing": {

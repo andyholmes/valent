@@ -3,15 +3,30 @@
     "id": 0,
     "type": "kdeconnect.identity",
     "body": {
-      "deviceId": "test-device",
+      "deviceId": "00000000_0000_0000_0000_000000000001",
       "deviceName": "Test Device",
-      "protocolVersion": 7,
       "deviceType": "phone",
       "incomingCapabilities": [
       ],
       "outgoingCapabilities": [
         "kdeconnect.battery"
-      ]
+      ],
+      "protocolVersion": 7
+    }
+  },
+  "peer-identity": {
+    "id": 0,
+    "type": "kdeconnect.identity",
+    "body": {
+      "deviceId": "00000000_0000_0000_0000_000000000002",
+      "deviceName": "Peer Device",
+      "deviceType": "phone",
+      "incomingCapabilities": [
+      ],
+      "outgoingCapabilities": [
+        "kdeconnect.battery"
+      ],
+      "protocolVersion": 7
     }
   },
   "missing-battery": {

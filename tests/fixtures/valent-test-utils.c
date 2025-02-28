@@ -444,57 +444,86 @@ valent_test_await_timeout (unsigned int duration)
 
 /**
  * valent_test_channel_pair:
- * @identity: a `JsonNode`
- * @peer_identity: (nullable): a `JsonNode`
+ * @identity: a KDE Connect identity packet for the remote device
+ * @peer_identity: a KDE Connect identity packet for the host system
+ * @channel_out: (not nullable) (out): a location for a `ValentChannel`
+ * @peer_channel_out: (not nullable) (out): a location for a `ValentChannel`
  *
  * Create a pair of connected channels with @identity representing the local
  * device and @peer_identity representing the endpoint device.
- *
- * Returns: (array length=2) (element-type Valent.Channel): a pair of `ValentChannel`
  */
-ValentChannel **
-valent_test_channel_pair (JsonNode *identity,
-                          JsonNode *peer_identity)
+void
+valent_test_channel_pair (JsonNode       *identity,
+                          JsonNode       *peer_identity,
+                          ValentChannel **channel_out,
+                          ValentChannel **peer_channel_out)
 {
-  ValentChannel **channels = NULL;
   int sv[2] = { 0, };
-  g_autoptr (GSocket) channel_socket = NULL;
-  g_autoptr (GSocket) endpoint_socket = NULL;
-  g_autoptr (GSocketConnection) channel_connection = NULL;
-  g_autoptr (GSocketConnection) endpoint_connection = NULL;
+  g_autoptr (GSocket) socket = NULL;
+  g_autoptr (GSocket) peer_socket = NULL;
+  g_autoptr (GSocketConnection) connection = NULL;
+  g_autoptr (GSocketConnection) peer_connection = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  g_autofree char *path = NULL;
+  g_autofree char *peer_path = NULL;
   GError *error = NULL;
 
   g_assert (VALENT_IS_PACKET (identity));
-  g_assert (peer_identity == NULL || VALENT_IS_PACKET (peer_identity));
+  g_assert (VALENT_IS_PACKET (peer_identity));
+  g_assert (channel_out != NULL && peer_channel_out != NULL);
 
-  channels = g_new0 (ValentChannel *, 2);
+  /* Generate certificates and update the identity packets
+   */
+  path = g_dir_make_tmp (NULL, &error);
+  g_assert_no_error (error);
+  certificate = valent_certificate_new_sync (path, &error);
+  g_assert_no_error (error);
+  json_object_set_string_member (valent_packet_get_body (identity),
+                                 "deviceId",
+                                 valent_certificate_get_common_name (certificate));
+
+  peer_path = g_dir_make_tmp (NULL, &error);
+  g_assert_no_error (error);
+  peer_certificate = valent_certificate_new_sync (peer_path, &error);
+  g_assert_no_error (error);
+  json_object_set_string_member (valent_packet_get_body (peer_identity),
+                                 "deviceId",
+                                 valent_certificate_get_common_name (peer_certificate));
+
+  /* Open a socket pair to back the connections
+   */
   g_assert_no_errno (socketpair (AF_UNIX, SOCK_STREAM, 0, sv));
 
-  /* This is the "local" representation of the mock "remote" device */
-  channel_socket = g_socket_new_from_fd (sv[0], &error);
+  /* This is the channel associated with the ValentDevice object
+   */
+  socket = g_socket_new_from_fd (sv[0], &error);
   g_assert_no_error (error);
-  channel_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
-                                     "socket", channel_socket,
-                                     NULL);
-  channels[0] = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
-                              "base-stream",   channel_connection,
-                              "identity",      identity,
-                              "peer-identity", peer_identity,
-                              NULL);
+  connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                             "socket", socket,
+                             NULL);
+  *channel_out = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
+                               "base-stream",      connection,
+                               "certificate",      certificate,
+                               "identity",         identity,
+                               "peer-certificate", peer_certificate,
+                               "peer-identity",    peer_identity,
+                               NULL);
 
-  /* This is the "remote" representation of our mock "local" service */
-  endpoint_socket = g_socket_new_from_fd (sv[1], &error);
+  /* This is the channel associated with the mock endpoint
+   */
+  peer_socket = g_socket_new_from_fd (sv[1], &error);
   g_assert_no_error (error);
-  endpoint_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
-                                      "socket", endpoint_socket,
-                                      NULL);
-  channels[1] = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
-                              "base-stream",   endpoint_connection,
-                              "identity",      peer_identity,
-                              "peer-identity", identity,
-                              NULL);
-
-  return channels;
+  peer_connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                                  "socket", peer_socket,
+                                  NULL);
+  *peer_channel_out = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
+                                    "base-stream",      peer_connection,
+                                    "certificate",      peer_certificate,
+                                    "identity",         peer_identity,
+                                    "peer-certificate", certificate,
+                                    "peer-identity",    identity,
+                                    NULL);
 }
 
 /**

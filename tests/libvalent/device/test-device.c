@@ -38,19 +38,18 @@ static void
 device_fixture_set_up (DeviceFixture *fixture,
                        gconstpointer  user_data)
 {
-  g_autofree ValentChannel **channels = NULL;
-  JsonNode *identity;
+  JsonNode *identity, *peer_identity;
 
   fixture->packets = valent_test_load_json ("core.json");
-
-  /* Init device */
   identity = get_packet (fixture, "identity");
-  fixture->device = valent_device_new_full (identity, NULL);
+  peer_identity = get_packet (fixture, "peer-identity");
 
-  /* Init Channels */
-  channels = valent_test_channel_pair (identity, identity);
-  fixture->channel = g_steal_pointer (&channels[0]);
-  fixture->endpoint = g_steal_pointer (&channels[1]);
+  /* Init channels & device */
+  valent_test_channel_pair (identity,
+                            peer_identity,
+                            &fixture->channel,
+                            &fixture->endpoint);
+  fixture->device = valent_device_new_full (peer_identity, NULL);
 }
 
 static void
@@ -136,6 +135,7 @@ static void
 test_device_new (void)
 {
   ValentDevice *device = NULL;
+  g_autofree char *device_id = NULL;
   g_autofree char *icon_name = NULL;
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
@@ -144,7 +144,8 @@ test_device_new (void)
 
   GMenuModel *menu;
 
-  device = valent_device_new ("test-device");
+  device_id = valent_device_generate_id ();
+  device = valent_device_new (device_id);
   g_assert_true (VALENT_IS_DEVICE (device));
 
   g_object_get (device,
@@ -156,7 +157,7 @@ test_device_new (void)
                 NULL);
 
   /* id should be set, but everything else should be %FALSE or %NULL */
-  g_assert_cmpstr (id, ==, "test-device");
+  g_assert_cmpstr (id, ==, device_id);
   g_assert_null (icon_name);
   g_assert_null (name);
   /* Only "Packetless" plugin should be loaded */
@@ -194,8 +195,8 @@ test_device_basic (DeviceFixture *fixture,
                 NULL);
 
   g_assert_true (VALENT_IS_CONTEXT (context));
-  g_assert_cmpstr (id, ==, "test-device");
-  g_assert_cmpstr (valent_device_get_id (fixture->device), ==, "test-device");
+  g_assert_true (valent_device_validate_id (id));
+  g_assert_cmpstr (valent_device_get_id (fixture->device), ==, id);
   g_assert_cmpstr (name, ==, "Test Device");
   g_assert_cmpstr (valent_device_get_name (fixture->device), ==, "Test Device");
   /* "Packetless" and "Mock" plugins should be loaded */
@@ -217,7 +218,7 @@ test_device_connecting (DeviceFixture *fixture,
   g_assert_true (valent_device_get_connected (fixture->device));
 
   channel = valent_device_ref_channel (fixture->device);
-  g_assert_nonnull (channel);
+  g_assert_true (VALENT_IS_CHANNEL (channel));
 
   /* Disconnect */
   valent_device_set_channel (fixture->device, NULL);
