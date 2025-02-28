@@ -143,6 +143,50 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
   return TRUE;
 }
 
+static JsonNode *
+valent_lan_channel_service_identify_channel (GIOStream     *stream,
+                                             JsonNode      *identity,
+                                             JsonNode      *peer_identity,
+                                             GCancellable  *cancellable,
+                                             GError       **error)
+{
+  int64_t protocol_version = 7;
+
+  if (!valent_packet_get_int (peer_identity, "protocolVersion", &protocol_version))
+    {
+      g_debug ("%s(): expected \"protocolVersion\" field holding an integer",
+               G_STRFUNC);
+      return NULL;
+    }
+
+  if (protocol_version >= VALENT_LAN_PROTOCOL_V8)
+    {
+      if (!valent_packet_to_stream (g_io_stream_get_output_stream (stream),
+                                    identity,
+                                    cancellable,
+                                    error))
+        {
+          return NULL;
+        }
+
+      return valent_packet_from_stream (g_io_stream_get_input_stream (stream),
+                                        IDENTITY_BUFFER_MAX,
+                                        cancellable,
+                                        error);
+    }
+  else if (protocol_version >= VALENT_LAN_PROTOCOL_MIN)
+    {
+      return json_node_ref (peer_identity);
+    }
+
+  g_set_error (error,
+               G_IO_ERROR,
+               G_IO_ERROR_NOT_SUPPORTED,
+               "Unsupported protocol version \"%u\"",
+               (uint8_t)protocol_version);
+  return NULL;
+}
+
 /*
  * Incoming TCP Connections
  *
@@ -178,6 +222,7 @@ on_incoming_connection (ValentChannelService   *service,
   int64_t port = VALENT_LAN_PROTOCOL_PORT;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
+  g_autoptr (JsonNode) secure_identity = NULL;
   const char *device_id;
   g_autoptr (GTlsCertificate) certificate = NULL;
   GTlsCertificate *peer_certificate = NULL;
@@ -246,6 +291,18 @@ on_incoming_connection (ValentChannelService   *service,
       else if (!g_cancellable_is_cancelled (cancellable))
         g_warning ("%s(): timed out waiting for authentication", G_STRFUNC);
 
+      return TRUE;
+    }
+
+  secure_identity = valent_lan_channel_service_identify_channel (tls_stream,
+                                                                 identity,
+                                                                 peer_identity,
+                                                                 cancellable,
+                                                                 &warning);
+  if (secure_identity == NULL)
+    {
+      g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
+               G_STRFUNC, host, port, warning->message);
       return TRUE;
     }
 
@@ -373,6 +430,7 @@ incoming_broadcast_task (GTask        *task,
   g_autoptr (GSocketConnection) connection = NULL;
   GInetAddress *addr = NULL;
   g_autoptr (JsonNode) identity = NULL;
+  g_autoptr (JsonNode) secure_identity = NULL;
   g_autoptr (ValentChannel) channel = NULL;
   g_autofree char *host = NULL;
   int64_t port = VALENT_LAN_PROTOCOL_PORT;
@@ -387,7 +445,7 @@ incoming_broadcast_task (GTask        *task,
 
   addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
   host = g_inet_address_to_string (addr);
-  peer_identity = g_object_get_data (G_OBJECT (address), "valent-lan-broadcast");
+  peer_identity = g_object_get_data (G_OBJECT (address), "peer-identity");
   valent_packet_get_int (peer_identity, "tcpPort", &port);
 
   /* Open a TCP connection to the UDP sender and defined port.
@@ -438,7 +496,20 @@ incoming_broadcast_task (GTask        *task,
       return g_task_return_error (task, g_steal_pointer (&error));
     }
 
-  if (!valent_lan_channel_service_verify_channel (self, peer_identity, tls_stream))
+  secure_identity = valent_lan_channel_service_identify_channel (tls_stream,
+                                                                 identity,
+                                                                 peer_identity,
+                                                                 cancellable,
+                                                                 &error);
+  if (secure_identity == NULL)
+    {
+      g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
+               G_STRFUNC, host, port, error->message);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  if (!valent_lan_channel_service_verify_channel (self, secure_identity, tls_stream))
     return g_task_return_boolean (task, TRUE);
 
   peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
@@ -447,7 +518,7 @@ incoming_broadcast_task (GTask        *task,
                           "certificate",      certificate,
                           "identity",         identity,
                           "peer-certificate", peer_certificate,
-                          "peer-identity",    peer_identity,
+                          "peer-identity",    secure_identity,
                           "host",             host,
                           "port",             (uint16_t)port,
                           NULL);
@@ -546,7 +617,7 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
   /* Defer the remaining work to another thread */
   outgoing = g_inet_socket_address_new (addr, port);
   g_object_set_data_full (G_OBJECT (outgoing),
-                          "valent-lan-broadcast",
+                          "peer-identity",
                           json_node_ref (peer_identity),
                           (GDestroyNotify)json_node_unref);
 

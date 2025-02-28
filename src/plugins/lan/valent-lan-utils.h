@@ -8,6 +8,37 @@
 G_BEGIN_DECLS
 
 /**
+ * VALENT_LAN_PROTOCOL_V7: (value 7)
+ *
+ * Version 7 of the KDE Connect protocol.
+ */
+#define VALENT_LAN_PROTOCOL_V7       (7)
+
+/**
+ * VALENT_LAN_PROTOCOL_V8: (value 8)
+ *
+ * Version 8 of the KDE Connect protocol.
+ */
+#define VALENT_LAN_PROTOCOL_V8       (8)
+
+/**
+ * VALENT_LAN_PROTOCOL_MIN: (value 7)
+ *
+ * The minimum supported KDE Connect protocol version.
+ *
+ * Version 7 added support for TLS connections; older versions are not
+ * supported by actively maintained clients.
+ */
+#define VALENT_LAN_PROTOCOL_MIN      VALENT_LAN_PROTOCOL_V7
+
+/**
+ * VALENT_LAN_PROTOCOL_MAX: (value 8)
+ *
+ * The maximum supported KDE Connect protocol version.
+ */
+#define VALENT_LAN_PROTOCOL_MAX      VALENT_LAN_PROTOCOL_V8
+
+/**
  * VALENT_LAN_PROTOCOL_ADDR: (value "255.255.255.255")
  *
  * The default broadcast address used by the KDE Connect protocol.
