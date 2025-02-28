@@ -42,39 +42,41 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentDevice, valent_device, VALENT, DEVICE, ValentResource)
 
 VALENT_AVAILABLE_IN_1_0
-ValentDevice      * valent_device_new                (const char           *id);
+ValentDevice      * valent_device_new                  (const char           *id);
 VALENT_AVAILABLE_IN_1_0
-ValentChannel     * valent_device_ref_channel        (ValentDevice         *device);
+ValentChannel     * valent_device_ref_channel          (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-ValentContext     * valent_device_get_context        (ValentDevice         *device);
+ValentContext     * valent_device_get_context          (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-const char        * valent_device_get_icon_name      (ValentDevice         *device);
+const char        * valent_device_get_icon_name        (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-const char        * valent_device_get_id             (ValentDevice         *device);
+const char        * valent_device_get_id               (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-GMenuModel        * valent_device_get_menu           (ValentDevice         *device);
+GMenuModel        * valent_device_get_menu             (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-const char        * valent_device_get_name           (ValentDevice         *device);
+const char        * valent_device_get_name             (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-GStrv               valent_device_get_plugins        (ValentDevice         *device);
+GStrv               valent_device_get_plugins          (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-ValentDeviceState   valent_device_get_state          (ValentDevice         *device);
+ValentDeviceState   valent_device_get_state            (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-void                valent_device_send_packet        (ValentDevice         *device,
-                                                      JsonNode             *packet,
-                                                      GCancellable         *cancellable,
-                                                      GAsyncReadyCallback   callback,
-                                                      gpointer              user_data);
+char              * valent_device_get_verification_key (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
-gboolean            valent_device_send_packet_finish (ValentDevice         *device,
-                                                      GAsyncResult         *result,
-                                                      GError              **error);
+void                valent_device_send_packet          (ValentDevice         *device,
+                                                        JsonNode             *packet,
+                                                        GCancellable         *cancellable,
+                                                        GAsyncReadyCallback   callback,
+                                                        gpointer              user_data);
 VALENT_AVAILABLE_IN_1_0
-char              * valent_device_generate_id        (void);
+gboolean            valent_device_send_packet_finish   (ValentDevice         *device,
+                                                        GAsyncResult         *result,
+                                                        GError              **error);
 VALENT_AVAILABLE_IN_1_0
-gboolean            valent_device_validate_id        (const char           *id);
+char              * valent_device_generate_id          (void);
 VALENT_AVAILABLE_IN_1_0
-gboolean            valent_device_validate_name      (const char           *name);
+gboolean            valent_device_validate_id          (const char           *id);
+VALENT_AVAILABLE_IN_1_0
+gboolean            valent_device_validate_name        (const char           *name);
 
 G_END_DECLS
 

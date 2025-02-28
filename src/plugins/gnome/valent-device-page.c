@@ -75,9 +75,8 @@ on_state_changed (ValentDevice     *device,
     }
   else if (!paired)
     {
-      g_autoptr (ValentChannel) channel = NULL;
       g_autofree char *description = NULL;
-      const char *verification_key = NULL;
+      g_autofree char *verification_key = NULL;
       gboolean pair_incoming, pair_outgoing;
 
       description = g_strdup_printf (_("Please confirm the verification key "
@@ -86,10 +85,9 @@ on_state_changed (ValentDevice     *device,
       adw_status_page_set_description (self->pair_page, description);
 
       /* Get the channel verification key */
-      if ((channel = valent_device_ref_channel (self->device)) != NULL)
-        verification_key = valent_channel_get_verification_key (channel);
-      else
-        verification_key = _("Unavailable");
+      verification_key = valent_device_get_verification_key (self->device);
+      if (verification_key == NULL)
+        verification_key = g_strdup (_("Unavailable"));
 
       gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
 

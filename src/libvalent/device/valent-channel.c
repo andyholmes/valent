@@ -54,7 +54,6 @@ typedef struct
   JsonNode         *identity;
   GTlsCertificate  *peer_certificate;
   JsonNode         *peer_identity;
-  char             *verification_key;
 
   /* Packet Buffer */
   GDataInputStream *input_buffer;
@@ -352,7 +351,6 @@ valent_channel_finalize (GObject *object)
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_object (&priv->peer_certificate);
   g_clear_pointer (&priv->peer_identity, json_node_unref);
-  g_clear_pointer (&priv->verification_key, g_free);
   valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_channel_parent_class)->finalize (object);
@@ -659,62 +657,6 @@ valent_channel_get_peer_identity (ValentChannel *channel)
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
   return priv->peer_identity;
-}
-
-/**
- * valent_channel_get_verification_key:
- * @channel: a `ValentChannel`
- *
- * Get a verification key for the connection.
- *
- * Returns: (nullable) (transfer none): a verification key
- *
- * Since: 1.0
- */
-const char *
-valent_channel_get_verification_key (ValentChannel *channel)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
-
-  if (priv->verification_key == NULL)
-    {
-      g_autoptr (GChecksum) checksum = NULL;
-      GTlsCertificate *cert = NULL;
-      GTlsCertificate *peer_cert = NULL;
-      GByteArray *pubkey;
-      GByteArray *peer_pubkey;
-      size_t cmplen;
-
-      cert = valent_channel_get_certificate (channel);
-      peer_cert = valent_channel_get_peer_certificate (channel);
-      if (cert == NULL || peer_cert == NULL)
-        return NULL;
-
-      pubkey = valent_certificate_get_public_key (cert);
-      peer_pubkey = valent_certificate_get_public_key (peer_cert);
-      if (pubkey == NULL || peer_pubkey == NULL)
-        return NULL;
-
-      checksum = g_checksum_new (G_CHECKSUM_SHA256);
-      cmplen = MIN (pubkey->len, peer_pubkey->len);
-
-      if (memcmp (pubkey->data, peer_pubkey->data, cmplen) > 0)
-        {
-          g_checksum_update (checksum, pubkey->data, pubkey->len);
-          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
-        }
-      else
-        {
-          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
-          g_checksum_update (checksum, pubkey->data, pubkey->len);
-        }
-
-      priv->verification_key = g_strndup (g_checksum_get_string (checksum), 8);
-    }
-
-  return priv->verification_key;
 }
 
 /**
