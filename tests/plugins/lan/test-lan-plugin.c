@@ -635,8 +635,6 @@ test_lan_service_channel (LanBackendFixture *fixture,
   JsonNode *packet;
   g_autoptr (GSocketAddress) address = NULL;
   g_autofree char *identity_str = NULL;
-  const char *channel_verification;
-  const char *endpoint_verification;
   char *host;
   GTlsCertificate *certificate = NULL;
   GTlsCertificate *peer_certificate = NULL;
@@ -690,12 +688,6 @@ test_lan_service_channel (LanBackendFixture *fixture,
   certificate = valent_channel_get_certificate (fixture->channel);
   peer_certificate = valent_channel_get_peer_certificate (fixture->endpoint);
   g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
-
-  channel_verification = valent_channel_get_verification_key (fixture->channel);
-  endpoint_verification = valent_channel_get_verification_key (fixture->endpoint);
-  g_assert_nonnull (channel_verification);
-  g_assert_nonnull (endpoint_verification);
-  g_assert_cmpstr (channel_verification, ==, endpoint_verification);
 
   VALENT_TEST_CHECK ("Channel can transfer payloads");
   file = g_file_new_for_uri ("resource:///tests/image.png");

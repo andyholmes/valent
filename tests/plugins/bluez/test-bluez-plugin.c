@@ -311,8 +311,6 @@ test_bluez_service_channel (BluezBackendFixture *fixture,
   JsonNode *packet;
   g_autoptr (GSocketAddress) address = NULL;
   g_autofree char *identity_str = NULL;
-  const char *channel_verification;
-  const char *endpoint_verification;
   g_autoptr (GFile) file = NULL;
 
   g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
@@ -344,12 +342,6 @@ test_bluez_service_channel (BluezBackendFixture *fixture,
                     G_CALLBACK (on_channel),
                     fixture);
   g_main_loop_run (fixture->loop);
-
-  channel_verification = valent_channel_get_verification_key (fixture->channel);
-  endpoint_verification = valent_channel_get_verification_key (fixture->endpoint);
-  g_assert_nonnull (channel_verification);
-  g_assert_nonnull (endpoint_verification);
-  g_assert_cmpstr (channel_verification, ==, endpoint_verification);
 
   /* Transfers */
   file = g_file_new_for_uri ("resource:///tests/image.png");

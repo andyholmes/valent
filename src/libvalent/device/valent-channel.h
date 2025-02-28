@@ -66,8 +66,6 @@ GTlsCertificate * valent_channel_get_peer_certificate (ValentChannel        *cha
 VALENT_AVAILABLE_IN_1_0
 JsonNode        * valent_channel_get_peer_identity    (ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0
-const char      * valent_channel_get_verification_key (ValentChannel        *channel);
-VALENT_AVAILABLE_IN_1_0
 GIOStream       * valent_channel_download             (ValentChannel        *channel,
                                                        JsonNode             *packet,
                                                        GCancellable         *cancellable,

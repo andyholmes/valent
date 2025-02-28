@@ -309,8 +309,6 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
   g_autoptr (GIOStream) base_stream_out = NULL;
   g_autoptr (JsonNode) identity_out = NULL;
   g_autoptr (JsonNode) peer_identity_out = NULL;
-  const char *channel_verification;
-  const char *endpoint_verification;
   g_autoptr (GFile) file = NULL;
 
   g_signal_connect (fixture->service,
@@ -338,12 +336,6 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
 
   g_assert_true (json_node_equal (valent_channel_get_identity (fixture->channel), identity_out));
   g_assert_true (json_node_equal (valent_channel_get_peer_identity (fixture->channel), peer_identity_out));
-
-  channel_verification = valent_channel_get_verification_key (fixture->channel);
-  endpoint_verification = valent_channel_get_verification_key (fixture->endpoint);
-  g_assert_null (channel_verification);
-  g_assert_null (endpoint_verification);
-  g_assert_cmpstr (channel_verification, ==, endpoint_verification);
 
   /* Packet Exchange */
   packet = json_object_get_member (json_node_get_object (fixture->packets),

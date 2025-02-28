@@ -293,6 +293,52 @@ test_device_pairing (DeviceFixture *fixture,
   g_assert_false (valent_device_get_connected (fixture->device));
 }
 
+static void
+test_device_verification_key (DeviceFixture *fixture,
+                              gconstpointer  user_data)
+{
+  g_autoptr (ValentDevice) endpoint_device = NULL;
+  JsonNode *endpoint_identity = NULL;
+  const char *endpoint_id = NULL;
+  g_autofree char *channel_verification = NULL;
+  g_autofree char *endpoint_verification = NULL;
+
+  endpoint_identity = valent_channel_get_peer_identity (fixture->endpoint);
+  valent_packet_get_string (endpoint_identity, "deviceId", &endpoint_id);
+  endpoint_device = valent_device_new (endpoint_id);
+
+  /* Check verification key */
+  channel_verification = valent_device_get_verification_key (fixture->device);
+  endpoint_verification = valent_device_get_verification_key (endpoint_device);
+  g_assert_null (channel_verification);
+  g_assert_null (endpoint_verification);
+
+  /* Attach channel */
+  valent_device_set_channel (fixture->device, fixture->channel);
+  g_assert_true (valent_device_get_connected (fixture->device));
+  g_assert_false (valent_device_get_paired (fixture->device));
+
+  valent_device_set_channel (endpoint_device, fixture->endpoint);
+  g_assert_true (valent_device_get_connected (endpoint_device));
+  g_assert_false (valent_device_get_paired (endpoint_device));
+
+  /* Check verification key */
+  channel_verification = valent_device_get_verification_key (fixture->device);
+  endpoint_verification = valent_device_get_verification_key (endpoint_device);
+  g_assert_nonnull (channel_verification);
+  g_assert_nonnull (endpoint_verification);
+  g_assert_cmpstr (channel_verification, ==, endpoint_verification);
+
+  /* Detach channel */
+  valent_device_set_channel (fixture->device, NULL);
+  g_assert_false (valent_device_get_connected (fixture->device));
+  valent_device_set_channel (endpoint_device, NULL);
+  g_assert_false (valent_device_get_connected (endpoint_device));
+
+  // TODO: this shouldn't be necessary
+  valent_object_destroy (VALENT_OBJECT (endpoint_device));
+}
+
 /*
  * Device Plugins
  */
@@ -603,6 +649,12 @@ main (int   argc,
               DeviceFixture, NULL,
               device_fixture_set_up,
               test_device_pairing,
+              device_fixture_tear_down);
+
+  g_test_add ("/libvalent/device/device/verification-key",
+              DeviceFixture, NULL,
+              device_fixture_set_up,
+              test_device_verification_key,
               device_fixture_tear_down);
 
   g_test_add ("/libvalent/device/device/actions",

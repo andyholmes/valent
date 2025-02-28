@@ -9,14 +9,15 @@
 #include <gio/gio.h>
 #include <libvalent-core.h>
 
-#include "valent-device-enums.h"
-
 #include "../core/valent-component-private.h"
+#include "valent-certificate.h"
 #include "valent-channel.h"
-#include "valent-device.h"
+#include "valent-device-enums.h"
 #include "valent-device-plugin.h"
-#include "valent-device-private.h"
 #include "valent-packet.h"
+
+#include "valent-device.h"
+#include "valent-device-private.h"
 
 #define DEVICE_TYPE_DESKTOP  "desktop"
 #define DEVICE_TYPE_LAPTOP   "laptop"
@@ -502,25 +503,23 @@ valent_device_notify_pair (ValentDevice *device)
       g_autoptr (GNotification) notification = NULL;
       g_autoptr (GIcon) icon = NULL;
       g_autofree char *title = NULL;
-      const char *body;
+      g_autofree char *verification_key = NULL;
 
       title = g_strdup_printf (_("Pairing request from “%s”"), device->name);
-      notification = g_notification_new (title);
-
-      if ((body = valent_channel_get_verification_key (device->channel)) != NULL)
-        g_notification_set_body (notification, body);
-
+      verification_key = valent_device_get_verification_key (device);
       icon = g_themed_icon_new (APPLICATION_ID);
+
+      g_return_if_fail (verification_key != NULL);
+
+      notification = g_notification_new (title);
+      g_notification_set_body (notification, verification_key);
       g_notification_set_icon (notification, icon);
-
       g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_URGENT);
-
       g_notification_add_button_with_target (notification, _("Reject"), "app.device",
                                              "(ssav)",
                                              device->id,
                                              "unpair",
                                              NULL);
-
       g_notification_add_button_with_target (notification, _("Accept"), "app.device",
                                              "(ssav)",
                                              device->id,
@@ -1603,6 +1602,63 @@ valent_device_get_state (ValentDevice *device)
   valent_object_unlock (VALENT_OBJECT (device));
 
   return state;
+}
+
+/**
+ * valent_device_get_verification_key:
+ * @device: a `ValentDevice`
+ *
+ * Get a verification key for the device connection.
+ *
+ * Returns: (nullable) (transfer full): a verification key
+ *
+ * Since: 1.0
+ */
+char *
+valent_device_get_verification_key (ValentDevice *device)
+{
+  char *verification_key = NULL;
+
+  VALENT_ENTRY;
+
+  g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
+
+  valent_object_lock (VALENT_OBJECT (device));
+  if (device->channel != NULL)
+    {
+      g_autoptr (GChecksum) checksum = NULL;
+      GTlsCertificate *cert = NULL;
+      GTlsCertificate *peer_cert = NULL;
+      GByteArray *pubkey;
+      GByteArray *peer_pubkey;
+      size_t cmplen;
+
+      cert = valent_channel_get_certificate (device->channel);
+      peer_cert = valent_channel_get_peer_certificate (device->channel);
+      g_return_val_if_fail (cert != NULL || peer_cert != NULL, NULL);
+
+      pubkey = valent_certificate_get_public_key (cert);
+      peer_pubkey = valent_certificate_get_public_key (peer_cert);
+      g_return_val_if_fail (pubkey != NULL || peer_pubkey != NULL, NULL);
+
+      checksum = g_checksum_new (G_CHECKSUM_SHA256);
+      cmplen = MIN (pubkey->len, peer_pubkey->len);
+      if (memcmp (pubkey->data, peer_pubkey->data, cmplen) > 0)
+        {
+          g_checksum_update (checksum, pubkey->data, pubkey->len);
+          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
+        }
+      else
+        {
+          g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
+          g_checksum_update (checksum, pubkey->data, pubkey->len);
+        }
+
+      verification_key = g_strndup (g_checksum_get_string (checksum), 8);
+    }
+  valent_object_unlock (VALENT_OBJECT (device));
+
+  VALENT_RETURN (verification_key);
 }
 
 /**
