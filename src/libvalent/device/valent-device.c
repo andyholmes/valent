@@ -1706,8 +1706,8 @@ valent_device_generate_id (void)
 gboolean
 valent_device_validate_id (const char *id)
 {
+  static size_t guard = 0;
   static GRegex *id_pattern = NULL;
-  size_t guard = FALSE;
 
   if (g_once_init_enter (&guard))
     {
@@ -1739,8 +1739,8 @@ valent_device_validate_id (const char *id)
 gboolean
 valent_device_validate_name (const char *name)
 {
+  static size_t guard = 0;
   static GRegex *name_pattern = NULL;
-  size_t guard = FALSE;
 
   if (g_once_init_enter (&guard))
     {
