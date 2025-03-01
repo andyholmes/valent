@@ -1688,7 +1688,7 @@ valent_device_generate_id (void)
 
 /**
  * valent_device_validate_id:
- * @id: (nullable) a KDE Connect device ID
+ * @id: (nullable): a KDE Connect device ID
  *
  * Validate a KDE Connect device ID.
  *
