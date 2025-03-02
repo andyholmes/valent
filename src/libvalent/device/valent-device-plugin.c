@@ -137,6 +137,8 @@ valent_device_plugin_finalize (GObject *object)
   ValentDevicePluginPrivate *priv = valent_device_plugin_get_instance_private (self);
 
   g_queue_clear_full (&priv->packets, (GDestroyNotify)json_node_unref);
+
+  G_OBJECT_CLASS (valent_device_plugin_parent_class)->finalize (object);
 }
 
 static void
