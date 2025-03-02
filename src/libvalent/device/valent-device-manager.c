@@ -134,43 +134,14 @@ device_export_free (gpointer data)
   g_free (info);
 }
 
-static char *
-valent_device_manager_get_device_object_path (ValentDeviceManager *self,
-                                              ValentDevice        *device)
-{
-  GDBusObjectManager *object_manager;
-  GString *object_path = NULL;
-  const char *base_path = NULL;
-  const char *id = NULL;
-
-  g_assert (VALENT_IS_DEVICE_MANAGER (self));
-  g_assert (VALENT_IS_DEVICE (device));
-
-  object_manager = G_DBUS_OBJECT_MANAGER (self->dbus);
-  base_path = g_dbus_object_manager_get_object_path (object_manager);
-
-  object_path = g_string_new (base_path);
-  g_string_append (object_path, "/Device/");
-
-  id = valent_device_get_id (device);
-
-  while (*id)
-    {
-      if G_LIKELY (g_ascii_isalnum (*id))
-        g_string_append_c (object_path, *id);
-      else
-        g_string_append_c (object_path, '_');
-
-      id++;
-    }
-
-  return g_string_free (object_path, FALSE);
-}
-
 static void
 valent_device_manager_export_device (ValentDeviceManager *self,
                                      ValentDevice        *device)
 {
+  GDBusObjectManager *manager = G_DBUS_OBJECT_MANAGER (self->dbus);
+  const char *base_path = NULL;
+  g_autofree char *escaped_id = NULL;
+  g_autofree char *object_path = NULL;
   g_autoptr (GDBusObjectSkeleton) object = NULL;
   g_autoptr (GDBusInterfaceSkeleton) iface = NULL;
   DeviceExport *info;
@@ -185,11 +156,15 @@ valent_device_manager_export_device (ValentDeviceManager *self,
   if (g_hash_table_contains (self->exports, device))
     VALENT_EXIT;
 
+  base_path = g_dbus_object_manager_get_object_path (manager);
+  escaped_id = g_dbus_escape_object_path (valent_device_get_id (device));
+  object_path = g_strconcat (base_path, "/Device/", escaped_id, NULL);
+  g_assert (g_variant_is_object_path (object_path));
+
   info = g_new0 (DeviceExport, 1);
   info->manager = g_object_ref (self->dbus);
   info->connection = g_dbus_object_manager_server_get_connection (self->dbus);
-  info->object_path = valent_device_manager_get_device_object_path (self,
-                                                                    device);
+  info->object_path = g_steal_pointer (&object_path);
 
   object = g_dbus_object_skeleton_new (info->object_path);
   iface = valent_device_impl_new (device);
