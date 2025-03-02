@@ -66,19 +66,19 @@ valent_lan_handshake_certificate (GTlsConnection   *connection,
                                   GCancellable     *cancellable,
                                   GError          **error)
 {
-  GTlsCertificate *peer_cert;
+  GTlsCertificate *peer_certificate;
 
   if (!valent_lan_accept_certificate (connection, cancellable, error))
     return FALSE;
 
-  peer_cert = g_tls_connection_get_peer_certificate (connection);
-
-  if (!g_tls_certificate_is_same (trusted, peer_cert))
+  peer_certificate = g_tls_connection_get_peer_certificate (connection);
+  if (!g_tls_certificate_is_same (trusted, peer_certificate))
     {
       g_set_error (error,
                    G_TLS_ERROR,
                    G_TLS_ERROR_HANDSHAKE,
-                   "Invalid certificate");
+                   "Peer certificate does not match trusted certificate for \"%s\"",
+                   valent_certificate_get_common_name (peer_certificate));
       return FALSE;
     }
 
@@ -109,10 +109,11 @@ valent_lan_handshake_peer (GTlsConnection  *connection,
                            GCancellable    *cancellable,
                            GError         **error)
 {
-  g_autoptr (GFile) file = NULL;
-  g_autoptr (GTlsCertificate) peer_trusted = NULL;
   GTlsCertificate *peer_certificate;
   const char *peer_id;
+  g_autofree char *trusted_path = NULL;
+  g_autoptr (GTlsCertificate) trusted_cert = NULL;
+  g_autoptr (GError) cert_error = NULL;
 
   if (!valent_lan_accept_certificate (connection, cancellable, error))
     return FALSE;
@@ -120,32 +121,31 @@ valent_lan_handshake_peer (GTlsConnection  *connection,
   peer_certificate = g_tls_connection_get_peer_certificate (connection);
   peer_id = valent_certificate_get_common_name (peer_certificate);
 
-  /* If the certificate can not be found, assume that's because the device is
-   * unpaired and the certificate will be verified with user interaction
-   *
-   * TODO: this should be handled by centralized manager object
-   */
-  file = g_file_new_build_filename (g_get_user_config_dir(), PACKAGE_NAME,
-                                    "device", peer_id,
-                                    "certificate.pem",
-                                    NULL);
+  // TODO: this should be handled by centralized manager object
+  trusted_path = g_build_filename (g_get_user_config_dir(), PACKAGE_NAME,
+                                   "device", peer_id,
+                                   "certificate.pem",
+                                   NULL);
+  trusted_cert = g_tls_certificate_new_from_file (trusted_path, &cert_error);
+  if (trusted_cert == NULL)
+    {
+      if (cert_error->domain != G_FILE_ERROR)
+        {
+          g_propagate_error (error, g_steal_pointer (&cert_error));
+          return FALSE;
+        }
 
-  if (!g_file_query_exists (file, NULL))
-    return TRUE;
+      VALENT_NOTE ("Accepting certificate from \"%s\" on a trust-on-first-use basis",
+                   peer_id);
+      return TRUE;
+    }
 
-  peer_trusted = g_tls_certificate_new_from_file (g_file_peek_path (file),
-                                                  error);
-
-  // TODO: handle the case of a corrupted certificate
-  if (peer_trusted == NULL)
-    return FALSE;
-
-  if (!g_tls_certificate_is_same (peer_trusted, peer_certificate))
+  if (!g_tls_certificate_is_same (trusted_cert, peer_certificate))
     {
       g_set_error (error,
                    G_TLS_ERROR,
                    G_TLS_ERROR_HANDSHAKE,
-                   "Invalid certificate for \"%s\"",
+                   "Peer certificate does not match trusted certificate for \"%s\"",
                    peer_id);
       return FALSE;
     }
