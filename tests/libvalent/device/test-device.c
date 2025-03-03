@@ -625,6 +625,106 @@ test_send_packet (DeviceFixture *fixture,
   g_assert_false (valent_device_get_connected (fixture->device));
 }
 
+static void
+test_device_validate_id (void)
+{
+  /* See: https://invent.kde.org/network/kdeconnect-android/-/blob/master/tests/org/kde/kdeconnect/DeviceTest.kt
+   */
+  static struct
+  {
+    const char *id;
+    gboolean    valid;
+  } ids[] = {
+    {
+      .id = "27456E3C_fE5C_4208_96A7_c0CAEEC5E5A0",
+      .valid = TRUE,
+    },
+    {
+      .id = "27456e3c_fe5c_4208_96a7_c0caeec5e5a0",
+      .valid = TRUE,
+    },
+    {
+      .id = "27456e3cfe5c420896a7c0caeec5e5a0",
+      .valid = TRUE,
+    },
+    {
+      .id = "7456e3cfe5c420896a7c0caeec5e5a0",
+      .valid = FALSE,
+    },
+
+    {
+      .id = "_27456e3c_fe5c_4208_96a7_c0caeec5e5a0_",
+      .valid = TRUE,
+    },
+    {
+      .id = "z7456e3c_fe5c_4208_96a7_c0caeec5e5a0",
+      .valid = TRUE,
+    },
+
+    {
+      .id = "",
+      .valid = FALSE,
+    },
+    {
+      .id = "______",
+      .valid = FALSE,
+    },
+    {
+      .id = "____",
+      .valid = FALSE,
+    },
+    {
+      .id = "potato",
+      .valid = FALSE,
+    },
+    {
+      .id = "12345",
+      .valid = FALSE,
+    },
+  };
+
+  for (size_t i = 0; i < G_N_ELEMENTS (ids); i++)
+    {
+      if (ids[i].valid)
+        g_assert_true (valent_device_validate_id (ids[i].id));
+      else
+        g_assert_false (valent_device_validate_id (ids[i].id));
+    }
+}
+
+static void
+test_device_validate_name (void)
+{
+  /* See: https://invent.kde.org/network/kdeconnect-android/-/blob/master/tests/org/kde/kdeconnect/DeviceTest.kt
+   */
+  static struct
+  {
+    const char *name;
+    gboolean    valid;
+  } names[] = {
+    {
+      .name = "MyDevice",
+      .valid = TRUE,
+    },
+    {
+      .name = "    ",
+      .valid = FALSE,
+    },
+    {
+      .name = "<><><><><><><><><>",
+      .valid = FALSE,
+    },
+  };
+
+  for (size_t i = 0; i < G_N_ELEMENTS (names); i++)
+    {
+      if (names[i].valid)
+        g_assert_true (valent_device_validate_name (names[i].name));
+      else
+        g_assert_false (valent_device_validate_name (names[i].name));
+    }
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -681,6 +781,12 @@ main (int   argc,
               device_fixture_set_up,
               test_send_packet,
               device_fixture_tear_down);
+
+  g_test_add_func ("/libvalent/device/device-validate-id",
+                   test_device_validate_id);
+
+  g_test_add_func ("/libvalent/device/device-validate-name",
+                   test_device_validate_name);
 
   return g_test_run ();
 }
