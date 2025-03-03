@@ -1112,7 +1112,7 @@ valent_device_class_init (ValentDeviceClass *klass)
 ValentDevice *
 valent_device_new (const char *id)
 {
-  g_return_val_if_fail (id != NULL && *id != '\0', NULL);
+  g_return_val_if_fail (valent_device_validate_id (id), NULL);
 
   return g_object_new (VALENT_TYPE_DEVICE,
                        "id", id,
@@ -1140,6 +1140,12 @@ valent_device_new_full (JsonNode      *identity,
   if (!valent_packet_get_string (identity, "deviceId", &id))
     {
       g_critical ("%s(): missing \"deviceId\" field", G_STRFUNC);
+      return NULL;
+    }
+
+  if (!valent_device_validate_id (id))
+    {
+      g_critical ("%s(): invalid device ID \"%s\"", G_STRFUNC, id);
       return NULL;
     }
 
