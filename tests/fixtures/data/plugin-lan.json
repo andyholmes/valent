@@ -3,8 +3,8 @@
     "id": 0,
     "type": "kdeconnect.identity",
     "body": {
-      "deviceId": "endpoint",
-      "deviceName": "Endpoint",
+      "deviceId": "00000000_0000_0000_0000_000000000001",
+      "deviceName": "Test Device",
       "deviceType": "phone",
       "incomingCapabilities": [
         "kdeconnect.mock.echo",

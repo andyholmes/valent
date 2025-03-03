@@ -560,6 +560,14 @@ _avahi_service_browser_event (GDBusConnection *connection,
                      &domain,
                      &flags);
 
+      /* Ignore announcements with an invalid service name (i.e. device ID)
+       */
+      if (!valent_device_validate_id (name))
+        {
+          g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, name);
+          return;
+        }
+
       g_dbus_connection_call (connection,
                               AVAHI_DBUS_NAME,
                               AVAHI_SERVER2_PATH,

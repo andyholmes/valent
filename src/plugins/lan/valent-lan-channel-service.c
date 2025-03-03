@@ -82,22 +82,24 @@ on_channel_destroyed (ValentLanChannelService *self,
 /**
  * valent_lan_channel_service_verify_channel:
  * @self: a `ValentLanChannelService`
- * @identity: a KDE Connect identity packet
+ * @peer_identity: a KDE Connect identity packet
  * @connection: a `GTlsConnection`
  *
  * Verify an encrypted TLS connection.
  *
- * @device_id should be the `deviceID` field from an identity packet. If it does
- * not match the common name for the peer certificate, %FALSE will be returned.
+ * @peer_identity should be a valid KDE Connect identity packet. If the
+ * `deviceId` field is missing, invalid or does not match the common name for
+ * the peer certificate, %FALSE will be returned.
  *
  * @connection should be an encrypted TLS connection. If there is an existing
- * channel for @device_id with a different certificate, %FALSE will be returned.
+ * channel for the device ID with a different certificate, %FALSE will be
+ * returned.
  *
  * Returns: %TRUE if successful, or %FALSE on failure
  */
 static gboolean
 valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
-                                           JsonNode                *identity,
+                                           JsonNode                *peer_identity,
                                            GIOStream               *connection)
 {
   ValentLanChannel *channel = NULL;
@@ -107,19 +109,26 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
   const char *device_id = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (self));
-  g_assert (VALENT_IS_PACKET (identity));;
+  g_assert (VALENT_IS_PACKET (peer_identity));;
   g_assert (G_IS_TLS_CONNECTION (connection));
 
-  if (!valent_packet_get_string (identity, "deviceId", &device_id))
+  /* Ignore broadcasts without a deviceId or with an invalid deviceId
+   */
+  if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
     {
       g_debug ("%s(): expected \"deviceId\" field holding a string",
                G_STRFUNC);
       return FALSE;
     }
 
+  if (!valent_device_validate_id (device_id))
+    {
+      g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
+      return FALSE;
+    }
+
   g_object_get (connection, "peer-certificate", &peer_certificate, NULL);
   peer_certificate_cn = valent_certificate_get_common_name (peer_certificate);
-
   if (g_strcmp0 (device_id, peer_certificate_cn) != 0)
     {
       g_warning ("%s(): device ID does not match certificate common name",
@@ -221,11 +230,21 @@ on_incoming_connection (ValentChannelService   *service,
       return TRUE;
     }
 
-  /* Ignore identity packets without a deviceId */
+  /* Ignore broadcasts without a deviceId or with an invalid deviceId
+   *
+   * NOTE: this is an opportunity for an early-exit; we will check this again
+   *       when comparing the certificate common name with the device ID
+   */
   if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
     {
       g_debug ("%s(): expected \"deviceId\" field holding a string",
                G_STRFUNC);
+      return TRUE;
+    }
+
+  if (!valent_device_validate_id (device_id))
+    {
+      g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
       return TRUE;
     }
 
@@ -515,7 +534,8 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
       return G_SOURCE_CONTINUE;
     }
 
-  /* Ignore broadcasts without a deviceId or from ourselves */
+  /* Ignore broadcasts without a deviceId or with an invalid deviceId
+   */
   if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
     {
       g_debug ("%s(): expected \"deviceId\" field holding a string",
@@ -523,8 +543,15 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
       return G_SOURCE_CONTINUE;
     }
 
-  local_id = valent_channel_service_dup_id (service);
+  if (!valent_device_validate_id (device_id))
+    {
+      g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
+      return G_SOURCE_CONTINUE;
+    }
 
+  /* Silently ignore our own broadcasts
+   */
+  local_id = valent_channel_service_dup_id (service);
   if (g_strcmp0 (device_id, local_id) == 0)
     return G_SOURCE_CONTINUE;
 
@@ -683,9 +710,10 @@ on_items_changed (GListModel              *list,
       g_autoptr (GSocketAddress) address = NULL;
       const char *device_id = NULL;
 
+      /* Silently ignore our own broadcasts
+       */
       address = g_list_model_get_item (list, position + i);
       device_id = _g_socket_address_get_dnssd_name (address);
-
       if (g_strcmp0 (service_id, device_id) == 0)
         continue;
 
