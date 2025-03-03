@@ -1706,22 +1706,23 @@ valent_device_generate_id (void)
 gboolean
 valent_device_validate_id (const char *id)
 {
-  static size_t guard = 0;
-  static GRegex *id_pattern = NULL;
+  size_t len = 0;
 
   if G_UNLIKELY (id == NULL || *id == '\0')
     return FALSE;
 
-  if (g_once_init_enter (&guard))
+  while (id[len] != '\0')
     {
-      id_pattern = g_regex_new ("^[a-zA-Z0-9_]{32,38}$",
-                                G_REGEX_OPTIMIZE,
-                                G_REGEX_MATCH_DEFAULT,
-                                NULL);
-      g_once_init_leave (&guard, 1);
+      char c = id[len];
+
+      if (!g_ascii_isalnum (c) && c != '_')
+        return FALSE;
+
+      if (++len > 38)
+        return FALSE;
     }
 
-  return g_regex_match (id_pattern, id, G_REGEX_MATCH_DEFAULT, NULL);
+  return len >= 32;
 }
 
 /**
@@ -1731,7 +1732,8 @@ valent_device_validate_id (const char *id)
  * Validate a KDE Connect device name.
  *
  * A compliant device name matches the pattern `/^[^"',;:.!?()\[\]<>]{1,32}$/`,
- * containing none of `"',;:.!?()[]<>` with a length of 1-32 characters.
+ * containing none of `"',;:.!?()[]<>` with a length of 1-32 characters, with
+ * at least one non-whitespace character.
  *
  * This became a requirement in version 8 or the KDE Connect protocol.
  *
@@ -1742,22 +1744,36 @@ valent_device_validate_id (const char *id)
 gboolean
 valent_device_validate_name (const char *name)
 {
-  static size_t guard = 0;
-  static GRegex *name_pattern = NULL;
+  static const uint8_t forbidden_chars[256] = {
+    ['"'] = 1, ['\''] = 1,
+    [','] = 1, ['.'] = 1,
+    [';'] = 1, [':'] = 1,
+    ['!'] = 1, ['?'] = 1,
+    ['('] = 1, [')'] = 1,
+    ['['] = 1, [']'] = 1,
+    ['<'] = 1, ['>'] = 1,
+  };
+  size_t len = 0;
+  gboolean has_nonwhitespace = FALSE;
 
   if G_UNLIKELY (name == NULL || *name == '\0')
     return FALSE;
 
-  if (g_once_init_enter (&guard))
+  while (name[len] != '\0')
     {
-      name_pattern = g_regex_new ("^[^\"',;:.!?()\\[\\]<>]{1,32}$",
-                                  G_REGEX_OPTIMIZE,
-                                  G_REGEX_MATCH_DEFAULT,
-                                  NULL);
-      g_once_init_leave (&guard, 1);
+      uint8_t c = (uint8_t)name[len];
+
+      if (forbidden_chars[c])
+        return FALSE;
+
+      if (!has_nonwhitespace)
+        has_nonwhitespace = !g_ascii_isspace (c);
+
+      if (++len > 32)
+        return FALSE;
     }
 
-  return g_regex_match (name_pattern, name, G_REGEX_MATCH_DEFAULT, NULL);
+  return has_nonwhitespace;
 }
 
 /*< private >
