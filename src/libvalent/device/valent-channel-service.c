@@ -12,9 +12,10 @@
 
 #include "valent-certificate.h"
 #include "valent-channel.h"
-#include "valent-channel-service.h"
+#include "valent-device-common.h"
 #include "valent-packet.h"
 
+#include "valent-channel-service.h"
 
 /**
  * ValentChannelService:
@@ -301,7 +302,7 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
   json_builder_set_member_name (builder, "deviceType");
   json_builder_add_string_value (builder, get_chassis_type());
   json_builder_set_member_name (builder, "protocolVersion");
-  json_builder_add_int_value (builder, 7);
+  json_builder_add_int_value (builder, VALENT_NETWORK_PROTOCOL_MAX);
 
   /* Incoming Capabilities */
   json_builder_set_member_name (builder, "incomingCapabilities");

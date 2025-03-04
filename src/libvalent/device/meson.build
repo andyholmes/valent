@@ -13,6 +13,7 @@ libvalent_device_public_headers = [
   'valent-channel.h',
   'valent-channel-service.h',
   'valent-device.h',
+  'valent-device-common.h',
   'valent-device-manager.h',
   'valent-device-plugin.h',
   'valent-device-transfer.h',
