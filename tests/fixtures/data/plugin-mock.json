@@ -14,7 +14,7 @@
         "kdeconnect.mock",
         "kdeconnect.mock.transfer"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "peer-identity": {
@@ -32,7 +32,7 @@
         "kdeconnect.mock",
         "kdeconnect.mock.transfer"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "echo": {

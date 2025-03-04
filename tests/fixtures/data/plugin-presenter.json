@@ -14,7 +14,7 @@
         "kdeconnect.mousepad.request",
         "kdeconnect.presenter"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "peer-identity": {
@@ -32,7 +32,7 @@
         "kdeconnect.mousepad.request",
         "kdeconnect.presenter"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "presenter-motion1": {
