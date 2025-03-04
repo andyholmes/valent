@@ -10,6 +10,8 @@
         "--filesystem=xdg-download",
         "--filesystem=xdg-run/gvfsd",
         "--filesystem=xdg-run/pipewire-0:ro",
+        "--filesystem=~/.mozilla/firefox/firefox-mpris:ro",
+        "--filesystem=~/.var/app/org.mozilla.firefox/data/firefox-mpris:ro",
         "--own-name=org.mpris.MediaPlayer2.Valent.*",
         "--share=ipc",
         "--share=network",
