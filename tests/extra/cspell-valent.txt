@@ -96,17 +96,6 @@ systemvolume
 namev
 sinklist
 
-# tests/fixtures
-argcp
-argvp
-cmpfloat
-cmpint
-cmpstr
-cmpuint
-modemless
-packetless
-spoofer
-
 # TODO
 iriv
 naddr
