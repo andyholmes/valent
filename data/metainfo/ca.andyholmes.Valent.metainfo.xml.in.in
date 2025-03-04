@@ -35,6 +35,17 @@
   </description>
 
   <releases>
+    <release version="1.0.0.alpha.47" date="2025-03-04" type="development">
+      <url>https://github.com/andyholmes/valent/releases/tag/v1.0.0.alpha.47</url>
+      <description>
+        <ul>
+          <li>Support v8 of the KDE Connect protocol</li>
+          <li>The Contacts plugin has been rewritten with TinySPARQL</li>
+          <li>Drop the Mutter input adapter in favour of the XDG portal</li>
+          <li>Translation updates</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.0.alpha.46" date="2024-08-17" type="development">
       <url>https://github.com/andyholmes/valent/releases/tag/v1.0.0.alpha.46</url>
       <description>

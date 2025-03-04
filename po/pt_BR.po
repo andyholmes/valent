@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-03-04 13:24-0800\n"
+"POT-Creation-Date: 2025-03-04 13:38-0800\n"
 "PO-Revision-Date: 2023-10-29 00:44-0300\n"
 "Last-Translator: Victor L. Pavan <victorpavan001@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorpavan001@gmail.com>\n"
@@ -109,57 +109,70 @@ msgstr ""
 "bibliotecas da plataforma GNOME"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:42
-msgid "PipeWire support added"
+msgid "Support v8 of the KDE Connect protocol"
 msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:43
-msgid "The user interface has been absorbed by the `gnome` plugin"
+msgid "The Contacts plugin has been rewritten with TinySPARQL"
 msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:44
-msgid "The SMS plugin has been rewritten with TinySPARQL"
+msgid "Drop the Mutter input adapter in favour of the XDG portal"
 msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:45
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:60
+msgid "Translation updates"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:53
+msgid "PipeWire support added"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:54
+msgid "The user interface has been absorbed by the `gnome` plugin"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:55
+msgid "The SMS plugin has been rewritten with TinySPARQL"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
 msgid "The share dialog has been redesigned"
 msgstr ""
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:46
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:57
 msgid "The media dialog has been refactored, with some UI improvements"
 msgstr ""
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:47
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:58
 msgid "Port to libawaita-1.5"
 msgstr ""
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:48
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:59
 msgid ""
 "Updates to protocol implementation; certificates, device metadata, security"
 msgstr ""
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:49
-msgid "Translation updates"
-msgstr ""
-
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:67
 msgid "Initial release."
 msgstr ""
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:63
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:74
 #, fuzzy
 msgid "Connect to devices on your network"
 msgstr "Conectar dispositivos via LAN"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:67
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:78
 msgid "Securely pair devices"
 msgstr ""
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:71
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:82
 #, fuzzy
 msgid "Monitor and control remote devices"
 msgstr "Pareie e conecte seus dispositivos"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:89
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:100
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
