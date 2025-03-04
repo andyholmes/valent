@@ -475,8 +475,14 @@ valent_device_manager_ensure_device (ValentDeviceManager *self,
 
   if (!valent_packet_get_string (identity, "deviceId", &device_id))
     {
-      g_debug ("%s(): expected \"deviceId\" field holding a string",
-               G_STRFUNC);
+      g_critical ("%s(): expected \"deviceId\" field holding a string",
+                  G_STRFUNC);
+      return NULL;
+    }
+
+  if (!valent_device_validate_id (device_id))
+    {
+      g_critical ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
       return NULL;
     }
 
