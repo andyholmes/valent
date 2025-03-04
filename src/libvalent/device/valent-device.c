@@ -568,13 +568,6 @@ valent_device_handle_pair (ValentDevice *device,
           valent_device_set_paired (device, TRUE);
         }
 
-      /* The device thinks we're unpaired */
-      else if (device->paired)
-        {
-          valent_device_send_pair (device, TRUE);
-          valent_device_set_paired (device, TRUE);
-        }
-
       /* The device is requesting pairing */
       else
         {
