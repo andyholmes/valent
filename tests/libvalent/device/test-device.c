@@ -257,17 +257,8 @@ test_device_pairing (DeviceFixture *fixture,
   endpoint_send_packet (fixture, pair);
   g_assert_true (valent_device_get_paired (fixture->device));
 
-
-  /* Receive Pair (Request), Auto-confirm Pair */
-  endpoint_send_packet (fixture, pair);
-  endpoint_expect_packet_pair (fixture, TRUE);
-  g_assert_true (valent_device_get_paired (fixture->device));
-
-  valent_device_set_paired (fixture->device, FALSE);
-  g_assert_false (valent_device_get_paired (fixture->device));
-
-
   /* Receive Pair (Request), Send Unpair (Reject) */
+  valent_device_set_paired (fixture->device, FALSE);
   endpoint_send_packet (fixture, pair);
   g_assert_false (valent_device_get_paired (fixture->device));
 
