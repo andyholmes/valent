@@ -11,7 +11,7 @@
       "outgoingCapabilities": [
         "kdeconnect.battery"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "peer-identity": {
@@ -26,7 +26,7 @@
       "outgoingCapabilities": [
         "kdeconnect.battery"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "missing-battery": {

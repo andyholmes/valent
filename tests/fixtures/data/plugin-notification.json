@@ -16,7 +16,7 @@
         "kdeconnect.notification",
         "kdeconnect.notification.request"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "peer-identity": {
@@ -36,7 +36,7 @@
         "kdeconnect.notification",
         "kdeconnect.notification.request"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "notification-simple": {

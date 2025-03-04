@@ -18,7 +18,7 @@
         "kdeconnect.sms.request_conversation",
         "kdeconnect.sms.request_conversations"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "peer-identity": {
@@ -40,7 +40,7 @@
         "kdeconnect.sms.request_conversation",
         "kdeconnect.sms.request_conversations"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "connect-time-1": {

@@ -12,7 +12,7 @@
       "outgoingCapabilities": [
         "kdeconnect.ping"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "peer-identity": {
@@ -28,7 +28,7 @@
       "outgoingCapabilities": [
         "kdeconnect.ping"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "ping": {

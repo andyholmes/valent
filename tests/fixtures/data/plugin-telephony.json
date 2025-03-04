@@ -13,7 +13,7 @@
       "outgoingCapabilities": [
         "kdeconnect.telephony.request"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "peer-identity": {
@@ -30,7 +30,7 @@
       "outgoingCapabilities": [
         "kdeconnect.telephony.request"
       ],
-      "protocolVersion": 7
+      "protocolVersion": 8
     }
   },
   "ringing": {
