@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+#include <math.h>
+
 #include <gio/gio.h>
 #include <valent.h>
 #include <libvalent-test.h>
@@ -20,6 +22,26 @@ get_packet (DeviceFixture *fixture,
             const char    *name)
 {
   return json_object_get_member (json_node_get_object (fixture->packets), name);
+}
+
+static JsonNode *
+create_pair_packet (gboolean pair)
+{
+  g_autoptr (JsonBuilder) builder = NULL;
+
+  valent_packet_init (&builder, "kdeconnect.pair");
+  json_builder_set_member_name (builder, "pair");
+  json_builder_add_boolean_value (builder, pair);
+
+  if (pair)
+    {
+      int64_t timestamp = (int64_t)floor (valent_timestamp_ms () / 1000);
+
+      json_builder_set_member_name (builder, "timestamp");
+      json_builder_add_int_value (builder, timestamp);
+    }
+
+  return valent_packet_end (&builder);
 }
 
 static inline gboolean
@@ -233,10 +255,11 @@ test_device_pairing (DeviceFixture *fixture,
                      gconstpointer  user_data)
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
-  JsonNode *pair, *unpair;
+  g_autoptr (JsonNode) pair = NULL;
+  g_autoptr (JsonNode) unpair = NULL;
 
-  pair = get_packet (fixture, "pair");
-  unpair = get_packet (fixture, "unpair");
+  pair = create_pair_packet (TRUE);
+  unpair = create_pair_packet (FALSE);
 
   /* Attach channel */
   valent_device_set_channel (fixture->device, fixture->channel);
@@ -566,7 +589,7 @@ static void
 test_send_packet (DeviceFixture *fixture,
                   gconstpointer  user_data)
 {
-  JsonNode *pair = get_packet (fixture, "pair");
+  g_autoptr (JsonNode) pair = create_pair_packet (TRUE);
   gboolean done = FALSE;
 
   /* Disconnected & Paired */
