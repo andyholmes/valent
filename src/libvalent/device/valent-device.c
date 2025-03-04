@@ -5,6 +5,9 @@
 
 #include "config.h"
 
+#include <inttypes.h>
+#include <math.h>
+
 #include <glib/gi18n-lib.h>
 #include <gio/gio.h>
 #include <libvalent-core.h>
@@ -12,6 +15,7 @@
 #include "../core/valent-component-private.h"
 #include "valent-certificate.h"
 #include "valent-channel.h"
+#include "valent-device-common.h"
 #include "valent-device-enums.h"
 #include "valent-device-plugin.h"
 #include "valent-packet.h"
@@ -25,8 +29,9 @@
 #define DEVICE_TYPE_TABLET   "tablet"
 #define DEVICE_TYPE_TV       "tv"
 
-#define PAIR_REQUEST_ID      "pair-request"
-#define PAIR_REQUEST_TIMEOUT 30
+#define PAIR_REQUEST_ID        "pair-request"
+#define PAIR_REQUEST_TIMEOUT   (30)
+#define PAIR_REQUEST_THRESHOLD (1800)
 
 
 /**
@@ -59,12 +64,14 @@ struct _ValentDevice
   char            *type;
   char           **incoming_capabilities;
   char           **outgoing_capabilities;
+  int64_t          protocol_version;
 
   /* State */
   ValentChannel   *channel;
   gboolean         paired;
   unsigned int     incoming_pair;
   unsigned int     outgoing_pair;
+  int64_t          pair_timestamp;
 
   /* Plugins */
   PeasEngine      *engine;
@@ -426,6 +433,7 @@ valent_device_reset_pair (gpointer object)
 
   g_clear_handle_id (&device->incoming_pair, g_source_remove);
   g_clear_handle_id (&device->outgoing_pair, g_source_remove);
+  device->pair_timestamp = 0;
 
   g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 
@@ -478,6 +486,12 @@ valent_device_send_pair (ValentDevice *device,
   valent_packet_init (&builder, "kdeconnect.pair");
   json_builder_set_member_name (builder, "pair");
   json_builder_add_boolean_value (builder, pair);
+  if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
+    {
+      device->pair_timestamp = (int64_t)floor (valent_timestamp_ms () / 1000);
+      json_builder_set_member_name (builder, "timestamp");
+      json_builder_add_int_value (builder, device->pair_timestamp);
+    }
   packet = valent_packet_end (&builder);
 
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (device));
@@ -491,52 +505,79 @@ valent_device_send_pair (ValentDevice *device,
 }
 
 static void
-valent_device_notify_pair (ValentDevice *device)
+valent_device_notify_pair_requested (ValentDevice *device)
 {
-  GApplication *application = g_application_get_default ();
+  GApplication *application = NULL;
+  g_autofree char *notification_id = NULL;
+  g_autoptr (GNotification) notification = NULL;
+  g_autoptr (GIcon) icon = NULL;
+  g_autofree char *title = NULL;
+  g_autofree char *verification_key = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  if (application != NULL)
-    {
-      g_autofree char *notification_id = NULL;
-      g_autoptr (GNotification) notification = NULL;
-      g_autoptr (GIcon) icon = NULL;
-      g_autofree char *title = NULL;
-      g_autofree char *verification_key = NULL;
+  application = g_application_get_default ();
+  if (application == NULL)
+    return;
 
-      title = g_strdup_printf (_("Pairing request from “%s”"), device->name);
-      verification_key = valent_device_get_verification_key (device);
-      icon = g_themed_icon_new (APPLICATION_ID);
+  title = g_strdup_printf (_("Pairing request from “%s”"), device->name);
+  verification_key = valent_device_get_verification_key (device);
+  icon = g_themed_icon_new (APPLICATION_ID);
 
-      g_return_if_fail (verification_key != NULL);
+  g_return_if_fail (verification_key != NULL);
 
-      notification = g_notification_new (title);
-      g_notification_set_body (notification, verification_key);
-      g_notification_set_icon (notification, icon);
-      g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_URGENT);
-      g_notification_add_button_with_target (notification, _("Reject"), "app.device",
-                                             "(ssav)",
-                                             device->id,
-                                             "unpair",
-                                             NULL);
-      g_notification_add_button_with_target (notification, _("Accept"), "app.device",
-                                             "(ssav)",
-                                             device->id,
-                                             "pair",
-                                             NULL);
+  notification = g_notification_new (title);
+  g_notification_set_body (notification, verification_key);
+  g_notification_set_icon (notification, icon);
+  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_URGENT);
+  g_notification_add_button_with_target (notification, _("Reject"), "app.device",
+                                         "(ssav)",
+                                         device->id,
+                                         "unpair",
+                                         NULL);
+  g_notification_add_button_with_target (notification, _("Accept"), "app.device",
+                                         "(ssav)",
+                                         device->id,
+                                         "pair",
+                                         NULL);
 
-      /* Show the pairing notification and set a timeout for 30s */
-      notification_id = g_strdup_printf ("%s::%s", device->id, PAIR_REQUEST_ID);
-      g_application_send_notification (application,
-                                       notification_id,
-                                       notification);
-    }
+  /* Show the pairing notification and set a timeout for 30s
+   */
+  notification_id = g_strdup_printf ("%s::%s", device->id, PAIR_REQUEST_ID);
+  g_application_send_notification (application,
+                                   notification_id,
+                                   notification);
+}
 
-  device->incoming_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
-                                                 valent_device_reset_pair,
-                                                 device);
-  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+static void
+valent_device_notify_pair_failed (ValentDevice *device)
+{
+  GApplication *application = NULL;
+  g_autofree char *notification_id = NULL;
+  g_autoptr (GNotification) notification = NULL;
+  g_autoptr (GIcon) icon = NULL;
+  g_autofree char *title = NULL;
+  const char *body = NULL;
+
+  g_assert (VALENT_IS_DEVICE (device));
+
+  application = g_application_get_default ();
+  if (application == NULL)
+    return;
+
+  title = g_strdup_printf (_("Failed to pair with “%s”"), device->name);
+  body = g_strdup (_("Device clocks are out of sync"));
+  icon = g_themed_icon_new ("dialog-warning-symbolic");
+
+  notification = g_notification_new (title);
+  g_notification_set_body (notification, body);
+  g_notification_set_icon (notification, icon);
+  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_URGENT);
+
+  notification_id = g_strdup_printf ("%s::%s", device->id, PAIR_REQUEST_ID);
+  g_application_send_notification (application,
+                                   notification_id,
+                                   notification);
 }
 
 static void
@@ -552,36 +593,49 @@ valent_device_handle_pair (ValentDevice *device,
 
   if (!valent_packet_get_boolean (packet, "pair", &pair))
     {
-      g_warning ("%s(): malformed pair packet from \"%s\"",
+      g_warning ("%s(): expected \"pair\" field holding a boolean from \"%s\"",
                  G_STRFUNC,
                  device->name);
       VALENT_EXIT;
     }
 
-  /* Device is requesting pairing or accepting our request */
   if (pair)
     {
-      /* The device is accepting our request */
       if (device->outgoing_pair > 0)
         {
           VALENT_NOTE ("Pairing accepted by \"%s\"", device->name);
           valent_device_set_paired (device, TRUE);
         }
-
-      /* The device is requesting pairing */
       else
         {
+          int64_t timestamp = 0;
+
+          valent_device_reset_pair (device);
+
           VALENT_NOTE ("Pairing requested by \"%s\"", device->name);
-          valent_device_notify_pair (device);
+
+          if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8 &&
+              !valent_packet_get_int (packet, "timestamp", &timestamp))
+            {
+              g_warning ("%s(): expected \"timestamp\" field holding an integer",
+                         G_STRFUNC);
+              VALENT_EXIT;
+            }
+
+          device->pair_timestamp = timestamp;
+          device->incoming_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
+                                                         valent_device_reset_pair,
+                                                         device);
+          valent_device_notify_pair_requested (device);
         }
     }
-
-  /* Device is requesting unpairing or rejecting our request */
   else
     {
       VALENT_NOTE ("Pairing rejected by \"%s\"", device->name);
       valent_device_set_paired (device, FALSE);
     }
+
+  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 
   VALENT_EXIT;
 }
@@ -654,6 +708,10 @@ valent_device_handle_identity (ValentDevice *device,
   g_clear_pointer (&device->outgoing_capabilities, g_strfreev);
   device->outgoing_capabilities = valent_packet_dup_strv (packet,
                                                           "outgoingCapabilities");
+
+  /* Protocol Version */
+  if (!valent_packet_get_int (packet, "protocolVersion", &device->protocol_version))
+    device->protocol_version = VALENT_NETWORK_PROTOCOL_V8;
 
   valent_object_unlock (VALENT_OBJECT (device));
 
@@ -766,23 +824,38 @@ pair_action (GSimpleAction *action,
 {
   ValentDevice *device = VALENT_DEVICE (user_data);
 
-  /* We're accepting an incoming pair request */
   if (device->incoming_pair > 0)
     {
+      VALENT_NOTE ("Accepting pair request from \"%s\"", device->name);
+
+      if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
+        {
+          int64_t timestamp = 0;
+          int64_t timestamp_diff = 0;
+
+          timestamp = (int64_t)floor (valent_timestamp_ms () / 1000);
+          timestamp_diff = ABS (device->pair_timestamp - timestamp);
+          if (timestamp_diff > PAIR_REQUEST_THRESHOLD)
+            {
+              valent_device_set_paired (device, FALSE);
+              valent_device_notify_pair_failed (device);
+              return;
+            }
+        }
+
       valent_device_send_pair (device, TRUE);
       valent_device_set_paired (device, TRUE);
+      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
     }
-
-  /* We're initiating an outgoing pair request */
   else if (!device->paired)
     {
+      VALENT_NOTE ("Sending pair request to \"%s\"", device->name);
+
       valent_device_reset_pair (device);
       valent_device_send_pair (device, TRUE);
       device->outgoing_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
                                                      valent_device_reset_pair,
                                                      device);
-      VALENT_NOTE ("Pair request sent to \"%s\"", device->name);
-
       g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
     }
 }
@@ -1651,6 +1724,14 @@ valent_device_get_verification_key (ValentDevice *device)
         {
           g_checksum_update (checksum, peer_pubkey->data, peer_pubkey->len);
           g_checksum_update (checksum, pubkey->data, pubkey->len);
+        }
+
+      if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
+        {
+          g_autofree char *timestamp_str = NULL;
+
+          timestamp_str = g_strdup_printf ("%"PRId64, device->pair_timestamp);
+          g_checksum_update (checksum, (const unsigned char *)timestamp_str, -1);
         }
 
       verification_key = g_strndup (g_checksum_get_string (checksum), 8);
