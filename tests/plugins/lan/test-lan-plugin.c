@@ -136,6 +136,7 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
+  int64_t protocol_version = VALENT_NETWORK_PROTOCOL_MAX;
   GError *error = NULL;
 
   connection = g_socket_listener_accept_finish (listener, result, NULL, &error);
@@ -164,6 +165,27 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
                                                      &error);
   g_assert_no_error (error);
   g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
+
+  valent_packet_get_int (peer_identity, "protocolVersion", &protocol_version);
+  if (protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
+    {
+      g_autoptr (JsonNode) secure_identity = NULL;
+
+      valent_packet_to_stream (g_io_stream_get_output_stream (tls_stream),
+                               fixture->peer_identity,
+                               NULL,
+                               &error);
+      g_assert_no_error (error);
+
+      secure_identity = valent_packet_from_stream (g_io_stream_get_input_stream (tls_stream),
+                                                   IDENTITY_BUFFER_MAX,
+                                                   NULL,
+                                                   &error);
+      g_assert_no_error (error);
+
+      g_clear_pointer (&peer_identity, json_node_unref);
+      peer_identity = g_steal_pointer (&secure_identity);
+    }
 
   /* We're pretending to be a remote service, so we create an endpoint channel
    * so that we can pop packets of it from the test service.
@@ -373,6 +395,7 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
   g_autoptr (GSocketConnection) connection = NULL;
   GOutputStream *output_stream;
   g_autoptr (GIOStream) tls_stream = NULL;
+  int64_t protocol_version = VALENT_NETWORK_PROTOCOL_MAX;
   gboolean watch = FALSE;
   GError *error = NULL;
 
@@ -437,12 +460,54 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
         valent_test_await_timeout (1100);
     }
 
-  tls_stream = valent_lan_encrypt_server_connection (connection,
-                                                     fixture->peer_certificate,
-                                                     NULL,
-                                                     &error);
+  /* In this test case we are trying to connect with the same device ID and a
+   * different certificate, so we expect the service to reject the connection.
+   */
+  if (g_strcmp0 (user_data, TEST_TLS_AUTH_SPOOFER) == 0)
+    {
+      g_autoptr (GTlsCertificate) bad_certificate = NULL;
+
+      /* HACK: we're just sending the service's certificate back to itself,
+       *       so the common name won't match the `deviceId` in the identity
+       * TODO: test the case where the certificate common name _does_ match the
+       *       identity, but the certificate itself is different
+       */
+      g_object_get (fixture->service, "certificate", &bad_certificate, NULL);
+      tls_stream = valent_lan_encrypt_server_connection (connection,
+                                                         bad_certificate,
+                                                         NULL,
+                                                         &error);
+    }
+  else
+    {
+      tls_stream = valent_lan_encrypt_server_connection (connection,
+                                                         fixture->peer_certificate,
+                                                         NULL,
+                                                         &error);
+    }
   g_assert_no_error (error);
   g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
+
+  valent_packet_get_int (peer_identity, "protocolVersion", &protocol_version);
+  if (protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
+    {
+      g_autoptr (JsonNode) secure_identity = NULL;
+
+      valent_packet_to_stream (g_io_stream_get_output_stream (tls_stream),
+                               fixture->peer_identity,
+                               NULL,
+                               &error);
+      g_assert_no_error (error);
+
+      secure_identity = valent_packet_from_stream (g_io_stream_get_input_stream (tls_stream),
+                                                   IDENTITY_BUFFER_MAX,
+                                                   NULL,
+                                                   &error);
+      g_assert_no_error (error);
+
+      g_clear_pointer (&peer_identity, json_node_unref);
+      peer_identity = g_steal_pointer (&secure_identity);
+    }
 
   /* We're pretending to be a remote service, so we create an endpoint channel
    * so that we can pop packets of it from the test service.
@@ -466,45 +531,6 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                     G_CALLBACK (on_channel),
                     &fixture->channel);
   valent_test_await_pointer (&fixture->channel);
-
-  /* In this test case we are trying to connect with the same device ID and a
-   * different certificate, so we expect the service to reject the connection.
-   */
-  if (g_strcmp0 (user_data, TEST_TLS_AUTH_SPOOFER) == 0)
-    {
-      g_autoptr (GSocketClient) bad_client = NULL;
-      g_autoptr (GSocketConnection) bad_connection = NULL;
-      g_autoptr (GIOStream) bad_stream = NULL;
-      g_autoptr (GTlsCertificate) bad_certificate = NULL;
-
-      bad_client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                                 "enable-proxy", FALSE,
-                                 NULL);
-      g_socket_client_connect_to_host_async (bad_client,
-                                             SERVICE_ADDR,
-                                             SERVICE_PORT,
-                                             NULL,
-                                             (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
-                                             &bad_connection);
-      valent_test_await_pointer (&bad_connection);
-
-      output_stream = g_io_stream_get_output_stream (G_IO_STREAM (bad_connection));
-      valent_packet_to_stream (output_stream, fixture->peer_identity, NULL, &error);
-      g_assert_no_error (error);
-
-      /* HACK: we're just sending the service's certificate back to itself,
-       *       so the common name won't match the `deviceId` in the identity
-       * TODO: test the case where the certificate common name _does_ match the
-       *       identity, but the certificate itself is different
-       */
-      g_object_get (fixture->service, "certificate", &bad_certificate, NULL);
-      bad_stream = valent_lan_encrypt_server_connection (bad_connection,
-                                                         bad_certificate,
-                                                         NULL,
-                                                         &error);
-      g_assert_no_error (error);
-      g_assert_true (G_IS_TLS_CONNECTION (bad_stream));
-    }
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
   valent_object_destroy (VALENT_OBJECT (fixture->service));

@@ -9,6 +9,7 @@ G_BEGIN_DECLS
 #include "valent-channel.h"
 #include "valent-channel-service.h"
 #include "valent-device.h"
+#include "valent-device-common.h"
 #include "valent-device-enums.h"
 #include "valent-device-manager.h"
 #include "valent-device-plugin.h"
