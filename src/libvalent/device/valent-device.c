@@ -1734,7 +1734,7 @@ valent_device_get_verification_key (ValentDevice *device)
           g_checksum_update (checksum, (const unsigned char *)timestamp_str, -1);
         }
 
-      verification_key = g_strndup (g_checksum_get_string (checksum), 8);
+      verification_key = g_ascii_strup (g_checksum_get_string (checksum), 8);
     }
   valent_object_unlock (VALENT_OBJECT (device));
 
