@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
 "POT-Creation-Date: 2025-03-04 13:38-0800\n"
-"PO-Revision-Date: 2022-09-12 19:59+0200\n"
+"PO-Revision-Date: 2025-03-05 11:14+0100\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
 "Language: nl\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.5\n"
 
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
@@ -105,76 +105,77 @@ msgstr ""
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:42
 msgid "Support v8 of the KDE Connect protocol"
-msgstr ""
+msgstr "Nieuw: ondersteuning voor KDE Connect V8"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:43
 msgid "The Contacts plugin has been rewritten with TinySPARQL"
-msgstr ""
+msgstr "Nieuw: de contactpersonenplug-in is opnieuw gemaakt met TinySPARQL"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:44
 msgid "Drop the Mutter input adapter in favour of the XDG portal"
 msgstr ""
+"Nieuw: voortaan wordt gebruikgemaakt van het XDG-portaal in plaats van Mutter"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:45
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:60
 msgid "Translation updates"
-msgstr ""
+msgstr "Bijgewerkt: vertalingen"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:53
 msgid "PipeWire support added"
-msgstr ""
+msgstr "Nieuw: PipeWire-ondersteuning"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:54
 msgid "The user interface has been absorbed by the `gnome` plugin"
-msgstr ""
+msgstr "Nieuw: de vormgeving maakt voortaan gebruik van de GNOME-plug-in"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:55
 msgid "The SMS plugin has been rewritten with TinySPARQL"
-msgstr ""
+msgstr "Nieuw: de sms-plug-in is opnieuw gemaakt met TinySPARQL"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
 msgid "The share dialog has been redesigned"
-msgstr ""
+msgstr "Verbeterd: het deelvenster is opnieuw ontworpen"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:57
 msgid "The media dialog has been refactored, with some UI improvements"
-msgstr ""
+msgstr "Verbeterd: het mediavenster is aangepast en bevat verbeteringen"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:58
 msgid "Port to libawaita-1.5"
-msgstr ""
+msgstr "Nieuw: overgezet naar libadwaita-1.5"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:59
 msgid ""
 "Updates to protocol implementation; certificates, device metadata, security"
 msgstr ""
+"Bijgewerkt: protocolimplementatie, certificaten, apparaatmetagegevens en "
+"beveiliging"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:67
 msgid "Initial release."
-msgstr ""
+msgstr "Eerste versie."
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:74
-#, fuzzy
 msgid "Connect to devices on your network"
-msgstr "Verbind met apparaten via lan"
+msgstr "Maak verbinding met apparaten op uw netwerk"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:78
 msgid "Securely pair devices"
-msgstr ""
+msgstr "Koppel uw apparaten op een veilige manier"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:82
-#, fuzzy
 msgid "Monitor and control remote devices"
-msgstr "Maak verbinding met uw apparaten"
+msgstr "Bekijk en bedien externe apparaten"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:100
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
 #: src/libvalent/device/valent-device.c:523
-#, fuzzy, c-format
+#, c-format
 msgid "Pairing request from “%s”"
-msgstr "Koppelverzoek van %s"
+msgstr "Koppelverzoek van “%s”"
 
 #: src/libvalent/device/valent-device.c:533
 #: src/plugins/gnome/valent-device-page.ui:119
@@ -189,11 +190,11 @@ msgstr "Goedkeuren"
 #: src/libvalent/device/valent-device.c:568
 #, c-format
 msgid "Failed to pair with “%s”"
-msgstr ""
+msgstr "“%s” kan niet worden gekoppeld"
 
 #: src/libvalent/device/valent-device.c:569
 msgid "Device clocks are out of sync"
-msgstr ""
+msgstr "De klokken lopen niet gelijk"
 
 #: src/plugins/battery/battery.plugin.desktop.in:7
 #: src/plugins/gnome/valent-device-page.ui:218
@@ -203,7 +204,7 @@ msgstr "Accu"
 
 #: src/plugins/battery/battery.plugin.desktop.in:8
 msgid "Monitor battery level and charging state"
-msgstr ""
+msgstr "Bekijk het accu- en oplaadniveau"
 
 #. TRANSLATORS: This is <device name>: Fully Charged
 #: src/plugins/battery/valent-battery-plugin.c:265
@@ -234,12 +235,11 @@ msgstr "%g%% (%d∶%02d resterend)"
 
 #: src/plugins/bluez/bluez.plugin.desktop.in:7
 msgid "Bluez"
-msgstr ""
+msgstr "Bluez"
 
 #: src/plugins/bluez/bluez.plugin.desktop.in:8
-#, fuzzy
 msgid "Connect devices over Bluetooth"
-msgstr "Verbind met apparaten via lan"
+msgstr "Maak verbinding met apparaten via bluetooth"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 #: src/plugins/gnome/valent-preferences-dialog.c:346
@@ -247,21 +247,16 @@ msgid "Clipboard"
 msgstr "Klembord"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:8
-#, fuzzy
 msgid "Sync the clipboard between devices"
-msgstr ""
-"Geef aan hoe klembordinhoud tussen apparaten dient te worden "
-"gesynchroniseerd."
+msgstr "Synchroniseer klembordinhoud tussen apparaten"
 
 #: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
-#, fuzzy
 msgid "Connectivity"
-msgstr "Lokale verbinding"
+msgstr "Verbinding"
 
 #: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:8
-#, fuzzy
 msgid "Monitor mobile connectivity status"
-msgstr "Verbindingsstatus synchroniseren"
+msgstr "Bekijk de mobieleverbindingsstatus"
 
 #. TRANSLATORS: When the mobile network signal is available
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
@@ -309,9 +304,8 @@ msgid "Contacts"
 msgstr "Contactpersonen"
 
 #: src/plugins/contacts/contacts.plugin.desktop.in:8
-#, fuzzy
 msgid "Sync contacts between devices"
-msgstr "Verstuur de lijst met contactpersonen naar het externe apparaat."
+msgstr "Synchroniseer contactpersonen tussen apparaten"
 
 #: src/plugins/eds/eds.plugin.desktop.in:7
 msgid "Evolution Data Server"
@@ -342,18 +336,16 @@ msgid "Ring"
 msgstr "Bellen"
 
 #: src/plugins/findmyphone/valent-findmyphone-ringer.c:125
-#, fuzzy
 msgid "Find My Device"
-msgstr "Telefoon zoeken"
+msgstr "Apparaat zoeken"
 
 #: src/plugins/gnome/gnome.plugin.desktop.in:7
 msgid "GNOME"
-msgstr ""
+msgstr "GNOME"
 
 #: src/plugins/gnome/gnome.plugin.desktop.in:8
-#, fuzzy
 msgid "Integration with GNOME"
-msgstr "Integratie met GTK4"
+msgstr "Integratie met GNOME"
 
 #. TRANSLATORS: dynamic string for phone number input (e.g. "Send to 911")
 #.
@@ -367,8 +359,8 @@ msgstr "Versturen naar %s"
 #, c-format
 msgid "%s and %u more…"
 msgid_plural "%s and %u more…"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%s en nog %u andere…"
+msgstr[1] "%s en nog %u anderen…"
 
 #: src/plugins/gnome/valent-contact-page.c:312
 #: src/plugins/gnome/valent-messages-window.c:420
@@ -402,20 +394,18 @@ msgstr "Er zijn geen contactpersonen"
 
 #: src/plugins/gnome/valent-contact-page.ui:71
 #: src/plugins/gnome/valent-messages-window.ui:289
-#, fuzzy
 msgid "Select destination"
-msgstr "Kies een presentatie"
+msgstr "Kies een bestemming"
 
 #: src/plugins/gnome/valent-contact-page.ui:96
 #: src/plugins/gnome/valent-messages-window.ui:314
 msgid "Phone Numbers"
-msgstr ""
+msgstr "Telefoonnummers"
 
 #: src/plugins/gnome/valent-conversation-page.c:407
 #: src/plugins/gnome/valent-messages-window.c:529
-#, fuzzy
 msgid "Unknown"
-msgstr "Onbekend contactpersoon"
+msgstr "Onbekend"
 
 #. TRANSLATORS: This is announced to AT devices (i.e. screen readers)
 #. * when a new message is received.
@@ -423,7 +413,7 @@ msgstr "Onbekend contactpersoon"
 #: src/plugins/gnome/valent-conversation-page.c:414
 #, c-format
 msgid "New message from %s"
-msgstr ""
+msgstr "Nieuw bericht van ‘%s’"
 
 #. TRANSLATORS: This is announced to AT devices (i.e. screen readers)
 #. * when a new message is received with attachments.
@@ -432,15 +422,14 @@ msgstr ""
 #, c-format
 msgid "New message from %s, with %d attachment"
 msgid_plural "New message from %s, with %d attachments"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Nieuw bericht van ‘%s’, voorzien van %d bijlage"
+msgstr[1] "Nieuw bericht van ‘%s’, voorzien van %d bijlagen"
 
 #: src/plugins/gnome/valent-conversation-page.c:950
 #: src/plugins/gnome/valent-conversation-page.c:1097
 #: src/plugins/gnome/valent-conversation-page.ui:77
-#, fuzzy
 msgid "Attach Files"
-msgstr "Alle bestanden"
+msgstr "Bijlagen toevoegen"
 
 #: src/plugins/gnome/valent-conversation-page.c:951
 #: src/plugins/gnome/valent-conversation-page.c:1098
@@ -456,14 +445,12 @@ msgid "Save"
 msgstr "Opslaan"
 
 #: src/plugins/gnome/valent-conversation-page.ui:8
-#, fuzzy
 msgid "Conversation"
-msgstr "Gesprekken"
+msgstr "Gesprek"
 
 #: src/plugins/gnome/valent-conversation-page.ui:22
-#, fuzzy
 msgid "Conversation Menu"
-msgstr "Gesprekken"
+msgstr "Gespreksmenu"
 
 #: src/plugins/gnome/valent-conversation-page.ui:88
 msgid "Type a message"
@@ -482,40 +469,36 @@ msgstr "Berichten doorzoeken…"
 #: src/plugins/gnome/valent-conversation-page.ui:135
 #: src/plugins/gnome/valent-conversation-page.ui:143
 msgid "Details"
-msgstr ""
+msgstr "Details"
 
 #: src/plugins/gnome/valent-conversation-page.ui:156
 #: src/plugins/gnome/valent-conversation-page.ui:226
-#, fuzzy
 msgid "Media"
-msgstr "Media onderbreken"
+msgstr "Media"
 
 #: src/plugins/gnome/valent-conversation-page.ui:187
 msgid "Add people…"
-msgstr ""
+msgstr "Personen toevoegen…"
 
 #: src/plugins/gnome/valent-conversation-page.ui:206
-#, fuzzy
 msgid "People in this conversation"
-msgstr "Kies of begin een gesprek"
+msgstr "Personen in dit gesprek"
 
 #: src/plugins/gnome/valent-conversation-page.ui:237
 msgid "Attachments"
-msgstr ""
+msgstr "Bijlagen"
 
 #: src/plugins/gnome/valent-conversation-page.ui:238
-#, fuzzy
 msgid "Files in this conversation"
-msgstr "Kies of begin een gesprek"
+msgstr "Bestanden in dit gesprek"
 
 #: src/plugins/gnome/valent-conversation-page.ui:246
-#, fuzzy
 msgid "No attachments found"
-msgstr "Er zijn geen zoekresultaten"
+msgstr "Er zijn geen bijlagen"
 
 #: src/plugins/gnome/valent-conversation-row.ui:185
 msgid "Copy text"
-msgstr ""
+msgstr "Tekst kopiëren"
 
 #: src/plugins/gnome/valent-date-label.c:84
 msgid "Just now"
@@ -548,14 +531,15 @@ msgstr "Gisteren · %s"
 
 #: src/plugins/gnome/valent-date-label.c:132
 #: src/plugins/gnome/valent-date-label.c:143
-#, fuzzy, c-format
+#, c-format
 msgid "%s · %s"
-msgstr "Gisteren · %s"
+msgstr "%s · %s"
 
 #: src/plugins/gnome/valent-device-page.c:82
 #, c-format
 msgid "Please confirm the verification key below matches the one on “%s”"
 msgstr ""
+"Bevestig dat onderstaande verificatiesleutel overeenkomt met die op “%s”"
 
 #: src/plugins/gnome/valent-device-page.c:90
 #: src/plugins/gnome/valent-device-page.ui:73
@@ -586,9 +570,8 @@ msgid "%g%% (%d∶%02d Until Full)"
 msgstr "%g%% (volledig opgeladen over %d∶%02d)"
 
 #: src/plugins/gnome/valent-device-page.ui:30
-#, fuzzy
 msgid "Device Menu"
-msgstr "Apparaatnaam"
+msgstr "Apparaatmenu"
 
 #: src/plugins/gnome/valent-device-page.ui:49
 #: src/plugins/gnome/valent-device-row.c:241
@@ -597,7 +580,7 @@ msgstr "Niet verbonden"
 
 #: src/plugins/gnome/valent-device-page.ui:50
 msgid "This device is currently unavailable"
-msgstr ""
+msgstr "Dit apparaat is momenteel niet beschikbaar"
 
 #: src/plugins/gnome/valent-device-page.ui:63
 #: src/plugins/gnome/valent-device-row.c:236
@@ -605,9 +588,8 @@ msgid "Unpaired"
 msgstr "Niet gekoppeld"
 
 #: src/plugins/gnome/valent-device-page.ui:75
-#, fuzzy
 msgid "verification key"
-msgstr "Verificatiesleutel"
+msgstr "verificatiesleutel"
 
 #: src/plugins/gnome/valent-device-page.ui:101
 msgid "Request Pairing"
@@ -624,105 +606,90 @@ msgid "Preferences"
 msgstr "Voorkeuren"
 
 #: src/plugins/gnome/valent-device-page.ui:298
-#, fuzzy
 msgid "Unpair"
-msgstr "Niet gekoppeld"
+msgstr "Ontkoppelen"
 
 #: src/plugins/gnome/valent-device-preferences-battery.ui:10
 msgid "Full Battery Notification"
 msgstr "Volledig opgeladen"
 
 #: src/plugins/gnome/valent-device-preferences-battery.ui:11
-#, fuzzy
 msgid "Notify when the remote battery is full"
-msgstr "Toon een melding als de accu volledig is opgeladen"
+msgstr "Melding tonen als de accu volledig is opgeladen"
 
 #: src/plugins/gnome/valent-device-preferences-battery.ui:16
 #: src/plugins/gnome/valent-device-preferences-battery.ui:36
 msgid "Level Threshold"
-msgstr ""
+msgstr "Niveaus"
 
 #: src/plugins/gnome/valent-device-preferences-battery.ui:30
 msgid "Low Battery Notification"
 msgstr "Laag accuniveau"
 
 #: src/plugins/gnome/valent-device-preferences-battery.ui:31
-#, fuzzy
 msgid "Notify when the remote battery is low"
-msgstr "Toon een melding als de accu bijna leeg is."
+msgstr "Melding tonen als de accu bijna leeg is"
 
 #: src/plugins/gnome/valent-device-preferences-clipboard.ui:10
-#, fuzzy
 msgid "Remote Clipboard"
-msgstr "Externe klembordwijzigingen"
+msgstr "Extern klembord"
 
 #: src/plugins/gnome/valent-device-preferences-clipboard.ui:11
-#, fuzzy
 msgid "Copy changes to the local clipboard"
-msgstr "Kopiëren naar lokaal klembord"
+msgstr "Kopieer wijzigingen naar het lokale klembord"
 
 #: src/plugins/gnome/valent-device-preferences-clipboard.ui:17
-#, fuzzy
 msgid "Local Clipboard"
-msgstr "Lokale klembordwijzigingen"
+msgstr "Lokaal klembord"
 
 #: src/plugins/gnome/valent-device-preferences-clipboard.ui:18
-#, fuzzy
 msgid "Report changes to the remote device"
-msgstr "Maak een foto met het externe apparaat"
+msgstr "Geef wijzigingen door aan het externe apparaat"
 
 #: src/plugins/gnome/valent-device-preferences-commands.c:85
 #: src/plugins/gnome/valent-device-preferences-commands-editor.ui:8
-#, fuzzy
 msgid "Edit Command"
-msgstr "Opdrachten"
+msgstr "Opdracht bewerken"
 
 #: src/plugins/gnome/valent-device-preferences-commands-editor.ui:17
 msgid "_Cancel"
 msgstr "_Annuleren"
 
 #: src/plugins/gnome/valent-device-preferences-commands-editor.ui:24
-#, fuzzy
 msgid "_Save"
-msgstr "Opslaan"
+msgstr "Op_slaan"
 
 #: src/plugins/gnome/valent-device-preferences-commands-editor.ui:48
 msgid "Command Line"
 msgstr "Opdrachtregel"
 
 #: src/plugins/gnome/valent-device-preferences-commands-editor.ui:63
-#, fuzzy
 msgid "Remove the command"
-msgstr "Kies een opdracht"
+msgstr "Opdracht verwijderen"
 
 #: src/plugins/gnome/valent-device-preferences-commands-editor.ui:69
 msgid "Remove"
 msgstr "Verwijderen"
 
 #: src/plugins/gnome/valent-device-preferences-commands.ui:14
-#, fuzzy
 msgid "Add a command"
-msgstr "Opdracht toevoegen…"
+msgstr "Opdracht toevoegen"
 
 #: src/plugins/gnome/valent-device-preferences-commands.ui:24
-#, fuzzy
 msgid "Local Commands"
-msgstr "Opdrachten"
+msgstr "Lokale opdrachten"
 
 #: src/plugins/gnome/valent-device-preferences-commands.ui:25
-#, fuzzy
 msgid "Commands that can be executed by remote devices"
-msgstr ""
-"Voeg opdrachten toe die op het externe apparaat kunnen worden uitgevoerd."
+msgstr "Opdrachten die op het externe apparaat kunnen worden uitgevoerd"
 
 #: src/plugins/gnome/valent-device-preferences-connectivity.ui:10
 msgid "Local Connectivity"
 msgstr "Lokale verbinding"
 
 #: src/plugins/gnome/valent-device-preferences-connectivity.ui:11
-#, fuzzy
 msgid "Send updates to the remote device"
-msgstr "Maak een foto met het externe apparaat"
+msgstr "Verstuur wijzigingen naar het externe apparaat"
 
 #: src/plugins/gnome/valent-device-preferences-connectivity.ui:17
 msgid "Remote Connectivity"
@@ -730,33 +697,31 @@ msgstr "Externe verbinding"
 
 #: src/plugins/gnome/valent-device-preferences-connectivity.ui:18
 msgid "Notify if the remote device loses connectivity"
-msgstr ""
+msgstr "Melding tonen als het externe apparaat geen verbinding meer heeft"
 
 #: src/plugins/gnome/valent-device-preferences-contacts.ui:10
 msgid "Remote Contacts"
 msgstr "Externe contactpersonen"
 
 #: src/plugins/gnome/valent-device-preferences-contacts.ui:11
-#, fuzzy
 msgid "Import contacts from the remote device"
-msgstr "Haal de lijst met contactpersonen van het externe apparaat op."
+msgstr "Importeer contactpersonen van het externe apparaat"
 
 #: src/plugins/gnome/valent-device-preferences-contacts.ui:17
 msgid "Local Contacts"
 msgstr "Lokale contactpersonen"
 
 #: src/plugins/gnome/valent-device-preferences-contacts.ui:18
-#, fuzzy
 msgid "Share contacts with the remote device"
-msgstr "Maak een foto met het externe apparaat"
+msgstr "Deel contactpersonen met het externe apparaat"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:12
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:22
 msgid "Sync"
-msgstr ""
+msgstr "Synchroniseren"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:42
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:47
@@ -770,43 +735,37 @@ msgid "No Plugins"
 msgstr "Er zijn geen plug-ins."
 
 #: src/plugins/gnome/valent-device-preferences-notification.ui:10
-#, fuzzy
 msgid "Local Notifications"
-msgstr "Meldingen"
+msgstr "Lokale meldingen"
 
 #: src/plugins/gnome/valent-device-preferences-notification.ui:11
-#, fuzzy
 msgid "Forward notifications to the remote device"
-msgstr "Verstuur de lijst met contactpersonen naar het externe apparaat."
+msgstr "Verstuur meldingen naar het externe apparaat"
 
 #: src/plugins/gnome/valent-device-preferences-notification.ui:16
 msgid "Intelligent Sync"
-msgstr ""
+msgstr "Slimme synchronisatie"
 
 #: src/plugins/gnome/valent-device-preferences-notification.ui:17
-#, fuzzy
 msgid "Notifications follow the active device"
-msgstr "Toon een melding als de verbinding verbroken is."
+msgstr "Toon meldingen van het actieve apparaat"
 
 #: src/plugins/gnome/valent-device-preferences-notification.ui:23
-#, fuzzy
 msgid "Filter by Application"
-msgstr "Geen toepassingen"
+msgstr "Filteren op toepassing"
 
 #: src/plugins/gnome/valent-device-preferences-notification.ui:90
-#, fuzzy
 msgid "Filter applications"
-msgstr "Geen toepassingen"
+msgstr "Toepassingen filteren"
 
 #: src/plugins/gnome/valent-device-preferences-notification.ui:116
 #: src/plugins/gnome/valent-messages-window.ui:223
-#, fuzzy
 msgid "Search"
-msgstr "Bezig met zoeken naar apparaten…"
+msgstr "Zoeken"
 
 #: src/plugins/gnome/valent-device-preferences-notification.ui:129
 msgid "Reset"
-msgstr ""
+msgstr "Standaardwaarden"
 
 #: src/plugins/gnome/valent-device-preferences-notification.ui:144
 msgid "No Applications"
@@ -817,21 +776,16 @@ msgid "Automatically Mount"
 msgstr "Automatisch aankoppelen"
 
 #: src/plugins/gnome/valent-device-preferences-sftp.ui:11
-#, fuzzy
 msgid "Mount shared folders when the device connects"
-msgstr ""
-"Probeer het bestandssysteem automatisch aan te koppelen zodra het apparaat "
-"verbonden is."
+msgstr "Koppel gedeelde mappen aan als het apparaat verbinding maakt"
 
 #: src/plugins/gnome/valent-device-preferences-sftp.ui:17
-#, fuzzy
 msgid "Local Files"
-msgstr "Lokaal bestandssysteem"
+msgstr "Lokale bestanden"
 
 #: src/plugins/gnome/valent-device-preferences-sftp.ui:18
-#, fuzzy
 msgid "Share local files and directories"
-msgstr "Mappen en bestanden verkennen"
+msgstr "Deel lokale bestanden en mappen"
 
 #: src/plugins/gnome/valent-device-preferences-sftp.ui:23
 msgid "Port"
@@ -854,9 +808,8 @@ msgid "Incoming Calls"
 msgstr "Inkomende oproepen"
 
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:12
-#, fuzzy
 msgid "What to do when the phone rings"
-msgstr "Welke actie er dient te worden genomen als de telefoon overgaat."
+msgstr "Wat te doen als de telefoon overgaat"
 
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:16
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:41
@@ -874,10 +827,8 @@ msgid "Ongoing Calls"
 msgstr "Actieve gesprekken"
 
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:37
-#, fuzzy
 msgid "What to do when the phone is answered"
-msgstr ""
-"Welke actie er dient te worden genomen als de telefoon wordt beantwoord."
+msgstr "Wat te doen als de telefoon wordt opgenomen"
 
 #: src/plugins/gnome/valent-device-preferences-telephony.ui:51
 msgid "Mute Microphone"
@@ -930,19 +881,17 @@ msgid "Hold one finger to grab"
 msgstr "Houd met één vinger ingedrukt om te verslepen"
 
 #: src/plugins/gnome/valent-input-remote.ui:260
-#, fuzzy
 msgid "Tap one finger to release"
-msgstr "Tik met één vinger om te stoppen met verslepen"
+msgstr "Tik met één vinger om los te laten"
 
 #: src/plugins/gnome/valent-media-remote.c:234
-#, fuzzy
 msgid "Pause"
-msgstr "Media onderbreken"
+msgstr "Pauzeren"
 
 #: src/plugins/gnome/valent-media-remote.c:245
 #: src/plugins/gnome/valent-media-remote.ui:234
 msgid "Play"
-msgstr ""
+msgstr "Afspelen"
 
 #: src/plugins/gnome/valent-media-remote.ui:222
 #: src/plugins/gnome/valent-menu-list.c:663
@@ -956,44 +905,42 @@ msgid "Next"
 msgstr "Volgende"
 
 #: src/plugins/gnome/valent-media-remote.ui:265
-#, fuzzy
 msgid "Playback Options"
-msgstr "Toepassingen"
+msgstr "Afspeelopties"
 
 #: src/plugins/gnome/valent-media-remote.ui:285
 msgid "_None"
-msgstr ""
+msgstr "Gee_n"
 
 #: src/plugins/gnome/valent-media-remote.ui:290
 msgid "Repeat _One"
-msgstr ""
+msgstr "Eén nummer her_halen"
 
 #: src/plugins/gnome/valent-media-remote.ui:295
 msgid "Repeat _All"
-msgstr ""
+msgstr "_Alles herhalen"
 
 #: src/plugins/gnome/valent-media-remote.ui:302
 msgid "_Shuffle"
-msgstr ""
+msgstr "Willekeurige modu_s"
 
 #: src/plugins/gnome/valent-media-window.ui:8
 #: src/plugins/gnome/valent-window.ui:127
 msgid "Media Remote"
-msgstr ""
+msgstr "Externe media"
 
 #: src/plugins/gnome/valent-media-window.ui:88
-#, fuzzy
 msgid "Player"
-msgstr "Mediaspelers"
+msgstr "Mediaspeler"
 
 #: src/plugins/gnome/valent-menu-list.c:528
 msgid "No Actions"
 msgstr "Er zijn geen acties."
 
 #: src/plugins/gnome/valent-message-row.c:56
-#, fuzzy, c-format
+#, c-format
 msgid "You: %s"
-msgstr "%s: %s"
+msgstr "Ik: %s"
 
 #: src/plugins/gnome/valent-messages-window.c:224
 #: src/plugins/gnome/valent-messages-window.ui:154
@@ -1001,9 +948,8 @@ msgid "Conversations"
 msgstr "Gesprekken"
 
 #: src/plugins/gnome/valent-messages-window.c:530
-#, fuzzy
 msgid "Unknown sender"
-msgstr "Onbekend contactpersoon"
+msgstr "Onbekende afzender"
 
 #: src/plugins/gnome/valent-messages-window.ui:13
 #: src/plugins/gnome/valent-messages-window.ui:51
@@ -1017,9 +963,8 @@ msgstr "Nieuw gesprek"
 
 #: src/plugins/gnome/valent-messages-window.ui:126
 #: src/plugins/gnome/valent-window.ui:68
-#, fuzzy
 msgid "Main Menu"
-msgstr "Apparaatnaam"
+msgstr "Hoofdmenu"
 
 #: src/plugins/gnome/valent-messages-window.ui:146
 msgid "No Conversations"
@@ -1051,24 +996,23 @@ msgstr "Hulp"
 
 #: src/plugins/gnome/valent-messages-window.ui:353
 msgid "Close"
-msgstr ""
+msgstr "Sluiten"
 
 #: src/plugins/gnome/valent-plugin-row.ui:79
 msgid "Authors"
-msgstr ""
+msgstr "Makers"
 
 #: src/plugins/gnome/valent-plugin-row.ui:112
 msgid "Version"
-msgstr ""
+msgstr "Versie"
 
 #: src/plugins/gnome/valent-plugin-row.ui:143
 msgid "Website"
-msgstr ""
+msgstr "Website"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:332
-#, fuzzy
 msgid "Application"
-msgstr "Toepassingen"
+msgstr "Toepassing"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:339
 msgid "Device Connections"
@@ -1134,27 +1078,27 @@ msgstr "Aanwijzer"
 #: src/plugins/gnome/valent-share-dialog.c:107
 #, c-format
 msgid "Size: %s"
-msgstr ""
+msgstr "Grootte: %s"
 
 #: src/plugins/gnome/valent-share-dialog.c:121
 #, c-format
 msgid "Total size: %s"
-msgstr ""
+msgstr "Totale grootte: %s"
 
 #: src/plugins/gnome/valent-share-dialog.c:252
 #, c-format
 msgid "%u files and links"
-msgstr ""
+msgstr "%u bestanden en links"
 
 #: src/plugins/gnome/valent-share-dialog.c:254
-#, fuzzy, c-format
+#, c-format
 msgid "%u files"
-msgstr "Alle bestanden"
+msgstr "%u bestanden"
 
 #: src/plugins/gnome/valent-share-dialog.c:256
 #, c-format
 msgid "%u links"
-msgstr ""
+msgstr "%u links"
 
 #: src/plugins/gnome/valent-share-dialog.ui:8
 #: src/plugins/gnome/valent-share-dialog.ui:29
@@ -1164,18 +1108,16 @@ msgid "Share"
 msgstr "Delen"
 
 #: src/plugins/gnome/valent-share-dialog.ui:41
-#, fuzzy
 msgid "Select files, enter a link or paste text"
-msgstr "Deel bestanden, links en tekst"
+msgstr "Kies bestanden, links of plak tekst"
 
 #: src/plugins/gnome/valent-share-dialog.ui:50
-#, fuzzy
 msgid "Pick Files"
-msgstr "Lokaal bestandssysteem"
+msgstr "Kies bestanden"
 
 #: src/plugins/gnome/valent-share-dialog.ui:75
 msgid "Enter URL"
-msgstr ""
+msgstr "Voer een url in"
 
 #: src/plugins/gnome/valent-share-dialog.ui:161
 #: src/plugins/gnome/valent-share-dialog.ui:178
@@ -1184,24 +1126,21 @@ msgid "Devices"
 msgstr "Apparaten"
 
 #: src/plugins/gnome/valent-share-dialog.ui:165
-#, fuzzy
 msgid "Share with multiple devices"
-msgstr "Maak een foto met het externe apparaat"
+msgstr "Delen met meerdere apparaten"
 
 #: src/plugins/gnome/valent-share-dialog.ui:192
-#, fuzzy
 msgid "Searching…"
-msgstr "Bezig met zoeken naar apparaten…"
+msgstr "Bezig met zoeken…"
 
 #: src/plugins/gnome/valent-share-dialog.ui:215
-#, fuzzy
 msgid "_Share"
-msgstr "Delen"
+msgstr "_Delen"
 
 #. translators: Unknown time
 #: src/plugins/gnome/valent-time-helpers.c:51
 msgid "--:--"
-msgstr ""
+msgstr "--:--"
 
 #. hour:minutes:seconds
 #. Translators: This is a time format, like "9:05:02" for 9
@@ -1213,7 +1152,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d"
-msgstr ""
+msgstr "%d:%02d:%02d"
 
 #. hour:minutes:seconds.msecs
 #. Translators: This is a time format, like "9:05:02.050" for 9
@@ -1225,7 +1164,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d.%03d"
-msgstr ""
+msgstr "%d:%02d:%02d.%03d"
 
 #. -hour:minutes:seconds
 #. Translators: This is a time format, like "-9:05:02" for 9
@@ -1237,7 +1176,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d"
-msgstr ""
+msgstr "-%d:%02d:%02d"
 
 #. -hour:minutes:seconds.msecs
 #. Translators: This is a time format, like "-9:05:02.050" for 9
@@ -1249,7 +1188,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d.%03d"
-msgstr ""
+msgstr "-%d:%02d:%02d.%03d"
 
 #. -minutes:seconds
 #. Translators: This is a time format, like "-5:02" for 5
@@ -1261,7 +1200,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d"
-msgstr ""
+msgstr "-%d:%02d"
 
 #. -minutes:seconds.msec
 #. Translators: This is a time format, like "-5:02.050" for 5
@@ -1273,7 +1212,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d.%03d"
-msgstr ""
+msgstr "-%d:%02d.%03d"
 
 #. minutes:seconds.msec
 #. Translators: This is a time format, like "5:02" for 5
@@ -1285,7 +1224,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d.%03d"
-msgstr ""
+msgstr "%d:%02d.%03d"
 
 #. minutes:seconds
 #. Translators: This is a time format, like "5:02" for 5
@@ -1297,7 +1236,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d"
-msgstr ""
+msgstr "%d:%02d"
 
 #: src/plugins/gnome/valent-window.c:230
 msgid "translator-credits"
@@ -1305,25 +1244,23 @@ msgstr "Heimen Stoffels <vistausss@fastmail.com>"
 
 #: src/plugins/gnome/valent-window.c:235
 msgid "Sponsors"
-msgstr ""
+msgstr "Sponsoren"
 
 #: src/plugins/gnome/valent-window.ui:56
 msgid "Refresh"
 msgstr "Herladen"
 
 #: src/plugins/gnome/valent-window.ui:57
-#, fuzzy
 msgid "Scan for new devices"
-msgstr "Bezig met zoeken naar apparaten…"
+msgstr "Zoeken naar nieuwe apparaten"
 
 #: src/plugins/gnome/valent-window.ui:94
 msgid "Searching for devices…"
 msgstr "Bezig met zoeken naar apparaten…"
 
 #: src/plugins/gnome/valent-window.ui:135
-#, fuzzy
 msgid "Share…"
-msgstr "Delen"
+msgstr "Delen…"
 
 #: src/plugins/gnome/valent-window.ui:146
 msgid "About Valent"
@@ -1388,12 +1325,11 @@ msgstr "Rinkelen!"
 
 #: src/plugins/pipewire/pipewire.plugin.desktop.in:7
 msgid "PipeWire"
-msgstr ""
+msgstr "PipeWire"
 
 #: src/plugins/pipewire/pipewire.plugin.desktop.in:8
-#, fuzzy
 msgid "Integration with PipeWire"
-msgstr "Integratie met PulseAudio"
+msgstr "Integratie met PipeWire"
 
 #: src/plugins/presenter/presenter.plugin.desktop.in:7
 msgid "Presenter"
@@ -1424,14 +1360,12 @@ msgid "Run Command"
 msgstr "Opdracht uitvoeren"
 
 #: src/plugins/sftp/sftp.plugin.desktop.in:7
-#, fuzzy
 msgid "Files"
-msgstr "Alle bestanden"
+msgstr "Bestanden"
 
 #: src/plugins/sftp/sftp.plugin.desktop.in:8
-#, fuzzy
 msgid "Share files and directories with SFTP"
-msgstr "Mappen en bestanden verkennen"
+msgstr "Verken bestanden en mappen met sftp"
 
 #: src/plugins/sftp/valent-sftp-plugin.c:541
 msgid "Permission denied"
@@ -1442,12 +1376,10 @@ msgid "Browse Files"
 msgstr "Bestanden verkennen"
 
 #: src/plugins/share/share.plugin.desktop.in:7
-#, fuzzy
 msgid "Sharing"
 msgstr "Delen"
 
 #: src/plugins/share/share.plugin.desktop.in:8
-#, fuzzy
 msgid "Direct file, link and text sharing"
 msgstr "Deel bestanden, links en tekst"
 
@@ -1508,20 +1440,20 @@ msgstr "Bezig met overdracht…"
 
 #: src/plugins/share/valent-share-plugin.c:237
 #: src/plugins/share/valent-share-plugin.c:247
-#, fuzzy, c-format
+#, c-format
 msgid "Opening “%s” from “%s”"
-msgstr "Bezig met openen van %s vanop %s…"
+msgstr "Bezig met openen van ‘%s’ vanop “%s”…"
 
 #: src/plugins/share/valent-share-plugin.c:337
 #: src/plugins/share/valent-share-plugin.c:349
-#, fuzzy, c-format
+#, c-format
 msgid "Opening “%s” on “%s”"
-msgstr "Bezig met openen van %s op %s…"
+msgstr "Bezig met openen van ‘%s’ op “%s”…"
 
 #: src/plugins/share/valent-share-plugin.c:343
-#, fuzzy, c-format
+#, c-format
 msgid "Opened “%s” on “%s”"
-msgstr "%s is geopend op %s"
+msgstr "‘%s’ is geopend op “%s”"
 
 #: src/plugins/share/valent-share-plugin.c:468
 #: src/plugins/share/valent-share-plugin.c:486
@@ -1541,7 +1473,7 @@ msgstr[1] "%2$d bestanden verstuurd naar %1$s"
 #: src/plugins/share/valent-share-plugin.c:731
 #, c-format
 msgid "Text from “%s” saved to “%s”"
-msgstr ""
+msgstr "Tekst van “%s” is opgeslagen op “%s”"
 
 #. TRANSLATORS: this is a filename used for text shared by a device, where
 #. * the first "%s" is the date and the second "%s" is the device name, e.g.
@@ -1550,16 +1482,16 @@ msgstr ""
 #: src/plugins/share/valent-share-plugin.c:786
 #, c-format
 msgid "Text from %s (%s).txt"
-msgstr ""
+msgstr "Text van %s (%s).txt"
 
 #: src/plugins/share/valent-share-plugin.c:1108
-#, fuzzy, c-format
+#, c-format
 msgid "Text from “%s”"
-msgstr "Koppelverzoek van %s"
+msgstr "Tekst “%s”"
 
 #: src/plugins/share/valent-share-plugin.c:1119
 msgid "Copy"
-msgstr ""
+msgstr "Kopiëren"
 
 #: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "SMS"
@@ -1575,7 +1507,7 @@ msgstr "Systeemvolume"
 
 #: src/plugins/systemvolume/systemvolume.plugin.desktop.in:8
 msgid "Monitor volume levels and microphones"
-msgstr ""
+msgstr "Bedien de volumeniveaus en microfonen"
 
 #: src/plugins/telephony/telephony.plugin.desktop.in:7
 msgid "Telephony"
@@ -1587,10 +1519,9 @@ msgstr "Toon een melding bij inkomende en actieve gesprekken"
 
 #. TRANSLATORS: An unknown caller, with no name or phone number
 #: src/plugins/telephony/valent-telephony-plugin.c:368
-#, fuzzy
 msgctxt "contact identity"
 msgid "Unknown"
-msgstr "Onbekend contactpersoon"
+msgstr "Onbekend"
 
 #. TRANSLATORS: The phone is ringing
 #: src/plugins/telephony/valent-telephony-plugin.c:395
@@ -1603,9 +1534,8 @@ msgid "Ongoing call"
 msgstr "Actief gesprek"
 
 #: src/plugins/xdp/valent-xdp-background.c:52
-#, fuzzy
 msgid "Syncing Devices"
-msgstr "Apparaten"
+msgstr "Apparaten synchroniseren"
 
 #: src/plugins/xdp/valent-xdp-background.c:82
 msgid "Valent wants to run as a service"
