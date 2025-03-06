@@ -359,10 +359,10 @@ valent_channel_service_constructed (GObject *object)
 
   if (priv->certificate == NULL)
     {
-      ValentContext *context = NULL;
+      g_autoptr (ValentContext) context = NULL;
       g_autoptr (GFile) config = NULL;
 
-      context = valent_extension_get_context (VALENT_EXTENSION (self));
+      context = valent_context_new (NULL, NULL, NULL);
       config = valent_context_get_config_file (context, ".");
       priv->certificate = valent_certificate_new_sync (g_file_peek_path (config),
                                                        NULL);
