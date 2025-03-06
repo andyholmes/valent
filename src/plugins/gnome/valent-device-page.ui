@@ -70,7 +70,6 @@
                             <property name="spacing">32</property>
                             <child>
                               <object class="GtkLabel" id="verification_key">
-                                <property name="label" translatable="yes">Unavailable</property>
                                 <accessibility>
                                   <property name="description" translatable="yes">verification key</property>
                                 </accessibility>

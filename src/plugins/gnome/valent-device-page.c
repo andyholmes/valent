@@ -79,22 +79,22 @@ on_state_changed (ValentDevice     *device,
       g_autofree char *verification_key = NULL;
       gboolean pair_incoming, pair_outgoing;
 
-      description = g_strdup_printf (_("Please confirm the verification key "
-                                       "below matches the one on “%s”"),
-                                     valent_device_get_name (self->device));
-      adw_status_page_set_description (self->pair_page, description);
-
-      /* Get the channel verification key */
-      verification_key = valent_device_get_verification_key (self->device);
-      if (verification_key == NULL)
-        verification_key = g_strdup (_("Unavailable"));
-
-      gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
-
-      /* Adjust the actions */
       pair_incoming = (state & VALENT_DEVICE_STATE_PAIR_INCOMING) != 0;
       pair_outgoing = (state & VALENT_DEVICE_STATE_PAIR_OUTGOING) != 0;
 
+      /* Get the channel verification key */
+      if (pair_incoming || pair_outgoing)
+        {
+          description = g_strdup_printf (_("Please confirm the verification key "
+                                           "below matches the one on “%s”"),
+                                         valent_device_get_name (self->device));
+          verification_key = valent_device_get_verification_key (self->device);
+        }
+
+      gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
+      adw_status_page_set_description (self->pair_page, description);
+
+      /* Adjust the actions */
       gtk_widget_set_visible (self->pair_request, !pair_incoming);
       gtk_widget_set_sensitive (self->pair_request, !pair_outgoing);
       gtk_spinner_set_spinning (self->pair_spinner, pair_outgoing);
