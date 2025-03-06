@@ -40,7 +40,6 @@ struct _ValentDeviceManager
 
   GCancellable             *cancellable;
   ValentContext            *context;
-  GTlsCertificate          *certificate;
 
   GPtrArray                *devices;
   GHashTable               *plugins;
@@ -278,9 +277,8 @@ valent_device_manager_enable_plugin (ValentDeviceManager *self,
   plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_CHANNEL_SERVICE,
-                                                    "source",      self,
-                                                    "context",     plugin->context,
-                                                    "certificate", self->certificate,
+                                                    "source",  self,
+                                                    "context", plugin->context,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
@@ -558,8 +556,35 @@ valent_device_manager_load_state (ValentDeviceManager *self)
   JsonObjectIter iter;
   const char *device_id;
   JsonNode *identity;
+  g_autoptr (GFile) path = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
+
+  /* Ensure we're wiping old certificates with invalid device IDs. In the
+   * unlikely event of an error, the channel service will re-generate it.
+   *
+   * TODO: remove this after a period of time
+   */
+  path = valent_context_get_config_file (self->context, ".");
+  certificate = valent_certificate_new_sync (g_file_peek_path (path), NULL);
+  if (certificate != NULL)
+    {
+      device_id = valent_certificate_get_common_name (certificate);
+      if (!valent_device_validate_id (device_id))
+        {
+          g_autoptr (GFile) cert_file = NULL;
+          g_autoptr (GFile) pkey_file = NULL;
+
+          cert_file = valent_context_get_config_file (self->context,
+                                                      "certificate.pem");
+          g_file_delete (cert_file, NULL, NULL);
+          pkey_file = valent_context_get_config_file (self->context,
+                                                      "private.pem");
+          g_file_delete (pkey_file, NULL, NULL);
+        }
+    }
 
   if (self->state == NULL)
     {
@@ -794,15 +819,8 @@ static void
 valent_device_manager_constructed (GObject *object)
 {
   ValentDeviceManager *self = VALENT_DEVICE_MANAGER (object);
-  g_autoptr (GFile) file = NULL;
-  g_autoptr (GError) error = NULL;
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->constructed (object);
-
-  file = valent_context_get_config_file (self->context, ".");
-  self->certificate = valent_certificate_new_sync (g_file_peek_path (file), &error);
-  if (self->certificate == NULL)
-    g_critical ("%s(): %s", G_STRFUNC, error->message);
 
   if (default_manager == NULL)
     {
@@ -822,8 +840,6 @@ valent_device_manager_finalize (GObject *object)
   g_clear_pointer (&self->plugins_context, g_object_unref);
   g_clear_pointer (&self->devices, g_ptr_array_unref);
   g_clear_pointer (&self->state, json_node_unref);
-
-  g_clear_object (&self->certificate);
   g_clear_object (&self->context);
 
   G_OBJECT_CLASS (valent_device_manager_parent_class)->finalize (object);
