@@ -90,6 +90,12 @@ on_state_changed (ValentDevice     *device,
                                          valent_device_get_name (self->device));
           verification_key = valent_device_get_verification_key (self->device);
         }
+      else
+        {
+          description = g_strdup_printf (_("Open the app on your “%s” to "
+                                           "request or accept pairing."),
+                                         valent_device_get_name (self->device));
+        }
 
       gtk_label_set_text (GTK_LABEL (self->verification_key), verification_key);
       adw_status_page_set_description (self->pair_page, description);
