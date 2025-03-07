@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-03-04 13:38-0800\n"
+"POT-Creation-Date: 2025-03-06 20:32-0800\n"
 "PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
@@ -175,12 +175,12 @@ msgid "Pairing request from “%s”"
 msgstr "来自 %s 的配对请求"
 
 #: src/libvalent/device/valent-device.c:533
-#: src/plugins/gnome/valent-device-page.ui:119
+#: src/plugins/gnome/valent-device-page.ui:118
 msgid "Reject"
 msgstr "拒绝"
 
 #: src/libvalent/device/valent-device.c:538
-#: src/plugins/gnome/valent-device-page.ui:133
+#: src/plugins/gnome/valent-device-page.ui:132
 msgid "Accept"
 msgstr "接受"
 
@@ -194,7 +194,7 @@ msgid "Device clocks are out of sync"
 msgstr ""
 
 #: src/plugins/battery/battery.plugin.desktop.in:7
-#: src/plugins/gnome/valent-device-page.ui:218
+#: src/plugins/gnome/valent-device-page.ui:217
 #: src/plugins/gnome/valent-device-row.ui:124
 msgid "Battery"
 msgstr "电池"
@@ -224,7 +224,7 @@ msgstr "%s: 电量低"
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
 #.
 #: src/plugins/battery/valent-battery-plugin.c:296
-#: src/plugins/gnome/valent-device-page.c:186
+#: src/plugins/gnome/valent-device-page.c:192
 #: src/plugins/gnome/valent-device-row.c:156
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
@@ -258,7 +258,7 @@ msgstr "监测手机信号状态"
 
 #. TRANSLATORS: When the mobile network signal is available
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
-#: src/plugins/gnome/valent-device-page.ui:244
+#: src/plugins/gnome/valent-device-page.ui:243
 #: src/plugins/gnome/valent-device-row.ui:116
 msgid "Mobile Network"
 msgstr "移动网络"
@@ -541,26 +541,26 @@ msgstr "昨天 · %s"
 msgid "%s · %s"
 msgstr "昨天 · %s"
 
-#: src/plugins/gnome/valent-device-page.c:82
+#: src/plugins/gnome/valent-device-page.c:88
 #, c-format
 msgid "Please confirm the verification key below matches the one on “%s”"
 msgstr ""
 
-#: src/plugins/gnome/valent-device-page.c:90
-#: src/plugins/gnome/valent-device-page.ui:73
-msgid "Unavailable"
-msgstr "不可用"
+#: src/plugins/gnome/valent-device-page.c:95
+#, c-format
+msgid "Open the app on your “%s” to request or accept pairing."
+msgstr ""
 
 #. TRANSLATORS: When the battery level is 100%
 #.
-#: src/plugins/gnome/valent-device-page.c:148
+#: src/plugins/gnome/valent-device-page.c:154
 #: src/plugins/gnome/valent-device-row.c:118
 msgid "Fully Charged"
 msgstr "电量满"
 
 #. TRANSLATORS: This is <percentage> (Estimating…)
 #.
-#: src/plugins/gnome/valent-device-page.c:173
+#: src/plugins/gnome/valent-device-page.c:179
 #: src/plugins/gnome/valent-device-row.c:143
 #, c-format
 msgid "%g%% (Estimating…)"
@@ -568,7 +568,7 @@ msgstr "%g%% (估测中...)"
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
 #.
-#: src/plugins/gnome/valent-device-page.c:179
+#: src/plugins/gnome/valent-device-page.c:185
 #: src/plugins/gnome/valent-device-row.c:149
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
@@ -592,26 +592,26 @@ msgstr ""
 msgid "Unpaired"
 msgstr "未配对"
 
-#: src/plugins/gnome/valent-device-page.ui:75
+#: src/plugins/gnome/valent-device-page.ui:74
 #, fuzzy
 msgid "verification key"
 msgstr "验证密钥"
 
-#: src/plugins/gnome/valent-device-page.ui:101
+#: src/plugins/gnome/valent-device-page.ui:100
 msgid "Request Pairing"
 msgstr "请求配对"
 
-#: src/plugins/gnome/valent-device-page.ui:260
+#: src/plugins/gnome/valent-device-page.ui:259
 #: src/plugins/lock/lock.plugin.desktop.in:7
 msgid "Lock"
 msgstr "锁定"
 
-#: src/plugins/gnome/valent-device-page.ui:292
+#: src/plugins/gnome/valent-device-page.ui:291
 #: src/plugins/gnome/valent-window.ui:142
 msgid "Preferences"
 msgstr "首选项"
 
-#: src/plugins/gnome/valent-device-page.ui:298
+#: src/plugins/gnome/valent-device-page.ui:297
 #, fuzzy
 msgid "Unpair"
 msgstr "未配对"
@@ -1567,6 +1567,9 @@ msgstr "桌面环境"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "与桌面环境集成"
+
+#~ msgid "Unavailable"
+#~ msgstr "不可用"
 
 #~ msgid "Notification"
 #~ msgstr "通知"
