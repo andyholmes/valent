@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-03-04 13:38-0800\n"
+"POT-Creation-Date: 2025-03-06 20:32-0800\n"
 "PO-Revision-Date: 2023-10-29 00:44-0300\n"
 "Last-Translator: Victor L. Pavan <victorpavan001@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <victorpavan001@gmail.com>\n"
@@ -182,12 +182,12 @@ msgid "Pairing request from “%s”"
 msgstr "Requisição de pareamento de %s"
 
 #: src/libvalent/device/valent-device.c:533
-#: src/plugins/gnome/valent-device-page.ui:119
+#: src/plugins/gnome/valent-device-page.ui:118
 msgid "Reject"
 msgstr "Rejeitar"
 
 #: src/libvalent/device/valent-device.c:538
-#: src/plugins/gnome/valent-device-page.ui:133
+#: src/plugins/gnome/valent-device-page.ui:132
 msgid "Accept"
 msgstr "Aceitar"
 
@@ -201,7 +201,7 @@ msgid "Device clocks are out of sync"
 msgstr ""
 
 #: src/plugins/battery/battery.plugin.desktop.in:7
-#: src/plugins/gnome/valent-device-page.ui:218
+#: src/plugins/gnome/valent-device-page.ui:217
 #: src/plugins/gnome/valent-device-row.ui:124
 msgid "Battery"
 msgstr "Bateria"
@@ -231,7 +231,7 @@ msgstr "%s: Bateria Fraca"
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
 #.
 #: src/plugins/battery/valent-battery-plugin.c:296
-#: src/plugins/gnome/valent-device-page.c:186
+#: src/plugins/gnome/valent-device-page.c:192
 #: src/plugins/gnome/valent-device-row.c:156
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
@@ -265,7 +265,7 @@ msgstr "Monitore o status da rede móvel"
 
 #. TRANSLATORS: When the mobile network signal is available
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
-#: src/plugins/gnome/valent-device-page.ui:244
+#: src/plugins/gnome/valent-device-page.ui:243
 #: src/plugins/gnome/valent-device-row.ui:116
 msgid "Mobile Network"
 msgstr "Rede Móvel"
@@ -551,26 +551,26 @@ msgstr "Ontem · %s"
 msgid "%s · %s"
 msgstr "Ontem · %s"
 
-#: src/plugins/gnome/valent-device-page.c:82
+#: src/plugins/gnome/valent-device-page.c:88
 #, c-format
 msgid "Please confirm the verification key below matches the one on “%s”"
 msgstr ""
 
-#: src/plugins/gnome/valent-device-page.c:90
-#: src/plugins/gnome/valent-device-page.ui:73
-msgid "Unavailable"
-msgstr "Indisponível"
+#: src/plugins/gnome/valent-device-page.c:95
+#, c-format
+msgid "Open the app on your “%s” to request or accept pairing."
+msgstr ""
 
 #. TRANSLATORS: When the battery level is 100%
 #.
-#: src/plugins/gnome/valent-device-page.c:148
+#: src/plugins/gnome/valent-device-page.c:154
 #: src/plugins/gnome/valent-device-row.c:118
 msgid "Fully Charged"
 msgstr "Completamente carregado"
 
 #. TRANSLATORS: This is <percentage> (Estimating…)
 #.
-#: src/plugins/gnome/valent-device-page.c:173
+#: src/plugins/gnome/valent-device-page.c:179
 #: src/plugins/gnome/valent-device-row.c:143
 #, c-format
 msgid "%g%% (Estimating…)"
@@ -578,7 +578,7 @@ msgstr "%g%% (Estimando…)"
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
 #.
-#: src/plugins/gnome/valent-device-page.c:179
+#: src/plugins/gnome/valent-device-page.c:185
 #: src/plugins/gnome/valent-device-row.c:149
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
@@ -602,26 +602,26 @@ msgstr "Este dispositivo está atualmente indisponível"
 msgid "Unpaired"
 msgstr "Não Pareado"
 
-#: src/plugins/gnome/valent-device-page.ui:75
+#: src/plugins/gnome/valent-device-page.ui:74
 #, fuzzy
 msgid "verification key"
 msgstr "Chave de Verificação"
 
-#: src/plugins/gnome/valent-device-page.ui:101
+#: src/plugins/gnome/valent-device-page.ui:100
 msgid "Request Pairing"
 msgstr "Requisitar Pareamento"
 
-#: src/plugins/gnome/valent-device-page.ui:260
+#: src/plugins/gnome/valent-device-page.ui:259
 #: src/plugins/lock/lock.plugin.desktop.in:7
 msgid "Lock"
 msgstr "Bloquear"
 
-#: src/plugins/gnome/valent-device-page.ui:292
+#: src/plugins/gnome/valent-device-page.ui:291
 #: src/plugins/gnome/valent-window.ui:142
 msgid "Preferences"
 msgstr "Preferências"
 
-#: src/plugins/gnome/valent-device-page.ui:298
+#: src/plugins/gnome/valent-device-page.ui:297
 msgid "Unpair"
 msgstr "Desparear"
 
@@ -1576,6 +1576,9 @@ msgstr "Portais"
 #: src/plugins/xdp/xdp.plugin.desktop.in:8
 msgid "Integration with desktop portals"
 msgstr "Integração com portais da área de trabalho"
+
+#~ msgid "Unavailable"
+#~ msgstr "Indisponível"
 
 #~ msgid "Notification"
 #~ msgstr "Notificação"
