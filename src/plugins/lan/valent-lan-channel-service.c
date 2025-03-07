@@ -154,6 +154,7 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
   const char *peer_certificate_cn = NULL;
   const char *device_id = NULL;
+  const char *device_name = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (self));
   g_assert (VALENT_IS_PACKET (peer_identity));;
@@ -171,6 +172,19 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
   if (!valent_device_validate_id (device_id))
     {
       g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
+      return FALSE;
+    }
+
+  if (!valent_packet_get_string (peer_identity, "deviceName", &device_name))
+    {
+      g_debug ("%s(): expected \"deviceName\" field holding a string",
+               G_STRFUNC);
+      return FALSE;
+    }
+
+  if (!valent_device_validate_name (device_name))
+    {
+      g_warning ("%s(): invalid device name \"%s\"", G_STRFUNC, device_name);
       return FALSE;
     }
 
