@@ -330,7 +330,7 @@ on_incoming_connection (ValentChannelService   *service,
         g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
                  G_STRFUNC, host, port, warning->message);
       else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for authentication", G_STRFUNC);
+        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
 
       g_cancellable_disconnect (cancellable, cancellable_id);
 
