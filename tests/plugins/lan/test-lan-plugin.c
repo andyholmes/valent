@@ -14,19 +14,33 @@
  *       Port 1716 is still avoided, since it would conflict with a running
  *       service when testing on a real system.
  */
-#define ENDPOINT_ADDR          "127.0.0.1:1717"
-#define ENDPOINT_HOST          "127.0.0.1"
-#define ENDPOINT_PORT          (1717)
-#define SERVICE_ADDR           "127.0.0.1:1718"
-#define SERVICE_HOST           "127.0.0.1"
-#define SERVICE_PORT           (1718)
+#define ENDPOINT_ADDR                   "127.0.0.1:1717"
+#define ENDPOINT_HOST                   "127.0.0.1"
+#define ENDPOINT_PORT                   (1717)
+#define SERVICE_ADDR                    "127.0.0.1:1718"
+#define SERVICE_HOST                    "127.0.0.1"
+#define SERVICE_PORT                    (1718)
 
-#define IDENTITY_BUFFER_MAX    (8192)
+#define IDENTITY_BUFFER_MAX             (8192)
+#if VALENT_HAVE_ASAN
+  #define AUTHENTICATION_TIMEOUT_MAX    (5500)
+#else
+  #define AUTHENTICATION_TIMEOUT_MAX    (1100)
+#endif
 
-#define TEST_IDENTITY_OVERSIZE "identity-oversize"
-#define TEST_IDENTITY_TIMEOUT  "identity-timeout"
-#define TEST_TLS_AUTH_TIMEOUT  "tls-auth-timeout"
-#define TEST_TLS_AUTH_SPOOFER  "tls-auth-spoofer"
+#define TEST_INCOMING_IDENTITY_OVERSIZE "/plugins/lan/incoming-identity-oversize"
+#define TEST_INCOMING_IDENTITY_TIMEOUT  "/plugins/lan/incoming-identity-timeout"
+#define TEST_INCOMING_INVALID_ID        "/plugins/lan/incoming-invalid-id"
+#define TEST_INCOMING_INVALID_NAME      "/plugins/lan/incoming-invalid-name"
+#define TEST_OUTGOING_IDENTITY_OVERSIZE "/plugins/lan/outgoing-identity-oversize"
+#define TEST_OUTGOING_IDENTITY_TIMEOUT  "/plugins/lan/outgoing-identity-timeout"
+#define TEST_OUTGOING_INVALID_ID        "/plugins/lan/outgoing-invalid-id"
+#define TEST_OUTGOING_INVALID_NAME      "/plugins/lan/outgoing-invalid-name"
+
+#define TEST_INCOMING_TLS_SPOOFER       "/plugins/lan/incoming-tls-spoofer"
+#define TEST_INCOMING_TLS_TIMEOUT       "/plugins/lan/incoming-tls-timeout"
+#define TEST_OUTGOING_TLS_SPOOFER       "/plugins/lan/outgoing-tls-spoofer"
+#define TEST_OUTGOING_TLS_TIMEOUT       "/plugins/lan/outgoing-tls-timeout"
 
 
 typedef struct
@@ -43,6 +57,13 @@ typedef struct
 
   gpointer              data;
 } LanBackendFixture;
+
+typedef struct
+{
+  const char       *name;
+  const char       *errmsg;
+  GTestFixtureFunc  func;
+} LanTestCase;
 
 static GSocket *
 create_socket (void)
@@ -116,8 +137,11 @@ lan_service_fixture_tear_down (LanBackendFixture *fixture,
   g_clear_pointer (&fixture->packets, json_node_unref);
 
   v_await_finalize_object (fixture->service);
-  v_await_finalize_object (fixture->channel);
-  v_await_finalize_object (fixture->endpoint);
+
+  if (fixture->channel != NULL)
+    v_await_finalize_object (fixture->channel);
+  if (fixture->endpoint != NULL)
+    v_await_finalize_object (fixture->endpoint);
 
   v_await_finalize_object (fixture->peer_certificate);
   v_await_finalize_object (fixture->socket);
@@ -131,6 +155,7 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
                              GAsyncResult      *result,
                              LanBackendFixture *fixture)
 {
+  const char *test_name = g_test_get_path ();
   g_autoptr (GSocketConnection) connection = NULL;
   GTlsCertificate *peer_certificate = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
@@ -158,6 +183,32 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
    */
   valent_packet_get_string (peer_identity, "deviceId", &device_id);
   g_assert_true (valent_device_validate_id (device_id));
+
+  /* In this test case we are trying to connect with the same device ID and a
+   * different certificate, so we expect the service to reject the connection.
+   */
+  if (g_strcmp0 (test_name, TEST_INCOMING_TLS_SPOOFER) == 0)
+    {
+      g_autoptr (GTlsCertificate) bad_certificate = NULL;
+      g_autofree char *tmpdir = NULL;
+
+      /* TODO: test the case where the certificate common name _does_ match the
+       *       identity, but the certificate itself is different
+       */
+      g_clear_object (&fixture->peer_certificate);
+      tmpdir = g_dir_make_tmp (NULL, &error);
+      g_assert_no_error (error);
+      fixture->peer_certificate = valent_certificate_new_sync (tmpdir, &error);
+      g_assert_no_error (error);
+    }
+
+  /* In this test case we are neglecting to negotiate a TLS connection,
+   * so we expect the test service to close the connection after 1000ms
+   */
+  if (g_strcmp0 (test_name, TEST_INCOMING_TLS_TIMEOUT) == 0)
+    {
+      valent_test_await_timeout (AUTHENTICATION_TIMEOUT_MAX);
+    }
 
   tls_stream = valent_lan_encrypt_client_connection (connection,
                                                      fixture->peer_certificate,
@@ -353,40 +404,10 @@ test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
 }
 
 static void
-test_lan_service_incoming_broadcast_oversize (void)
-{
-  if (g_test_subprocess ())
-    {
-      LanBackendFixture *fixture;
-      g_autofree char *oversize = NULL;
-
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
-
-      /* Inject data into the identity packet, to force it to be rejected */
-      oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
-      json_object_set_string_member (valent_packet_get_body (fixture->peer_identity),
-                                     "oversize",
-                                     oversize);
-
-      /* Run the test to be failed */
-      test_lan_service_incoming_broadcast (fixture, TEST_IDENTITY_OVERSIZE);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
-    }
-  g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_failed ();
-}
-
-static void
 test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                                      gconstpointer      user_data)
 {
+  const char *test_name = g_test_get_path ();
   g_autoptr (GInputStream) unix_stream = NULL;
   g_autoptr (GDataInputStream) data_stream = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
@@ -434,57 +455,48 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
                                          &connection);
   valent_test_await_pointer (&connection);
 
-  /* We opened a TCP connection in response to the incoming UDP broadcast so the
-   * test service now expects us to write our identity packet.
+  /* In this test case we are neglecting to send our identity packet, so
+   * we expect the test service to close the connection after 1000ms
    */
-  if (g_test_subprocess ())
+  if (g_strcmp0 (test_name, TEST_OUTGOING_IDENTITY_TIMEOUT) == 0)
     {
-      /* In this test case we are neglecting to send our identity packet, so
-       * we expect the test service to close the connection after 1000ms */
-      if (g_strcmp0 (user_data, TEST_IDENTITY_TIMEOUT) == 0)
-        valent_test_await_timeout (1100);
+      valent_test_await_timeout (AUTHENTICATION_TIMEOUT_MAX);
     }
 
   output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
   valent_packet_to_stream (output_stream, fixture->peer_identity, NULL, &error);
   g_assert_no_error (error);
 
-  /* The test service is unverified, so it expects to be accepted on a
-   * trust-on-first-use basis.
-   */
-  if (g_test_subprocess ())
-    {
-      /* In this test case we are neglecting to negotiate a TLS connection, so
-       * we expect the test service to close the connection after 1000ms */
-      if (g_strcmp0 (user_data, TEST_TLS_AUTH_TIMEOUT) == 0)
-        valent_test_await_timeout (1100);
-    }
-
   /* In this test case we are trying to connect with the same device ID and a
    * different certificate, so we expect the service to reject the connection.
    */
-  if (g_strcmp0 (user_data, TEST_TLS_AUTH_SPOOFER) == 0)
+  if (g_strcmp0 (test_name, TEST_OUTGOING_TLS_SPOOFER) == 0)
     {
       g_autoptr (GTlsCertificate) bad_certificate = NULL;
+      g_autofree char *tmpdir = NULL;
 
-      /* HACK: we're just sending the service's certificate back to itself,
-       *       so the common name won't match the `deviceId` in the identity
-       * TODO: test the case where the certificate common name _does_ match the
+      /* TODO: test the case where the certificate common name _does_ match the
        *       identity, but the certificate itself is different
        */
-      g_object_get (fixture->service, "certificate", &bad_certificate, NULL);
-      tls_stream = valent_lan_encrypt_server_connection (connection,
-                                                         bad_certificate,
-                                                         NULL,
-                                                         &error);
+      g_clear_object (&fixture->peer_certificate);
+      tmpdir = g_dir_make_tmp (NULL, &error);
+      g_assert_no_error (error);
+      fixture->peer_certificate = valent_certificate_new_sync (tmpdir, &error);
+      g_assert_no_error (error);
     }
-  else
+
+  /* In this test case we are neglecting to negotiate a TLS connection,
+   * so we expect the test service to close the connection after 1000ms
+   */
+  if (g_strcmp0 (test_name, TEST_OUTGOING_TLS_TIMEOUT) == 0)
     {
-      tls_stream = valent_lan_encrypt_server_connection (connection,
-                                                         fixture->peer_certificate,
-                                                         NULL,
-                                                         &error);
+      valent_test_await_timeout (AUTHENTICATION_TIMEOUT_MAX);
     }
+
+  tls_stream = valent_lan_encrypt_server_connection (connection,
+                                                     fixture->peer_certificate,
+                                                     NULL,
+                                                     &error);
   g_assert_no_error (error);
   g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
 
@@ -537,107 +549,59 @@ test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
 }
 
 static void
-test_lan_service_outgoing_broadcast_oversize (void)
+test_lan_service_invalid_identity (LanBackendFixture *fixture,
+                                   gconstpointer      user_data)
 {
+  LanTestCase *test_case = (LanTestCase *)user_data;
+  const char *test_name = g_test_get_path ();
+
   if (g_test_subprocess ())
     {
-      LanBackendFixture *fixture;
-      g_autofree char *oversize = NULL;
+      JsonObject *body = valent_packet_get_body (fixture->peer_identity);
 
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
+      /* Inject data into the identity packet, to force it to be rejected
+       */
+      if (g_strcmp0 (test_name, TEST_INCOMING_IDENTITY_OVERSIZE) == 0 ||
+          g_strcmp0 (test_name, TEST_OUTGOING_IDENTITY_OVERSIZE) == 0)
+        {
+          g_autofree char *oversize = NULL;
 
-      /* Inject data into the identity packet, to force it to be rejected */
-      oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
-      json_object_set_string_member (valent_packet_get_body (fixture->peer_identity),
-                                     "oversize",
-                                     oversize);
+          oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
+          json_object_set_string_member (body, "oversize", oversize);
+        }
+      /* Override the valid `deviceId`, to force it to be rejected
+       */
+      else if (g_strcmp0 (test_name, TEST_INCOMING_INVALID_ID) == 0 ||
+          g_strcmp0 (test_name, TEST_OUTGOING_INVALID_ID) == 0)
+        {
+          json_object_set_string_member (body, "deviceId", "!@#$%^&*()");
+        }
+      /* Override the valid `deviceName`, to force it to be rejected
+       */
+      else if (g_strcmp0 (test_name, TEST_INCOMING_INVALID_NAME) == 0 ||
+               g_strcmp0 (test_name, TEST_OUTGOING_INVALID_NAME) == 0)
+        {
+          json_object_set_string_member (body, "deviceName", "!@#$%^&*()");
+        }
 
-      /* Run the test to be failed */
-      test_lan_service_outgoing_broadcast (fixture, TEST_IDENTITY_OVERSIZE);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
+      test_case->func (fixture, test_case);
     }
   g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_stderr ("*Packet too large*");
+  g_test_trap_assert_stderr (test_case->errmsg);
   g_test_trap_assert_failed ();
 }
 
 static void
-test_lan_service_outgoing_broadcast_timeout (void)
+test_lan_service_tls_authentication (LanBackendFixture *fixture,
+                                     gconstpointer      user_data)
 {
+  LanTestCase *test_case = (LanTestCase *)user_data;
+
   if (g_test_subprocess ())
-    {
-      LanBackendFixture *fixture;
+    test_case->func (fixture, test_case);
 
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
-
-      /* Run the test to be failed */
-      test_lan_service_outgoing_broadcast (fixture, TEST_IDENTITY_TIMEOUT);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
-    }
   g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_failed ();
-}
-
-static void
-test_lan_service_outgoing_broadcast_tls_timeout (void)
-{
-  if (g_test_subprocess ())
-    {
-      LanBackendFixture *fixture;
-
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
-
-      /* Run the test to be failed */
-      test_lan_service_outgoing_broadcast (fixture, TEST_TLS_AUTH_TIMEOUT);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
-    }
-  g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_failed ();
-}
-
-static void
-test_lan_service_outgoing_broadcast_tls_spoofer (void)
-{
-  if (g_test_subprocess ())
-    {
-      LanBackendFixture *fixture;
-
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
-
-      /* Run the test to be failed */
-      test_lan_service_outgoing_broadcast (fixture, TEST_TLS_AUTH_SPOOFER);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
-    }
-  g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_stderr ("*device ID does not match certificate common name*");
+  g_test_trap_assert_stderr (test_case->errmsg);
   g_test_trap_assert_failed ();
 }
 
@@ -720,6 +684,76 @@ test_lan_service_channel (LanBackendFixture *fixture,
   valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
+static LanTestCase identity_tests[] = {
+  {
+    .name = TEST_INCOMING_IDENTITY_OVERSIZE,
+    .errmsg = "*unterminated string constant*",
+    .func = (GTestFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_OUTGOING_IDENTITY_OVERSIZE,
+    .errmsg = "*Packet too large*",
+    .func = (GTestFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+#if 0
+  {
+    .name = TEST_INCOMING_IDENTITY_TIMEOUT,
+    .errmsg = "*timed out waiting for peer identity*",
+    .func = (GTestFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+#endif
+  {
+    .name = TEST_OUTGOING_IDENTITY_TIMEOUT,
+    .errmsg = "*timed out waiting for peer identity*",
+    .func = (GTestFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+  {
+    .name = TEST_INCOMING_INVALID_ID,
+    .errmsg = "*invalid device ID*",
+    .func = (GTestFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_OUTGOING_INVALID_ID,
+    .errmsg = "*invalid device ID*",
+    .func = (GTestFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+  {
+    .name = TEST_INCOMING_INVALID_NAME,
+    .errmsg = "*invalid device name*",
+    .func = (GTestFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_OUTGOING_INVALID_NAME,
+    .errmsg = "*invalid device name*",
+    .func = (GTestFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+};
+
+static LanTestCase tls_tests[] = {
+  {
+    .name = TEST_INCOMING_TLS_SPOOFER,
+    .errmsg = "*device ID does not match certificate common name*",
+    .func = (GTestFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_OUTGOING_TLS_SPOOFER,
+    .errmsg = "*device ID does not match certificate common name*",
+    .func = (GTestFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+#if 0
+  {
+    .name = TEST_INCOMING_TLS_TIMEOUT,
+    .errmsg = "*timed out waiting for authentication*",
+    .func = (GTestFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+#endif
+  {
+    .name = TEST_OUTGOING_TLS_TIMEOUT,
+    .errmsg = "*timed out waiting for authentication*",
+    .func = (GTestFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+};
+
 int
 main (int   argc,
       char *argv[])
@@ -735,26 +769,29 @@ main (int   argc,
               test_lan_service_incoming_broadcast,
               lan_service_fixture_tear_down);
 
-  g_test_add_func ("/plugins/lan/incoming-broadcast-oversize",
-                   test_lan_service_incoming_broadcast_oversize);
-
   g_test_add ("/plugins/lan/outgoing-broadcast",
               LanBackendFixture, NULL,
               lan_service_fixture_set_up,
               test_lan_service_outgoing_broadcast,
               lan_service_fixture_tear_down);
 
-  g_test_add_func ("/plugins/lan/outgoing-broadcast-oversize",
-                   test_lan_service_outgoing_broadcast_oversize);
+  for (size_t i = 0; i < G_N_ELEMENTS (identity_tests); i++)
+    {
+      g_test_add (identity_tests[i].name,
+                  LanBackendFixture, &identity_tests[i],
+                  lan_service_fixture_set_up,
+                  test_lan_service_invalid_identity,
+                  lan_service_fixture_tear_down);
+    }
 
-  g_test_add_func ("/plugins/lan/outgoing-broadcast-timeout",
-                   test_lan_service_outgoing_broadcast_timeout);
-
-  g_test_add_func ("/plugins/lan/outgoing-broadcast-tls-auth",
-                   test_lan_service_outgoing_broadcast_tls_timeout);
-
-  g_test_add_func ("/plugins/lan/outgoing-broadcast-tls-cert",
-                   test_lan_service_outgoing_broadcast_tls_spoofer);
+  for (size_t i = 0; i < G_N_ELEMENTS (tls_tests); i++)
+    {
+      g_test_add (tls_tests[i].name,
+                  LanBackendFixture, &tls_tests[i],
+                  lan_service_fixture_set_up,
+                  test_lan_service_tls_authentication,
+                  lan_service_fixture_tear_down);
+    }
 
   g_test_add ("/plugins/lan/channel",
               LanBackendFixture, NULL,

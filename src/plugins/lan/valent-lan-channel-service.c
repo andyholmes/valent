@@ -14,9 +14,12 @@
 #include "valent-lan-dnssd.h"
 #include "valent-lan-utils.h"
 
-#define IDENTITY_BUFFER_MAX  (8192)
-#define IDENTITY_TIMEOUT_MAX (1000)
-
+#define IDENTITY_BUFFER_MAX          (8192)
+#define AUTHENTICATION_TIMEOUT_MAX   (1000)
+#if VALENT_HAVE_ASAN
+  #undef AUTHENTICATION_TIMEOUT_MAX
+  #define AUTHENTICATION_TIMEOUT_MAX (5000)
+#endif
 
 struct _ValentLanChannelService
 {
@@ -154,6 +157,7 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
   const char *peer_certificate_cn = NULL;
   const char *device_id = NULL;
+  const char *device_name = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (self));
   g_assert (VALENT_IS_PACKET (peer_identity));;
@@ -174,6 +178,19 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
       return FALSE;
     }
 
+  if (!valent_packet_get_string (peer_identity, "deviceName", &device_name))
+    {
+      g_debug ("%s(): expected \"deviceName\" field holding a string",
+               G_STRFUNC);
+      return FALSE;
+    }
+
+  if (!valent_device_validate_name (device_name))
+    {
+      g_warning ("%s(): invalid device name \"%s\"", G_STRFUNC, device_name);
+      return FALSE;
+    }
+
   g_object_get (connection, "peer-certificate", &peer_certificate, NULL);
   peer_certificate_cn = valent_certificate_get_common_name (peer_certificate);
   if (g_strcmp0 (device_id, peer_certificate_cn) != 0)
@@ -187,14 +204,15 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
   channel = g_hash_table_lookup (self->channels, device_id);
   if (channel != NULL && !valent_object_in_destruction (VALENT_OBJECT (channel)))
     certificate = valent_channel_get_peer_certificate (VALENT_CHANNEL (channel));
-  valent_object_unlock (VALENT_OBJECT (self));
 
   if (certificate && !g_tls_certificate_is_same (certificate, peer_certificate))
     {
       g_warning ("%s(): existing channel with different certificate",
                  G_STRFUNC);
+      valent_object_unlock (VALENT_OBJECT (self));
       return FALSE;
     }
+  valent_object_unlock (VALENT_OBJECT (self));
 
   return TRUE;
 }
@@ -247,8 +265,8 @@ on_incoming_connection (ValentChannelService   *service,
 
   /* Timeout if the peer fails to authenticate in a timely fashion. */
   timeout = g_cancellable_new ();
-  g_timeout_add_full (G_PRIORITY_DEFAULT,
-                      IDENTITY_TIMEOUT_MAX,
+  g_timeout_add_full (G_PRIORITY_HIGH,
+                      AUTHENTICATION_TIMEOUT_MAX,
                       incoming_connection_timeout_cb,
                       g_object_ref (timeout),
                       g_object_unref);
@@ -329,7 +347,7 @@ on_incoming_connection (ValentChannelService   *service,
         g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
                  G_STRFUNC, host, port, warning->message);
       else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for authentication", G_STRFUNC);
+        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
 
       g_cancellable_disconnect (cancellable, cancellable_id);
 

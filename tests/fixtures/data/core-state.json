@@ -14,8 +14,7 @@
         "kdeconnect.mock.echo",
         "kdeconnect.mock.transfer"
       ],
-      "protocolVersion": 8,
-      "tcpPort": 1716
+      "protocolVersion": 8
     }
   }
 }
