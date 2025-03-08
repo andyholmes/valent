@@ -14,9 +14,12 @@
 #include "valent-lan-dnssd.h"
 #include "valent-lan-utils.h"
 
-#define IDENTITY_BUFFER_MAX  (8192)
-#define IDENTITY_TIMEOUT_MAX (1000)
-
+#define IDENTITY_BUFFER_MAX          (8192)
+#define AUTHENTICATION_TIMEOUT_MAX   (1000)
+#if VALENT_HAVE_ASAN
+  #undef AUTHENTICATION_TIMEOUT_MAX
+  #define AUTHENTICATION_TIMEOUT_MAX (5000)
+#endif
 
 struct _ValentLanChannelService
 {
@@ -262,8 +265,8 @@ on_incoming_connection (ValentChannelService   *service,
 
   /* Timeout if the peer fails to authenticate in a timely fashion. */
   timeout = g_cancellable_new ();
-  g_timeout_add_full (G_PRIORITY_DEFAULT,
-                      IDENTITY_TIMEOUT_MAX,
+  g_timeout_add_full (G_PRIORITY_HIGH,
+                      AUTHENTICATION_TIMEOUT_MAX,
                       incoming_connection_timeout_cb,
                       g_object_ref (timeout),
                       g_object_unref);
