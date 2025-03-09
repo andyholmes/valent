@@ -284,7 +284,7 @@ valent_certificate_new_sync (const char  *path,
       cn = valent_device_generate_id ();
 
       if (!valent_certificate_generate (cert_path, key_path, cn, error))
-        return FALSE;
+        return NULL;
     }
 
   return g_tls_certificate_new_from_files (cert_path, key_path, error);
