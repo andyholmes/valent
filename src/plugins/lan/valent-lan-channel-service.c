@@ -187,14 +187,15 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
   channel = g_hash_table_lookup (self->channels, device_id);
   if (channel != NULL && !valent_object_in_destruction (VALENT_OBJECT (channel)))
     certificate = valent_channel_get_peer_certificate (VALENT_CHANNEL (channel));
-  valent_object_unlock (VALENT_OBJECT (self));
 
   if (certificate && !g_tls_certificate_is_same (certificate, peer_certificate))
     {
       g_warning ("%s(): existing channel with different certificate",
                  G_STRFUNC);
+      valent_object_unlock (VALENT_OBJECT (self));
       return FALSE;
     }
+  valent_object_unlock (VALENT_OBJECT (self));
 
   return TRUE;
 }
