@@ -18,8 +18,6 @@
 
 #define DEFAULT_EXPIRATION (60L*60L*24L*10L*365L)
 
-#define SHA256_HEX_LEN 64
-#define SHA256_STR_LEN 96
 
 
 /**
