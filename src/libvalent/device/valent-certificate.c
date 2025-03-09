@@ -307,29 +307,25 @@ const char *
 valent_certificate_get_common_name (GTlsCertificate *certificate)
 {
   g_autoptr (GByteArray) certificate_der = NULL;
-  gnutls_x509_crt_t crt;
-  gnutls_datum_t crt_der;
+  gnutls_x509_crt_t crt = NULL;
+  gnutls_datum_t crt_der = { 0, };
   char buf[64] = { 0, };
   size_t buf_size = 64;
-  const char *device_id;
+  const char *cn;
   int rc;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE (certificate), NULL);
 
-  /* Check */
-  device_id = g_object_get_data (G_OBJECT (certificate),
-                                 "valent-certificate-cn");
+  cn = g_object_get_data (G_OBJECT (certificate), "valent-certificate-cn");
+  if (cn != NULL)
+    return cn;
 
-  if G_LIKELY (device_id != NULL)
-    return device_id;
-
-  /* Extract the common name */
   g_object_get (certificate, "certificate", &certificate_der, NULL);
   crt_der.data = certificate_der->data;
   crt_der.size = certificate_der->len;
 
   if ((rc = gnutls_x509_crt_init (&crt)) != GNUTLS_E_SUCCESS ||
-      (rc = gnutls_x509_crt_import (crt, &crt_der, 0)) != GNUTLS_E_SUCCESS ||
+      (rc = gnutls_x509_crt_import (crt, &crt_der, GNUTLS_X509_FMT_DER)) != GNUTLS_E_SUCCESS ||
       (rc = gnutls_x509_crt_get_dn_by_oid (crt,
                                            GNUTLS_OID_X520_COMMON_NAME,
                                            0,
@@ -338,18 +334,18 @@ valent_certificate_get_common_name (GTlsCertificate *certificate)
                                            &buf_size)) != GNUTLS_E_SUCCESS)
     {
       g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
-      gnutls_x509_crt_deinit (crt);
+      g_clear_pointer (&crt, gnutls_x509_crt_deinit);
 
       return NULL;
     }
 
-  gnutls_x509_crt_deinit (crt);
-
-  /* Intern the id as private data */
+  /* Intern the common name as private data
+   */
   g_object_set_data_full (G_OBJECT (certificate),
                           "valent-certificate-cn",
                           g_strndup (buf, buf_size),
                           g_free);
+  g_clear_pointer (&crt, gnutls_x509_crt_deinit);
 
   return g_object_get_data (G_OBJECT (certificate), "valent-certificate-cn");
 }
@@ -360,7 +356,7 @@ valent_certificate_get_common_name (GTlsCertificate *certificate)
  *
  * Get the public key of @certificate.
  *
- * Returns: (transfer none): a DER-encoded publickey
+ * Returns: (transfer none): a DER-encoded public key
  *
  * Since: 1.0
  */
@@ -368,26 +364,23 @@ GByteArray *
 valent_certificate_get_public_key (GTlsCertificate *certificate)
 {
   g_autoptr (GByteArray) certificate_der = NULL;
-  g_autoptr (GByteArray) pubkey = NULL;
-  size_t size;
+  g_autoptr (GByteArray) pk = NULL;
   gnutls_x509_crt_t crt = NULL;
-  gnutls_datum_t crt_der;
-  gnutls_pubkey_t crt_pk = NULL;
+  gnutls_datum_t crt_der = { 0, };
+  gnutls_pubkey_t pubkey = NULL;
+  size_t size;
   int rc;
 
   g_return_val_if_fail (G_IS_TLS_CERTIFICATE (certificate), NULL);
 
-  pubkey = g_object_get_data (G_OBJECT (certificate),
-                              "valent-certificate-pk");
-
-  if (pubkey != NULL)
-    return g_steal_pointer (&pubkey);
+  pk = g_object_get_data (G_OBJECT (certificate), "valent-certificate-pk");
+  if (pk != NULL)
+    return g_steal_pointer (&pk);
 
   g_object_get (certificate, "certificate", &certificate_der, NULL);
   crt_der.data = certificate_der->data;
   crt_der.size = certificate_der->len;
 
-  /* Load the certificate */
   if ((rc = gnutls_x509_crt_init (&crt)) != GNUTLS_E_SUCCESS ||
       (rc = gnutls_x509_crt_import (crt, &crt_der, GNUTLS_X509_FMT_DER)) != GNUTLS_E_SUCCESS)
     {
@@ -395,42 +388,44 @@ valent_certificate_get_public_key (GTlsCertificate *certificate)
       VALENT_GOTO (out);
     }
 
-  /* Load the public key */
-  if ((rc = gnutls_pubkey_init (&crt_pk)) != GNUTLS_E_SUCCESS ||
-      (rc = gnutls_pubkey_import_x509 (crt_pk, crt, 0)) != GNUTLS_E_SUCCESS)
+  if ((rc = gnutls_pubkey_init (&pubkey)) != GNUTLS_E_SUCCESS ||
+      (rc = gnutls_pubkey_import_x509 (pubkey, crt, 0)) != GNUTLS_E_SUCCESS)
     {
       g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
       VALENT_GOTO (out);
     }
 
-  /* Read the public key */
-  rc = gnutls_pubkey_export (crt_pk, GNUTLS_X509_FMT_DER, NULL, &size);
-
-  if (rc == GNUTLS_E_SUCCESS || rc == GNUTLS_E_SHORT_MEMORY_BUFFER)
+  /* First call to get the size, since GByteArray.len is an `unsigned int`,
+   * while the output is a `size_t`.
+   */
+  rc = gnutls_pubkey_export (pubkey, GNUTLS_X509_FMT_DER, NULL, &size);
+  if (rc != GNUTLS_E_SUCCESS && rc != GNUTLS_E_SHORT_MEMORY_BUFFER)
     {
-      pubkey = g_byte_array_sized_new (size);
-      pubkey->len = size;
-      rc = gnutls_pubkey_export (crt_pk,
-                                 GNUTLS_X509_FMT_DER,
-                                 pubkey->data, &size);
-
-      /* Intern the DER as private data */
-      if (rc == GNUTLS_E_SUCCESS)
-        {
-          g_object_set_data_full (G_OBJECT (certificate),
-                                  "valent-certificate-pk",
-                                  g_steal_pointer (&pubkey),
-                                  (GDestroyNotify)g_byte_array_unref);
-        }
-      else
-        g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
+      g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
+      VALENT_GOTO (out);
     }
-  else
-    g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
 
-  out:
-    gnutls_x509_crt_deinit (crt);
-    gnutls_pubkey_deinit (crt_pk);
+  g_assert (size <= (size_t)UINT_MAX);
+  pk = g_byte_array_sized_new (size);
+  pk->len = (unsigned int)size;
+  if ((rc = gnutls_pubkey_export (pubkey,
+                                  GNUTLS_X509_FMT_DER,
+                                  pk->data, &size)) != GNUTLS_E_SUCCESS)
+    {
+      g_warning ("%s(): %s", G_STRFUNC, gnutls_strerror (rc));
+      VALENT_GOTO (out);
+    }
+
+  /* Intern the DER as private data
+   */
+  g_object_set_data_full (G_OBJECT (certificate),
+                          "valent-certificate-pk",
+                          g_steal_pointer (&pk),
+                          (GDestroyNotify)g_byte_array_unref);
+
+out:
+  g_clear_pointer (&crt, gnutls_x509_crt_deinit);
+  g_clear_pointer (&pubkey, gnutls_pubkey_deinit);
 
   return g_object_get_data (G_OBJECT (certificate), "valent-certificate-pk");
 }
