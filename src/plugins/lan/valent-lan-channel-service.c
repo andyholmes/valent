@@ -86,15 +86,17 @@ valent_lan_channel_service_identify_channel (GIOStream     *stream,
                                              GCancellable  *cancellable,
                                              GError       **error)
 {
-  int64_t protocol_version = VALENT_NETWORK_PROTOCOL_MAX;
+  int64_t protocol_version;
 
   g_assert (VALENT_IS_PACKET (identity));
   g_assert (VALENT_IS_PACKET (peer_identity));
 
   if (!valent_packet_get_int (peer_identity, "protocolVersion", &protocol_version))
     {
-      g_debug ("%s(): expected \"protocolVersion\" field holding an integer",
-               G_STRFUNC);
+      g_set_error_literal (error,
+                           VALENT_PACKET_ERROR,
+                           VALENT_PACKET_ERROR_MISSING_FIELD,
+                           "expected \"protocolVersion\" field holding an integer");
       return NULL;
     }
 
