@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-03-06 20:32-0800\n"
+"POT-Creation-Date: 2025-03-12 06:25-0700\n"
 "PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
@@ -240,7 +240,7 @@ msgid "Connect devices over Bluetooth"
 msgstr "通过局域网连接设备"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
-#: src/plugins/gnome/valent-preferences-dialog.c:346
+#: src/plugins/gnome/valent-preferences-dialog.c:396
 msgid "Clipboard"
 msgstr "剪切板"
 
@@ -297,7 +297,7 @@ msgstr ""
 #: src/plugins/gnome/valent-conversation-page.ui:181
 #: src/plugins/gnome/valent-conversation-page.ui:205
 #: src/plugins/gnome/valent-messages-window.c:241
-#: src/plugins/gnome/valent-preferences-dialog.c:353
+#: src/plugins/gnome/valent-preferences-dialog.c:403
 msgid "Contacts"
 msgstr "联系人"
 
@@ -737,7 +737,7 @@ msgid "Plugins"
 msgstr "插件"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:55
-#: src/plugins/gnome/valent-preferences-dialog.ui:38
+#: src/plugins/gnome/valent-preferences-dialog.ui:68
 msgid "No Plugins"
 msgstr "无插件"
 
@@ -1025,33 +1025,39 @@ msgstr ""
 msgid "Website"
 msgstr ""
 
-#: src/plugins/gnome/valent-preferences-dialog.c:332
+#. TRANSLATORS: %s is a list of forbidden characters
+#: src/plugins/gnome/valent-preferences-dialog.c:291
+#, c-format
+msgid "The device name must not contain punctuation or brackets, including %s"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.c:382
 #, fuzzy
 msgid "Application"
 msgstr "应用"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:339
+#: src/plugins/gnome/valent-preferences-dialog.c:389
 msgid "Device Connections"
 msgstr "设备连接"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:360
+#: src/plugins/gnome/valent-preferences-dialog.c:410
 msgid "Mouse and Keyboard"
 msgstr "鼠标和键盘"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:367
+#: src/plugins/gnome/valent-preferences-dialog.c:417
 msgid "Media Players"
 msgstr "媒体播放器"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:374
+#: src/plugins/gnome/valent-preferences-dialog.c:424
 msgid "Volume Control"
 msgstr "音量控制"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:381
+#: src/plugins/gnome/valent-preferences-dialog.c:431
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "通知"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:388
+#: src/plugins/gnome/valent-preferences-dialog.c:438
 msgid "Session Manager"
 msgstr "会话管理"
 
@@ -1059,7 +1065,7 @@ msgstr "会话管理"
 msgid "Device Name"
 msgstr "设备名称"
 
-#: src/plugins/gnome/valent-preferences-dialog.ui:30
+#: src/plugins/gnome/valent-preferences-dialog.ui:60
 msgid "Desktop Integration"
 msgstr "桌面集成"
 

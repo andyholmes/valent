@@ -16,11 +16,41 @@
             <child>
               <object class="AdwEntryRow" id="name_entry">
                 <property name="title" translatable="yes">Device Name</property>
+                <property name="input-hints">none</property>
+                <property name="input-purpose">free-form</property>
+                <!-- NOTE: This is a UI-based enforcement of a constraint on
+                           the length of a device name (1-32 characters)
+                 -->
+                <property name="max-length">32</property>
                 <property name="show-apply-button">1</property>
                 <signal name="apply"
                         handler="on_name_apply"
                         object="ValentPreferencesDialog"
                         swapped="no"/>
+                <signal name="changed"
+                        handler="on_name_changed"
+                        object="ValentPreferencesDialog"
+                        swapped="no"/>
+                <accessibility>
+                  <relation name="described-by">name_error_label</relation>
+                </accessibility>
+              </object>
+            </child>
+            <child>
+              <object class="GtkRevealer" id="name_error">
+                <property name="transition-type">slide-down</property>
+                <child>
+                  <object class="GtkLabel" id="name_error_label">
+                    <property name="margin-top">6</property>
+                    <property name="use-markup">1</property>
+                    <property name="wrap">1</property>
+                    <property name="xalign">0.0</property>
+                    <style>
+                      <class name="caption"/>
+                      <class name="warning"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

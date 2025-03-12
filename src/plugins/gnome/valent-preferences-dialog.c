@@ -27,6 +27,8 @@ struct _ValentPreferencesDialog
 
   AdwPreferencesGroup  *general_group;
   AdwEntryRow          *name_entry;
+  GtkRevealer          *name_error;
+  GtkLabel             *name_error_label;
 
   AdwPreferencesGroup  *plugin_group;
   GtkListBox           *plugin_list;
@@ -84,11 +86,49 @@ on_name_apply (GtkEditable             *editable,
   g_assert (VALENT_IS_PREFERENCES_DIALOG (self));
 
   name = gtk_editable_get_text (editable);
+  if (valent_device_validate_name (name))
+    {
+      adw_entry_row_set_show_apply_button (self->name_entry, TRUE);
+      gtk_widget_remove_css_class (GTK_WIDGET (self->name_entry), "warning");
+      gtk_revealer_set_reveal_child (self->name_error, FALSE);
+      gtk_accessible_reset_state (GTK_ACCESSIBLE (self->name_entry),
+                                  GTK_ACCESSIBLE_STATE_INVALID);
+      g_settings_set_string (self->settings, "name", name);
+    }
+  else
+    {
+      adw_entry_row_set_show_apply_button (self->name_entry, FALSE);
+      gtk_widget_add_css_class (GTK_WIDGET (self->name_entry), "warning");
+      gtk_revealer_set_reveal_child (self->name_error, TRUE);
+      gtk_accessible_update_state (GTK_ACCESSIBLE (self->name_entry),
+                                   GTK_ACCESSIBLE_STATE_INVALID,
+                                   GTK_ACCESSIBLE_INVALID_TRUE,
+                                   -1);
+      // FIXME: compel AT-devices to speak the forbidden punctuation
+      gtk_accessible_announce (GTK_ACCESSIBLE (self->name_entry),
+                               gtk_label_get_text (self->name_error_label),
+                               GTK_ACCESSIBLE_ANNOUNCEMENT_PRIORITY_MEDIUM);
+    }
+}
 
-  if (name == NULL || *name == '\0')
-    return;
+static void
+on_name_changed (GtkEditable             *editable,
+                 ValentPreferencesDialog *self)
+{
+  const char *name = NULL;
 
-  g_settings_set_string (self->settings, "name", name);
+  g_assert (GTK_IS_EDITABLE (editable));
+  g_assert (VALENT_IS_PREFERENCES_DIALOG (self));
+
+  name = gtk_editable_get_text (editable);
+  if (valent_device_validate_name (name))
+    {
+      adw_entry_row_set_show_apply_button (self->name_entry, TRUE);
+      gtk_widget_remove_css_class (GTK_WIDGET (self->name_entry), "warning");
+      gtk_revealer_set_reveal_child (self->name_error, FALSE);
+      gtk_accessible_reset_state (GTK_ACCESSIBLE (self->name_entry),
+                                  GTK_ACCESSIBLE_STATE_INVALID);
+    }
 }
 
 static void
@@ -240,13 +280,19 @@ static void
 valent_preferences_dialog_constructed (GObject *object)
 {
   ValentPreferencesDialog *self = VALENT_PREFERENCES_DIALOG (object);
+  g_autofree char *error_label = NULL;
   g_autofree char *name = NULL;
   PeasEngine *engine = NULL;
   unsigned int n_plugins = 0;
 
   G_OBJECT_CLASS (valent_preferences_dialog_parent_class)->constructed (object);
 
-  /* Application Settings */
+  // TRANSLATORS: %s is a list of forbidden characters
+  error_label = g_strdup_printf (_("The device name must not contain "
+                                   "punctuation or brackets, including %s"),
+                                 "<b><tt>\"',;:.!?()[]&lt;&gt;</tt></b>");
+  gtk_label_set_markup (self->name_error_label, error_label);
+
   self->settings = g_settings_new ("ca.andyholmes.Valent");
   g_signal_connect_object (self->settings,
                            "changed::name",
@@ -255,6 +301,8 @@ valent_preferences_dialog_constructed (GObject *object)
   name = g_settings_get_string (self->settings, "name");
   gtk_editable_set_text (GTK_EDITABLE (self->name_entry), name);
 
+  /* Application Plugins
+   */
   engine = valent_get_plugin_engine ();
   g_signal_connect_object (engine,
                            "load-plugin",
@@ -320,8 +368,10 @@ valent_preferences_dialog_class_init (ValentPreferencesDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, plugin_group);
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, plugin_list);
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, name_entry);
-
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, name_error);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, name_error_label);
   gtk_widget_class_bind_template_callback (widget_class, on_name_apply);
+  gtk_widget_class_bind_template_callback (widget_class, on_name_changed);
 
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
 

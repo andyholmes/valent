@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-03-06 20:32-0800\n"
+"POT-Creation-Date: 2025-03-12 06:25-0700\n"
 "PO-Revision-Date: 2024-09-29 08:24+0530\n"
 "Last-Translator: Aryan Karamtoth <aryankmmiv@outlook.com>\n"
 "Language-Team: Telugu l10n Translation Team <ubuntu-l10n-te@lists.launchpad."
@@ -239,7 +239,7 @@ msgid "Connect devices over Bluetooth"
 msgstr "బ్లూటూత్ ద్వారా పరికరాలను కనెక్ట్ చేయండి"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
-#: src/plugins/gnome/valent-preferences-dialog.c:346
+#: src/plugins/gnome/valent-preferences-dialog.c:396
 msgid "Clipboard"
 msgstr "క్లిప్‌బోర్డ్"
 
@@ -296,7 +296,7 @@ msgstr "%s: %s"
 #: src/plugins/gnome/valent-conversation-page.ui:181
 #: src/plugins/gnome/valent-conversation-page.ui:205
 #: src/plugins/gnome/valent-messages-window.c:241
-#: src/plugins/gnome/valent-preferences-dialog.c:353
+#: src/plugins/gnome/valent-preferences-dialog.c:403
 msgid "Contacts"
 msgstr "పరిచయాలు"
 
@@ -727,7 +727,7 @@ msgid "Plugins"
 msgstr "ప్లగిన్లు"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:55
-#: src/plugins/gnome/valent-preferences-dialog.ui:38
+#: src/plugins/gnome/valent-preferences-dialog.ui:68
 msgid "No Plugins"
 msgstr "ప్లగిన్‌లు లేవు"
 
@@ -1008,32 +1008,38 @@ msgstr "వెర్షన్"
 msgid "Website"
 msgstr "వెబ్సైట్"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:332
+#. TRANSLATORS: %s is a list of forbidden characters
+#: src/plugins/gnome/valent-preferences-dialog.c:291
+#, c-format
+msgid "The device name must not contain punctuation or brackets, including %s"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.c:382
 msgid "Application"
 msgstr "అప్లికేషన్"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:339
+#: src/plugins/gnome/valent-preferences-dialog.c:389
 msgid "Device Connections"
 msgstr "పరికర కనెక్షన్లు"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:360
+#: src/plugins/gnome/valent-preferences-dialog.c:410
 msgid "Mouse and Keyboard"
 msgstr "మౌస్ మరియు కీబోర్డ్"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:367
+#: src/plugins/gnome/valent-preferences-dialog.c:417
 msgid "Media Players"
 msgstr "మీడియా ప్లేయర్లు"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:374
+#: src/plugins/gnome/valent-preferences-dialog.c:424
 msgid "Volume Control"
 msgstr "వాల్యూమ్ నియంత్రణ"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:381
+#: src/plugins/gnome/valent-preferences-dialog.c:431
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "నోటిఫికేషన్‌లు"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:388
+#: src/plugins/gnome/valent-preferences-dialog.c:438
 msgid "Session Manager"
 msgstr "సెషన్ మేనేజర్"
 
@@ -1041,7 +1047,7 @@ msgstr "సెషన్ మేనేజర్"
 msgid "Device Name"
 msgstr "పరికరం పేరు"
 
-#: src/plugins/gnome/valent-preferences-dialog.ui:30
+#: src/plugins/gnome/valent-preferences-dialog.ui:60
 msgid "Desktop Integration"
 msgstr "డెస్క్‌టాప్ ఇంటిగ్రేషన్"
 
