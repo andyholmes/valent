@@ -85,37 +85,33 @@ pkgconfig.generate(
 
 # GObject Introspection
 if get_option('introspection')
-  libvalent_gir_extra_args = [
-    '--c-include=valent.h',
-    '--pkg-export=@0@'.format(libvalent_api_name),
-  ]
-
-  libvalent_gir_includes = [
-    'Gio-2.0',
-    'Json-1.0',
-    'EBook-1.2',
-    'Peas-2',
-    'Tracker-3.0',
-  ]
-
-  libvalent_gir_sources = [
-    libvalent_public_sources,
-    libvalent_public_headers,
-    libvalent_generated_headers,
-    libvalent_generated_sources,
-  ]
-
   libvalent_gir = gnome.generate_gir(libvalent,
-                sources: libvalent_gir_sources,
+                sources: [
+                  libvalent_public_sources,
+                  libvalent_public_headers,
+                  libvalent_generated_headers,
+                  libvalent_generated_sources,
+                ],
               namespace: 'Valent',
               nsversion: libvalent_api_version,
           symbol_prefix: meson.project_name(),
+        export_packages: libvalent_api_name,
+                 header: 'valent.h',
       identifier_prefix: 'Valent',
-               includes: libvalent_gir_includes,
+               includes: [
+                 'Gio-2.0',
+                 'Json-1.0',
+                 'EBook-1.2',
+                 'Peas-2',
+                 'Tracker-3.0',
+               ],
                 install: true,
         install_dir_gir: girdir,
     install_dir_typelib: typelibdir,
-             extra_args: libvalent_gir_extra_args,
+             extra_args: [
+               '--quiet',
+               '--warn-all',
+             ],
   )
 
   # Vala API Bindings
