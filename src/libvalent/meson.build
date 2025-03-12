@@ -108,6 +108,7 @@ if get_option('introspection')
                 install: true,
         install_dir_gir: girdir,
     install_dir_typelib: typelibdir,
+         fatal_warnings: get_option('werror'),
              extra_args: [
                '--quiet',
                '--warn-all',
