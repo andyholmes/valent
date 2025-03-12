@@ -97,9 +97,7 @@ project_c_args = [
 
   # These are optional, but have minimum requirements if present
   '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_14',
-  '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_14',
-  '-DADW_VERSION_MIN_REQUIRED=ADW_VERSION_1_5',
-  '-DADW_VERSION_MIN_REQUIRED=ADW_VERSION_1_5',
+  '-DADW_VERSION_MIN_REQUIRED=ADW_VERSION_1_6',
 
   '-Wno-error=analyzer-va-arg-type-mismatch',
 ]
@@ -154,14 +152,14 @@ add_project_link_arguments(cc.get_supported_link_arguments(project_link_args),
 #
 # Dependencies
 #
-glib_version = '>= 2.76.0'
+glib_version = '>= 2.80.0'
 gdk_pixbuf_version = '>= 2.0'
-gtk_version = '>= 4.10.0'
+gtk_version = '>= 4.15.2'
 gnutls_version = '>= 3.1.3'
 json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 2.0.0'
 eds_version = '>= 3.48'
-libadwaita_version = '>= 1.5'
+libadwaita_version = '>= 1.6'
 libportal_version = ['>= 0.7.1']
 tinysparql_version = '>= 3.0'
 
