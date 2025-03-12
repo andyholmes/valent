@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-03-06 20:32-0800\n"
+"POT-Creation-Date: 2025-03-12 06:25-0700\n"
 "PO-Revision-Date: 2023-11-09 18:24+0100\n"
 "Last-Translator: HDavo <h.davoc24@gmail.com>\n"
 "Language-Team: Spanish - Spain <>\n"
@@ -246,7 +246,7 @@ msgid "Connect devices over Bluetooth"
 msgstr "Conectar dispositivos a través de LAN"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
-#: src/plugins/gnome/valent-preferences-dialog.c:346
+#: src/plugins/gnome/valent-preferences-dialog.c:396
 msgid "Clipboard"
 msgstr "Portapapeles"
 
@@ -303,7 +303,7 @@ msgstr "%s: %s"
 #: src/plugins/gnome/valent-conversation-page.ui:181
 #: src/plugins/gnome/valent-conversation-page.ui:205
 #: src/plugins/gnome/valent-messages-window.c:241
-#: src/plugins/gnome/valent-preferences-dialog.c:353
+#: src/plugins/gnome/valent-preferences-dialog.c:403
 msgid "Contacts"
 msgstr "Contactos"
 
@@ -745,7 +745,7 @@ msgid "Plugins"
 msgstr "Plugins"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:55
-#: src/plugins/gnome/valent-preferences-dialog.ui:38
+#: src/plugins/gnome/valent-preferences-dialog.ui:68
 msgid "No Plugins"
 msgstr "Sin Plugins"
 
@@ -1031,32 +1031,38 @@ msgstr ""
 msgid "Website"
 msgstr ""
 
-#: src/plugins/gnome/valent-preferences-dialog.c:332
+#. TRANSLATORS: %s is a list of forbidden characters
+#: src/plugins/gnome/valent-preferences-dialog.c:291
+#, c-format
+msgid "The device name must not contain punctuation or brackets, including %s"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.c:382
 msgid "Application"
 msgstr "Aplicación"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:339
+#: src/plugins/gnome/valent-preferences-dialog.c:389
 msgid "Device Connections"
 msgstr "Conexión de Dispositivos"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:360
+#: src/plugins/gnome/valent-preferences-dialog.c:410
 msgid "Mouse and Keyboard"
 msgstr "Ratón y teclado"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:367
+#: src/plugins/gnome/valent-preferences-dialog.c:417
 msgid "Media Players"
 msgstr "Reproductores Multimedia"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:374
+#: src/plugins/gnome/valent-preferences-dialog.c:424
 msgid "Volume Control"
 msgstr "Control de Volumen"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:381
+#: src/plugins/gnome/valent-preferences-dialog.c:431
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "Notificaciones"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:388
+#: src/plugins/gnome/valent-preferences-dialog.c:438
 msgid "Session Manager"
 msgstr "Gestor de Sesiones"
 
@@ -1064,7 +1070,7 @@ msgstr "Gestor de Sesiones"
 msgid "Device Name"
 msgstr "Nombre del Dispositivo"
 
-#: src/plugins/gnome/valent-preferences-dialog.ui:30
+#: src/plugins/gnome/valent-preferences-dialog.ui:60
 msgid "Desktop Integration"
 msgstr "Integración con Escritorio"
 
