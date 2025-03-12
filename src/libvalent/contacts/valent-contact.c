@@ -14,8 +14,18 @@
 
 //
 
+/**
+ * valent_contact_resource_from_econtact:
+ * @contact: an `EContact`
+ *
+ * Pack an [class@EBookContacts.Contact] into a [class@Tracker.Resource].
+ *
+ * Returns: (transfer full): a new SPARQL resource
+ *
+ * Since: 1.0
+ */
 TrackerResource *
-valent_contact_resource_from_econtact (EContact   *contact)
+valent_contact_resource_from_econtact (EContact *contact)
 {
   g_autoptr (TrackerResource) resource = NULL;
   g_autolist (EVCardAttribute) phone_numbers = NULL;
