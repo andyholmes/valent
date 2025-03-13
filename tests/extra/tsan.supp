@@ -91,6 +91,7 @@ mutex:libGLX
 mutex:swrast_dri.so
 race:libEGL
 race:libGLX
+race:libgallium
 race:radeonsi_dri
 race:swrast_dri.so
 
