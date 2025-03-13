@@ -186,6 +186,14 @@ jobs:
         with:
           submodules: true
 
+      - name: Cache
+        uses: actions/cache@v3
+        with:
+          path: _build
+          key: ${{ matrix.compiler }}-${{ matrix.suite }}-${{ github.event.pull_request.number }}-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.compiler }}-${{ matrix.suite }}-${{ github.event.pull_request.number }}-
+
       - name: Test
         id: test
         uses: andyholmes/actuary@main
