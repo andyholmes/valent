@@ -106,11 +106,11 @@ on_connection_opened (ValentBluezProfile *profile,
   task->object_path = g_strdup (object_path);
 
   identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
-  valent_mux_connection_handshake_async (muxer,
-                                         identity,
-                                         NULL,
-                                         (GAsyncReadyCallback)handshake_cb,
-                                         task);
+  valent_mux_connection_handshake (muxer,
+                                   identity,
+                                   NULL,
+                                   (GAsyncReadyCallback)handshake_cb,
+                                   task);
 }
 
 static void

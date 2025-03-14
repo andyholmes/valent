@@ -291,11 +291,11 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
   dbusmock_new_connection (fixture);
   identity = json_object_get_member (json_node_get_object (fixture->packets),
                                      "identity");
-  valent_mux_connection_handshake_async (muxer,
-                                         identity,
-                                         NULL,
-                                         (GAsyncReadyCallback)handshake_cb,
-                                         fixture);
+  valent_mux_connection_handshake (muxer,
+                                   identity,
+                                   NULL,
+                                   (GAsyncReadyCallback)handshake_cb,
+                                   fixture);
   g_main_loop_run (fixture->loop);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);

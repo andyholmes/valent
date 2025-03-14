@@ -12,11 +12,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (ValentMuxConnection, valent_mux_connection, VALENT, MUX_CONNECTION, ValentObject)
 
 ValentMuxConnection * valent_mux_connection_new                  (GIOStream            *base_stream);
-ValentChannel       * valent_mux_connection_handshake            (ValentMuxConnection  *connection,
-                                                                  JsonNode             *identity,
-                                                                  GCancellable         *cancellable,
-                                                                  GError              **error);
-void                  valent_mux_connection_handshake_async      (ValentMuxConnection  *connection,
+void                  valent_mux_connection_handshake            (ValentMuxConnection  *connection,
                                                                   JsonNode             *identity,
                                                                   GCancellable         *cancellable,
                                                                   GAsyncReadyCallback   callback,
