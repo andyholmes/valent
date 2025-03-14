@@ -906,51 +906,46 @@ valent_mux_connection_new (GIOStream *base_stream)
                        NULL);
 }
 
-/**
- * valent_mux_connection_handshake:
- * @connection: a `ValentMuxConnection`
- * @identity: a `JsonNode`
- * @cancellable: (nullable): a `GCancellable`
- * @error: (nullable): a `GError`
- *
- * Attempt to negotiate a multiplex channel on @connection. This is a two-part
- * process involving negotiating the protocol version (currently only version 1)
- * and exchanging identity packets.
- *
- * Returns: (transfer full): a `ValentChannel`
- */
-ValentChannel *
-valent_mux_connection_handshake (ValentMuxConnection  *connection,
-                                 JsonNode             *identity,
-                                 GCancellable         *cancellable,
-                                 GError              **error)
+static void
+valent_mux_connection_handshake_task (GTask        *task,
+                                      gpointer      source_object,
+                                      gpointer      task_data,
+                                      GCancellable *cancellable)
 {
+  ValentMuxConnection *self = VALENT_MUX_CONNECTION (source_object);
+  JsonNode *identity = task_data;
   ChannelState *state;
   GInputStream *input_stream;
   GOutputStream *output_stream;
   g_autoptr (GThread) thread = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   g_autoptr (GIOStream) base_stream = NULL;
+  g_autoptr (ValentChannel) channel = NULL;
+  g_autoptr (GError) error = NULL;
 
-  g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), NULL);
-  g_return_val_if_fail (VALENT_IS_PACKET (identity), NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+  g_assert (VALENT_IS_MUX_CONNECTION (self));
+  g_assert (VALENT_IS_PACKET (identity));
+
+  if (g_task_return_error_if_cancelled (task))
+    return;
 
   /* Create the primary channel */
-  valent_object_lock (VALENT_OBJECT (connection));
-  state = channel_state_new (connection, PRIMARY_UUID);
-  g_hash_table_insert (connection->states, state->uuid, state);
+  valent_object_lock (VALENT_OBJECT (self));
+  state = channel_state_new (self, PRIMARY_UUID);
+  g_hash_table_insert (self->states, state->uuid, state);
   base_stream = g_object_ref (state->stream);
-  valent_object_unlock (VALENT_OBJECT (connection));
+  valent_object_unlock (VALENT_OBJECT (self));
 
   /* Negotiate protocol version */
-  if (!protocol_handshake (connection, cancellable, error))
-    return NULL;
+  if (!protocol_handshake (self, cancellable, &error))
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   /* Send an initial read request and start the receive loop  */
-  g_mutex_lock (&connection->io_mutex);
-  if (send_read (connection, PRIMARY_UUID, BUFFER_SIZE, cancellable, error))
+  g_mutex_lock (&self->io_mutex);
+  if (send_read (self, PRIMARY_UUID, BUFFER_SIZE, cancellable, &error))
     {
       g_mutex_lock (&state->mutex);
       state->read_free += BUFFER_SIZE;
@@ -958,24 +953,31 @@ valent_mux_connection_handshake (ValentMuxConnection  *connection,
     }
   else
     {
-      g_mutex_unlock (&connection->io_mutex);
-      return NULL;
+      g_mutex_unlock (&self->io_mutex);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
-  g_mutex_unlock (&connection->io_mutex);
+  g_mutex_unlock (&self->io_mutex);
 
   thread = g_thread_try_new ("valent-mux-connection",
                              valent_mux_connection_receive_loop,
-                             g_object_ref (connection),
-                             error);
+                             g_object_ref (self),
+                             &error);
 
   if (thread == NULL)
-    return NULL;
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
-  /* Write our identity */
+  /* Write our identity
+   */
   output_stream = g_io_stream_get_output_stream (base_stream);
-
   if (!valent_packet_to_stream (output_stream, identity, cancellable, error))
-    return NULL;
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   /* Read the remote identity */
   input_stream = g_io_stream_get_input_stream (base_stream);
@@ -985,56 +987,43 @@ valent_mux_connection_handshake (ValentMuxConnection  *connection,
                                              error);
 
   if (peer_identity == NULL)
-    return NULL;
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
-  return g_object_new (VALENT_TYPE_BLUEZ_CHANNEL,
-                       "base-stream",   base_stream,
-                       "identity",      identity,
-                       "peer-identity", peer_identity,
-                       "muxer",         connection,
-                       NULL);
-}
-
-static void
-valent_mux_connection_handshake_task (GTask        *task,
-                                      gpointer      source_object,
-                                      gpointer      task_data,
-                                      GCancellable *cancellable)
-{
-  ValentMuxConnection *self = VALENT_MUX_CONNECTION (source_object);
-  JsonNode *identity = task_data;
-  g_autoptr (ValentChannel) channel = NULL;
-  g_autoptr (GError) error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  channel = valent_mux_connection_handshake (self,
-                                             identity,
-                                             cancellable,
-                                             &error);
-
-  if (channel == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
-
+  channel = g_object_new (VALENT_TYPE_BLUEZ_CHANNEL,
+                          "base-stream",   base_stream,
+                          "identity",      identity,
+                          "peer-identity", peer_identity,
+                          "muxer",         self,
+                          NULL);
   g_task_return_pointer (task, g_steal_pointer (&channel), g_object_unref);
 }
 
 /**
- * valent_mux_connection_handshake_async:
+ * valent_mux_connection_handshake:
+ * @connection: a `ValentMuxConnection`
+ * @identity: a `JsonNode`
  * @connection: a `ValentMuxConnection`
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: user supplied data
  *
- * This is the asynchronous version of valent_mux_connection_handshake().
+ * Attempt to negotiate a multiplex channel on @connection. This is a two-part
+ * process involving negotiating the protocol version (currently only version 1)
+ * and exchanging identity packets.
+ *
+ * Call [class@Valent.MuxConnection.handshake_finish] to get the result.
+ *
+ * Returns: (transfer full): a `ValentChannel`
  */
 void
-valent_mux_connection_handshake_async (ValentMuxConnection *connection,
-                                       JsonNode            *identity,
-                                       GCancellable        *cancellable,
-                                       GAsyncReadyCallback  callback,
-                                       gpointer             user_data)
+valent_mux_connection_handshake (ValentMuxConnection *connection,
+                                 JsonNode            *identity,
+                                 GCancellable        *cancellable,
+                                 GAsyncReadyCallback  callback,
+                                 gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
 
@@ -1043,7 +1032,7 @@ valent_mux_connection_handshake_async (ValentMuxConnection *connection,
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (connection, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_mux_connection_handshake_async);
+  g_task_set_source_tag (task, valent_mux_connection_handshake);
   g_task_set_task_data (task,
                         json_node_ref (identity),
                         (GDestroyNotify)json_node_unref);
@@ -1056,7 +1045,7 @@ valent_mux_connection_handshake_async (ValentMuxConnection *connection,
  * @result: a `GAsyncResult`
  * @error: (nullable): a `GError`
  *
- * Finishes an operation started by valent_mux_connection_handshake_async().
+ * Finishes an operation started by [class@Valent.MuxConnection.handshake].
  *
  * Returns: (transfer full): a `ValentChannel`
  */
