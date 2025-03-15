@@ -21,7 +21,7 @@ struct _ValentMuxInputStream
 
 G_DEFINE_FINAL_TYPE (ValentMuxInputStream, valent_mux_input_stream, G_TYPE_INPUT_STREAM)
 
-enum {
+typedef enum {
   PROP_MUXER = 1,
   PROP_UUID,
 } ValentMuxInputStreamProperty;
