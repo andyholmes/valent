@@ -157,6 +157,7 @@ gtk_version = '>= 4.15.2'
 glycin_version = '>= 2.0.1'
 gnutls_version = '>= 3.1.3'
 json_glib_version = '>= 1.6.0'
+libdex_version = '>= 1.0'
 libpeas_version = '>= 2.0.0'
 eds_version = '>= 3.48'
 libadwaita_version = '>= 1.6'
@@ -170,6 +171,7 @@ gio_dep = dependency('gio-2.0', version: glib_version)
 gio_unix_dep = dependency('gio-unix-2.0', version: glib_version)
 gnutls_dep = dependency('gnutls', version: gnutls_version)
 json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
+libdex_dep  = dependency('libdex-1', version: libdex_version)
 libpeas_dep = dependency('libpeas-2', version: libpeas_version)
 libportal_dep = dependency('libportal', version: libportal_version)
 tinysparql_dep = dependency('tracker-sparql-3.0', version: tinysparql_version)

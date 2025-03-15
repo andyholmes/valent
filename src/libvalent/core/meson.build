@@ -120,6 +120,7 @@ libvalent_deps += [
   libm_dep,
   gio_dep,
   gio_unix_dep,
+  libdex_dep,
   libpeas_dep,
   libportal_dep,
 ]
