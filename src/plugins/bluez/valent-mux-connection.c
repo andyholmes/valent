@@ -973,7 +973,7 @@ valent_mux_connection_handshake_task (GTask        *task,
   /* Write our identity
    */
   output_stream = g_io_stream_get_output_stream (base_stream);
-  if (!valent_packet_to_stream (output_stream, identity, cancellable, error))
+  if (!valent_packet_to_stream (output_stream, identity, cancellable, &error))
     {
       g_task_return_error (task, g_steal_pointer (&error));
       return;
@@ -984,7 +984,7 @@ valent_mux_connection_handshake_task (GTask        *task,
   peer_identity = valent_packet_from_stream (input_stream,
                                              -1,
                                              cancellable,
-                                             error);
+                                             &error);
 
   if (peer_identity == NULL)
     {
