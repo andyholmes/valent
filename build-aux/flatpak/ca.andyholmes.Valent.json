@@ -93,8 +93,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/libical/libical.git",
-                    "commit": "3ba66a6dadd1ee69c94f971f0ea8898e330c6550",
-                    "tag": "v3.0.19",
+                    "commit": "57ce34025066935f356fd539e6deb7a7a9952618",
+                    "tag": "v3.0.20",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 1637,
@@ -235,8 +235,8 @@
                 {
                     "type": "git",
                     "url": "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit": "8fe60ed30531ad5ce9f45b337dadf3f66206bafc",
-                    "tag": "3.55.3",
+                    "commit": "4e554d322bfc8770b3d4a3d6f33b67142c3bb3fc",
+                    "tag": "3.56.0",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 10935,
@@ -264,8 +264,8 @@
                 {
                     "type": "git",
                     "url": "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "commit": "db474b27352076973b9942a03d92c68d9851d1a5",
-                    "tag": "2.0.5",
+                    "commit": "3373ce30256cf40f0e72186816cbe411203adb21",
+                    "tag": "2.0.7",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 6871,
@@ -315,8 +315,8 @@
                 {
                     "type": "git",
                     "url": "https://gitlab.freedesktop.org/pipewire/pipewire.git",
-                    "commit": "df1c36aec2aaf9e2eb1596b6b55e72c15fb2088a",
-                    "tag": "1.4.0",
+                    "commit": "2eb8cf5dc780ca22b94545f1254497a428c412f5",
+                    "tag": "1.4.1",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 57357,
