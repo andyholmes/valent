@@ -356,11 +356,21 @@ on_incoming_connection (ValentChannelService   *service,
   if (!valent_lan_channel_service_verify_channel (self, secure_identity, tls_stream))
     return TRUE;
 
-  /* Get the host from the connection */
+  /* Get the host from the connection. The tcpPort field is usually absent for
+   * incoming connections, but if not then it must be within the allowed range.
+   */
   s_addr = g_socket_connection_get_remote_address (connection, NULL);
   i_addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (s_addr));
   host = g_inet_address_to_string (i_addr);
-  valent_packet_get_int (secure_identity, "tcpPort", &port);
+  if (valent_packet_get_int (peer_identity, "tcpPort", &port) &&
+      (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
+    {
+      g_warning ("%s(): expected \"port\" field holding a uint16 between %u-%u",
+                 G_STRFUNC,
+                 VALENT_LAN_PROTOCOL_PORT_MIN,
+                 VALENT_LAN_PROTOCOL_PORT_MAX);
+      return TRUE;
+    }
 
   /* Create the new channel */
   peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
@@ -653,14 +663,13 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
 
   /* Get the remote address and port */
   addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (incoming));
-
   if (!valent_packet_get_int (peer_identity, "tcpPort", &port) ||
       (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
     {
-      g_debug ("%s(): expected \"tcpPort\" field holding a uint16 between %u-%u",
-               G_STRFUNC,
-               VALENT_LAN_PROTOCOL_PORT_MIN,
-               VALENT_LAN_PROTOCOL_PORT_MAX);
+      g_warning ("%s(): expected \"tcpPort\" field holding a uint16 between %u-%u",
+                 G_STRFUNC,
+                 VALENT_LAN_PROTOCOL_PORT_MIN,
+                 VALENT_LAN_PROTOCOL_PORT_MAX);
       return G_SOURCE_CONTINUE;
     }
 
