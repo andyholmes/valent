@@ -10,23 +10,31 @@
 #include "valent-lan-channel.h"
 #include "valent-lan-channel-service.h"
 
+#define IDENTITY_BUFFER_MAX             (8192)
+#define AUTHENTICATION_TIMEOUT_MAX      (1100)
+
 /* NOTE: These ports must be between 1716-1764 or they will trigger an error.
  *       Port 1716 is still avoided, since it would conflict with a running
  *       service when testing on a real system.
  */
-#define ENDPOINT_ADDR          "127.0.0.1:1717"
-#define ENDPOINT_HOST          "127.0.0.1"
-#define ENDPOINT_PORT          (1717)
-#define SERVICE_ADDR           "127.0.0.1:1718"
-#define SERVICE_HOST           "127.0.0.1"
-#define SERVICE_PORT           (1718)
+#define ENDPOINT_ADDR                   "127.0.0.1:1717"
+#define ENDPOINT_HOST                   "127.0.0.1"
+#define ENDPOINT_PORT                   (1717)
+#define SERVICE_ADDR                    "127.0.0.1:1718"
+#define SERVICE_HOST                    "127.0.0.1"
+#define SERVICE_PORT                    (1718)
 
-#define IDENTITY_BUFFER_MAX    (8192)
+#define TEST_INCOMING_IDENTITY_OVERSIZE "/plugins/lan/incoming-identity-oversize"
+#define TEST_INCOMING_IDENTITY_TIMEOUT  "/plugins/lan/incoming-identity-timeout"
+#define TEST_INCOMING_INVALID_ID        "/plugins/lan/incoming-invalid-id"
+#define TEST_INCOMING_INVALID_NAME      "/plugins/lan/incoming-invalid-name"
+#define TEST_OUTGOING_IDENTITY_OVERSIZE "/plugins/lan/outgoing-identity-oversize"
+#define TEST_OUTGOING_IDENTITY_TIMEOUT  "/plugins/lan/outgoing-identity-timeout"
+#define TEST_OUTGOING_INVALID_ID        "/plugins/lan/outgoing-invalid-id"
+#define TEST_OUTGOING_INVALID_NAME      "/plugins/lan/outgoing-invalid-name"
 
-#define TEST_IDENTITY_OVERSIZE "identity-oversize"
-#define TEST_IDENTITY_TIMEOUT  "identity-timeout"
-#define TEST_TLS_AUTH_TIMEOUT  "tls-auth-timeout"
-#define TEST_TLS_AUTH_SPOOFER  "tls-auth-spoofer"
+#define TEST_INCOMING_TLS_SPOOFER       "/plugins/lan/incoming-tls-spoofer"
+#define TEST_OUTGOING_TLS_SPOOFER       "/plugins/lan/outgoing-tls-spoofer"
 
 
 typedef struct
@@ -42,7 +50,17 @@ typedef struct
   GSocket              *socket;
 
   gpointer              data;
-} LanBackendFixture;
+} LanTestFixture;
+
+typedef void (*LanFixtureFunc) (LanTestFixture *fixture,
+                                gconstpointer      user_data);
+
+typedef struct
+{
+  const char     *name;
+  const char     *errmsg;
+  LanFixtureFunc  func;
+} LanTestCase;
 
 static GSocket *
 create_socket (void)
@@ -71,8 +89,8 @@ create_socket (void)
 }
 
 static void
-lan_service_fixture_set_up (LanBackendFixture *fixture,
-                            gconstpointer      user_data)
+lan_service_fixture_set_up (LanTestFixture *fixture,
+                            gconstpointer   user_data)
 {
   g_autofree char *device_id = NULL;
   g_autoptr (ValentContext) context = NULL;
@@ -110,27 +128,54 @@ lan_service_fixture_set_up (LanBackendFixture *fixture,
 }
 
 static void
-lan_service_fixture_tear_down (LanBackendFixture *fixture,
-                               gconstpointer      user_data)
+lan_service_fixture_tear_down (LanTestFixture *fixture,
+                               gconstpointer   user_data)
 {
   g_clear_pointer (&fixture->packets, json_node_unref);
 
   v_await_finalize_object (fixture->service);
-  v_await_finalize_object (fixture->channel);
-  v_await_finalize_object (fixture->endpoint);
+
+  if (fixture->channel != NULL)
+    v_await_finalize_object (fixture->channel);
+  if (fixture->endpoint != NULL)
+    v_await_finalize_object (fixture->endpoint);
 
   v_await_finalize_object (fixture->peer_certificate);
   v_await_finalize_object (fixture->socket);
 }
 
 /*
- * Endpoint Service
+ * Test Service Callbacks
  */
 static void
-g_socket_listener_accept_cb (GSocketListener   *listener,
-                             GAsyncResult      *result,
-                             LanBackendFixture *fixture)
+g_async_initable_init_async_cb (GAsyncInitable *initable,
+                                GAsyncResult   *result,
+                                gboolean       *done)
 {
+  GError *error = NULL;
+
+  *done = g_async_initable_init_finish (initable, result, &error);
+  g_assert_no_error (error);
+}
+
+static void
+on_channel (ValentChannelService  *service,
+            ValentChannel         *channel,
+            ValentChannel        **channel_out)
+{
+  if (channel_out)
+    *channel_out = g_object_ref (channel);
+}
+
+/*
+ * Incoming Broadcast (Outgoing TCP Connection)
+ */
+static void
+g_socket_listener_accept_cb (GSocketListener *listener,
+                             GAsyncResult    *result,
+                             LanTestFixture  *fixture)
+{
+  const char *test_name = g_test_get_path ();
   g_autoptr (GSocketConnection) connection = NULL;
   GTlsCertificate *peer_certificate = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
@@ -139,13 +184,25 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
   int64_t protocol_version = VALENT_NETWORK_PROTOCOL_MAX;
   GError *error = NULL;
 
+  VALENT_TEST_CHECK ("The service opens outgoing connections");
   connection = g_socket_listener_accept_finish (listener, result, NULL, &error);
   g_socket_listener_close (listener);
   g_assert_no_error (error);
 
+  /* In this test case we are neglecting to read the peer's identity packet, so
+   * we expect the test service to close the connection after 1000ms.
+   */
+  if (g_strcmp0 (test_name, TEST_OUTGOING_IDENTITY_TIMEOUT) == 0)
+    {
+      VALENT_TEST_CHECK ("The service rejects connections that take too long "
+                         "sending their identity");
+      valent_test_await_timeout (AUTHENTICATION_TIMEOUT_MAX);
+    }
+
   /* The incoming TCP connection is in response to the mock UDP packet we sent,
    * so we now expect the test service to write its identity packet.
    */
+  VALENT_TEST_CHECK ("The service writes its identity after connecting");
   peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
                                              IDENTITY_BUFFER_MAX,
                                              NULL,
@@ -153,12 +210,31 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
   g_assert_no_error (error);
   g_assert_true (VALENT_IS_PACKET (peer_identity));
 
-  /* The test service is unverified, so we expect it to be accepted on a
-   * trust-on-first-use basis.
-   */
+  VALENT_TEST_CHECK ("The service uses a valid device ID");
   valent_packet_get_string (peer_identity, "deviceId", &device_id);
   g_assert_true (valent_device_validate_id (device_id));
 
+  /* In this test case we are trying to connect with the same device ID and a
+   * different certificate, so we expect the service to reject the connection.
+   */
+  if (g_strcmp0 (test_name, TEST_INCOMING_TLS_SPOOFER) == 0)
+    {
+      g_autoptr (GTlsCertificate) bad_certificate = NULL;
+      g_autofree char *tmpdir = NULL;
+
+      /* TODO: test the case where the certificate common name _does_ match the
+       *       identity, but the certificate itself is different
+       */
+      VALENT_TEST_CHECK ("The service rejects connections with a device ID "
+                         "that does not match the certificate common name");
+      g_clear_object (&fixture->peer_certificate);
+      tmpdir = g_dir_make_tmp (NULL, &error);
+      g_assert_no_error (error);
+      fixture->peer_certificate = valent_certificate_new_sync (tmpdir, &error);
+      g_assert_no_error (error);
+    }
+
+  VALENT_TEST_CHECK ("The service negotiates TLS connections as the server");
   tls_stream = valent_lan_encrypt_client_connection (connection,
                                                      fixture->peer_certificate,
                                                      NULL,
@@ -171,6 +247,7 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
     {
       g_autoptr (JsonNode) secure_identity = NULL;
 
+      VALENT_TEST_CHECK ("The service exchanges identity packets over TLS");
       valent_packet_to_stream (g_io_stream_get_output_stream (tls_stream),
                                fixture->peer_identity,
                                NULL,
@@ -203,13 +280,12 @@ g_socket_listener_accept_cb (GSocketListener   *listener,
 }
 
 static void
-await_incoming_connection (LanBackendFixture *fixture)
+await_incoming_connection (LanTestFixture *fixture)
 {
-  GError *error = NULL;
   g_autoptr (GSocketListener) listener = NULL;
+  GError *error = NULL;
 
   listener = g_socket_listener_new ();
-
   if (!g_socket_listener_add_inet_port (listener, ENDPOINT_PORT, NULL, &error))
     g_assert_no_error (error);
 
@@ -219,6 +295,51 @@ await_incoming_connection (LanBackendFixture *fixture)
                                   fixture);
 }
 
+static void
+test_lan_service_incoming_broadcast (LanTestFixture *fixture,
+                                     gconstpointer   user_data)
+{
+  GError *error = NULL;
+  g_autoptr (GSocketAddress) address = NULL;
+  g_autofree char *identity_json = NULL;
+  gboolean watch = FALSE;
+
+  VALENT_TEST_CHECK ("The service can be initialized");
+  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
+                               G_PRIORITY_DEFAULT,
+                               NULL,
+                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                               &watch);
+  valent_test_await_boolean (&watch);
+
+  /* Listen for an incoming TCP connection */
+  await_incoming_connection (fixture);
+
+  VALENT_TEST_CHECK ("The service accepts UDP broadcasts from the network");
+  address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
+  identity_json = valent_packet_serialize (fixture->peer_identity);
+  g_socket_send_to (fixture->socket,
+                    address,
+                    identity_json,
+                    strlen (identity_json),
+                    NULL,
+                    &error);
+  g_assert_no_error (error);
+
+  VALENT_TEST_CHECK ("The service creates channels for successful connections");
+  g_signal_connect (fixture->service,
+                    "channel",
+                    G_CALLBACK (on_channel),
+                    &fixture->channel);
+  valent_test_await_pointer (&fixture->channel);
+
+  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
+}
+
+/*
+ * Outgoing Broadcast (Incoming Connection)
+ */
 static void
 g_socket_client_connect_to_host_cb (GSocketClient      *client,
                                     GAsyncResult       *result,
@@ -232,7 +353,7 @@ g_socket_client_connect_to_host_cb (GSocketClient      *client,
 }
 
 static void
-on_incoming_broadcast (GDataInputStream  *stream,
+on_outgoing_broadcast (GDataInputStream  *stream,
                        GAsyncResult      *result,
                        JsonNode         **peer_identity)
 {
@@ -251,6 +372,210 @@ on_incoming_broadcast (GDataInputStream  *stream,
   g_assert_nonnull (*peer_identity);
 }
 
+static void
+test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
+                                     gconstpointer   user_data)
+{
+  const char *test_name = g_test_get_path ();
+  g_autoptr (GInputStream) unix_stream = NULL;
+  g_autoptr (GDataInputStream) data_stream = NULL;
+  g_autoptr (JsonNode) peer_identity = NULL;
+  GTlsCertificate *peer_certificate = NULL;
+  g_autoptr (GSocketClient) client = NULL;
+  g_autoptr (GSocketConnection) connection = NULL;
+  g_autoptr (GIOStream) tls_stream = NULL;
+  int64_t protocol_version = VALENT_NETWORK_PROTOCOL_MAX;
+  gboolean watch = FALSE;
+  GError *error = NULL;
+
+  VALENT_TEST_CHECK ("The service can be initialized");
+  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
+                               G_PRIORITY_DEFAULT,
+                               NULL,
+                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                               &watch);
+  valent_test_await_boolean (&watch);
+
+  VALENT_TEST_CHECK ("The service announces itself to the network");
+  valent_channel_service_identify (fixture->service, ENDPOINT_ADDR);
+  unix_stream = g_unix_input_stream_new (g_socket_get_fd (fixture->socket), TRUE);
+  data_stream = g_data_input_stream_new (unix_stream);
+  g_data_input_stream_read_line_async (data_stream,
+                                       G_PRIORITY_DEFAULT,
+                                       NULL,
+                                       (GAsyncReadyCallback)on_outgoing_broadcast,
+                                       &peer_identity);
+  valent_test_await_pointer (&peer_identity);
+  VALENT_JSON (peer_identity, g_get_host_name ());
+
+  VALENT_TEST_CHECK ("The service accepts incoming connections");
+  client = g_object_new (G_TYPE_SOCKET_CLIENT,
+                         "enable-proxy", FALSE,
+                         NULL);
+  g_socket_client_connect_to_host_async (client,
+                                         SERVICE_ADDR,
+                                         SERVICE_PORT,
+                                         NULL,
+                                         (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
+                                         &connection);
+  valent_test_await_pointer (&connection);
+
+  /* In this test case we are neglecting to send our identity packet, so
+   * we expect the test service to close the connection after 1000ms
+   */
+  if (g_strcmp0 (test_name, TEST_INCOMING_IDENTITY_TIMEOUT) == 0)
+    {
+      VALENT_TEST_CHECK ("The service rejects connections that take too long "
+                         "sending their identity");
+      valent_test_await_timeout (AUTHENTICATION_TIMEOUT_MAX);
+    }
+
+  valent_packet_to_stream (g_io_stream_get_output_stream (G_IO_STREAM (connection)),
+                           fixture->peer_identity,
+                           NULL,
+                           &error);
+  g_assert_no_error (error);
+
+  /* In this test case we are trying to connect with the same device ID and a
+   * different certificate, so we expect the service to reject the connection.
+   */
+  if (g_strcmp0 (test_name, TEST_OUTGOING_TLS_SPOOFER) == 0)
+    {
+      g_autoptr (GTlsCertificate) bad_certificate = NULL;
+      g_autofree char *tmpdir = NULL;
+
+      /* TODO: test the case where the certificate common name _does_ match the
+       *       identity, but the certificate itself is different
+       */
+      VALENT_TEST_CHECK ("The service rejects connections with a device ID "
+                         "that does not match the certificate common name");
+      g_clear_object (&fixture->peer_certificate);
+      tmpdir = g_dir_make_tmp (NULL, &error);
+      g_assert_no_error (error);
+      fixture->peer_certificate = valent_certificate_new_sync (tmpdir, &error);
+      g_assert_no_error (error);
+    }
+
+  VALENT_TEST_CHECK ("The service negotiates TLS connections as the client");
+  tls_stream = valent_lan_encrypt_server_connection (connection,
+                                                     fixture->peer_certificate,
+                                                     NULL,
+                                                     &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
+
+  valent_packet_get_int (peer_identity, "protocolVersion", &protocol_version);
+  if (protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
+    {
+      g_autoptr (JsonNode) secure_identity = NULL;
+
+      VALENT_TEST_CHECK ("The service exchanges identity packets over TLS");
+      valent_packet_to_stream (g_io_stream_get_output_stream (tls_stream),
+                               fixture->peer_identity,
+                               NULL,
+                               &error);
+      g_assert_no_error (error);
+
+      secure_identity = valent_packet_from_stream (g_io_stream_get_input_stream (tls_stream),
+                                                   IDENTITY_BUFFER_MAX,
+                                                   NULL,
+                                                   &error);
+      g_assert_no_error (error);
+
+      g_clear_pointer (&peer_identity, json_node_unref);
+      peer_identity = g_steal_pointer (&secure_identity);
+    }
+
+  /* We're pretending to be a remote service, so we create an endpoint channel
+   * so that we can pop packets of it from the test service.
+   */
+  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
+  fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
+                                    "base-stream",      tls_stream,
+                                    "certificate",      fixture->peer_certificate,
+                                    "identity",         fixture->peer_identity,
+                                    "peer-certificate", peer_certificate,
+                                    "peer-identity",    peer_identity,
+                                    "host",             SERVICE_HOST,
+                                    "port",             SERVICE_PORT,
+                                    NULL);
+
+  VALENT_TEST_CHECK ("The service creates channels for successful connections");
+  g_signal_connect (fixture->service,
+                    "channel",
+                    G_CALLBACK (on_channel),
+                    &fixture->channel);
+  valent_test_await_pointer (&fixture->channel);
+
+  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
+}
+
+static void
+test_lan_service_invalid_identity (gconstpointer user_data)
+{
+  LanTestCase *test_case = (LanTestCase *)user_data;
+  const char *test_name = g_test_get_path ();
+
+  if (g_test_subprocess ())
+    {
+      g_autofree LanTestFixture *fixture = NULL;
+      JsonObject *body = NULL;
+
+      fixture = g_new0 (LanTestFixture, 1);
+      lan_service_fixture_set_up (fixture, test_case);
+
+      body = valent_packet_get_body (fixture->peer_identity);
+      if (g_strcmp0 (test_name, TEST_INCOMING_IDENTITY_OVERSIZE) == 0 ||
+          g_strcmp0 (test_name, TEST_OUTGOING_IDENTITY_OVERSIZE) == 0)
+        {
+          g_autofree char *oversize = NULL;
+
+          oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
+          json_object_set_string_member (body, "oversize", oversize);
+        }
+      else if (g_strcmp0 (test_name, TEST_INCOMING_INVALID_ID) == 0 ||
+               g_strcmp0 (test_name, TEST_OUTGOING_INVALID_ID) == 0)
+        {
+          json_object_set_string_member (body, "deviceId", "!@#$%^&*()");
+        }
+      else if (g_strcmp0 (test_name, TEST_INCOMING_INVALID_NAME) == 0 ||
+               g_strcmp0 (test_name, TEST_OUTGOING_INVALID_NAME) == 0)
+        {
+          json_object_set_string_member (body, "deviceName", "!@#$%^&*()");
+        }
+
+      test_case->func (fixture, test_case);
+      lan_service_fixture_tear_down (fixture, test_case);
+    }
+  g_test_trap_subprocess (NULL, 0, G_TEST_SUBPROCESS_DEFAULT);
+  g_test_trap_assert_stderr (test_case->errmsg);
+  g_test_trap_assert_failed ();
+}
+
+static void
+test_lan_service_tls_authentication (gconstpointer user_data)
+{
+  LanTestCase *test_case = (LanTestCase *)user_data;
+
+  if (g_test_subprocess ())
+    {
+      g_autofree LanTestFixture *fixture = NULL;
+
+      fixture = g_new0 (LanTestFixture, 1);
+      lan_service_fixture_set_up (fixture, test_case);
+      test_case->func (fixture, test_case);
+      lan_service_fixture_tear_down (fixture, test_case);
+    }
+
+  g_test_trap_subprocess (NULL, 0, G_TEST_SUBPROCESS_DEFAULT);
+  g_test_trap_assert_stderr (test_case->errmsg);
+  g_test_trap_assert_failed ();
+}
+
+/*
+ * Channel
+ */
 static void
 on_incoming_transfer (ValentChannel *endpoint,
                       GAsyncResult  *result,
@@ -288,362 +613,9 @@ on_incoming_transfer (ValentChannel *endpoint,
   g_assert_cmpint (transferred, ==, payload_size);
 }
 
-/*
- * Test Service Callbacks
- */
 static void
-g_async_initable_init_async_cb (GAsyncInitable *initable,
-                                GAsyncResult   *result,
-                                gboolean       *done)
-{
-  GError *error = NULL;
-
-  *done = g_async_initable_init_finish (initable, result, &error);
-  g_assert_no_error (error);
-}
-
-static void
-on_channel (ValentChannelService  *service,
-            ValentChannel         *channel,
-            ValentChannel        **channel_out)
-{
-  if (channel_out)
-    *channel_out = g_object_ref (channel);
-}
-
-static void
-test_lan_service_incoming_broadcast (LanBackendFixture *fixture,
-                                     gconstpointer      user_data)
-{
-  GError *error = NULL;
-  g_autoptr (GSocketAddress) address = NULL;
-  g_autofree char *identity_json = NULL;
-  gboolean watch = FALSE;
-
-  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
-                               G_PRIORITY_DEFAULT,
-                               NULL,
-                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
-                               &watch);
-  valent_test_await_boolean (&watch);
-
-  /* Listen for an incoming TCP connection */
-  await_incoming_connection (fixture);
-
-  /* Identify the mock endpoint to the service */
-  address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
-  identity_json = valent_packet_serialize (fixture->peer_identity);
-
-  g_socket_send_to (fixture->socket,
-                    address,
-                    identity_json,
-                    strlen (identity_json),
-                    NULL,
-                    &error);
-  g_assert_no_error (error);
-
-  g_signal_connect (fixture->service,
-                    "channel",
-                    G_CALLBACK (on_channel),
-                    &fixture->channel);
-  valent_test_await_pointer (&fixture->channel);
-
-  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_object_destroy (VALENT_OBJECT (fixture->service));
-}
-
-static void
-test_lan_service_incoming_broadcast_oversize (void)
-{
-  if (g_test_subprocess ())
-    {
-      LanBackendFixture *fixture;
-      g_autofree char *oversize = NULL;
-
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
-
-      /* Inject data into the identity packet, to force it to be rejected */
-      oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
-      json_object_set_string_member (valent_packet_get_body (fixture->peer_identity),
-                                     "oversize",
-                                     oversize);
-
-      /* Run the test to be failed */
-      test_lan_service_incoming_broadcast (fixture, TEST_IDENTITY_OVERSIZE);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
-    }
-  g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_failed ();
-}
-
-static void
-test_lan_service_outgoing_broadcast (LanBackendFixture *fixture,
-                                     gconstpointer      user_data)
-{
-  g_autoptr (GInputStream) unix_stream = NULL;
-  g_autoptr (GDataInputStream) data_stream = NULL;
-  g_autoptr (JsonNode) peer_identity = NULL;
-  GTlsCertificate *peer_certificate = NULL;
-  g_autoptr (GSocketClient) client = NULL;
-  g_autoptr (GSocketConnection) connection = NULL;
-  GOutputStream *output_stream;
-  g_autoptr (GIOStream) tls_stream = NULL;
-  int64_t protocol_version = VALENT_NETWORK_PROTOCOL_MAX;
-  gboolean watch = FALSE;
-  GError *error = NULL;
-
-  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
-                               G_PRIORITY_DEFAULT,
-                               NULL,
-                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
-                               &watch);
-  valent_test_await_boolean (&watch);
-
-  /* Send a UDP broadcast directly to the mock endpoint. When the identity
-   * packet is received, the mock endpoint will respond by opening a TCP
-   * connection to the test service.
-   */
-  valent_channel_service_identify (fixture->service, ENDPOINT_ADDR);
-
-  unix_stream = g_unix_input_stream_new (g_socket_get_fd (fixture->socket), TRUE);
-  data_stream = g_data_input_stream_new (unix_stream);
-  g_data_input_stream_read_line_async (data_stream,
-                                       G_PRIORITY_DEFAULT,
-                                       NULL,
-                                       (GAsyncReadyCallback)on_incoming_broadcast,
-                                       &peer_identity);
-  valent_test_await_pointer (&peer_identity);
-
-  /* The test service identity has been received and now we will respond by
-   * opening a TCP connection to it. */
-  client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                         "enable-proxy", FALSE,
-                         NULL);
-  g_socket_client_connect_to_host_async (client,
-                                         SERVICE_ADDR,
-                                         SERVICE_PORT,
-                                         NULL,
-                                         (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
-                                         &connection);
-  valent_test_await_pointer (&connection);
-
-  /* We opened a TCP connection in response to the incoming UDP broadcast so the
-   * test service now expects us to write our identity packet.
-   */
-  if (g_test_subprocess ())
-    {
-      /* In this test case we are neglecting to send our identity packet, so
-       * we expect the test service to close the connection after 1000ms */
-      if (g_strcmp0 (user_data, TEST_IDENTITY_TIMEOUT) == 0)
-        valent_test_await_timeout (1100);
-    }
-
-  output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
-  valent_packet_to_stream (output_stream, fixture->peer_identity, NULL, &error);
-  g_assert_no_error (error);
-
-  /* The test service is unverified, so it expects to be accepted on a
-   * trust-on-first-use basis.
-   */
-  if (g_test_subprocess ())
-    {
-      /* In this test case we are neglecting to negotiate a TLS connection, so
-       * we expect the test service to close the connection after 1000ms */
-      if (g_strcmp0 (user_data, TEST_TLS_AUTH_TIMEOUT) == 0)
-        valent_test_await_timeout (1100);
-    }
-
-  /* In this test case we are trying to connect with the same device ID and a
-   * different certificate, so we expect the service to reject the connection.
-   */
-  if (g_strcmp0 (user_data, TEST_TLS_AUTH_SPOOFER) == 0)
-    {
-      g_autoptr (GTlsCertificate) bad_certificate = NULL;
-
-      /* HACK: we're just sending the service's certificate back to itself,
-       *       so the common name won't match the `deviceId` in the identity
-       * TODO: test the case where the certificate common name _does_ match the
-       *       identity, but the certificate itself is different
-       */
-      g_object_get (fixture->service, "certificate", &bad_certificate, NULL);
-      tls_stream = valent_lan_encrypt_server_connection (connection,
-                                                         bad_certificate,
-                                                         NULL,
-                                                         &error);
-    }
-  else
-    {
-      tls_stream = valent_lan_encrypt_server_connection (connection,
-                                                         fixture->peer_certificate,
-                                                         NULL,
-                                                         &error);
-    }
-  g_assert_no_error (error);
-  g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
-
-  valent_packet_get_int (peer_identity, "protocolVersion", &protocol_version);
-  if (protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
-    {
-      g_autoptr (JsonNode) secure_identity = NULL;
-
-      valent_packet_to_stream (g_io_stream_get_output_stream (tls_stream),
-                               fixture->peer_identity,
-                               NULL,
-                               &error);
-      g_assert_no_error (error);
-
-      secure_identity = valent_packet_from_stream (g_io_stream_get_input_stream (tls_stream),
-                                                   IDENTITY_BUFFER_MAX,
-                                                   NULL,
-                                                   &error);
-      g_assert_no_error (error);
-
-      g_clear_pointer (&peer_identity, json_node_unref);
-      peer_identity = g_steal_pointer (&secure_identity);
-    }
-
-  /* We're pretending to be a remote service, so we create an endpoint channel
-   * so that we can pop packets of it from the test service.
-   */
-  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
-  fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                                    "base-stream",      tls_stream,
-                                    "certificate",      fixture->peer_certificate,
-                                    "identity",         fixture->peer_identity,
-                                    "peer-certificate", peer_certificate,
-                                    "peer-identity",    peer_identity,
-                                    "host",             SERVICE_HOST,
-                                    "port",             SERVICE_PORT,
-                                    NULL);
-
-  /* When the test service accepts the incoming connection, it should negotiate
-   * the TLS connection and create a channel.
-   */
-  g_signal_connect (fixture->service,
-                    "channel",
-                    G_CALLBACK (on_channel),
-                    &fixture->channel);
-  valent_test_await_pointer (&fixture->channel);
-
-  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_object_destroy (VALENT_OBJECT (fixture->service));
-}
-
-static void
-test_lan_service_outgoing_broadcast_oversize (void)
-{
-  if (g_test_subprocess ())
-    {
-      LanBackendFixture *fixture;
-      g_autofree char *oversize = NULL;
-
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
-
-      /* Inject data into the identity packet, to force it to be rejected */
-      oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
-      json_object_set_string_member (valent_packet_get_body (fixture->peer_identity),
-                                     "oversize",
-                                     oversize);
-
-      /* Run the test to be failed */
-      test_lan_service_outgoing_broadcast (fixture, TEST_IDENTITY_OVERSIZE);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
-    }
-  g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_stderr ("*Packet too large*");
-  g_test_trap_assert_failed ();
-}
-
-static void
-test_lan_service_outgoing_broadcast_timeout (void)
-{
-  if (g_test_subprocess ())
-    {
-      LanBackendFixture *fixture;
-
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
-
-      /* Run the test to be failed */
-      test_lan_service_outgoing_broadcast (fixture, TEST_IDENTITY_TIMEOUT);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
-    }
-  g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_failed ();
-}
-
-static void
-test_lan_service_outgoing_broadcast_tls_timeout (void)
-{
-  if (g_test_subprocess ())
-    {
-      LanBackendFixture *fixture;
-
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
-
-      /* Run the test to be failed */
-      test_lan_service_outgoing_broadcast (fixture, TEST_TLS_AUTH_TIMEOUT);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
-    }
-  g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_failed ();
-}
-
-static void
-test_lan_service_outgoing_broadcast_tls_spoofer (void)
-{
-  if (g_test_subprocess ())
-    {
-      LanBackendFixture *fixture;
-
-      /* Perform fixture setup */
-      fixture = g_new0 (LanBackendFixture, 1);
-      lan_service_fixture_set_up (fixture, NULL);
-
-      /* Run the test to be failed */
-      test_lan_service_outgoing_broadcast (fixture, TEST_TLS_AUTH_SPOOFER);
-
-      /* Perform fixture teardown */
-      lan_service_fixture_tear_down (fixture, NULL);
-      g_clear_pointer (&fixture, g_free);
-
-      return;
-    }
-  g_test_trap_subprocess (NULL, 0, 0);
-  g_test_trap_assert_stderr ("*device ID does not match certificate common name*");
-  g_test_trap_assert_failed ();
-}
-
-static void
-test_lan_service_channel (LanBackendFixture *fixture,
-                          gconstpointer      user_data)
+test_lan_service_channel (LanTestFixture *fixture,
+                          gconstpointer   user_data)
 {
   GError *error = NULL;
   JsonNode *packet;
@@ -668,9 +640,7 @@ test_lan_service_channel (LanBackendFixture *fixture,
 
   /* Identify the mock endpoint to the service */
   address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
-  packet = json_object_get_member (json_node_get_object (fixture->packets),
-                                   "peer-identity");
-  identity_str = valent_packet_serialize (packet);
+  identity_str = valent_packet_serialize (fixture->peer_identity);
 
   g_socket_send_to (fixture->socket,
                     address,
@@ -720,6 +690,64 @@ test_lan_service_channel (LanBackendFixture *fixture,
   valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
+static LanTestCase identity_tests[] = {
+  {
+    .name = TEST_OUTGOING_IDENTITY_OVERSIZE,
+    .errmsg = "*unterminated string constant*",
+    .func = (LanFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_INCOMING_IDENTITY_OVERSIZE,
+    .errmsg = "*Packet too large*",
+    .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+#if !(VALENT_HAVE_ASAN || VALENT_HAVE_TSAN)
+  {
+    .name = TEST_OUTGOING_IDENTITY_TIMEOUT,
+    .errmsg = "*timed out waiting for peer identity*",
+    .func = (LanFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_INCOMING_IDENTITY_TIMEOUT,
+    .errmsg = "*timed out waiting for peer identity*",
+    .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+#endif /* !VALENT_HAVE_ASAN */
+  {
+    .name = TEST_INCOMING_INVALID_ID,
+    .errmsg = "*invalid device ID*",
+    .func = (LanFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_OUTGOING_INVALID_ID,
+    .errmsg = "*invalid device ID*",
+    .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+  {
+    .name = TEST_INCOMING_INVALID_NAME,
+    .errmsg = "*invalid device name*",
+    .func = (LanFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_OUTGOING_INVALID_NAME,
+    .errmsg = "*invalid device name*",
+    .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+};
+
+static LanTestCase tls_tests[] = {
+  {
+    .name = TEST_INCOMING_TLS_SPOOFER,
+    .errmsg = "*device ID does not match certificate common name*",
+    .func = (LanFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_OUTGOING_TLS_SPOOFER,
+    .errmsg = "*device ID does not match certificate common name*",
+    .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+};
+
 int
 main (int   argc,
       char *argv[])
@@ -730,34 +758,33 @@ main (int   argc,
   g_type_ensure (VALENT_TYPE_LAN_CHANNEL_SERVICE);
 
   g_test_add ("/plugins/lan/incoming-broadcast",
-              LanBackendFixture, NULL,
+              LanTestFixture, NULL,
               lan_service_fixture_set_up,
               test_lan_service_incoming_broadcast,
               lan_service_fixture_tear_down);
 
-  g_test_add_func ("/plugins/lan/incoming-broadcast-oversize",
-                   test_lan_service_incoming_broadcast_oversize);
-
   g_test_add ("/plugins/lan/outgoing-broadcast",
-              LanBackendFixture, NULL,
+              LanTestFixture, NULL,
               lan_service_fixture_set_up,
               test_lan_service_outgoing_broadcast,
               lan_service_fixture_tear_down);
 
-  g_test_add_func ("/plugins/lan/outgoing-broadcast-oversize",
-                   test_lan_service_outgoing_broadcast_oversize);
+  for (size_t i = 0; i < G_N_ELEMENTS (identity_tests); i++)
+    {
+      g_test_add_data_func (identity_tests[i].name,
+                            &identity_tests[i],
+                            test_lan_service_invalid_identity);
+    }
 
-  g_test_add_func ("/plugins/lan/outgoing-broadcast-timeout",
-                   test_lan_service_outgoing_broadcast_timeout);
-
-  g_test_add_func ("/plugins/lan/outgoing-broadcast-tls-auth",
-                   test_lan_service_outgoing_broadcast_tls_timeout);
-
-  g_test_add_func ("/plugins/lan/outgoing-broadcast-tls-cert",
-                   test_lan_service_outgoing_broadcast_tls_spoofer);
+  for (size_t i = 0; i < G_N_ELEMENTS (tls_tests); i++)
+    {
+      g_test_add_data_func (tls_tests[i].name,
+                            &tls_tests[i],
+                            test_lan_service_tls_authentication);
+    }
 
   g_test_add ("/plugins/lan/channel",
-              LanBackendFixture, NULL,
+              LanTestFixture, NULL,
               lan_service_fixture_set_up,
               test_lan_service_channel,
               lan_service_fixture_tear_down);
