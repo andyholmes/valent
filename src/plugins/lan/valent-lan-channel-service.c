@@ -79,6 +79,47 @@ on_channel_destroyed (ValentLanChannelService *self,
   valent_object_unlock (VALENT_OBJECT (self));
 }
 
+static gboolean
+timeout_cancellable_cb (gpointer data)
+{
+  g_assert (G_IS_CANCELLABLE (data));
+
+  g_cancellable_cancel ((GCancellable *)data);
+
+  return G_SOURCE_REMOVE;
+}
+
+static GCancellable *
+timeout_cancellable_new (GCancellable  *cancellable,
+                         unsigned long *cancellable_id)
+{
+  g_autoptr (GSource) source = NULL;
+  g_autoptr (GMainContext) context = NULL;
+  GCancellable *timeout;
+
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  context = g_main_context_ref_thread_default ();
+  timeout = g_cancellable_new ();
+  source = g_timeout_source_new (IDENTITY_TIMEOUT_MAX);
+  g_source_set_priority (source, G_PRIORITY_HIGH);
+  g_source_set_callback (source,
+                         timeout_cancellable_cb,
+                         g_object_ref (timeout),
+                         g_object_unref);
+  g_source_attach (source, context);
+
+  if (cancellable != NULL && cancellable_id != NULL)
+    {
+      *cancellable_id = g_cancellable_connect (cancellable,
+                                               G_CALLBACK (g_cancellable_cancel),
+                                               timeout,
+                                               NULL);
+    }
+
+  return g_steal_pointer (&timeout);
+}
+
 static JsonNode *
 valent_lan_channel_service_identify_channel (GIOStream     *stream,
                                              JsonNode      *identity,
@@ -102,6 +143,8 @@ valent_lan_channel_service_identify_channel (GIOStream     *stream,
 
   if (protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
     {
+      g_autoptr (JsonNode) secure_identity = NULL;
+
       if (!valent_packet_to_stream (g_io_stream_get_output_stream (stream),
                                     identity,
                                     cancellable,
@@ -227,22 +270,13 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
  * 3) Negotiate TLS encryption (as the TLS Client)
  */
 static gboolean
-incoming_connection_timeout_cb (gpointer data)
-{
-  g_assert (G_IS_CANCELLABLE (data));
-
-  g_cancellable_cancel ((GCancellable *)data);
-
-  return G_SOURCE_REMOVE;
-}
-
-static gboolean
 on_incoming_connection (ValentChannelService   *service,
                         GSocketConnection      *connection,
                         GCancellable           *cancellable,
                         GThreadedSocketService *listener)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
+  g_autoptr (GMainContext) context = NULL;
   g_autoptr (GCancellable) timeout = NULL;
   unsigned long cancellable_id = 0;
   g_autoptr (GSocketAddress) s_addr = NULL;
@@ -262,27 +296,20 @@ on_incoming_connection (ValentChannelService   *service,
   g_assert (VALENT_IS_CHANNEL_SERVICE (service));
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
-  /* Timeout if the peer fails to authenticate in a timely fashion. */
-  timeout = g_cancellable_new ();
-  g_timeout_add_full (G_PRIORITY_DEFAULT,
-                      IDENTITY_TIMEOUT_MAX,
-                      incoming_connection_timeout_cb,
-                      g_object_ref (timeout),
-                      g_object_unref);
+  /* A timeout (1000ms) and maximum identity packet size (8192b) are set to
+   * prevent a DoS attack from an unauthenticated peer.
+   */
+  context = g_main_context_new ();
+  g_main_context_push_thread_default (context);
+  timeout = timeout_cancellable_new (cancellable, &cancellable_id);
 
-  if (cancellable != NULL)
-    cancellable_id = g_cancellable_connect (cancellable,
-                                            G_CALLBACK (g_cancellable_cancel),
-                                            timeout,
-                                            NULL);
-
-  /* An incoming TCP connection is in response to an outgoing UDP packet, so the
-   * the peer must now write its identity packet. */
+  /* An incoming TCP connection is in response to an outgoing UDP packet, so
+   * the peer must now write its identity packet.
+   */
   peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
                                              IDENTITY_BUFFER_MAX,
                                              timeout,
                                              &warning);
-
   if (peer_identity == NULL)
     {
       if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -290,9 +317,7 @@ on_incoming_connection (ValentChannelService   *service,
       else if (!g_cancellable_is_cancelled (cancellable))
         g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
 
-      g_cancellable_disconnect (cancellable, cancellable_id);
-
-      return TRUE;
+      VALENT_GOTO (out);
     }
 
   /* Ignore broadcasts without a deviceId or with an invalid deviceId
@@ -304,13 +329,13 @@ on_incoming_connection (ValentChannelService   *service,
     {
       g_debug ("%s(): expected \"deviceId\" field holding a string",
                G_STRFUNC);
-      return TRUE;
+      VALENT_GOTO (out);
     }
 
   if (!valent_device_validate_id (device_id))
     {
       g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
-      return TRUE;
+      VALENT_GOTO (out);
     }
 
   VALENT_JSON (peer_identity, host);
@@ -321,17 +346,14 @@ on_incoming_connection (ValentChannelService   *service,
                                                      certificate,
                                                      timeout,
                                                      &warning);
-
   if (tls_stream == NULL)
     {
       if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, warning->message);
       else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for authentication", G_STRFUNC);
+        g_warning ("%s(): timed out waiting for TLS negotiation", G_STRFUNC);
 
-      g_cancellable_disconnect (cancellable, cancellable_id);
-
-      return TRUE;
+      VALENT_GOTO (out);
     }
 
   identity = valent_channel_service_ref_identity (service);
@@ -343,18 +365,16 @@ on_incoming_connection (ValentChannelService   *service,
   if (secure_identity == NULL)
     {
       if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
-                 G_STRFUNC, host, port, warning->message);
+        g_debug ("%s(): authenticating (%s:%u): %s",
+                 G_STRFUNC, host, (uint16_t)port, warning->message);
       else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for authentication", G_STRFUNC);
+        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
 
-      g_cancellable_disconnect (cancellable, cancellable_id);
-
-      return TRUE;
+      VALENT_GOTO (out);
     }
 
   if (!valent_lan_channel_service_verify_channel (self, secure_identity, tls_stream))
-    return TRUE;
+    VALENT_GOTO (out);
 
   /* Get the host from the connection. The tcpPort field is usually absent for
    * incoming connections, but if not then it must be within the allowed range.
@@ -369,10 +389,9 @@ on_incoming_connection (ValentChannelService   *service,
                  G_STRFUNC,
                  VALENT_LAN_PROTOCOL_PORT_MIN,
                  VALENT_LAN_PROTOCOL_PORT_MAX);
-      return TRUE;
+      VALENT_GOTO (out);
     }
 
-  /* Create the new channel */
   peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                           "base-stream",      tls_stream,
@@ -385,6 +404,10 @@ on_incoming_connection (ValentChannelService   *service,
                           NULL);
 
   valent_channel_service_channel (service, channel);
+
+out:
+  g_cancellable_disconnect (cancellable, cancellable_id);
+  g_main_context_pop_thread_default (context);
 
   return TRUE;
 }
@@ -477,6 +500,9 @@ incoming_broadcast_task (GTask        *task,
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (source_object);
   ValentChannelService *service = VALENT_CHANNEL_SERVICE (source_object);
   GSocketAddress *address = G_SOCKET_ADDRESS (task_data);
+  g_autoptr (GMainContext) context = NULL;
+  g_autoptr (GCancellable) timeout = NULL;
+  unsigned long cancellable_id = 0;
   JsonNode *peer_identity = NULL;
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
@@ -486,7 +512,6 @@ incoming_broadcast_task (GTask        *task,
   g_autoptr (ValentChannel) channel = NULL;
   g_autofree char *host = NULL;
   int64_t port = VALENT_LAN_PROTOCOL_PORT;
-  GOutputStream *output_stream;
   g_autoptr (GTlsCertificate) certificate = NULL;
   GTlsCertificate *peer_certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
@@ -495,10 +520,12 @@ incoming_broadcast_task (GTask        *task,
   g_assert (VALENT_IS_CHANNEL_SERVICE (self));
   g_assert (G_IS_SOCKET_ADDRESS (address));
 
-  addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
-  host = g_inet_address_to_string (addr);
-  peer_identity = g_object_get_data (G_OBJECT (address), "peer-identity");
-  valent_packet_get_int (peer_identity, "tcpPort", &port);
+  /* A timeout (1000ms) is set to prevent a DoS attack from an
+   * unauthenticated peer.
+   */
+  context = g_main_context_new ();
+  g_main_context_push_thread_default (context);
+  timeout = timeout_cancellable_new (cancellable, &cancellable_id);
 
   /* Open a TCP connection to the UDP sender and defined port.
    *
@@ -506,63 +533,80 @@ incoming_broadcast_task (GTask        *task,
    *   - https://bugs.kde.org/show_bug.cgi?id=376187
    *   - https://github.com/andyholmes/gnome-shell-extension-gsconnect/issues/125
    */
+  addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
+  host = g_inet_address_to_string (addr);
+  peer_identity = g_object_get_data (G_OBJECT (address), "peer-identity");
+  valent_packet_get_int (peer_identity, "tcpPort", &port);
+
   client = g_object_new (G_TYPE_SOCKET_CLIENT,
                          "enable-proxy", FALSE,
                          NULL);
   connection = g_socket_client_connect (client,
                                         G_SOCKET_CONNECTABLE (address),
-                                        cancellable,
+                                        timeout,
                                         &error);
-
   if (connection == NULL)
     {
-      g_debug ("%s(): connecting to (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, error->message);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_debug ("%s(): connecting (%s:%u): %s",
+                 G_STRFUNC, host, (uint16_t)port, error->message);
+      else if (!g_cancellable_is_cancelled (cancellable))
+        g_warning ("%s(): timed out waiting for peer to connect", G_STRFUNC);
+
+      VALENT_GOTO (out);
     }
 
   /* Write the local identity. Once we do this, both peers will have the ability
    * to authenticate or reject TLS certificates.
    */
   identity = valent_channel_service_ref_identity (service);
-  output_stream = g_io_stream_get_output_stream (G_IO_STREAM (connection));
-
-  if (!valent_packet_to_stream (output_stream, identity, cancellable, &error))
+  if (!valent_packet_to_stream (g_io_stream_get_output_stream (G_IO_STREAM (connection)),
+                                identity,
+                                timeout,
+                                &error))
     {
-      g_debug ("%s(): sending identity to (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, error->message);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_debug ("%s(): sending identity to (%s:%u): %s",
+                 G_STRFUNC, host, (uint16_t)port, error->message);
+      else if (!g_cancellable_is_cancelled (cancellable))
+        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
+
+      VALENT_GOTO (out);
     }
 
   /* NOTE: We're the server when opening outgoing connections */
   certificate = valent_channel_service_ref_certificate (service);
   tls_stream = valent_lan_encrypt_server_connection (connection,
                                                      certificate,
-                                                     cancellable,
+                                                     timeout,
                                                      &error);
-
   if (tls_stream == NULL)
     {
-      g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, error->message);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_debug ("%s(): authenticating (%s:%u): %s",
+                 G_STRFUNC, host, (uint16_t)port, error->message);
+      else if (!g_cancellable_is_cancelled (cancellable))
+        g_warning ("%s(): timed out waiting for TLS negotiation", G_STRFUNC);
     }
 
   secure_identity = valent_lan_channel_service_identify_channel (tls_stream,
                                                                  identity,
                                                                  peer_identity,
-                                                                 cancellable,
+                                                                 timeout,
                                                                  &error);
   if (secure_identity == NULL)
     {
-      g_debug ("%s(): authenticating (%s:%"G_GINT64_FORMAT"): %s",
-               G_STRFUNC, host, port, error->message);
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_debug ("%s(): authenticating (%s:%u): %s",
+                 G_STRFUNC, host, (uint16_t)port, error->message);
+      else if (!g_cancellable_is_cancelled (cancellable))
+        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
+
+      VALENT_GOTO (out);
     }
 
   if (!valent_lan_channel_service_verify_channel (self, secure_identity, tls_stream))
-    return g_task_return_boolean (task, TRUE);
+    VALENT_GOTO (out);
 
   peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
   channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
@@ -576,7 +620,11 @@ incoming_broadcast_task (GTask        *task,
                           NULL);
 
   valent_channel_service_channel (service, channel);
+
+out:
   g_task_return_boolean (task, TRUE);
+  g_cancellable_disconnect (cancellable, cancellable_id);
+  g_main_context_pop_thread_default (context);
 }
 
 static gboolean
