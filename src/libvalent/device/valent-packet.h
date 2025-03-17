@@ -85,89 +85,109 @@ valent_packet_is_valid (JsonNode *packet)
 
 /* Packet Helpers */
 VALENT_AVAILABLE_IN_1_0
-JsonNode   * valent_packet_new              (const char     *type);
+JsonNode   * valent_packet_new                (const char           *type);
 VALENT_AVAILABLE_IN_1_0
-void         valent_packet_init             (JsonBuilder   **builder,
-                                             const char     *type);
+void         valent_packet_init               (JsonBuilder         **builder,
+                                              const char           *type);
 VALENT_AVAILABLE_IN_1_0
-JsonNode   * valent_packet_end              (JsonBuilder   **builder);
+JsonNode   * valent_packet_end                (JsonBuilder         **builder);
 VALENT_AVAILABLE_IN_1_0
-int64_t      valent_packet_get_id           (JsonNode       *packet);
+int64_t      valent_packet_get_id             (JsonNode             *packet);
 VALENT_AVAILABLE_IN_1_0
-const char * valent_packet_get_type         (JsonNode       *packet);
+const char * valent_packet_get_type           (JsonNode             *packet);
 VALENT_AVAILABLE_IN_1_0
-JsonObject * valent_packet_get_body         (JsonNode       *packet);
+JsonObject * valent_packet_get_body           (JsonNode             *packet);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_has_payload      (JsonNode       *packet);
+gboolean     valent_packet_has_payload        (JsonNode             *packet);
 VALENT_AVAILABLE_IN_1_0
-JsonObject * valent_packet_get_payload_full (JsonNode       *packet,
-                                             goffset        *size,
-                                             GError        **error);
+JsonObject * valent_packet_get_payload_full   (JsonNode             *packet,
+                                               goffset              *size,
+                                               GError              **error);
 VALENT_AVAILABLE_IN_1_0
-void         valent_packet_set_payload_full (JsonNode       *packet,
-                                             JsonObject     *info,
-                                             goffset         size);
+void         valent_packet_set_payload_full   (JsonNode             *packet,
+                                               JsonObject           *info,
+                                               goffset               size);
 VALENT_AVAILABLE_IN_1_0
-JsonObject * valent_packet_get_payload_info (JsonNode       *packet);
+JsonObject * valent_packet_get_payload_info   (JsonNode             *packet);
 VALENT_AVAILABLE_IN_1_0
-void         valent_packet_set_payload_info (JsonNode       *packet,
-                                             JsonObject     *info);
+void         valent_packet_set_payload_info   (JsonNode             *packet,
+                                               JsonObject           *info);
 VALENT_AVAILABLE_IN_1_0
-goffset      valent_packet_get_payload_size (JsonNode       *packet);
+goffset      valent_packet_get_payload_size   (JsonNode             *packet);
 VALENT_AVAILABLE_IN_1_0
-void         valent_packet_set_payload_size (JsonNode       *packet,
-                                             goffset         size);
+void         valent_packet_set_payload_size   (JsonNode             *packet,
+                                               goffset               size);
 
 /* Field Helpers */
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_check_field      (JsonNode       *packet,
-                                             const char     *field);
+gboolean     valent_packet_check_field        (JsonNode             *packet,
+                                               const char           *field);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_get_boolean      (JsonNode       *packet,
-                                             const char     *field,
-                                             gboolean       *value);
+gboolean     valent_packet_get_boolean        (JsonNode             *packet,
+                                               const char           *field,
+                                               gboolean             *value);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_get_double       (JsonNode       *packet,
-                                             const char     *field,
-                                             double         *value);
+gboolean     valent_packet_get_double         (JsonNode             *packet,
+                                               const char           *field,
+                                               double               *value);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_get_int          (JsonNode       *packet,
-                                             const char     *field,
-                                             int64_t        *value);
+gboolean     valent_packet_get_int            (JsonNode             *packet,
+                                               const char           *field,
+                                               int64_t              *value);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_get_string       (JsonNode       *packet,
-                                             const char     *field,
-                                             const char    **value);
+gboolean     valent_packet_get_string         (JsonNode             *packet,
+                                               const char           *field,
+                                               const char          **value);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_get_array        (JsonNode       *packet,
-                                             const char     *field,
-                                             JsonArray     **value);
+gboolean     valent_packet_get_array          (JsonNode             *packet,
+                                               const char           *field,
+                                               JsonArray           **value);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_get_object       (JsonNode       *packet,
-                                             const char     *field,
-                                             JsonObject    **value);
+gboolean     valent_packet_get_object         (JsonNode             *packet,
+                                               const char           *field,
+                                               JsonObject          **value);
 VALENT_AVAILABLE_IN_1_0
-GStrv        valent_packet_dup_strv         (JsonNode       *packet,
-                                             const char     *field);
+GStrv        valent_packet_dup_strv           (JsonNode             *packet,
+                                               const char           *field);
 
 /* I/O Helpers */
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_validate         (JsonNode       *packet,
-                                             GError        **error);
+gboolean     valent_packet_validate           (JsonNode             *packet,
+                                               GError              **error);
 VALENT_AVAILABLE_IN_1_0
-JsonNode   * valent_packet_from_stream      (GInputStream   *stream,
-                                             gssize          max_len,
-                                             GCancellable   *cancellable,
-                                             GError        **error);
+void         valent_packet_from_stream_async  (GInputStream         *stream,
+                                               gssize                max_len,
+                                               GCancellable         *cancellable,
+                                               GAsyncReadyCallback   callback,
+                                               gpointer              user_data);
 VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_to_stream        (GOutputStream  *stream,
-                                             JsonNode       *packet,
-                                             GCancellable   *cancellable,
-                                             GError        **error);
+JsonNode   * valent_packet_from_stream_finish (GInputStream         *stream,
+                                               GAsyncResult         *result,
+                                               GError              **error);
 VALENT_AVAILABLE_IN_1_0
-char       * valent_packet_serialize        (JsonNode       *packet);
+JsonNode   * valent_packet_from_stream        (GInputStream         *stream,
+                                               gssize                max_len,
+                                               GCancellable         *cancellable,
+                                               GError              **error);
 VALENT_AVAILABLE_IN_1_0
-JsonNode   * valent_packet_deserialize      (const char     *json,
-                                             GError        **error);
+void         valent_packet_to_stream_async    (GOutputStream        *stream,
+                                               JsonNode             *packet,
+                                               GCancellable         *cancellable,
+                                               GAsyncReadyCallback   callback,
+                                               gpointer              user_data);
+VALENT_AVAILABLE_IN_1_0
+gboolean     valent_packet_to_stream_finish   (GOutputStream        *stream,
+                                               GAsyncResult         *result,
+                                               GError              **error);
+VALENT_AVAILABLE_IN_1_0
+gboolean     valent_packet_to_stream          (GOutputStream        *stream,
+                                               JsonNode             *packet,
+                                               GCancellable         *cancellable,
+                                               GError              **error);
+VALENT_AVAILABLE_IN_1_0
+char       * valent_packet_serialize          (JsonNode             *packet);
+VALENT_AVAILABLE_IN_1_0
+JsonNode   * valent_packet_deserialize        (const char           *json,
+                                               GError              **error);
 
 G_END_DECLS

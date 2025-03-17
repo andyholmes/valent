@@ -884,41 +884,22 @@ valent_packet_validate (JsonNode  *packet,
   return TRUE;
 }
 
-/**
- * valent_packet_from_stream:
- * @stream: a `GInputStream`
- * @max_len: the maximum number bytes to read, or `-1` for no limit
- * @cancellable: (nullable): a `GCancellable`
- * @error: (nullable): a `GError`
- *
- * Read a KDE Connect packet from an input stream.
- *
- * If reading fails or the packet does not conform to the minimum structure of
- * a KDE Connect packet, %NULL will be returned with @error set.
- *
- * If @max_len is greater than `-1`, then at most @max_len bytes will be read.
- * If @max_len bytes are read without encountering a line-feed character, %NULL
- * will be returned with @error set to %G_IO_ERROR_MESSAGE_TOO_LARGE.
- *
- * Returns: (transfer full): a KDE Connect packet, or %NULL with @error set.
- *
- * Since: 1.0
- */
-JsonNode *
-valent_packet_from_stream (GInputStream  *stream,
-                           gssize         max_len,
-                           GCancellable  *cancellable,
-                           GError       **error)
+static void
+valent_packet_from_stream_task (GTask        *task,
+                                gpointer      source_object,
+                                gpointer      task_data,
+                                GCancellable *cancellable)
 {
+  GInputStream *stream = G_INPUT_STREAM (source_object);
+  gssize max_len = (gssize)(intptr_t)task_data;
   g_autoptr (JsonParser) parser = NULL;
   g_autoptr (JsonNode) packet = NULL;
   g_autofree char *line = NULL;
   gssize count = 0;
   gssize size = 4096;
+  GError *error = NULL;
 
-  g_return_val_if_fail (G_IS_INPUT_STREAM (stream), NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+  g_assert (G_IS_INPUT_STREAM (stream));
 
 #ifndef __clang_analyzer__
   if (max_len < 0)
@@ -932,11 +913,11 @@ valent_packet_from_stream (GInputStream  *stream,
 
       if G_UNLIKELY (count == max_len)
         {
-          g_set_error (error,
-                       G_IO_ERROR,
-                       G_IO_ERROR_MESSAGE_TOO_LARGE,
-                       "Packet too large");
-          return NULL;
+          g_task_return_new_error (task,
+                                   G_IO_ERROR,
+                                   G_IO_ERROR_MESSAGE_TOO_LARGE,
+                                   "Packet too large");
+          return;
         }
 
       if G_UNLIKELY (count == size)
@@ -949,31 +930,278 @@ valent_packet_from_stream (GInputStream  *stream,
                                   line + count,
                                   1,
                                   cancellable,
-                                  error);
+                                  &error);
+      if (error != NULL)
+        {
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
+        }
 
       if (read > 0)
         count += read;
       else if (read == 0)
         break;
-      else
-        return NULL;
 
       if G_UNLIKELY (line[count - 1] == '\n')
         break;
     }
 
   parser = json_parser_new_immutable ();
-
-  if (!json_parser_load_from_data (parser, line, count, error))
-    return NULL;
+  if (!json_parser_load_from_data (parser, line, count, &error))
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   packet = json_parser_steal_root (parser);
-
-  if (!valent_packet_validate (packet, error))
-    return NULL;
+  if (!valent_packet_validate (packet, &error))
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 #endif /* __clang_analyzer__ */
 
-  return g_steal_pointer (&packet);
+  g_task_return_pointer (task,
+                         g_steal_pointer (&packet),
+                         (GDestroyNotify)json_node_unref);
+}
+
+/**
+ * valent_packet_from_stream_async:
+ * @stream: a `GInputStream`
+ * @max_len: the maximum number bytes to read, or `-1` for no limit
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
+ * @user_data: user supplied data
+ *
+ * Read a KDE Connect packet from an input stream.
+ *
+ * If reading fails or the packet does not conform to the minimum structure of
+ * a KDE Connect packet, %NULL will be returned with @error set.
+ *
+ * If @max_len is greater than `-1`, then at most @max_len bytes will be read.
+ * If @max_len bytes are read without encountering a line-feed character, %NULL
+ * will be returned with @error set to %G_IO_ERROR_MESSAGE_TOO_LARGE.
+ *
+ * Call [func@Valent.packet_from_stream_finish] to get the result.
+ *
+ * Since: 1.0
+ */
+void
+valent_packet_from_stream_async (GInputStream        *stream,
+                                 gssize               max_len,
+                                 GCancellable        *cancellable,
+                                 GAsyncReadyCallback  callback,
+                                 gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+  gssize _max_len = max_len;
+
+  g_return_if_fail (G_IS_INPUT_STREAM (stream));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (stream, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_packet_from_stream_async);
+  g_task_set_task_data (task, (void *)(intptr_t)_max_len, NULL);
+  g_task_run_in_thread (task, valent_packet_from_stream_task);
+}
+
+/**
+ * valent_packet_from_stream_finish:
+ * @stream: a `GInputStream`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
+ *
+ * Finish an operation started by [func@Valent.packet_from_stream].
+ *
+ * Returns: (transfer full): a KDE Connect packet, or %NULL with @error set
+ *
+ * Since: 1.0
+ */
+JsonNode *
+valent_packet_from_stream_finish (GInputStream  *stream,
+                                  GAsyncResult  *result,
+                                  GError       **error)
+{
+  g_return_val_if_fail (G_IS_INPUT_STREAM (stream), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, stream), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static void
+valent_packet_from_stream_cb (GObject      *object,
+                              GAsyncResult *result,
+                              gpointer      user_data)
+{
+  GInputStream *stream = G_INPUT_STREAM (object);
+  GTask *task = G_TASK (user_data);
+  JsonNode *packet;
+  GError *error = NULL;
+
+  packet = valent_packet_from_stream_finish (stream, result, &error);
+  if (packet != NULL)
+    {
+      g_task_return_pointer (task,
+                             g_steal_pointer (&packet),
+                             (GDestroyNotify)json_node_unref);
+    }
+  else
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+    }
+}
+
+/**
+ * valent_packet_from_stream:
+ * @stream: a `GInputStream`
+ * @max_len: the maximum number bytes to read, or `-1` for no limit
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
+ *
+ * Read a KDE Connect packet from an input stream.
+ *
+ * This is a synchronous wrapper around [func@Valent.packet_from_stream_async]
+ * that iterates the thread-default main context, as returned by
+ * [func@GLib.MainContext.ref_thread_default].
+ *
+ * Returns: (transfer full): a KDE Connect packet, or %NULL with @error set.
+ *
+ * Since: 1.0
+ */
+JsonNode *
+valent_packet_from_stream (GInputStream  *stream,
+                           gssize         max_len,
+                           GCancellable  *cancellable,
+                           GError       **error)
+{
+  g_autoptr (GMainContext) context = NULL;
+  g_autoptr (GTask) task = NULL;
+
+  g_return_val_if_fail (G_IS_INPUT_STREAM (stream), NULL);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_source_tag (task, valent_packet_from_stream);
+
+  valent_packet_from_stream_async (stream,
+                                   max_len,
+                                   cancellable,
+                                   (GAsyncReadyCallback)valent_packet_from_stream_cb,
+                                   task);
+
+  context = g_main_context_ref_thread_default ();
+  while (!g_task_get_completed (task))
+    g_main_context_iteration (context, TRUE);
+
+  return g_task_propagate_pointer (task, error);
+}
+
+static void
+g_output_stream_write_all_cb (GOutputStream *stream,
+                              GAsyncResult  *result,
+                              gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  size_t n_written;
+  GError *error = NULL;
+
+  if (!g_output_stream_write_all_finish (stream, result, &n_written, &error))
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_task_return_boolean (task, TRUE);
+}
+
+/**
+ * valent_packet_to_stream_async:
+ * @stream: a `GOutputStream`
+ * @packet: a KDE Connect packet
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
+ * @user_data: user supplied data
+ *
+ * A convenience function for writing a KDE Connect packet to an output stream.
+ *
+ * Call [func@Valent.packet_to_stream_finish] to get the result.
+ *
+ * Since: 1.0
+ */
+void
+valent_packet_to_stream_async (GOutputStream       *stream,
+                               JsonNode            *packet,
+                               GCancellable        *cancellable,
+                               GAsyncReadyCallback  callback,
+                               gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (JsonGenerator) generator = NULL;
+  JsonObject *root;
+  g_autofree char *packet_str = NULL;
+  size_t packet_len;
+  GError *error = NULL;
+
+  g_return_if_fail (G_IS_OUTPUT_STREAM (stream));
+  g_return_if_fail (packet != NULL);
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  if (!valent_packet_validate (packet, &error))
+    {
+      g_task_report_error (stream, callback, user_data,
+                           valent_packet_to_stream_async,
+                           g_steal_pointer (&error));
+      return;
+    }
+
+  /* Timestamp the packet (UNIX Epoch ms)
+   */
+  root = json_node_get_object (packet);
+  json_object_set_int_member (root, "id", valent_timestamp_ms ());
+
+  /* Serialize the packet and replace the trailing NULL with an LF
+   */
+  generator = json_generator_new ();
+  json_generator_set_root (generator, packet);
+  packet_str = json_generator_to_data (generator, &packet_len);
+  packet_str[packet_len++] = '\n';
+
+  task = g_task_new (stream, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_packet_to_stream_async);
+  g_output_stream_write_all_async (stream,
+                                   packet_str,
+                                   packet_len,
+                                   G_PRIORITY_DEFAULT,
+                                   cancellable,
+                                   (GAsyncReadyCallback)g_output_stream_write_all_cb,
+                                   g_object_ref (task));
+}
+
+/**
+ * valent_packet_to_stream_finish:
+ * @stream: a `GInputStream`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
+ *
+ * Finish an operation started by [func@Valent.packet_to_stream_async].
+ *
+ * Returns: %TRUE, or %FALSE with @error set
+ *
+ * Since: 1.0
+ */
+gboolean
+valent_packet_to_stream_finish (GOutputStream  *stream,
+                                GAsyncResult   *result,
+                                GError        **error)
+{
+  g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), FALSE);
+  g_return_val_if_fail (g_task_is_valid (result, stream), FALSE);
+  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
+
+  return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**
@@ -983,7 +1211,7 @@ valent_packet_from_stream (GInputStream  *stream,
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
  *
- * A convenience function for writing a packet to a connection.
+ * Write a KDE Connect packet to an output stream.
  *
  * Returns: %TRUE if successful, or %FALSE with @error set
  *
@@ -999,43 +1227,33 @@ valent_packet_to_stream (GOutputStream  *stream,
   JsonObject *root;
   g_autofree char *packet_str = NULL;
   size_t packet_len;
-  size_t n_written;
 
   g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), FALSE);
+  g_return_val_if_fail (packet != NULL, FALSE);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
   if (!valent_packet_validate (packet, error))
     return FALSE;
 
-  /* Timestamp the packet (UNIX Epoch ms) */
+  /* Timestamp the packet (UNIX Epoch ms)
+   */
   root = json_node_get_object (packet);
   json_object_set_int_member (root, "id", valent_timestamp_ms ());
 
-  /* Serialize the packet and replace the trailing NULL with an LF */
+  /* Serialize the packet and replace the trailing NULL with an LF
+   */
   generator = json_generator_new ();
   json_generator_set_root (generator, packet);
   packet_str = json_generator_to_data (generator, &packet_len);
   packet_str[packet_len++] = '\n';
 
-  if (!g_output_stream_write_all (stream,
-                                  packet_str,
-                                  packet_len,
-                                  &n_written,
-                                  cancellable,
-                                  error))
-    return FALSE;
-
-  if (n_written != packet_len)
-    {
-      g_set_error (error,
-                   G_IO_ERROR,
-                   G_IO_ERROR_CONNECTION_CLOSED,
-                   "Channel is closed");
-      return FALSE;
-    }
-
-  return TRUE;
+  return g_output_stream_write_all (stream,
+                                    packet_str,
+                                    packet_len,
+                                    NULL,
+                                    cancellable,
+                                    error);
 }
 
 /**
