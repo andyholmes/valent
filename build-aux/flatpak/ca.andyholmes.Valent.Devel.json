@@ -277,7 +277,7 @@
             "sources": [
                 {
                     "type": "git",
-                    "url": "https://gitlab.freedesktop.org/pipewire/pipewire.git",
+                    "url": "https://github.com/PipeWire/pipewire.git",
                     "branch": "master"
                 }
             ]
