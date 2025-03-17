@@ -97,8 +97,7 @@ _g_icon_new_for_variant (GVariant *image_data)
 
   if (expected_len != data_len)
     {
-      g_warning ("Expected image data to be of length %" G_GSIZE_FORMAT
-                 " but got a length of %" G_GSIZE_FORMAT,
+      g_warning ("Expected image data to be of length %zu not %zu",
                  expected_len,
                  data_len);
       return NULL;
