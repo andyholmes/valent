@@ -90,4 +90,6 @@ src/plugins/telephony/valent-telephony-plugin.c
 src/plugins/xdp/ca.andyholmes.Valent.Plugin.xdp.gschema.xml
 src/plugins/xdp/valent-xdp-background.c
 src/plugins/xdp/xdp.plugin.desktop.in
+# Please do not remove this file from POTFILES.in. Run "git submodule init && git submodule update" to get it.
+subprojects/gvc/gvc-mixer-control.c
 
