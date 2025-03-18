@@ -25,6 +25,15 @@ struct _VdpMprisAdapter
 G_DEFINE_FINAL_TYPE (VdpMprisAdapter, vdp_mpris_adapter, VALENT_TYPE_MEDIA_ADAPTER)
 
 static inline void
+_valent_object_deref (gpointer data)
+{
+  g_assert (VALENT_IS_OBJECT (data));
+
+  valent_object_destroy (VALENT_OBJECT (data));
+  g_object_unref (data);
+}
+
+static inline void
 valent_device_send_packet_cb (ValentDevice *device,
                               GAsyncResult *result,
                               gpointer      user_data)
@@ -236,7 +245,7 @@ vdp_mpris_adapter_init (VdpMprisAdapter *self)
   self->players = g_hash_table_new_full (g_str_hash,
                                          g_str_equal,
                                          g_free,
-                                         g_object_unref);
+                                         _valent_object_deref);
   self->transfers = g_hash_table_new_full (g_str_hash,
                                            g_str_equal,
                                            g_free,
@@ -298,10 +307,7 @@ vdp_mpris_adapter_handle_player_list (VdpMprisAdapter *self,
   while (g_hash_table_iter_next (&iter, (void **)&name, (void **)&player))
     {
       if (!g_strv_contains (remote_names, name))
-        {
-          g_hash_table_iter_remove (&iter);
-          valent_object_destroy (VALENT_OBJECT (player));
-        }
+        g_hash_table_iter_remove (&iter);
     }
 
   /* Add new players */
