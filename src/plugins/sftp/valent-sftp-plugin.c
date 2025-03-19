@@ -19,6 +19,7 @@ struct _ValentSftpPlugin
 {
   ValentDevicePlugin  parent_instance;
 
+  GDBusConnection    *connection;
   GVolumeMonitor     *monitor;
   ValentSftpSession  *session;
 };
@@ -568,6 +569,32 @@ valent_sftp_plugin_sftp_request (ValentSftpPlugin *self)
  * GActions
  */
 static void
+valent_sftp_plugin_open_uri (ValentSftpPlugin *self,
+                             const char       *uri)
+{
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
+  g_assert (uri != NULL);
+
+  if (self->connection != NULL)
+    {
+      g_dbus_connection_call (self->connection,
+                              "org.freedesktop.FileManager1",
+                              "/org/freedesktop/FileManager1",
+                              "org.freedesktop.FileManager1",
+                              "ShowFolders",
+                              g_variant_new_parsed ("([%s], '')", uri),
+                              NULL,
+                              G_DBUS_CALL_FLAGS_NONE,
+                              -1,
+                              NULL, NULL, NULL);
+    }
+  else
+    {
+      g_app_info_launch_default_for_uri_async (uri, NULL, NULL, NULL, NULL);
+    }
+}
+
+static void
 mount_action (GSimpleAction *action,
               GVariant      *parameter,
               gpointer       user_data)
@@ -577,8 +604,7 @@ mount_action (GSimpleAction *action,
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
   if (self->session != NULL && self->session->uri != NULL)
-    g_app_info_launch_default_for_uri_async (self->session->uri,
-                                             NULL, NULL, NULL, NULL);
+    valent_sftp_plugin_open_uri (self, self->session->uri);
   else
     valent_sftp_plugin_sftp_request (self);
 }
@@ -656,6 +682,7 @@ valent_sftp_plugin_destroy (ValentObject *object)
       g_clear_object (&self->monitor);
     }
   g_clear_pointer (&self->session, sftp_session_end);
+  g_clear_object (&self->connection);
 
   valent_device_plugin_set_menu_item (plugin, "device.sftp.browse", NULL);
 
@@ -682,7 +709,7 @@ valent_sftp_plugin_constructed (GObject *object)
                                         _("Browse Files"),
                                         "folder-remote-symbolic");
 
-  /* Watch the volume monitor */
+  self->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
   self->monitor = g_volume_monitor_get ();
   g_signal_connect_object (self->monitor,
                            "mount-added",
