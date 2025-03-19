@@ -253,46 +253,6 @@ on_mount_removed (GVolumeMonitor   *volume_monitor,
     g_clear_pointer (&self->session, sftp_session_free);
 }
 
-
-/* GMountOperation Callbacks
- *
- * Rather than setting the password ahead of time, we set it upon request to
- * avoid password authentication if possible.
- *
- * All host keys are accepted since we connect to known hosts as communicated
- * over the TLS encrypted `ValentLanChannel`.
- */
-static void
-ask_password_cb (GMountOperation   *op,
-                 char              *message,
-                 char              *default_user,
-                 char              *default_domain,
-                 GAskPasswordFlags  flags,
-                 gpointer           user_data)
-{
-  ValentSftpSession *session = user_data;
-
-  if (flags & G_ASK_PASSWORD_NEED_USERNAME)
-    g_mount_operation_set_username (op, session->username);
-
-  if (flags & G_ASK_PASSWORD_NEED_PASSWORD)
-    {
-      g_mount_operation_set_password (op, session->password);
-      g_mount_operation_set_password_save (op, G_PASSWORD_SAVE_NEVER);
-    }
-
-  g_mount_operation_reply (op, G_MOUNT_OPERATION_HANDLED);
-}
-
-static void
-ask_question_cb (GMountOperation *op,
-                 char            *message,
-                 GStrv            choices,
-                 gpointer         user_data)
-{
-  g_mount_operation_reply (op, G_MOUNT_OPERATION_HANDLED);
-}
-
 /**
  * remove_host_key:
  * @host: An IP or hostname
@@ -322,16 +282,56 @@ remove_host_key (const char *host)
 }
 
 /*
- * Packet Handlers
+ * GMountOperation
  */
 static void
-mount_cb (GFile            *file,
-          GAsyncResult     *result,
-          ValentSftpPlugin *self)
+ask_password_cb (GMountOperation   *operation,
+                 char              *message,
+                 char              *default_user,
+                 char              *default_domain,
+                 GAskPasswordFlags  flags,
+                 ValentSftpPlugin  *self)
 {
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
+  g_return_if_fail (self->session != NULL);
+
+  /* The username/password are only set in response to a request, to prefer
+   * public key authentication when possible.
+   */
+  if ((flags & G_ASK_PASSWORD_NEED_USERNAME) != 0)
+    g_mount_operation_set_username (operation, self->session->username);
+
+  if ((flags & G_ASK_PASSWORD_NEED_PASSWORD) != 0)
+    {
+      g_mount_operation_set_password (operation, self->session->password);
+      g_mount_operation_set_password_save (operation, G_PASSWORD_SAVE_NEVER);
+    }
+
+  g_mount_operation_reply (operation, G_MOUNT_OPERATION_HANDLED);
+}
+
+static void
+ask_question_cb (GMountOperation *operation,
+                 char            *message,
+                 GStrv            choices,
+                 gpointer         user_data)
+{
+  /* Host keys are automatically accepted, since we use the host address of
+   * the authenticated device connection.
+   */
+  g_mount_operation_reply (operation, G_MOUNT_OPERATION_HANDLED);
+}
+
+static void
+g_file_mount_enclosing_volume_cb (GFile        *file,
+                                  GAsyncResult *result,
+                                  gpointer      user_data)
+{
+  g_autoptr (ValentSftpPlugin) self = VALENT_SFTP_PLUGIN (g_steal_pointer (&user_data));
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
+  g_return_if_fail (self->session != NULL);
 
   /* On success we will acquire the mount from the volume monitor */
   if (g_file_mount_enclosing_volume_finish (file, result, &error))
@@ -357,37 +357,60 @@ mount_cb (GFile            *file,
 }
 
 static void
-ssh_add_cb (GSubprocess      *proc,
-            GAsyncResult     *result,
-            ValentSftpPlugin *self)
+valent_sftp_plugin_mount_volume (ValentSftpPlugin *self)
 {
-  ValentSftpSession *session = self->session;
-  g_autoptr (GError) error = NULL;
   g_autoptr (GFile) file = NULL;
-  g_autoptr (GMountOperation) op = NULL;
+  g_autoptr (GMountOperation) operation = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
 
-  g_assert (self->session != NULL);
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
+  g_return_if_fail (self->session != NULL);
+
+  file = g_file_new_for_uri (self->session->uri);
+  operation = g_mount_operation_new ();
+  g_signal_connect_object (operation,
+                           "ask-password",
+                           G_CALLBACK (ask_password_cb),
+                           self,
+                           G_CONNECT_DEFAULT);
+  g_signal_connect_object (operation,
+                           "ask-question",
+                           G_CALLBACK (ask_question_cb),
+                           self,
+                           G_CONNECT_DEFAULT);
+
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  g_file_mount_enclosing_volume (file,
+                                 G_MOUNT_MOUNT_NONE,
+                                 operation,
+                                 destroy,
+                                 (GAsyncReadyCallback)g_file_mount_enclosing_volume_cb,
+                                 g_object_ref (self));
+
+}
+
+static void
+ssh_add_cb (GSubprocess  *proc,
+            GAsyncResult *result,
+            gpointer      user_data)
+{
+  g_autoptr (ValentSftpPlugin) self = VALENT_SFTP_PLUGIN (g_steal_pointer (&user_data));
+  g_autoptr (GError) error = NULL;
 
   if (!g_subprocess_wait_check_finish (proc, result, &error))
     {
-      g_warning ("%s(): Failed to add host key: %s", G_STRFUNC, error->message);
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        {
+          g_warning ("%s(): Failed to add host key: %s",
+                     G_STRFUNC,
+                     error->message);
+        }
+
       g_clear_pointer (&self->session, sftp_session_free);
       return;
     }
 
-  /* Prepare the mount operation */
-  op = g_mount_operation_new ();
-  g_signal_connect (op, "ask-password", G_CALLBACK (ask_password_cb), session);
-  g_signal_connect (op, "ask-question", G_CALLBACK (ask_question_cb), NULL);
-
-  /* Start the mount operation */
-  file = g_file_new_for_uri (session->uri);
-  g_file_mount_enclosing_volume (file,
-                                 G_MOUNT_MOUNT_NONE,
-                                 op,
-                                 NULL,
-                                 (GAsyncReadyCallback)mount_cb,
-                                 self);
+  valent_sftp_plugin_mount_volume (self);
 }
 
 static void
@@ -396,8 +419,9 @@ sftp_session_begin (ValentSftpPlugin  *self,
 {
   g_autoptr (ValentContext) context = NULL;
   g_autoptr (GSubprocess) proc = NULL;
-  g_autoptr (GError) error = NULL;
   g_autoptr (GFile) private_key = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
@@ -417,10 +441,11 @@ sftp_session_begin (ValentSftpPlugin  *self,
       return;
     }
 
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   g_subprocess_wait_check_async (proc,
-                                 NULL,
+                                 destroy,
                                  (GAsyncReadyCallback)ssh_add_cb,
-                                 self);
+                                 g_object_ref (self));
 }
 
 
