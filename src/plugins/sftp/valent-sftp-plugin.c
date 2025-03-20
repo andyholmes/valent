@@ -22,6 +22,7 @@ struct _ValentSftpPlugin
   GDBusConnection    *connection;
   GVolumeMonitor     *monitor;
   ValentSftpSession  *session;
+  unsigned int        privkey_ready : 1;
 };
 
 static void   valent_sftp_plugin_mount_volume   (ValentSftpPlugin *self);
@@ -464,9 +465,9 @@ valent_sftp_plugin_unmount_volume (ValentSftpPlugin *self)
 }
 
 static void
-ssh_add_cb (GSubprocess  *proc,
-            GAsyncResult *result,
-            gpointer      user_data)
+valent_sftp_plugin_register_privkey_cb (GSubprocess  *proc,
+                                        GAsyncResult *result,
+                                        gpointer      user_data)
 {
   g_autoptr (ValentSftpPlugin) self = VALENT_SFTP_PLUGIN (g_steal_pointer (&user_data));
   g_autoptr (GError) error = NULL;
@@ -475,7 +476,7 @@ ssh_add_cb (GSubprocess  *proc,
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         {
-          g_warning ("%s(): Failed to add host key: %s",
+          g_warning ("%s(): Failed to register private key: %s",
                      G_STRFUNC,
                      error->message);
         }
@@ -484,12 +485,12 @@ ssh_add_cb (GSubprocess  *proc,
       return;
     }
 
+  self->privkey_ready = TRUE;
   valent_sftp_plugin_mount_volume (self);
 }
 
 static void
-sftp_session_begin (ValentSftpPlugin  *self,
-                    ValentSftpSession *session)
+valent_sftp_plugin_register_privkey (ValentSftpPlugin  *self)
 {
   g_autoptr (ValentContext) context = NULL;
   g_autoptr (GSubprocess) proc = NULL;
@@ -498,6 +499,7 @@ sftp_session_begin (ValentSftpPlugin  *self,
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
+  g_return_if_fail (self->session != NULL);
 
   /* Get the root context and add the private key to the ssh-agent */
   context = valent_context_new (NULL, NULL, NULL);
@@ -518,7 +520,7 @@ sftp_session_begin (ValentSftpPlugin  *self,
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
   g_subprocess_wait_check_async (proc,
                                  destroy,
-                                 (GAsyncReadyCallback)ssh_add_cb,
+                                 (GAsyncReadyCallback)valent_sftp_plugin_register_privkey_cb,
                                  g_object_ref (self));
 }
 
@@ -570,9 +572,13 @@ handle_sftp_mount (ValentSftpPlugin *self,
 
   /* Parse the connection data */
   self->session = sftp_session_new (self, packet);
-
   if (self->session != NULL)
-    sftp_session_begin (self, self->session);
+    {
+      if (self->privkey_ready)
+        valent_sftp_plugin_mount_volume (self);
+      else
+        valent_sftp_plugin_register_privkey (self);
+    }
 }
 
 static void
