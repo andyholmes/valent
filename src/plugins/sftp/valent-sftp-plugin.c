@@ -24,6 +24,10 @@ struct _ValentSftpPlugin
   ValentSftpSession  *session;
 };
 
+static void   valent_sftp_plugin_mount_volume   (ValentSftpPlugin *self);
+static void   valent_sftp_plugin_unmount_volume (ValentSftpPlugin *self);
+static void   valent_sftp_plugin_update_menu    (ValentSftpPlugin *self);
+
 G_DEFINE_FINAL_TYPE (ValentSftpPlugin, valent_sftp_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
 
@@ -227,6 +231,7 @@ sftp_session_find (ValentSftpPlugin *self)
           g_set_object (&self->session->mount, iter->data);
           g_set_str (&self->session->uri, uri);
 
+          valent_sftp_plugin_update_menu (self);
           return TRUE;
         }
     }
@@ -255,7 +260,10 @@ on_mount_added (GVolumeMonitor   *volume_monitor,
   uri = g_file_get_uri (root);
 
   if (g_strcmp0 (self->session->uri, uri) == 0)
-    g_set_object (&self->session->mount, mount);
+    {
+      g_set_object (&self->session->mount, mount);
+      valent_sftp_plugin_update_menu (self);
+    }
 }
 
 static void
@@ -275,7 +283,10 @@ on_mount_removed (GVolumeMonitor   *volume_monitor,
   uri = g_file_get_uri (root);
 
   if (g_strcmp0 (self->session->uri, uri) == 0)
-    g_clear_object (&self->session->mount);
+    {
+      g_clear_object (&self->session->mount);
+      valent_sftp_plugin_update_menu (self);
+    }
 }
 
 /**
@@ -415,6 +426,44 @@ valent_sftp_plugin_mount_volume (ValentSftpPlugin *self)
 }
 
 static void
+g_mount_unmount_with_operation_cb (GMount       *mount,
+                                   GAsyncResult *result,
+                                   gpointer      user_data)
+{
+  g_autoptr (GError) error = NULL;
+
+  if (!g_mount_unmount_with_operation_finish (mount, result, &error))
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("%s(): Error unmounting: %s", G_STRFUNC, error->message);
+
+      return;
+    }
+}
+
+static void
+valent_sftp_plugin_unmount_volume (ValentSftpPlugin *self)
+{
+  g_autoptr (GMountOperation) operation = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
+
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
+  g_return_if_fail (self->session != NULL);
+
+  if (self->session->mount == NULL)
+    return;
+
+  operation = g_mount_operation_new ();
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  g_mount_unmount_with_operation (self->session->mount,
+                                  G_MOUNT_UNMOUNT_NONE,
+                                  operation,
+                                  destroy,
+                                  (GAsyncReadyCallback)g_mount_unmount_with_operation_cb,
+                                  NULL);
+}
+
+static void
 ssh_add_cb (GSubprocess  *proc,
             GAsyncResult *result,
             gpointer      user_data)
@@ -472,7 +521,6 @@ sftp_session_begin (ValentSftpPlugin  *self,
                                  (GAsyncReadyCallback)ssh_add_cb,
                                  g_object_ref (self));
 }
-
 
 /*
  * Packet Handlers
@@ -653,16 +701,98 @@ mount_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
-  if (self->session != NULL && self->session->uri != NULL)
-    valent_sftp_plugin_open_uri (self, self->session->uri);
-  else
+  if (self->session == NULL)
     valent_sftp_plugin_sftp_request (self);
+  else if (self->session->mount == NULL)
+    valent_sftp_plugin_mount_volume (self);
+}
+
+static void
+unmount_action (GSimpleAction *action,
+                GVariant      *parameter,
+                gpointer       user_data)
+{
+  ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (user_data);
+
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
+
+  if (self->session != NULL && self->session->mount != NULL)
+    valent_sftp_plugin_unmount_volume (self);
+}
+
+static void
+open_uri_action (GSimpleAction *action,
+                 GVariant      *parameter,
+                 gpointer       user_data)
+{
+  ValentSftpPlugin *self = VALENT_SFTP_PLUGIN (user_data);
+  const char *uri = NULL;
+
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
+
+  uri = g_variant_get_string (parameter, NULL);
+  valent_sftp_plugin_open_uri (self, uri);
 }
 
 static const GActionEntry actions[] = {
-    {"browse", mount_action, NULL, NULL, NULL}
+    {"browse",   mount_action,    NULL, NULL, NULL},
+    {"unmount",  unmount_action,  NULL, NULL, NULL},
+    {"open-uri", open_uri_action, "s",  NULL, NULL},
 };
 
+/*
+ * ValentSftpPlugin
+ */
+static void
+valent_sftp_plugin_update_menu (ValentSftpPlugin *self)
+{
+  ValentDevicePlugin *plugin = VALENT_DEVICE_PLUGIN (self);
+
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
+
+  if (sftp_session_find (self))
+    {
+      GHashTableIter iter;
+      const char *uri = NULL;
+      const char *name = NULL;
+      g_autoptr (GMenuItem) item = NULL;
+      g_autoptr (GIcon) icon = NULL;
+      g_autoptr (GMenu) submenu = NULL;
+      g_autoptr (GMenuItem) unmount_item = NULL;
+      g_autoptr (GIcon) unmount_icon = NULL;
+
+      icon = g_themed_icon_new ("folder-remote-symbolic");
+      item = g_menu_item_new (_("Browse Folders"), "device.sftp.browse");
+      g_menu_item_set_icon (item, icon);
+      g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
+
+      submenu = g_menu_new ();
+      g_menu_item_set_submenu (item, G_MENU_MODEL (submenu));
+
+      g_hash_table_iter_init (&iter, self->session->paths);
+      while (g_hash_table_iter_next (&iter, (void **)&uri, (void **)&name))
+        {
+          g_autofree char *action_name = NULL;
+
+          action_name = g_strdup_printf ("device.sftp.open-uri::%s", uri);
+          g_menu_append (submenu, name, action_name);
+        }
+
+      unmount_icon = g_themed_icon_new ("media-eject-symbolic");
+      unmount_item = g_menu_item_new (_("Unmount"), "device.sftp.unmount");
+      g_menu_item_set_icon (unmount_item, unmount_icon);
+      g_menu_append_item (submenu, unmount_item);
+
+      valent_device_plugin_set_menu_item (plugin, "device.sftp.browse", item);
+    }
+  else
+    {
+      valent_device_plugin_set_menu_action (plugin,
+                                            "device.sftp.browse",
+                                            _("Mount"),
+                                            "folder-remote-symbolic");
+    }
+}
 
 /*
  * ValentDevicePlugin
@@ -681,15 +811,13 @@ valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
 
   valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 
-  /* GMounts */
+  valent_sftp_plugin_update_menu (self);
+
   if (available)
     {
       GSettings *settings;
 
-      sftp_session_find (self);
-
       settings = valent_extension_get_settings (VALENT_EXTENSION (plugin));
-
       if (g_settings_get_boolean (settings, "auto-mount"))
         valent_sftp_plugin_sftp_request (self);
     }
@@ -758,21 +886,19 @@ valent_sftp_plugin_constructed (GObject *object)
                                    actions,
                                    G_N_ELEMENTS (actions),
                                    plugin);
-  valent_device_plugin_set_menu_action (plugin,
-                                        "device.sftp.browse",
-                                        _("Browse Files"),
-                                        "folder-remote-symbolic");
 
   self->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
   self->monitor = g_volume_monitor_get ();
   g_signal_connect_object (self->monitor,
                            "mount-added",
                            G_CALLBACK (on_mount_added),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (self->monitor,
                            "mount-removed",
                            G_CALLBACK (on_mount_removed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 }
 
 static void
