@@ -61,13 +61,15 @@ get_device_host (ValentSftpPlugin *self)
  */
 typedef struct _ValentSftpSession
 {
-  char     *host;
-  uint16_t  port;
-  char     *username;
-  char     *password;
+  char       *host;
+  uint16_t    port;
+  char       *username;
+  char       *password;
+  GHashTable *paths;
 
-  char    *uri;
-  GMount  *mount;
+  /* Gvfs state */
+  GMount     *mount;
+  char       *uri;
 } ValentSftpSession;
 
 
@@ -80,6 +82,8 @@ sftp_session_new (ValentSftpPlugin *self,
   int64_t port;
   const char *password;
   const char *username;
+  JsonArray *multi_paths = NULL;
+  JsonArray *path_names = NULL;
 
   /* Ultimately, these are the only packet fields we really need */
   if (!valent_packet_get_int (packet, "port", &port) ||
@@ -101,6 +105,9 @@ sftp_session_new (ValentSftpPlugin *self,
   session = g_new0 (ValentSftpSession, 1);
   session->host = g_steal_pointer (&host);
   session->port = (uint16_t)port;
+  session->paths = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                          g_free, g_free);
+  session->uri = g_strdup_printf ("sftp://%s:%u/", session->host, session->port);
 
   if (valent_packet_get_string (packet, "user", &username))
     session->username = g_strdup (username);
@@ -108,10 +115,27 @@ sftp_session_new (ValentSftpPlugin *self,
   if (valent_packet_get_string (packet, "password", &password))
     session->password = g_strdup (password);
 
-  // Gvfs
-  session->uri = g_strdup_printf ("sftp://%s:%u/",
-                                  session->host,
-                                  session->port);
+  if (valent_packet_get_array (packet, "multiPaths", &multi_paths) &&
+      valent_packet_get_array (packet, "pathNames", &path_names))
+    {
+      unsigned int n_paths = json_array_get_length (multi_paths);
+      unsigned int n_names = json_array_get_length (path_names);
+
+      for (unsigned int i = 0; i < n_paths && i < n_names; i++)
+        {
+          const char *path = json_array_get_string_element (multi_paths, i);
+          const char *name = json_array_get_string_element (path_names, i);
+          g_autofree char *uri = NULL;
+
+          uri = g_strdup_printf ("sftp://%s:%u%s",
+                                 session->host,
+                                 session->port,
+                                 path);
+          g_hash_table_replace (session->paths,
+                                g_steal_pointer (&uri),
+                                g_strdup (name));
+        }
+    }
 
   return session;
 }
@@ -124,6 +148,7 @@ sftp_session_free (gpointer data)
   g_clear_pointer (&session->host, g_free);
   g_clear_pointer (&session->username, g_free);
   g_clear_pointer (&session->password, g_free);
+  g_clear_pointer (&session->paths, g_hash_table_unref);
 
   g_clear_object (&session->mount);
   g_clear_pointer (&session->uri, g_free);
