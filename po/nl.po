@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-03-18 01:09-0700\n"
+"POT-Creation-Date: 2025-03-20 11:58-0700\n"
 "PO-Revision-Date: 2025-03-05 11:14+0100\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -374,7 +374,7 @@ msgstr "Mobiel"
 
 #: src/plugins/gnome/valent-contact-page.c:316
 #: src/plugins/gnome/valent-messages-window.c:424
-#: src/plugins/sftp/valent-sftp-plugin.c:535
+#: src/plugins/sftp/valent-sftp-plugin.c:634
 msgid "Home"
 msgstr "Persoonlijke map"
 
@@ -1373,13 +1373,22 @@ msgstr "Bestanden"
 msgid "Share files and directories with SFTP"
 msgstr "Verken bestanden en mappen met sftp"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:541
+#: src/plugins/sftp/valent-sftp-plugin.c:640
 msgid "Permission denied"
 msgstr "Toegang geweigerd"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:682
-msgid "Browse Files"
+#: src/plugins/sftp/valent-sftp-plugin.c:765
+#, fuzzy
+msgid "Browse Folders"
 msgstr "Bestanden verkennen"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:782
+msgid "Unmount"
+msgstr ""
+
+#: src/plugins/sftp/valent-sftp-plugin.c:792
+msgid "Mount"
+msgstr ""
 
 #: src/plugins/share/share.plugin.desktop.in:7
 msgid "Sharing"
