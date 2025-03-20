@@ -668,6 +668,10 @@ valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
       if (g_settings_get_boolean (settings, "auto-mount"))
         valent_sftp_plugin_sftp_request (self);
     }
+  else if ((state & VALENT_DEVICE_STATE_PAIRED) == 0)
+    {
+      g_clear_pointer (&self->session, sftp_session_end);
+    }
 }
 
 static void
