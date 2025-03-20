@@ -250,7 +250,7 @@ on_mount_removed (GVolumeMonitor   *volume_monitor,
   uri = g_file_get_uri (root);
 
   if (g_strcmp0 (self->session->uri, uri) == 0)
-    g_clear_pointer (&self->session, sftp_session_free);
+    g_clear_object (&self->session->mount);
 }
 
 /**
