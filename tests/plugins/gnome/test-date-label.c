@@ -42,8 +42,11 @@ test_sms_date_label (void)
       g_assert_cmpuint (mode, ==, mode_out);
 
       VALENT_TEST_CHECK ("Widget can be realized");
-      window = gtk_window_new ();
-      gtk_window_set_child (GTK_WINDOW (window), label);
+      window = g_object_new (GTK_TYPE_WINDOW,
+                             "child",          label,
+                             "default-height", 480,
+                             "default-width",  600,
+                             NULL);
 
       gtk_window_present (GTK_WINDOW (window));
       gtk_window_destroy (GTK_WINDOW (window));
