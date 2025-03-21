@@ -110,7 +110,7 @@ valent_certificate_generate (const char  *cert_path,
                    G_IO_ERROR_FAILED,
                    "Setting certificate serial: %s",
                    gnutls_strerror (rc));
-      VALENT_RETURN (ret);
+      VALENT_GOTO (out);
     }
 
   /* KDE Connect sets this to `O=KDE,OU=KDE Connect,CN=<device-id>`, where
