@@ -557,7 +557,6 @@ valent_device_notify_pair_failed (ValentDevice *device)
   g_autoptr (GNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
   g_autofree char *title = NULL;
-  const char *body = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
 
@@ -566,11 +565,10 @@ valent_device_notify_pair_failed (ValentDevice *device)
     return;
 
   title = g_strdup_printf (_("Failed to pair with “%s”"), device->name);
-  body = g_strdup (_("Device clocks are out of sync"));
   icon = g_themed_icon_new ("dialog-warning-symbolic");
 
   notification = g_notification_new (title);
-  g_notification_set_body (notification, body);
+  g_notification_set_body (notification, _("Device clocks are out of sync"));
   g_notification_set_icon (notification, icon);
   g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_URGENT);
 
