@@ -25,6 +25,7 @@ tests_env = [
   # https://docs.gtk.org/gtk4/running.html
   'GDK_BACKEND=wayland,x11',
   'GDK_DEBUG=default-settings',
+  'GSK_RENDERER=opengl',
   'GTK_A11Y=test',
   # See: https://github.com/google/sanitizers/issues/1322
   'ASAN_OPTIONS=detect_leaks=1,intercept_tls_get_addr=0',
