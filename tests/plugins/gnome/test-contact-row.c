@@ -44,9 +44,11 @@ test_sms_contact_row (void)
   list = gtk_list_box_new ();
   gtk_list_box_append (GTK_LIST_BOX (list), row);
 
-  window = gtk_window_new ();
-  gtk_window_set_child (GTK_WINDOW (window), list);
-
+  window = g_object_new (GTK_TYPE_WINDOW,
+                         "child",          list,
+                         "default-height", 480,
+                         "default-width",  600,
+                         NULL);
   gtk_window_present (GTK_WINDOW (window));
   gtk_window_destroy (GTK_WINDOW (window));
 }
@@ -65,9 +67,11 @@ test_sms_contact_list (void)
   VALENT_TEST_CHECK ("Row header function works correctly");
   list = gtk_list_box_new ();
 
-  window = gtk_window_new ();
-  gtk_window_set_child (GTK_WINDOW (window), list);
-
+  window = g_object_new (GTK_TYPE_WINDOW,
+                         "child",          list,
+                         "default-height", 480,
+                         "default-width",  600,
+                         NULL);
   gtk_window_present (GTK_WINDOW (window));
   gtk_window_destroy (GTK_WINDOW (window));
 }

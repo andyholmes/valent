@@ -3,6 +3,7 @@
 
 @prefix nmo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#> .
 @prefix nrl: <http://tracker.api.gnome.org/ontology/v3/nrl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix fts: <http://tracker.api.gnome.org/ontology/v3/fts#> .
 @prefix tracker: <http://tracker.api.gnome.org/ontology/v3/tracker#> .
