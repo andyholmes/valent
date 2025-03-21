@@ -831,6 +831,10 @@ valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
     {
       g_clear_pointer (&self->session, sftp_session_end);
     }
+  else if ((state & VALENT_DEVICE_STATE_CONNECTED) == 0)
+    {
+      g_clear_pointer (&self->session, sftp_session_free);
+    }
 }
 
 static void
