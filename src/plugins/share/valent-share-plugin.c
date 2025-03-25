@@ -185,12 +185,19 @@ valent_share_download_file_cb (ValentTransfer *transfer,
   g_assert (VALENT_IS_TRANSFER (transfer));
 
   id = valent_transfer_dup_id (transfer);
-
-  if (valent_transfer_execute_finish (transfer, result, &error) ||
-      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    valent_share_download_file_notification (self, transfer);
+  if (valent_transfer_execute_finish (transfer, result, &error))
+    {
+      valent_share_download_file_notification (self, transfer);
+    }
+  else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+      g_debug ("%s(): %s", G_STRFUNC, error->message);
+      valent_share_download_file_notification (self, transfer);
+    }
   else
-    valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
+    {
+      valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
+    }
 
   if (self->download == transfer)
     g_clear_object (&self->download);
@@ -292,6 +299,7 @@ valent_share_download_open_cb (ValentTransfer *transfer,
     }
   else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     {
+      g_debug ("%s(): %s", G_STRFUNC, error->message);
       valent_share_download_open_notification (self, transfer);
     }
 
@@ -381,12 +389,19 @@ valent_share_upload_open_cb (ValentTransfer *transfer,
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
   id = valent_transfer_dup_id (transfer);
-
-  if (valent_transfer_execute_finish (transfer, result, &error) ||
-      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    valent_share_upload_open_notification (self, transfer);
+  if (valent_transfer_execute_finish (transfer, result, &error))
+    {
+      valent_share_upload_open_notification (self, transfer);
+    }
+  else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+      g_debug ("%s(): %s", G_STRFUNC, error->message);
+      valent_share_upload_open_notification (self, transfer);
+    }
   else
-    valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
+    {
+      valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
+    }
 
   g_hash_table_remove (self->transfers, id);
 }
@@ -521,12 +536,19 @@ valent_share_upload_file_cb (ValentTransfer *transfer,
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
   id = valent_transfer_dup_id (transfer);
-
-  if (valent_transfer_execute_finish (transfer, result, &error) ||
-      !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    valent_share_upload_file_notification (self, transfer);
+  if (valent_transfer_execute_finish (transfer, result, &error))
+    {
+      valent_share_upload_file_notification (self, transfer);
+    }
+  else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+      g_debug ("%s(): %s", G_STRFUNC, error->message);
+      valent_share_upload_file_notification (self, transfer);
+    }
   else
-    valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
+    {
+      valent_device_plugin_hide_notification (VALENT_DEVICE_PLUGIN (self), id);
+    }
 
   if (self->upload == transfer)
     g_clear_object (&self->upload);
