@@ -5,6 +5,7 @@
 
 #include <gio/gio.h>
 #include <gtk/gtk.h>
+#include <libportal/portal.h>
 #include <valent.h>
 #include <libvalent-test.h>
 
@@ -74,14 +75,20 @@ test_share_plugin_handle_request (ValentTestFixture *fixture,
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
 
+  VALENT_TEST_CHECK ("Plugin handles receiving text");
+  packet = valent_test_fixture_lookup_packet (fixture, "share-text");
+  valent_test_fixture_handle_packet (fixture, packet);
+
+  if (xdp_portal_running_under_sandbox ())
+    {
+      g_test_skip ("TODO: skipping tests that launch URLs in Flatpak");
+      return;
+    }
+
   VALENT_TEST_CHECK ("Plugin handles receiving a file, then opening it");
   packet = valent_test_fixture_lookup_packet (fixture, "share-file-open");
   valent_test_fixture_upload (fixture, packet, file, &error);
   g_assert_no_error (error);
-
-  VALENT_TEST_CHECK ("Plugin handles receiving text");
-  packet = valent_test_fixture_lookup_packet (fixture, "share-text");
-  valent_test_fixture_handle_packet (fixture, packet);
 
   VALENT_TEST_CHECK ("Plugin handles receiving a URL, then opening it");
   packet = valent_test_fixture_lookup_packet (fixture, "share-url");
