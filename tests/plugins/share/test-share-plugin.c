@@ -4,7 +4,6 @@
 #include <locale.h>
 
 #include <gio/gio.h>
-#include <gtk/gtk.h>
 #include <libportal/portal.h>
 #include <valent.h>
 #include <libvalent-test.h>
@@ -339,11 +338,6 @@ main (int   argc,
   const char *path = "plugin-share.json";
 
   valent_test_init (&argc, &argv, NULL);
-
-  /* NOTE: This suite will time out if valent_ui_test_init() is used */
-  gtk_disable_setlocale ();
-  setlocale (LC_ALL, "en_US.UTF-8");
-  gtk_init ();
 
   g_test_add ("/plugins/share/basic",
               ValentTestFixture, path,
