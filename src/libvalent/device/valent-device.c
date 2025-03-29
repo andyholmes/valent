@@ -1753,13 +1753,12 @@ valent_device_get_verification_key (ValentDevice *device)
 char *
 valent_device_generate_id (void)
 {
-  char *id = g_uuid_string_random ();
+  static const char hex_digits[16] = "0123456789abcdef";
+  char *id = g_new (char, 32 + 1);
 
-  for (uint_fast8_t i = 0; id[i] != '\0'; i++)
-    {
-      if G_UNLIKELY (id[i] == '-')
-        id[i] = '_';
-    }
+  for (size_t i = 0; i < 32; i++)
+    id[i] = hex_digits[g_random_int_range (0, 16)];
+  id[32] = '\0';
 
   return g_steal_pointer (&id);
 }
@@ -1770,12 +1769,12 @@ valent_device_generate_id (void)
  *
  * Validate a KDE Connect device ID.
  *
- * A compliant device ID matches the pattern `/^[a-zA-Z0-9_]{32,38}$/`, being
- * alphanumeric with a length of 32-38 characters. Recommended practice is to
- * generate a UUIDv4 and remove the hyphens (`-`), or replace them with
- * underscores (`_`).
+ * A compliant device ID matches the pattern `/^[a-zA-Z0-9]{32,38}$/`, being
+ * alphanumeric with a length of 32-38 characters. However, for backwards
+ * compatibility, implementations must accept device IDs that include hyphens
+ * and underscores.
  *
- * This became a requirement in version 8 or the KDE Connect protocol.
+ * This became a requirement in version 8 of the KDE Connect protocol.
  *
  * Returns: %TRUE if valid, or %FALSE
  *
@@ -1793,7 +1792,7 @@ valent_device_validate_id (const char *id)
     {
       char c = id[len];
 
-      if (!g_ascii_isalnum (c) && c != '_')
+      if (!g_ascii_isalnum (c) && c != '_' && c != '-')
         return FALSE;
 
       if (++len > 38)

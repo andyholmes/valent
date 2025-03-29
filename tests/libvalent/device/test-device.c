@@ -649,8 +649,29 @@ test_device_validate_id (void)
     const char *id;
     gboolean    valid;
   } ids[] = {
+    // Ideal (hexadecimal; 32 bytes)
     {
-      .id = "27456E3C_fE5C_4208_96A7_c0CAEEC5E5A0",
+      .id = "27456e3cfe5c420896a7c0caeec5e5a0",
+      .valid = TRUE,
+    },
+    {
+      .id = "27456E3CfE5C420896A7C0CAEEC5E5A0",
+      .valid = TRUE,
+    },
+
+    // Compliant (alphanumeric; 32, 38 bytes)
+    {
+      .id = "abcdefghijklmnopqrstuvwxyz012345",
+      .valid = TRUE,
+    },
+    {
+      .id = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ab",
+      .valid = TRUE,
+    },
+
+    // Backwards compatible (UUIDv4; 36, 36, 38 bytes)
+    {
+      .id = "27456e3c-fe5c-4208-96a7-c0caeec5e5a0",
       .valid = TRUE,
     },
     {
@@ -658,41 +679,31 @@ test_device_validate_id (void)
       .valid = TRUE,
     },
     {
-      .id = "27456e3cfe5c420896a7c0caeec5e5a0",
-      .valid = TRUE,
-    },
-    {
-      .id = "7456e3cfe5c420896a7c0caeec5e5a0",
-      .valid = FALSE,
-    },
-
-    {
       .id = "_27456e3c_fe5c_4208_96a7_c0caeec5e5a0_",
       .valid = TRUE,
     },
-    {
-      .id = "z7456e3c_fe5c_4208_96a7_c0caeec5e5a0",
-      .valid = TRUE,
-    },
 
+    // Invalid length (numeric; 39, 31, 0 bytes)
+    {
+      .id = "123456789012345678901234567890123456789",
+      .valid = FALSE,
+    },
+    {
+      .id = "1234567890123456789012345678901",
+      .valid = FALSE,
+    },
     {
       .id = "",
       .valid = FALSE,
     },
+
+    // Invalid characters (32, 34 bytes)
     {
-      .id = "______",
+      .id = "!@#$%^&*()!@#$%^&*()!@#$%^&*()!@",
       .valid = FALSE,
     },
     {
-      .id = "____",
-      .valid = FALSE,
-    },
-    {
-      .id = "potato",
-      .valid = FALSE,
-    },
-    {
-      .id = "12345",
+      .id = "من بی تو خودم نیستم",
       .valid = FALSE,
     },
   };
