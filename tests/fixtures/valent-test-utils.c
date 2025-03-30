@@ -465,8 +465,6 @@ valent_test_channel_pair (JsonNode       *identity,
   g_autoptr (GSocketConnection) peer_connection = NULL;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
-  g_autofree char *path = NULL;
-  g_autofree char *peer_path = NULL;
   GError *error = NULL;
 
   g_assert (VALENT_IS_PACKET (identity));
@@ -475,17 +473,13 @@ valent_test_channel_pair (JsonNode       *identity,
 
   /* Generate certificates and update the identity packets
    */
-  path = g_dir_make_tmp (NULL, &error);
-  g_assert_no_error (error);
-  certificate = valent_certificate_new_sync (path, &error);
+  certificate = valent_certificate_new_sync (NULL, &error);
   g_assert_no_error (error);
   json_object_set_string_member (valent_packet_get_body (identity),
                                  "deviceId",
                                  valent_certificate_get_common_name (certificate));
 
-  peer_path = g_dir_make_tmp (NULL, &error);
-  g_assert_no_error (error);
-  peer_certificate = valent_certificate_new_sync (peer_path, &error);
+  peer_certificate = valent_certificate_new_sync (NULL, &error);
   g_assert_no_error (error);
   json_object_set_string_member (valent_packet_get_body (peer_identity),
                                  "deviceId",

@@ -95,7 +95,6 @@ lan_service_fixture_set_up (LanTestFixture *fixture,
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
   g_autoptr (ValentContext) context = NULL;
-  g_autofree char *peer_path = NULL;
   const char *peer_id = NULL;
   GError *error = NULL;
 
@@ -110,9 +109,7 @@ lan_service_fixture_set_up (LanTestFixture *fixture,
 
   /* Generate peer certificate and update the identity packet.
    */
-  peer_path = g_dir_make_tmp (NULL, &error);
-  g_assert_no_error (error);
-  fixture->peer_certificate = valent_certificate_new_sync (peer_path, &error);
+  fixture->peer_certificate = valent_certificate_new_sync (NULL, &error);
   g_assert_no_error (error);
 
   peer_id = valent_certificate_get_common_name (fixture->peer_certificate);
@@ -220,18 +217,13 @@ g_socket_listener_accept_cb (GSocketListener *listener,
    */
   if (g_strcmp0 (test_name, TEST_INCOMING_TLS_SPOOFER) == 0)
     {
-      g_autoptr (GTlsCertificate) bad_certificate = NULL;
-      g_autofree char *tmpdir = NULL;
-
       /* TODO: test the case where the certificate common name _does_ match the
        *       identity, but the certificate itself is different
        */
       VALENT_TEST_CHECK ("The service rejects connections with a device ID "
                          "that does not match the certificate common name");
       g_clear_object (&fixture->peer_certificate);
-      tmpdir = g_dir_make_tmp (NULL, &error);
-      g_assert_no_error (error);
-      fixture->peer_certificate = valent_certificate_new_sync (tmpdir, &error);
+      fixture->peer_certificate = valent_certificate_new_sync (NULL, &error);
       g_assert_no_error (error);
     }
 
@@ -442,8 +434,6 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
    */
   if (g_strcmp0 (test_name, TEST_OUTGOING_TLS_SPOOFER) == 0)
     {
-      g_autoptr (GTlsCertificate) bad_certificate = NULL;
-      g_autofree char *tmpdir = NULL;
 
       /* TODO: test the case where the certificate common name _does_ match the
        *       identity, but the certificate itself is different
@@ -451,9 +441,7 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
       VALENT_TEST_CHECK ("The service rejects connections with a device ID "
                          "that does not match the certificate common name");
       g_clear_object (&fixture->peer_certificate);
-      tmpdir = g_dir_make_tmp (NULL, &error);
-      g_assert_no_error (error);
-      fixture->peer_certificate = valent_certificate_new_sync (tmpdir, &error);
+      fixture->peer_certificate = valent_certificate_new_sync (NULL, &error);
       g_assert_no_error (error);
     }
 

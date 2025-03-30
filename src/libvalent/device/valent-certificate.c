@@ -20,24 +20,19 @@
 #define ACTIVATION_TIMESPAN (60L*60L*24L*365L)
 #define EXPIRATION_TIMESPAN (60L*60L*24L*10L*365L)
 
-/**
+/* < private >
  * valent_certificate_generate:
- * @cert_path: (type filename): file path to the certificate
- * @key_path: (type filename): file path to the private key
  * @common_name: common name for the certificate
  * @error: (nullable): a `GError`
  *
  * Generate a private key and certificate for @common_name, saving them at
  * @key_path and @cert_path respectively.
  *
- * Returns: %TRUE if successful, or %FALSE with @error set
- *
- * Since: 1.0
+ * Returns: (transfer full) (nullable): a new certificate,
+ *   or %NULL with @error set
  */
-static gboolean
-valent_certificate_generate (const char  *cert_path,
-                             const char  *key_path,
-                             const char  *common_name,
+GTlsCertificate *
+valent_certificate_generate (const char  *common_name,
                              GError     **error)
 {
   gnutls_x509_crt_t crt = NULL;
@@ -48,9 +43,13 @@ valent_certificate_generate (const char  *cert_path,
   time_t now;
   unsigned char serial[20];
   int rc;
-  gboolean ret = FALSE;
+  char *combined_data = NULL;
+  size_t combined_size = 0;
+  GTlsCertificate *ret = NULL;
 
   VALENT_ENTRY;
+
+  g_assert (common_name != NULL);
 
   /* The private key is a 256-bit ECC key. This is `NID_X9_62_prime256v1` in
    * OpenSSL and `GNUTLS_ECC_CURVE_SECP256R1` in GnuTLS.
@@ -141,29 +140,23 @@ valent_certificate_generate (const char  *cert_path,
       VALENT_GOTO (out);
     }
 
-  /* Write the certificate and private key to disk
+  /* Concatenate Private Key and Certificate
    */
-  ret = g_file_set_contents_full (cert_path,
-                                  (const char *)crt_out.data,
-                                  crt_out.size,
-                                  G_FILE_SET_CONTENTS_DURABLE,
-                                  0600,
-                                  error);
-  if (ret)
-    {
-      ret = g_file_set_contents_full (key_path,
-                                      (const char *)privkey_out.data,
-                                      privkey_out.size,
-                                      G_FILE_SET_CONTENTS_DURABLE,
-                                      0600,
-                                      error);
-    }
+  combined_size = privkey_out.size + crt_out.size;
+  combined_data = g_malloc0 (combined_size + 1);
+  memcpy (combined_data, privkey_out.data, privkey_out.size);
+  memcpy (combined_data + privkey_out.size, crt_out.data, crt_out.size);
+
+  ret = g_tls_certificate_new_from_pem (combined_data,
+                                        combined_size,
+                                        error);
 
 out:
   g_clear_pointer (&crt, gnutls_x509_crt_deinit);
   g_clear_pointer (&privkey, gnutls_x509_privkey_deinit);
   g_clear_pointer (&crt_out.data, gnutls_free);
   g_clear_pointer (&privkey_out.data, gnutls_free);
+  g_clear_pointer (&combined_data, g_free);
 
   VALENT_RETURN (ret);
 }
@@ -178,27 +171,28 @@ valent_certificate_new_task (GTask        *task,
   const char *path = task_data;
   GError *error = NULL;
 
-  if ((certificate = valent_certificate_new_sync (path, &error)) == NULL)
-    return g_task_return_error (task, error);
+  certificate = valent_certificate_new_sync (path, &error);
+  if (certificate == NULL)
+    {
+      g_task_return_error (task, error);
+      return;
+    }
 
   g_task_return_pointer (task, g_steal_pointer (&certificate), g_object_unref);
 }
 
 /**
  * valent_certificate_new:
- * @path: (type filename): a directory path
+ * @path: (type filename) (nullable): a directory path
  * @cancellable: (nullable): `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: user supplied data
  *
  * Get a TLS certificate and private key pair.
  *
- * This ensures a TLS certificate with the filename `certificate.pem` and
- * private key with filename `private.pem` exist in a directory at @path.
- *
- * If either one doesn't exist, a new certificate and private key pair will be
- * generated. The common name will be set to a string returned by
- * [func@GLib.uuid_string_random].
+ * If @path is given, this function ensures a TLS certificate with the filename
+ * `certificate.pem` and private key with filename `private.pem` exist in a
+ * directory at @path.
  *
  * Get the result with [func@Valent.certificate_new_finish].
  *
@@ -212,7 +206,6 @@ valent_certificate_new (const char          *path,
 {
   g_autoptr (GTask) task = NULL;
 
-  g_return_if_fail (path != NULL && *path != '\0');
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (NULL, cancellable, callback, user_data);
@@ -246,17 +239,14 @@ valent_certificate_new_finish (GAsyncResult  *result,
 
 /**
  * valent_certificate_new_sync:
- * @path: (type filename): a directory path
+ * @path: (type filename) (nullable): a directory path
  * @error: (nullable): a `GError`
  *
- * Get a TLS certificate and private key pair.
+ * Get a TLS certificate.
  *
- * This ensures a TLS certificate with the filename `certificate.pem` and
- * private key with filename `private.pem` exist in a directory at @path.
- *
- * If either one doesn't exist, a new certificate and private key pair will be
- * generated. The common name will be set to a string returned by
- * [func@Valent.Device.generate_id].
+ * If @path is given, this function ensures a TLS certificate with the filename
+ * `certificate.pem` and private key with filename `private.pem` exist in a
+ * directory at @path.
  *
  * If either generating or loading the certificate fails, %NULL will be returned
  * with @error set.
@@ -272,8 +262,15 @@ valent_certificate_new_sync (const char  *path,
   g_autofree char *cert_path = NULL;
   g_autofree char *key_path = NULL;
 
-  g_return_val_if_fail (path != NULL && *path != '\0', NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  if (path == NULL)
+    {
+      g_autofree char *cn = NULL;
+
+      cn = valent_device_generate_id ();
+      return valent_certificate_generate (cn, error);
+    }
 
   cert_path = g_build_filename (path, "certificate.pem", NULL);
   key_path = g_build_filename (path, "private.pem", NULL);
@@ -281,12 +278,41 @@ valent_certificate_new_sync (const char  *path,
   if (!g_file_test (cert_path, G_FILE_TEST_IS_REGULAR) ||
       !g_file_test (key_path, G_FILE_TEST_IS_REGULAR))
     {
+      g_autoptr (GTlsCertificate) ret = NULL;
       g_autofree char *cn = NULL;
+      g_autofree char *certificate_pem = NULL;
+      g_autofree char *private_key_pem = NULL;
+      gboolean success;
 
       cn = valent_device_generate_id ();
-
-      if (!valent_certificate_generate (cert_path, key_path, cn, error))
+      ret = valent_certificate_generate (cn, error);
+      if (ret == NULL)
         return NULL;
+
+      g_object_get (ret,
+                    "certificate-pem", &certificate_pem,
+                    "private-key-pem", &private_key_pem,
+                    NULL);
+
+      success = g_file_set_contents_full (cert_path,
+                                          certificate_pem,
+                                          -1,
+                                          G_FILE_SET_CONTENTS_DURABLE,
+                                          0600,
+                                          error);
+      if (!success)
+        return NULL;
+
+      success = g_file_set_contents_full (key_path,
+                                          private_key_pem,
+                                          -1,
+                                          G_FILE_SET_CONTENTS_DURABLE,
+                                          0600,
+                                          error);
+      if (!success)
+        return NULL;
+
+      return g_steal_pointer (&ret);
     }
 
   return g_tls_certificate_new_from_files (cert_path, key_path, error);

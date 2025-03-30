@@ -21,31 +21,56 @@ new_certificate_cb (GObject          *object,
 static void
 test_certificate_new (void)
 {
-  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) generated = NULL;
+  g_autoptr (GTlsCertificate) loaded = NULL;
+  g_autoptr (GTlsCertificate) memory = NULL;
   g_autofree char *path = NULL;
+  g_autoptr (GFile) cert = NULL;
+  g_autoptr (GFile) privkey = NULL;
 
   path = g_dir_make_tmp ("XXXXXX.valent", NULL);
+  cert = g_file_new_build_filename (path, "certificate.pem", NULL);
+  privkey = g_file_new_build_filename (path, "private.pem", NULL);
+
+  g_assert_false (g_file_query_exists (cert, NULL));
+  g_assert_false (g_file_query_exists (privkey, NULL));
+
+  VALENT_TEST_CHECK ("A certificate can be generated for a path");
   valent_certificate_new (path,
                           NULL,
                           (GAsyncReadyCallback)new_certificate_cb,
-                          &certificate);
-  valent_test_await_pointer (&certificate);
+                          &generated);
+  valent_test_await_pointer (&generated);
+  g_assert_true (G_IS_TLS_CERTIFICATE (generated));
+  g_assert_true (g_file_query_exists (cert, NULL));
+  g_assert_true (g_file_query_exists (privkey, NULL));
 
-  g_assert_true (G_IS_TLS_CERTIFICATE (certificate));
-  g_clear_object (&certificate);
+  VALENT_TEST_CHECK ("A certificate can be loaded from a path");
+  valent_certificate_new (path,
+                          NULL,
+                          (GAsyncReadyCallback)new_certificate_cb,
+                          &loaded);
+  valent_test_await_pointer (&loaded);
+  g_assert_true (G_IS_TLS_CERTIFICATE (loaded));
+  g_assert_true (g_tls_certificate_is_same (loaded, generated));
+
+  VALENT_TEST_CHECK ("A certificate can be generated in-memory");
+  valent_certificate_new (NULL,
+                          NULL,
+                          (GAsyncReadyCallback)new_certificate_cb,
+                          &memory);
+  valent_test_await_pointer (&memory);
+  g_assert_true (G_IS_TLS_CERTIFICATE (memory));
 }
 
 static void
 test_certificate_properties (void)
 {
   g_autoptr (GTlsCertificate) certificate = NULL;
-  g_autofree char *path = NULL;
   const char *common_name = NULL;
   GByteArray *public_key = NULL;
 
-  path = g_dir_make_tmp ("XXXXXX.valent", NULL);
-
-  certificate = valent_certificate_new_sync (path, NULL);
+  certificate = valent_certificate_new_sync (NULL, NULL);
   g_assert_true (G_IS_TLS_CERTIFICATE (certificate));
 
   common_name = valent_certificate_get_common_name (certificate);
