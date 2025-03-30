@@ -193,6 +193,7 @@ valent_component_enable_plugin (ValentComponent *self,
                                                     "source",      self,
                                                     "title",       title,
                                                     "description", description,
+                                                    "context",     plugin->context,
                                                     NULL);
   g_return_if_fail (VALENT_IS_EXTENSION (plugin->extension));
 

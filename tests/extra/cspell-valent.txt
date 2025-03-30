@@ -43,6 +43,7 @@ lowres
 
 # src/libvalent/core
 CDTF
+failable
 
 # src/plugins/bluez
 muxed

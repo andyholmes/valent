@@ -12,19 +12,24 @@ test_gnome_application (void)
   GObject *extension = NULL;
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
+
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "gnome");
+  context = valent_context_new (NULL, "plugin", "gnome");
 
   VALENT_TEST_CHECK ("Application can be constructed");
   application = g_application_new ("ca.andyholmes.Valent.Tests",
                                    G_APPLICATION_DEFAULT_FLAGS);
 
   VALENT_TEST_CHECK ("Application plugin can be constructed");
-  engine = valent_get_plugin_engine ();
-  plugin_info = peas_engine_get_plugin_info (engine, "gnome");
   extension = peas_engine_create_extension (engine,
                                             plugin_info,
                                             VALENT_TYPE_APPLICATION_PLUGIN,
+                                            "iri",     "urn:valent:application:gnome",
                                             // FIXME: root source
-                                            "source", NULL,
+                                            "source",  NULL,
+                                            "context", context,
                                             NULL);
 
   v_await_finalize_object (extension);

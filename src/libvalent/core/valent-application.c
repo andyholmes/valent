@@ -62,6 +62,7 @@ valent_application_enable_plugin (ValentApplication *self,
                                                     "source",      NULL,
                                                     "title",       title,
                                                     "description", description,
+                                                    "context",     plugin->context,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 }

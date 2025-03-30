@@ -29,19 +29,22 @@ test_messages_component_adapter (MessagesComponentFixture *fixture,
 {
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
   g_autoptr (GObject) adapter = NULL;
   g_autoptr (TrackerSparqlConnection) connection = NULL;
   unsigned int n_items = 0;
 
   engine = valent_get_plugin_engine ();
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (NULL, "plugin", "mock");
 
   VALENT_TEST_CHECK ("Adapter can be constructed");
   adapter = peas_engine_create_extension (engine,
                                           plugin_info,
                                           VALENT_TYPE_MESSAGES_ADAPTER,
-                                          "iri",    "urn:valent:messages:mock",
-                                          "source", NULL,
+                                          "iri",     "urn:valent:messages:mock",
+                                          "source",  NULL,
+                                          "context", context,
                                           NULL);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
@@ -82,6 +85,7 @@ test_messages_component_message_list (MessagesComponentFixture *fixture,
 {
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
   g_autoptr (GObject) adapter = NULL;
   g_autoptr (GListModel) list = NULL;
   g_autoptr (TrackerSparqlConnection) connection = NULL;
@@ -89,11 +93,15 @@ test_messages_component_message_list (MessagesComponentFixture *fixture,
 
   engine = valent_get_plugin_engine ();
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (NULL, "plugin", "mock");
+
+  VALENT_TEST_CHECK ("Adapter can be constructed");
   adapter = peas_engine_create_extension (engine,
                                           plugin_info,
                                           VALENT_TYPE_MESSAGES_ADAPTER,
-                                          "iri",    "urn:valent:messages:mock",
-                                          "source", NULL,
+                                          "iri",     "urn:valent:messages:mock",
+                                          "source",  NULL,
+                                          "context", context,
                                           NULL);
 
   // HACK: to address the lazy-load hack in ValentMessageThread
