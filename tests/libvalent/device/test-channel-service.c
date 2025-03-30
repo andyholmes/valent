@@ -26,16 +26,23 @@ static void
 channel_service_fixture_set_up (ChannelServiceFixture *fixture,
                                 gconstpointer      user_data)
 {
+  PeasEngine *engine;
   PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
+
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (NULL, "plugin", "mock");
 
   fixture->loop = g_main_loop_new (NULL, FALSE);
-
-  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "mock");
+  fixture->packets = valent_test_load_json ("core.json");
   fixture->service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
+                                   "iri",         "urn:valent:network:mock",
+                                   // FIXME: root source
+                                   "source",      NULL,
+                                   "context",     context,
                                    "plugin-info", plugin_info,
                                    NULL);
-
-  fixture->packets = valent_test_load_json ("core.json");
 }
 
 static void
@@ -250,28 +257,35 @@ read_upload_cb (ValentChannel         *endpoint,
 static void
 test_channel_service_basic (void)
 {
-  g_autoptr (ValentChannelService) service = NULL;
-  g_autoptr (ValentContext) context = NULL;
+  PeasEngine *engine;
   PeasPluginInfo *plugin_info;
-  g_autoptr (ValentContext) context_out = NULL;
+  g_autoptr (ValentContext) context = NULL;
+  g_autoptr (ValentChannelService) service = NULL;
+  g_autoptr (GTlsCertificate) certificate_out = NULL;
   g_autofree char *id_out = NULL;
   g_autoptr (JsonNode) identity_out = NULL;
 
-  /* ValentChannelService */
-  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "mock");
-  context = valent_context_new (NULL, NULL, NULL);
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (NULL, "plugin", "mock");
+
+  VALENT_TEST_CHECK ("Adapter can be constructed");
   service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
+                          "iri",         "urn:valent:network:mock",
+                          // FIXME: root source
+                          "source",      NULL,
                           "context",     context,
                           "plugin-info", plugin_info,
                           NULL);
 
+  VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (service,
-                "context",  &context_out,
-                "id",       &id_out,
-                "identity", &identity_out,
+                "certificate", &certificate_out,
+                "id",          &id_out,
+                "identity",    &identity_out,
                 NULL);
 
-  g_assert_true (context_out == context);
+  g_assert_true (G_IS_TLS_CERTIFICATE (certificate_out));
   g_assert_nonnull (id_out);
   g_assert_true (VALENT_IS_PACKET (identity_out));
 

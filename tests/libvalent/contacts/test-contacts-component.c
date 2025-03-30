@@ -29,19 +29,22 @@ test_contacts_component_adapter (ContactsComponentFixture *fixture,
 {
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
   g_autoptr (GObject) adapter = NULL;
   g_autoptr (TrackerSparqlConnection) connection = NULL;
   unsigned int n_items = 0;
 
   engine = valent_get_plugin_engine ();
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (NULL, "plugin", "mock");
 
   VALENT_TEST_CHECK ("Adapter can be constructed");
   adapter = peas_engine_create_extension (engine,
                                           plugin_info,
                                           VALENT_TYPE_CONTACTS_ADAPTER,
-                                          "iri",    "urn:valent:contacts:mock",
-                                          "source", NULL,
+                                          "iri",     "urn:valent:contacts:mock",
+                                          "source",  NULL,
+                                          "context", context,
                                           NULL);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
@@ -83,6 +86,7 @@ test_contacts_component_contact_list (ContactsComponentFixture *fixture,
 {
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
   g_autoptr (GObject) adapter = NULL;
   g_autoptr (GListModel) list = NULL;
   g_autoptr (TrackerSparqlConnection) connection = NULL;
@@ -90,11 +94,15 @@ test_contacts_component_contact_list (ContactsComponentFixture *fixture,
 
   engine = valent_get_plugin_engine ();
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (NULL, "plugin", "mock");
+
+  VALENT_TEST_CHECK ("Adapter can be constructed");
   adapter = peas_engine_create_extension (engine,
                                           plugin_info,
                                           VALENT_TYPE_CONTACTS_ADAPTER,
-                                          "iri",    "urn:valent:contacts:mock",
-                                          "source", NULL,
+                                          "iri",     "urn:valent:contacts:mock",
+                                          "source",  NULL,
+                                          "context", context,
                                           NULL);
 
   list = g_list_model_get_item (G_LIST_MODEL (adapter), 0);

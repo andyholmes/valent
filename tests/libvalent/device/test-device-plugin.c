@@ -10,6 +10,7 @@ typedef struct
 {
   ValentDevice *device;
   GObject      *extension;
+  JsonNode     *packets;
 } DevicePluginFixture;
 
 static void
@@ -18,17 +19,24 @@ device_fixture_set_up (DevicePluginFixture *fixture,
 {
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
+  JsonNode *peer_identity;
 
   engine = valent_get_plugin_engine ();
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (context, "plugin", "mock");
 
-  fixture->device = g_object_new (VALENT_TYPE_DEVICE,
-                                  "id", "mock-device",
-                                  NULL);
+  fixture->packets = valent_test_load_json ("core.json");
+  peer_identity = json_object_get_member (json_node_get_object (fixture->packets),
+                                          "peer-identity");
+
+  fixture->device = valent_device_new_full (peer_identity, NULL);
   fixture->extension = peas_engine_create_extension (engine,
                                                      plugin_info,
                                                      VALENT_TYPE_DEVICE_PLUGIN,
-                                                     "source", fixture->device,
+                                                     "iri",     "urn:valent:device:mock",
+                                                     "source",  fixture->device,
+                                                     "context", context,
                                                      NULL);
 }
 
@@ -38,20 +46,32 @@ device_fixture_tear_down (DevicePluginFixture *fixture,
 {
   v_await_finalize_object (fixture->device);
   v_await_finalize_object (fixture->extension);
+  g_clear_pointer (&fixture->packets, json_node_unref);
 }
 
 static void
 test_device_plugin_basic (DevicePluginFixture *fixture,
                           gconstpointer        user_data)
 {
-  g_autoptr (ValentDevice) device = NULL;
+  PeasEngine *engine;
+  PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
+  g_autoptr (GObject) extension = NULL;
 
-  /* Test properties */
-  g_object_get (fixture->extension,
-                "source", &device,
-                NULL);
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (context, "plugin", "mock");
 
-  g_assert_true (VALENT_IS_DEVICE (device));
+  VALENT_TEST_CHECK ("Plugin can be constructed");
+  extension = peas_engine_create_extension (engine,
+                                            plugin_info,
+                                            VALENT_TYPE_DEVICE_PLUGIN,
+                                            "iri",     "urn:valent:device:mock",
+                                            "source",  NULL,
+                                            "context", context,
+                                            NULL);
+
+  g_assert_true (VALENT_IS_DEVICE_PLUGIN (extension));
 }
 
 static void

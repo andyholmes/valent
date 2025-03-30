@@ -329,6 +329,25 @@ valent_extension_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_extension_parent_class)->constructed (object);
 
+  /* If this is an extension backed by a plugin, try to create
+   * a settings object from the plugin info.
+   */
+  if (priv->plugin_info != NULL && priv->context != NULL)
+    {
+      GType type_base = g_type_parent (G_OBJECT_TYPE (self));
+      const char *type_name = g_type_name (type_base);
+      g_autofree char *key = NULL;
+
+      if (g_str_has_prefix (type_name, "Valent"))
+        key = g_strdup_printf ("X-%sSettings", &type_name[strlen ("Valent")]);
+      else
+        key = g_strdup_printf ("X-%sSettings", type_name);
+
+      priv->settings = valent_context_get_plugin_settings (priv->context,
+                                                           priv->plugin_info,
+                                                           key);
+    }
+
   /* If this is an extension with failable initialization, it is
    * expected to update the state with the result.
    */
@@ -374,7 +393,7 @@ valent_extension_get_property (GObject    *object,
       break;
 
     case PROP_SETTINGS:
-      g_value_set_object (value, valent_extension_get_settings (self));
+      g_value_set_object (value, priv->settings);
       break;
 
     default:
@@ -511,16 +530,6 @@ valent_extension_get_context (ValentExtension *extension)
 
   g_return_val_if_fail (VALENT_IS_EXTENSION (extension), NULL);
 
-  if (priv->context == NULL)
-    {
-      ValentContext *context = NULL;
-      const char *module_name = NULL;
-
-      /* FIXME: context = valent_object_get_context (priv->object); */
-      module_name = peas_plugin_info_get_module_name (priv->plugin_info);
-      priv->context = valent_context_new (context, "plugin", module_name);
-    }
-
   return priv->context;
 }
 
@@ -540,22 +549,6 @@ valent_extension_get_settings (ValentExtension *extension)
   ValentExtensionPrivate *priv = valent_extension_get_instance_private (extension);
 
   g_return_val_if_fail (VALENT_IS_EXTENSION (extension), NULL);
-
-  if (priv->settings == NULL)
-    {
-      GType type_base = g_type_parent (G_OBJECT_TYPE (extension));
-      const char *type_name = g_type_name (type_base);
-      g_autofree char *key = NULL;
-
-      if (g_str_has_prefix (type_name, "Valent"))
-        key = g_strdup_printf ("X-%sSettings", &type_name[strlen ("Valent")]);
-      else
-        key = g_strdup_printf ("X-%sSettings", type_name);
-
-      priv->settings = valent_context_get_plugin_settings (priv->context,
-                                                           priv->plugin_info,
-                                                           key);
-    }
 
   return priv->settings;
 }
