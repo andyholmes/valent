@@ -79,8 +79,17 @@ on_channel_destroyed (ValentLanChannelService *self,
   valent_object_unlock (VALENT_OBJECT (self));
 }
 
+static void
+timeout_cancellable_cb (GCancellable *cancellable,
+                        gpointer      data)
+{
+  g_assert (G_IS_CANCELLABLE (data));
+
+  g_cancellable_cancel ((GCancellable *)data);
+}
+
 static gboolean
-timeout_cancellable_cb (gpointer data)
+timeout_source_cb (gpointer data)
 {
   g_assert (G_IS_CANCELLABLE (data));
 
@@ -104,7 +113,7 @@ timeout_cancellable_new (GCancellable  *cancellable,
   source = g_timeout_source_new (IDENTITY_TIMEOUT_MAX);
   g_source_set_priority (source, G_PRIORITY_HIGH);
   g_source_set_callback (source,
-                         timeout_cancellable_cb,
+                         timeout_source_cb,
                          g_object_ref (timeout),
                          g_object_unref);
   g_source_attach (source, context);
@@ -112,7 +121,7 @@ timeout_cancellable_new (GCancellable  *cancellable,
   if (cancellable != NULL && cancellable_id != NULL)
     {
       *cancellable_id = g_cancellable_connect (cancellable,
-                                               G_CALLBACK (g_cancellable_cancel),
+                                               G_CALLBACK (timeout_cancellable_cb),
                                                timeout,
                                                NULL);
     }
