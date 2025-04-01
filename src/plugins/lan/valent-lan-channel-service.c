@@ -138,6 +138,7 @@ valent_lan_channel_service_identify_channel (GIOStream     *stream,
 {
   int64_t protocol_version;
 
+  g_assert (G_IS_IO_STREAM (stream));
   g_assert (VALENT_IS_PACKET (identity));
   g_assert (VALENT_IS_PACKET (peer_identity));
 
@@ -596,6 +597,8 @@ incoming_broadcast_task (GTask        *task,
                  G_STRFUNC, host, (uint16_t)port, error->message);
       else if (!g_cancellable_is_cancelled (cancellable))
         g_warning ("%s(): timed out waiting for TLS negotiation", G_STRFUNC);
+
+      VALENT_GOTO (out);
     }
 
   secure_identity = valent_lan_channel_service_identify_channel (tls_stream,
