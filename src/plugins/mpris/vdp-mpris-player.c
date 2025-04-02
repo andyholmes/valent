@@ -555,16 +555,11 @@ vdp_mpris_player_init (VdpMprisPlayer *self)
 VdpMprisPlayer *
 vdp_mpris_player_new (ValentDevice *device)
 {
-  g_autoptr (ValentContext) context = NULL;
   g_autofree char *iri = NULL;
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  context = valent_context_new (valent_device_get_context (device),
-                                "plugin",
-                                "systemvolume");
-  iri = tracker_sparql_escape_uri_printf ("urn:valent:mixer:%s",
-                                          valent_device_get_id (device));
+  iri = tracker_sparql_get_uuid_urn ();
   return g_object_new (VALENT_TYPE_MPRIS_PLAYER,
                        "iri",     iri,
                        "source",  device,
