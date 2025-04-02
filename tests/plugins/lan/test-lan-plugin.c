@@ -52,16 +52,6 @@ typedef struct
   gpointer              data;
 } LanTestFixture;
 
-typedef void (*LanFixtureFunc) (LanTestFixture *fixture,
-                                gconstpointer      user_data);
-
-typedef struct
-{
-  const char     *name;
-  const char     *errmsg;
-  LanFixtureFunc  func;
-} LanTestCase;
-
 static GSocket *
 create_socket (void)
 {
@@ -211,21 +201,6 @@ g_socket_listener_accept_cb (GSocketListener *listener,
   VALENT_TEST_CHECK ("The service uses a valid device ID");
   valent_packet_get_string (peer_identity, "deviceId", &device_id);
   g_assert_true (valent_device_validate_id (device_id));
-
-  /* In this test case we are trying to connect with the same device ID and a
-   * different certificate, so we expect the service to reject the connection.
-   */
-  if (g_strcmp0 (test_name, TEST_INCOMING_TLS_SPOOFER) == 0)
-    {
-      /* TODO: test the case where the certificate common name _does_ match the
-       *       identity, but the certificate itself is different
-       */
-      VALENT_TEST_CHECK ("The service rejects connections with a device ID "
-                         "that does not match the certificate common name");
-      g_clear_object (&fixture->peer_certificate);
-      fixture->peer_certificate = valent_certificate_new_sync (NULL, &error);
-      g_assert_no_error (error);
-    }
 
   VALENT_TEST_CHECK ("The service negotiates TLS connections as the server");
   tls_stream = valent_lan_connection_handshake (connection,
@@ -431,22 +406,6 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
                            &error);
   g_assert_no_error (error);
 
-  /* In this test case we are trying to connect with the same device ID and a
-   * different certificate, so we expect the service to reject the connection.
-   */
-  if (g_strcmp0 (test_name, TEST_OUTGOING_TLS_SPOOFER) == 0)
-    {
-
-      /* TODO: test the case where the certificate common name _does_ match the
-       *       identity, but the certificate itself is different
-       */
-      VALENT_TEST_CHECK ("The service rejects connections with a device ID "
-                         "that does not match the certificate common name");
-      g_clear_object (&fixture->peer_certificate);
-      fixture->peer_certificate = valent_certificate_new_sync (NULL, &error);
-      g_assert_no_error (error);
-    }
-
   VALENT_TEST_CHECK ("The service negotiates TLS connections as the client");
   tls_stream = valent_lan_connection_handshake (connection,
                                                 fixture->peer_certificate,
@@ -479,9 +438,6 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
       peer_identity = g_steal_pointer (&secure_identity);
     }
 
-  /* We're pretending to be a remote service, so we create an endpoint channel
-   * so that we can pop packets of it from the test service.
-   */
   peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
   fixture->endpoint = g_object_new (VALENT_TYPE_LAN_CHANNEL,
                                     "base-stream",      tls_stream,
@@ -502,68 +458,6 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
   valent_object_destroy (VALENT_OBJECT (fixture->service));
-}
-
-static void
-test_lan_service_invalid_identity (gconstpointer user_data)
-{
-  LanTestCase *test_case = (LanTestCase *)user_data;
-  const char *test_name = g_test_get_path ();
-
-  if (g_test_subprocess ())
-    {
-      g_autofree LanTestFixture *fixture = NULL;
-      JsonObject *body = NULL;
-
-      fixture = g_new0 (LanTestFixture, 1);
-      lan_service_fixture_set_up (fixture, test_case);
-
-      body = valent_packet_get_body (fixture->peer_identity);
-      if (g_strcmp0 (test_name, TEST_INCOMING_IDENTITY_OVERSIZE) == 0 ||
-          g_strcmp0 (test_name, TEST_OUTGOING_IDENTITY_OVERSIZE) == 0)
-        {
-          g_autofree char *oversize = NULL;
-
-          oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
-          json_object_set_string_member (body, "oversize", oversize);
-        }
-      else if (g_strcmp0 (test_name, TEST_INCOMING_INVALID_ID) == 0 ||
-               g_strcmp0 (test_name, TEST_OUTGOING_INVALID_ID) == 0)
-        {
-          json_object_set_string_member (body, "deviceId", "!@#$%^&*()");
-        }
-      else if (g_strcmp0 (test_name, TEST_INCOMING_INVALID_NAME) == 0 ||
-               g_strcmp0 (test_name, TEST_OUTGOING_INVALID_NAME) == 0)
-        {
-          json_object_set_string_member (body, "deviceName", "!@#$%^&*()");
-        }
-
-      test_case->func (fixture, test_case);
-      lan_service_fixture_tear_down (fixture, test_case);
-    }
-  g_test_trap_subprocess (NULL, 0, G_TEST_SUBPROCESS_DEFAULT);
-  g_test_trap_assert_stderr (test_case->errmsg);
-  g_test_trap_assert_failed ();
-}
-
-static void
-test_lan_service_tls_authentication (gconstpointer user_data)
-{
-  LanTestCase *test_case = (LanTestCase *)user_data;
-
-  if (g_test_subprocess ())
-    {
-      g_autofree LanTestFixture *fixture = NULL;
-
-      fixture = g_new0 (LanTestFixture, 1);
-      lan_service_fixture_set_up (fixture, test_case);
-      test_case->func (fixture, test_case);
-      lan_service_fixture_tear_down (fixture, test_case);
-    }
-
-  g_test_trap_subprocess (NULL, 0, G_TEST_SUBPROCESS_DEFAULT);
-  g_test_trap_assert_stderr (test_case->errmsg);
-  g_test_trap_assert_failed ();
 }
 
 /*
@@ -683,7 +577,20 @@ test_lan_service_channel (LanTestFixture *fixture,
   valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
-static LanTestCase identity_tests[] = {
+/*
+ * Compliance Tests
+ */
+typedef void (*LanFixtureFunc) (LanTestFixture *fixture,
+                                gconstpointer      user_data);
+
+typedef struct
+{
+  const char     *name;
+  const char     *errmsg;
+  LanFixtureFunc  func;
+} LanTestCase;
+
+static LanTestCase compliance_tests[] = {
   {
     .name = TEST_OUTGOING_IDENTITY_OVERSIZE,
     .errmsg = "*unterminated string constant*",
@@ -726,9 +633,6 @@ static LanTestCase identity_tests[] = {
     .errmsg = "*invalid device name*",
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
-};
-
-static LanTestCase tls_tests[] = {
   {
     .name = TEST_INCOMING_TLS_SPOOFER,
     .errmsg = "*device ID does not match certificate common name*",
@@ -740,6 +644,60 @@ static LanTestCase tls_tests[] = {
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
 };
+
+static void
+test_lan_service_compliance_test (gconstpointer user_data)
+{
+  LanTestCase *test_case = (LanTestCase *)user_data;
+  const char *test_name = g_test_get_path ();
+
+  if (g_test_subprocess ())
+    {
+      g_autofree LanTestFixture *fixture = NULL;
+      JsonObject *body = NULL;
+
+      fixture = g_new0 (LanTestFixture, 1);
+      lan_service_fixture_set_up (fixture, test_case);
+
+      body = valent_packet_get_body (fixture->peer_identity);
+      if (g_strcmp0 (test_name, TEST_INCOMING_IDENTITY_OVERSIZE) == 0 ||
+          g_strcmp0 (test_name, TEST_OUTGOING_IDENTITY_OVERSIZE) == 0)
+        {
+          g_autofree char *oversize = NULL;
+
+          oversize = g_strnfill (IDENTITY_BUFFER_MAX + 1, '0');
+          json_object_set_string_member (body, "oversize", oversize);
+        }
+      else if (g_strcmp0 (test_name, TEST_INCOMING_INVALID_ID) == 0 ||
+               g_strcmp0 (test_name, TEST_OUTGOING_INVALID_ID) == 0)
+        {
+          json_object_set_string_member (body, "deviceId", "!@#$%^&*()");
+        }
+      else if (g_strcmp0 (test_name, TEST_INCOMING_INVALID_NAME) == 0 ||
+               g_strcmp0 (test_name, TEST_OUTGOING_INVALID_NAME) == 0)
+        {
+          json_object_set_string_member (body, "deviceName", "!@#$%^&*()");
+        }
+      else if (g_strcmp0 (test_name, TEST_INCOMING_TLS_SPOOFER) == 0 ||
+               g_strcmp0 (test_name, TEST_OUTGOING_TLS_SPOOFER) == 0)
+        {
+          /* In this test case we are trying to connect with a certificate with
+           * a common name that doesn't match the device ID.
+           *
+           * TODO: test the case where the certificate common name matches the
+           *       device ID, but the certificate itself is different.
+           */
+          g_clear_object (&fixture->peer_certificate);
+          fixture->peer_certificate = valent_certificate_new_sync (NULL, NULL);
+        }
+
+      test_case->func (fixture, test_case);
+      lan_service_fixture_tear_down (fixture, test_case);
+    }
+  g_test_trap_subprocess (NULL, 0, G_TEST_SUBPROCESS_DEFAULT);
+  g_test_trap_assert_stderr (test_case->errmsg);
+  g_test_trap_assert_failed ();
+}
 
 int
 main (int   argc,
@@ -762,20 +720,14 @@ main (int   argc,
               test_lan_service_outgoing_broadcast,
               lan_service_fixture_tear_down);
 
-  for (size_t i = 0; i < G_N_ELEMENTS (identity_tests); i++)
+  for (size_t i = 0; i < G_N_ELEMENTS (compliance_tests); i++)
     {
-      g_test_add_data_func (identity_tests[i].name,
-                            &identity_tests[i],
-                            test_lan_service_invalid_identity);
+      g_test_add_data_func (compliance_tests[i].name,
+                            &compliance_tests[i],
+                            test_lan_service_compliance_test);
     }
 
-  for (size_t i = 0; i < G_N_ELEMENTS (tls_tests); i++)
-    {
-      g_test_add_data_func (tls_tests[i].name,
-                            &tls_tests[i],
-                            test_lan_service_tls_authentication);
-    }
-
+  // TODO: runs last, since it consistently fails under clang
   g_test_add ("/plugins/lan/channel",
               LanTestFixture, NULL,
               lan_service_fixture_set_up,
