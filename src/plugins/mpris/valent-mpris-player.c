@@ -40,13 +40,11 @@ static GParamSpec *properties[PROP_BUS_NAME + 1] = { NULL, };
 /*
  * DBus Property Mapping
  */
-typedef struct
+static struct
 {
   const char *dbus;
   const char *name;
-} PropMapping;
-
-static const PropMapping player_properties[] = {
+} player_properties[] = {
   {"CanControl",     "flags"},
   {"CanGoNext",      "flags"},
   {"CanGoPrevious",  "flags"},
@@ -94,15 +92,19 @@ on_player_properties_changed (GDBusProxy        *proxy,
   g_assert (VALENT_IS_MPRIS_PLAYER (self));
   g_assert (changed_properties != NULL);
 
+  /* Freeze property notification until all properties are updated, so that
+   * multiple properties can be accessed from a single change notification.
+   */
   g_object_freeze_notify (G_OBJECT (self));
-  g_variant_dict_init (&dict, changed_properties);
 
+  g_variant_dict_init (&dict, changed_properties);
   for (size_t i = 0; i < G_N_ELEMENTS (player_properties); i++)
     {
       if (g_variant_dict_contains (&dict, player_properties[i].dbus))
         {
           /* `PropertiesChanged` should not be emitted for `Position`, but if it
-           * is, we might as well update the internal representation. */
+           * is, we might as well update the internal representation.
+           */
           if (g_str_equal (player_properties[i].dbus, "Position"))
             {
               int64_t position_us = 0;
@@ -111,8 +113,8 @@ on_player_properties_changed (GDBusProxy        *proxy,
               self->position = position_us / G_TIME_SPAN_SECOND;
               self->position_time = valent_mpris_get_time ();
             }
-          else
-            g_object_notify (G_OBJECT (self), player_properties[i].name);
+
+          g_object_notify (G_OBJECT (self), player_properties[i].name);
         }
     }
 
@@ -151,16 +153,14 @@ valent_mpris_player_sync_flags (ValentMPRISPlayer *self)
 
   // TODO: Controllable
   value = g_dbus_proxy_get_cached_property (self->player, "CanControl");
-
-  if (value && !g_variant_get_boolean (value))
+  if (value != NULL && !g_variant_get_boolean (value))
     self->flags = VALENT_MEDIA_ACTION_NONE;
 
   g_clear_pointer (&value, g_variant_unref);
 
   // Next
   value = g_dbus_proxy_get_cached_property (self->player, "CanGoNext");
-
-  if (value && g_variant_get_boolean (value))
+  if (value != NULL && g_variant_get_boolean (value))
     self->flags |= VALENT_MEDIA_ACTION_NEXT;
   else
     self->flags &= ~VALENT_MEDIA_ACTION_NEXT;
@@ -169,8 +169,7 @@ valent_mpris_player_sync_flags (ValentMPRISPlayer *self)
 
   // Previous
   value = g_dbus_proxy_get_cached_property (self->player, "CanGoPrevious");
-
-  if (value && g_variant_get_boolean (value))
+  if (value != NULL && g_variant_get_boolean (value))
     self->flags |= VALENT_MEDIA_ACTION_PREVIOUS;
   else
     self->flags &= ~VALENT_MEDIA_ACTION_PREVIOUS;
@@ -179,8 +178,7 @@ valent_mpris_player_sync_flags (ValentMPRISPlayer *self)
 
   // Pause
   value = g_dbus_proxy_get_cached_property (self->player, "CanPause");
-
-  if (value && g_variant_get_boolean (value))
+  if (value != NULL && g_variant_get_boolean (value))
     self->flags |= VALENT_MEDIA_ACTION_PAUSE;
   else
     self->flags &= ~VALENT_MEDIA_ACTION_PAUSE;
@@ -189,8 +187,7 @@ valent_mpris_player_sync_flags (ValentMPRISPlayer *self)
 
   // Play
   value = g_dbus_proxy_get_cached_property (self->player, "CanPlay");
-
-  if (value && g_variant_get_boolean (value))
+  if (value != NULL && g_variant_get_boolean (value))
     self->flags |= VALENT_MEDIA_ACTION_PLAY;
   else
     self->flags &= ~VALENT_MEDIA_ACTION_PLAY;
@@ -199,8 +196,7 @@ valent_mpris_player_sync_flags (ValentMPRISPlayer *self)
 
   // Seek
   value = g_dbus_proxy_get_cached_property (self->player, "CanSeek");
-
-  if (value && g_variant_get_boolean (value))
+  if (value != NULL && g_variant_get_boolean (value))
     self->flags |= VALENT_MEDIA_ACTION_SEEK;
   else
     self->flags &= ~VALENT_MEDIA_ACTION_SEEK;
@@ -537,7 +533,7 @@ valent_mpris_player_init_player_cb (GObject      *object,
                                     GAsyncResult *result,
                                     gpointer      user_data)
 {
-  g_autoptr (GTask) task = G_TASK (user_data);
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   ValentMPRISPlayer *self = g_task_get_source_object (task);
   g_autoptr (GError) error = NULL;
 
@@ -545,19 +541,22 @@ valent_mpris_player_init_player_cb (GObject      *object,
   g_assert (self->bus_name != NULL);
 
   self->player = g_dbus_proxy_new_finish (result, &error);
-
   if (self->player == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_signal_connect_object (self->player,
                            "g-properties-changed",
                            G_CALLBACK (on_player_properties_changed),
-                           self, 0);
-
+                           self,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (self->player,
                            "g-signal",
                            G_CALLBACK (on_player_signal),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   valent_mpris_player_sync_flags (self);
 
@@ -569,7 +568,7 @@ valent_mpris_player_init_application_cb (GObject      *object,
                                          GAsyncResult *result,
                                          gpointer      user_data)
 {
-  g_autoptr (GTask) task = G_TASK (user_data);
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   ValentMPRISPlayer *self = g_task_get_source_object (task);
   GCancellable *cancellable = g_task_get_cancellable (task);
   g_autoptr (GError) error = NULL;
@@ -579,14 +578,17 @@ valent_mpris_player_init_application_cb (GObject      *object,
   g_assert (G_IS_TASK (task));
 
   self->application = g_dbus_proxy_new_finish (result, &error);
-
   if (self->application == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_signal_connect_object (self->application,
                            "g-properties-changed",
                            G_CALLBACK (on_application_properties_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   g_dbus_proxy_new_for_bus (G_BUS_TYPE_SESSION,
                             G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES,
@@ -596,7 +598,7 @@ valent_mpris_player_init_application_cb (GObject      *object,
                             "org.mpris.MediaPlayer2.Player",
                             cancellable,
                             valent_mpris_player_init_player_cb,
-                            g_steal_pointer (&task));
+                            g_object_ref (task));
 }
 
 static void
@@ -624,7 +626,7 @@ valent_mpris_player_init_async (GAsyncInitable      *initable,
                             "org.mpris.MediaPlayer2",
                             cancellable,
                             valent_mpris_player_init_application_cb,
-                            g_steal_pointer (&task));
+                            g_object_ref (task));
 }
 
 static void

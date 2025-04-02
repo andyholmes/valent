@@ -271,8 +271,7 @@ vdp_mpris_adapter_new (ValentDevice *device)
   context = valent_context_new (valent_device_get_context (device),
                                 "plugin",
                                 "mpris");
-  iri = tracker_sparql_escape_uri_printf ("urn:valent:messages:%s",
-                                          valent_device_get_id (device));
+  iri = tracker_sparql_get_uuid_urn ();
   return g_object_new (VDP_TYPE_MPRIS_ADAPTER,
                        "iri",     iri,
                        "context", context,
