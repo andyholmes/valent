@@ -73,8 +73,12 @@ valent_lan_channel_download (ValentChannel  *channel,
       return NULL;
     }
 
-  /* Open the outgoing connection */
-  host = valent_lan_channel_dup_host (self);
+  valent_object_lock (VALENT_OBJECT (self));
+  host = g_strdup (self->host);
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  /* Open a connection to the host at the expected port
+   */
   client = g_object_new (G_TYPE_SOCKET_CLIENT,
                          "enable-proxy", FALSE,
                          NULL);
@@ -199,11 +203,15 @@ valent_lan_channel_get_property (GObject    *object,
   switch ((ValentLanChannelProperty)prop_id)
     {
     case PROP_HOST:
-      g_value_take_string (value, valent_lan_channel_dup_host (self));
+      valent_object_lock (VALENT_OBJECT (self));
+      g_value_set_string (value, self->host);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_PORT:
-      g_value_set_uint (value, valent_lan_channel_get_port (self));
+      valent_object_lock (VALENT_OBJECT (self));
+      g_value_set_uint (value, self->port);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -284,49 +292,5 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
 static void
 valent_lan_channel_init (ValentLanChannel *self)
 {
-}
-
-/**
- * valent_lan_channel_dup_host:
- * @self: a `ValentLanChannel`
- *
- * Get the host address.
- *
- * Returns: (transfer full) (nullable): the remote host address
- */
-char *
-valent_lan_channel_dup_host (ValentLanChannel *self)
-{
-  char *ret = NULL;
-
-  g_return_val_if_fail (VALENT_LAN_CHANNEL (self), NULL);
-
-  valent_object_lock (VALENT_OBJECT (self));
-  ret = g_strdup (self->host);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return g_steal_pointer (&ret);
-}
-
-/**
- * valent_lan_channel_get_port:
- * @self: a `ValentLanChannel`
- *
- * Get the host port.
- *
- * Returns: the remote host port
- */
-uint16_t
-valent_lan_channel_get_port (ValentLanChannel *self)
-{
-  uint16_t ret;
-
-  g_return_val_if_fail (VALENT_IS_LAN_CHANNEL (self), 0);
-
-  valent_object_lock (VALENT_OBJECT (self));
-  ret = self->port;
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return ret;
 }
 
