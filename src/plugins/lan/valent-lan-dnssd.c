@@ -467,7 +467,7 @@ _avahi_resolve_service_cb (GDBusConnection *connection,
                            GAsyncResult    *result,
                            gpointer         user_data)
 {
-  ValentLanDNSSD *self = VALENT_LAN_DNSSD (user_data);
+  g_autoptr (ValentLanDNSSD) self = VALENT_LAN_DNSSD (user_data);
   g_autoptr (GVariant) reply = NULL;
   g_autoptr (GError) error = NULL;
 
@@ -487,11 +487,10 @@ _avahi_resolve_service_cb (GDBusConnection *connection,
   unsigned int position = 0;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-
   if (reply == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
+        g_debug ("%s(): %s", G_STRFUNC, error->message);
 
       return;
     }
@@ -584,9 +583,9 @@ _avahi_service_browser_event (GDBusConnection *connection,
                               G_VARIANT_TYPE ("(iissssisqaayu)"),
                               G_DBUS_CALL_FLAGS_NO_AUTO_START,
                               -1,
-                              NULL,
+                              self->cancellable,
                               (GAsyncReadyCallback)_avahi_resolve_service_cb,
-                              self);
+                              g_object_ref (self));
     }
   else if (g_str_equal (signal_name, "ItemRemove"))
     {
