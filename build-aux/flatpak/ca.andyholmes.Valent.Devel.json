@@ -99,6 +99,10 @@
             "name": "libphonenumber",
             "buildsystem": "cmake-ninja",
             "subdir": "cpp",
+            "cleanup": [
+                "/include",
+                "/lib/cmake"
+            ],
             "config-opts": [
                 "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
                 "-DUSE_BOOST=OFF",
@@ -115,14 +119,16 @@
                     "sha256": "54578d748ce38eea8c3530e49c1adf09272ef4535ed32db2555ab39b0b8851c0"
                 }
             ],
-            "cleanup": [
-                "/include",
-                "/lib/cmake"
-            ],
             "modules": [
                 {
                     "name": "abseil-cpp",
                     "buildsystem": "cmake-ninja",
+                    "cleanup": [
+                        "/include",
+                        "/lib/*.a",
+                        "/lib/cmake",
+                        "/lib/pkgconfig"
+                    ],
                     "config-opts": [
                         "-DCMAKE_BUILD_TYPE=Release",
                         "-DCMAKE_CXX_STANDARD=17",
@@ -135,24 +141,11 @@
                             "url": "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.1.tar.gz",
                             "sha256": "81311c17599b3712069ded20cca09a62ab0bf2a89dfa16993786c8782b7ed145"
                         }
-                    ],
-                    "cleanup": [
-                        "/include",
-                        "/lib/*.a",
-                        "/lib/cmake",
-                        "/lib/pkgconfig"
                     ]
                 },
                 {
                     "name": "boost",
                     "buildsystem": "simple",
-                    "sources": [
-                        {
-                            "type": "archive",
-                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-b2-nodocs.tar.xz",
-                            "sha256": "09f0628bded81d20b0145b30925d7d7492fd99583671586525d5d66d4c28266a"
-                        }
-                    ],
                     "build-commands": [
                         "./bootstrap.sh --prefix=${FLATPAK_DEST} --with-libraries=date_time,thread,system",
                         "./b2 -j ${FLATPAK_BUILDER_N_JOBS} headers",
@@ -162,18 +155,18 @@
                         "/include",
                         "/lib/*.a",
                         "/lib/cmake"
+                    ],
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-b2-nodocs.tar.xz",
+                            "sha256": "09f0628bded81d20b0145b30925d7d7492fd99583671586525d5d66d4c28266a"
+                        }
                     ]
                 },
                 {
                     "name": "protobuf",
                     "buildsystem": "autotools",
-                    "sources": [
-                        {
-                            "type": "archive",
-                            "url": "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v21.12.tar.gz",
-                            "sha256": "22fdaf641b31655d4b2297f9981fa5203b2866f8332d3c6333f6b0107bb320de"
-                        }
-                    ],
                     "cleanup": [
                         "/bin",
                         "/include",
@@ -182,6 +175,13 @@
                         "/lib/libprotoc*",
                         "/lib/libprotobuf-lite*",
                         "/lib/pkgconfig"
+                    ],
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v21.12.tar.gz",
+                            "sha256": "22fdaf641b31655d4b2297f9981fa5203b2866f8332d3c6333f6b0107bb320de"
+                        }
                     ]
                 }
             ]
