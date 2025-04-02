@@ -87,15 +87,17 @@ valent_lan_channel_download (ValentChannel  *channel,
   if (connection == NULL)
     return NULL;
 
-  /* We're the TLS client when downloading */
+  /* NOTE: When negotiating an auxiliary connection, a KDE Connect device
+   *       acts as the TLS client when opening TCP connections.
+   */
   certificate = valent_channel_get_certificate (channel);
   peer_certificate = valent_channel_get_peer_certificate (channel);
-  tls_stream = valent_lan_encrypt_client (connection,
-                                          certificate,
-                                          peer_certificate,
-                                          cancellable,
-                                          error);
-
+  tls_stream = valent_lan_connection_handshake (connection,
+                                                certificate,
+                                                peer_certificate,
+                                                TRUE, /* is_client */
+                                                cancellable,
+                                                error);
   if (tls_stream == NULL)
     {
       g_io_stream_close (G_IO_STREAM (connection), NULL, NULL);
@@ -150,14 +152,17 @@ valent_lan_channel_upload (ValentChannel  *channel,
   if (connection == NULL)
     return NULL;
 
-  /* We're the TLS server when uploading */
+  /* NOTE: When negotiating an auxiliary connection, a KDE Connect device
+   *       acts as the TLS server when accepting TCP connections.
+   */
   certificate = valent_channel_get_certificate (channel);
   peer_certificate = valent_channel_get_peer_certificate (channel);
-  tls_stream = valent_lan_encrypt_server (connection,
-                                          certificate,
-                                          peer_certificate,
-                                          cancellable,
-                                          error);
+  tls_stream = valent_lan_connection_handshake (connection,
+                                                certificate,
+                                                peer_certificate,
+                                                FALSE, /* is_client */
+                                                cancellable,
+                                                error);
 
   if (tls_stream == NULL)
     {

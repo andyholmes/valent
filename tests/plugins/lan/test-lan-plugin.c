@@ -228,10 +228,12 @@ g_socket_listener_accept_cb (GSocketListener *listener,
     }
 
   VALENT_TEST_CHECK ("The service negotiates TLS connections as the server");
-  tls_stream = valent_lan_encrypt_client_connection (connection,
-                                                     fixture->peer_certificate,
-                                                     NULL,
-                                                     &error);
+  tls_stream = valent_lan_connection_handshake (connection,
+                                                fixture->peer_certificate,
+                                                NULL, /* trusted certificate */
+                                                TRUE, /* is_client */
+                                                NULL,
+                                                &error);
   g_assert_no_error (error);
   g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
 
@@ -446,10 +448,12 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
     }
 
   VALENT_TEST_CHECK ("The service negotiates TLS connections as the client");
-  tls_stream = valent_lan_encrypt_server_connection (connection,
-                                                     fixture->peer_certificate,
-                                                     NULL,
-                                                     &error);
+  tls_stream = valent_lan_connection_handshake (connection,
+                                                fixture->peer_certificate,
+                                                NULL,  /* trusted certificate */
+                                                FALSE, /* is_client */
+                                                NULL,
+                                                &error);
   g_assert_no_error (error);
   g_assert_true (G_IS_TLS_CONNECTION (tls_stream));
 

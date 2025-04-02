@@ -350,12 +350,16 @@ on_incoming_connection (ValentChannelService   *service,
 
   VALENT_JSON (peer_identity, host);
 
-  /* NOTE: We're the client when accepting incoming connections */
+  /* NOTE: When negotiating the primary connection, a KDE Connect device
+   *       acts as the TLS client when accepting TCP connections
+   */
   certificate = valent_channel_service_ref_certificate (service);
-  tls_stream = valent_lan_encrypt_client_connection (connection,
-                                                     certificate,
-                                                     timeout,
-                                                     &warning);
+  tls_stream = valent_lan_connection_handshake (connection,
+                                                certificate,
+                                                NULL, /* trusted certificate */
+                                                TRUE, /* is_client */
+                                                timeout,
+                                                &warning);
   if (tls_stream == NULL)
     {
       if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -584,12 +588,16 @@ incoming_broadcast_task (GTask        *task,
       VALENT_GOTO (out);
     }
 
-  /* NOTE: We're the server when opening outgoing connections */
+  /* NOTE: When negotiating the primary connection, a KDE Connect device
+   *       acts as the TLS server when opening TCP connections
+   */
   certificate = valent_channel_service_ref_certificate (service);
-  tls_stream = valent_lan_encrypt_server_connection (connection,
-                                                     certificate,
-                                                     timeout,
-                                                     &error);
+  tls_stream = valent_lan_connection_handshake (connection,
+                                                certificate,
+                                                NULL,  /* trusted certificate */
+                                                FALSE, /* is_client */
+                                                timeout,
+                                                &error);
   if (tls_stream == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
