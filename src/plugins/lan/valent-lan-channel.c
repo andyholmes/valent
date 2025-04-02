@@ -10,8 +10,9 @@
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
-#include "valent-lan-channel.h"
 #include "valent-lan-utils.h"
+
+#include "valent-lan-channel.h"
 
 
 struct _ValentLanChannel
@@ -57,7 +58,8 @@ valent_lan_channel_download (ValentChannel  *channel,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* Get the payload information */
+  /* Get the connection information
+   */
   if ((info = valent_packet_get_payload_full (packet, &size, error)) == NULL)
     return NULL;
 
@@ -87,7 +89,6 @@ valent_lan_channel_download (ValentChannel  *channel,
                                                 (uint16_t)port,
                                                 cancellable,
                                                 error);
-
   if (connection == NULL)
     return NULL;
 
@@ -130,9 +131,9 @@ valent_lan_channel_upload (ValentChannel  *channel,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* Find an open port */
+  /* Find an open port and prepare the payload information
+   */
   listener = g_socket_listener_new ();
-
   while (!g_socket_listener_add_inet_port (listener, port, NULL, error))
     {
       if (port >= VALENT_LAN_TRANSFER_PORT_MAX)
@@ -142,17 +143,15 @@ valent_lan_channel_upload (ValentChannel  *channel,
       g_clear_error (error);
     }
 
-  /* Set the payload information */
   info = json_object_new();
   json_object_set_int_member (info, "port", (int64_t)port);
   valent_packet_set_payload_info (packet, info);
 
-  /* Notify the device and accept the incoming connection */
+  /* Queue the packet and wait for the incoming connection
+   */
   valent_channel_write_packet (channel, packet, cancellable, NULL, NULL);
-
   connection = g_socket_listener_accept (listener, NULL, cancellable, error);
   g_socket_listener_close (listener);
-
   if (connection == NULL)
     return NULL;
 
@@ -167,7 +166,6 @@ valent_lan_channel_upload (ValentChannel  *channel,
                                                 FALSE, /* is_client */
                                                 cancellable,
                                                 error);
-
   if (tls_stream == NULL)
     {
       g_io_stream_close (G_IO_STREAM (connection), NULL, NULL);
@@ -262,7 +260,9 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
   /**
    * ValentLanChannel:host:
    *
-   * The remote TCP/IP address for the channel.
+   * The remote host for the channel.
+   *
+   * This could be an IPv4 or IPv6 address, or a hostname.
    */
   properties [PROP_HOST] =
     g_param_spec_string ("host", NULL, NULL,
@@ -275,7 +275,7 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
   /**
    * ValentLanChannel:port:
    *
-   * The remote TCP/IP port for the channel.
+   * The remote port for the channel.
    */
   properties [PROP_PORT] =
     g_param_spec_uint ("port", NULL, NULL,
