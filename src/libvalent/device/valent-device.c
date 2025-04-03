@@ -92,18 +92,16 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_RESOURCE
                                G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init))
 
 
-enum {
-  PROP_0,
-  PROP_CONTEXT,
+typedef enum {
+  PROP_CONTEXT = 1,
   PROP_ICON_NAME,
   PROP_ID,
   PROP_NAME,
   PROP_PLUGINS,
   PROP_STATE,
-  N_PROPERTIES
-};
+} ValentDeviceProperty;
 
-static GParamSpec *properties[N_PROPERTIES] = { NULL, };
+static GParamSpec *properties[PROP_STATE + 1] = { NULL, };
 
 
 /*
@@ -972,7 +970,7 @@ valent_device_get_property (GObject    *object,
 {
   ValentDevice *self = VALENT_DEVICE (object);
 
-  switch (prop_id)
+  switch ((ValentDeviceProperty)prop_id)
     {
     case PROP_CONTEXT:
       g_value_set_object (value, self->context);
@@ -1011,7 +1009,7 @@ valent_device_set_property (GObject      *object,
 {
   ValentDevice *self = VALENT_DEVICE (object);
 
-  switch (prop_id)
+  switch ((ValentDeviceProperty)prop_id)
     {
     case PROP_CONTEXT:
       self->context = g_value_dup_object (value);
@@ -1021,6 +1019,10 @@ valent_device_set_property (GObject      *object,
       self->id = g_value_dup_string (value);
       break;
 
+    case PROP_ICON_NAME:
+    case PROP_NAME:
+    case PROP_PLUGINS:
+    case PROP_STATE:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -1167,7 +1169,7 @@ valent_device_class_init (ValentDeviceClass *klass)
                          G_PARAM_EXPLICIT_NOTIFY |
                          G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 /**
