@@ -1568,6 +1568,63 @@ valent_device_get_name (ValentDevice *device)
   return device->name;
 }
 
+static void
+valent_device_set_trusted (ValentDevice *self,
+                           gboolean      trusted)
+{
+  g_autoptr (GFile) certificate_file = NULL;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (VALENT_IS_DEVICE (self));
+  g_assert (!trusted || VALENT_IS_CHANNEL (self->channel));
+
+  certificate_file = valent_context_get_config_file (self->context,
+                                                     "certificate.pem");
+
+  /* Lock is held in valent_device_set_paired()
+   */
+  if (trusted)
+    {
+      g_autoptr (GTlsCertificate) certificate = NULL;
+      g_autofree char *certificate_pem = NULL;
+
+      g_object_get (self->channel,
+                    "peer-certificate", &certificate,
+                    NULL);
+      g_object_get (certificate,
+                    "certificate-pem", &certificate_pem,
+                    NULL);
+      g_file_replace_contents (certificate_file,
+                               certificate_pem,
+                               strlen (certificate_pem),
+                               NULL,  /* etag */
+                               FALSE, /* make_backup */
+                               (G_FILE_CREATE_PRIVATE |
+                                G_FILE_CREATE_REPLACE_DESTINATION),
+                               NULL,  /* etag (out) */
+                               NULL,
+                               &error);
+      if (error != NULL)
+        {
+          g_warning ("%s(): failed to write \"%s\": %s",
+                     G_STRFUNC,
+                     g_file_peek_path (certificate_file),
+                     error->message);
+        }
+    }
+  else
+    {
+      if (!g_file_delete (certificate_file, NULL, &error) &&
+          !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND))
+        {
+          g_warning ("%s(): failed to delete \"%s\": %s",
+                     G_STRFUNC,
+                     g_file_peek_path (certificate_file),
+                     error->message);
+        }
+    }
+}
+
 /**
  * valent_device_set_paired:
  * @device: a `ValentDevice`
@@ -1594,11 +1651,21 @@ valent_device_set_paired (ValentDevice *device,
       return;
     }
 
-  /* FIXME: If we're connected store/clear connection data */
-  if (paired && device->channel != NULL)
-    valent_channel_store_data (device->channel, device->context);
-  else if (!paired)
-    valent_context_clear (device->context);
+  /* Store the certificate in the configuration directory if paired,
+   * otherwise delete the certificate and clear the data context.
+   *
+   * TODO: KDE Connect uses certificate pinning, but there is no shared resource
+   *       mediating between a ValentDevice and a ValentChannelService.
+   */
+  if (paired)
+    {
+      valent_device_set_trusted (device, device->channel != NULL);
+    }
+  else
+    {
+      valent_device_set_trusted (device, FALSE);
+      valent_context_clear (device->context);
+    }
 
   device->paired = paired;
   g_settings_set_boolean (device->settings, "paired", device->paired);

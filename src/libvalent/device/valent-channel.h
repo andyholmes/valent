@@ -47,8 +47,6 @@ struct _ValentChannelClass
   GIOStream         * (*upload_finish)        (ValentChannel        *channel,
                                                GAsyncResult         *result,
                                                GError              **error);
-  void                (*store_data)           (ValentChannel        *channel,
-                                               ValentContext        *context);
 
   /*< private >*/
   gpointer            padding[8];
@@ -95,9 +93,6 @@ VALENT_AVAILABLE_IN_1_0
 GIOStream       * valent_channel_upload_finish        (ValentChannel        *channel,
                                                        GAsyncResult         *result,
                                                        GError              **error);
-VALENT_AVAILABLE_IN_1_0
-void              valent_channel_store_data           (ValentChannel        *channel,
-                                                       ValentContext        *context);
 VALENT_AVAILABLE_IN_1_0
 void              valent_channel_read_packet          (ValentChannel        *channel,
                                                        GCancellable         *cancellable,
