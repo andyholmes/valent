@@ -14,9 +14,13 @@
 #include "valent-lan-dnssd.h"
 #include "valent-lan-utils.h"
 
+#define HANDSHAKE_TIMEOUT_MS (1000)
 #define IDENTITY_BUFFER_MAX  (8192)
-#define IDENTITY_TIMEOUT_MAX (1000)
 
+#if VALENT_SANITIZE_ADDRESS
+#undef HANDSHAKE_TIMEOUT_MS
+#define HANDSHAKE_TIMEOUT_MS (10000)
+#endif
 
 struct _ValentLanChannelService
 {
@@ -110,7 +114,7 @@ timeout_cancellable_new (GCancellable  *cancellable,
 
   context = g_main_context_ref_thread_default ();
   timeout = g_cancellable_new ();
-  source = g_timeout_source_new (IDENTITY_TIMEOUT_MAX);
+  source = g_timeout_source_new (HANDSHAKE_TIMEOUT_MS);
   g_source_set_priority (source, G_PRIORITY_HIGH);
   g_source_set_callback (source,
                          timeout_source_cb,

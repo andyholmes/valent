@@ -10,8 +10,8 @@
 #include "valent-lan-channel.h"
 #include "valent-lan-channel-service.h"
 
+#define HANDSHAKE_TIMEOUT_MS            (1100)
 #define IDENTITY_BUFFER_MAX             (8192)
-#define AUTHENTICATION_TIMEOUT_MAX      (1100)
 
 /* NOTE: These ports must be between 1716-1764 or they will trigger an error.
  *       Port 1716 is still avoided, since it would conflict with a running
@@ -184,7 +184,7 @@ g_socket_listener_accept_cb (GSocketListener *listener,
     {
       VALENT_TEST_CHECK ("The service rejects connections that take too long "
                          "sending their identity");
-      valent_test_await_timeout (AUTHENTICATION_TIMEOUT_MAX);
+      valent_test_await_timeout (HANDSHAKE_TIMEOUT_MS);
     }
 
   /* The incoming TCP connection is in response to the mock UDP packet we sent,
@@ -397,7 +397,7 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
     {
       VALENT_TEST_CHECK ("The service rejects connections that take too long "
                          "sending their identity");
-      valent_test_await_timeout (AUTHENTICATION_TIMEOUT_MAX);
+      valent_test_await_timeout (HANDSHAKE_TIMEOUT_MS);
     }
 
   valent_packet_to_stream (g_io_stream_get_output_stream (G_IO_STREAM (connection)),
