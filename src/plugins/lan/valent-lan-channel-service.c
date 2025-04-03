@@ -460,7 +460,7 @@ valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
    * listener holds a reference to the object cancellable.
    */
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  listener = g_threaded_socket_service_new (g_get_num_processors ());
+  listener = g_threaded_socket_service_new (MIN (g_get_num_processors (), 8));
   g_signal_connect_object (listener,
                            "run",
                            G_CALLBACK (on_incoming_connection),
