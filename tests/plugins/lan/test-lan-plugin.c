@@ -32,9 +32,10 @@
 #define TEST_OUTGOING_IDENTITY_TIMEOUT  "/plugins/lan/outgoing-identity-timeout"
 #define TEST_OUTGOING_INVALID_ID        "/plugins/lan/outgoing-invalid-id"
 #define TEST_OUTGOING_INVALID_NAME      "/plugins/lan/outgoing-invalid-name"
-
-#define TEST_INCOMING_TLS_SPOOFER       "/plugins/lan/incoming-tls-spoofer"
-#define TEST_OUTGOING_TLS_SPOOFER       "/plugins/lan/outgoing-tls-spoofer"
+#define TEST_INCOMING_TLS_CERTIFICATE   "/plugins/lan/incoming-tls-certificate"
+#define TEST_OUTGOING_TLS_CERTIFICATE   "/plugins/lan/outgoing-tls-certificate"
+#define TEST_INCOMING_TLS_IDENTITY      "/plugins/lan/incoming-tls-common-name"
+#define TEST_OUTGOING_TLS_IDENTITY      "/plugins/lan/outgoing-tls-common-name"
 
 
 typedef struct
@@ -634,12 +635,22 @@ static LanTestCase compliance_tests[] = {
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
   {
-    .name = TEST_INCOMING_TLS_SPOOFER,
+    .name = TEST_INCOMING_TLS_CERTIFICATE,
+    .errmsg = "*device ID does not match certificate common name*", // TODO
+    .func = (LanFixtureFunc)test_lan_service_incoming_broadcast,
+  },
+  {
+    .name = TEST_OUTGOING_TLS_CERTIFICATE,
+    .errmsg = "*device ID does not match certificate common name*", // TODO
+    .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+  {
+    .name = TEST_INCOMING_TLS_IDENTITY,
     .errmsg = "*device ID does not match certificate common name*",
     .func = (LanFixtureFunc)test_lan_service_incoming_broadcast,
   },
   {
-    .name = TEST_OUTGOING_TLS_SPOOFER,
+    .name = TEST_OUTGOING_TLS_IDENTITY,
     .errmsg = "*device ID does not match certificate common name*",
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
@@ -678,14 +689,36 @@ test_lan_service_compliance_test (gconstpointer user_data)
         {
           json_object_set_string_member (body, "deviceName", "!@#$%^&*()");
         }
-      else if (g_strcmp0 (test_name, TEST_INCOMING_TLS_SPOOFER) == 0 ||
-               g_strcmp0 (test_name, TEST_OUTGOING_TLS_SPOOFER) == 0)
+      else if (g_strcmp0 (test_name, TEST_INCOMING_TLS_CERTIFICATE) == 0 ||
+               g_strcmp0 (test_name, TEST_OUTGOING_TLS_CERTIFICATE) == 0)
         {
-          /* In this test case we are trying to connect with a certificate with
-           * a common name that doesn't match the device ID.
+          g_autofree char *peer_dir = NULL;
+          g_autofree char *peer_pem = NULL;
+          const char *peer_id = NULL;
+
+          /* Install a certificate for the peer that won't match the one
+           * presented during the TLS handshake.
            *
            * TODO: test the case where the certificate common name matches the
-           *       device ID, but the certificate itself is different.
+           *       device ID, but the certificate is different.
+           */
+          peer_id = valent_certificate_get_common_name (fixture->peer_certificate);
+          peer_dir = g_build_filename (g_get_user_config_dir(), "valent",
+                                       "device", peer_id,
+                                       NULL);
+          g_mkdir_with_parents (peer_dir, 0700);
+
+          g_clear_object (&fixture->peer_certificate);
+          fixture->peer_certificate = valent_certificate_new_sync (peer_dir, NULL);
+        }
+      else if (g_strcmp0 (test_name, TEST_INCOMING_TLS_IDENTITY) == 0 ||
+               g_strcmp0 (test_name, TEST_OUTGOING_TLS_IDENTITY) == 0)
+        {
+          /* Connect using a certificate with a common name that won't match
+           * the `deviceId` field in the identity packet.
+           *
+           * TODO: test the case where the certificate common name matches the
+           *       device ID, but the certificate is different.
            */
           g_clear_object (&fixture->peer_certificate);
           fixture->peer_certificate = valent_certificate_new_sync (NULL, NULL);
