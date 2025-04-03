@@ -270,16 +270,15 @@ valent_channel_set_base_stream (ValentChannel *self,
 
   g_assert (VALENT_IS_CHANNEL (self));
 
-  if (base_stream != NULL)
+  valent_object_lock (VALENT_OBJECT (self));
+  if (g_set_object (&priv->base_stream, base_stream))
     {
       g_autoptr (GMainContext) context = NULL;
       GInputStream *input_stream;
-      GThread *thread;
+      g_autoptr (GThread) thread = NULL;
+      g_autoptr (GError) error = NULL;
 
-      valent_object_lock (VALENT_OBJECT (self));
       input_stream = g_io_stream_get_input_stream (base_stream);
-
-      priv->base_stream = g_object_ref (base_stream);
       priv->input_buffer = g_object_new (G_TYPE_DATA_INPUT_STREAM,
                                          "base-stream",       input_stream,
                                          "close-base-stream", FALSE,
@@ -287,12 +286,17 @@ valent_channel_set_base_stream (ValentChannel *self,
 
       context = g_main_context_new ();
       priv->output_buffer = g_main_loop_new (context, FALSE);
-      thread = g_thread_new ("valent-channel",
-                             valent_channel_write_packet_worker,
-                             g_main_loop_ref (priv->output_buffer));
-      g_clear_pointer (&thread, g_thread_unref);
-      valent_object_unlock (VALENT_OBJECT (self));
+      thread = g_thread_try_new ("valent-channel",
+                                 valent_channel_write_packet_worker,
+                                 g_main_loop_ref (priv->output_buffer),
+                                 &error);
+      if (thread == NULL)
+        {
+          g_critical ("%s(): %s", G_STRFUNC, error->message);
+          valent_channel_close (self, NULL, NULL);
+        }
     }
+  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 
