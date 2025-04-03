@@ -1119,32 +1119,32 @@ valent_lan_channel_service_identify (ValentChannelService *service,
 
   if (target != NULL)
     {
-      g_autoptr (GSocketConnectable) naddr = NULL;
+      g_autoptr (GSocketConnectable) net = NULL;
       const char *hostname = NULL;
       uint16_t port = 0;
       g_autoptr (GError) error = NULL;
 
-      naddr = g_network_address_parse (target,
-                                       VALENT_LAN_PROTOCOL_PORT,
-                                       &error);
-
-      if (naddr == NULL)
+      net = g_network_address_parse (target, VALENT_LAN_PROTOCOL_PORT, &error);
+      if (net == NULL)
         {
-          g_warning ("%s(): failed to parse \"%s\": %s",
-                     G_STRFUNC,
-                     target,
-                     error->message);
+          g_debug ("%s(): failed to parse \"%s\": %s",
+                   G_STRFUNC,
+                   target,
+                   error->message);
           return;
         }
 
-      hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (naddr));
-      port = g_network_address_get_port (G_NETWORK_ADDRESS (naddr));
+      hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (net));
+      port = g_network_address_get_port (G_NETWORK_ADDRESS (net));
       address = g_inet_socket_address_new_from_string (hostname, port);
     }
-
-  if (address == NULL)
-    address = g_inet_socket_address_new_from_string (self->broadcast_address,
-                                                     self->port);
+  else
+    {
+      valent_object_lock (VALENT_OBJECT (self));
+      address = g_inet_socket_address_new_from_string (self->broadcast_address,
+                                                       self->port);
+      valent_object_unlock (VALENT_OBJECT (self));
+    }
 
   valent_lan_channel_service_socket_queue (self, address);
 }
