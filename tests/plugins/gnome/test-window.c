@@ -88,7 +88,7 @@ test_window_device_management (TestWindowFixture *fixture,
   valent_test_await_nullptr (&window);
 }
 
-VALENT_NO_ASAN static void
+static void
 test_window_navigation (TestWindowFixture *fixture,
                         gconstpointer      user_data)
 {
