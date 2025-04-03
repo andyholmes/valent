@@ -102,38 +102,6 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
                          ##__VA_ARGS__))     \
 
 /**
- * VALENT_HAVE_ASAN:
- *
- * A function attribute that disables AddressSanitizer.
- */
-#define VALENT_HAVE_ASAN 0
-#if defined(__SANITIZE_ADDRESS__)
- #undef VALENT_HAVE_ASAN
- #define VALENT_HAVE_ASAN 1
-#elif defined(__has_feature)
- #if __has_feature(address_sanitizer)
-  #undef VALENT_HAVE_ASAN
-  #define VALENT_HAVE_ASAN 1
- #endif
-#endif
-
-/**
- * VALENT_HAVE_TSAN:
- *
- * Whether ThreadSanitizer is in use.
- */
-#define VALENT_HAVE_TSAN 0
-#if defined(__SANITIZE_THREAD__)
- #undef VALENT_HAVE_TSAN
- #define VALENT_HAVE_TSAN 1
-#elif defined(__has_feature)
- #if __has_feature(thread_sanitizer)
-  #undef VALENT_HAVE_TSAN
-  #define VALENT_HAVE_TSAN 1
- #endif
-#endif
-
-/**
  * v_await_finalize_object:
  * @object: (type GObject.Object): a `GObject`
  *

@@ -35,6 +35,40 @@ G_BEGIN_DECLS
  */
 #define VALENT_STRV_INIT(...) ((const char * const[]) { __VA_ARGS__, NULL})
 
+/**
+ * VALENT_SANITIZE_ADDRESS: (skip)
+ *
+ * This macro is defined with value `1` when instrumented with
+ * AddressSanitizer, otherwise `0`.
+ */
+#define VALENT_SANITIZE_ADDRESS 0
+#if defined(__SANITIZE_ADDRESS__)
+ #undef VALENT_SANITIZE_ADDRESS
+ #define VALENT_SANITIZE_ADDRESS 1
+#elif defined(__has_feature)
+ #if __has_feature(address_sanitizer)
+  #undef VALENT_SANITIZE_ADDRESS
+  #define VALENT_SANITIZE_ADDRESS 1
+ #endif
+#endif
+
+/**
+ * VALENT_SANITIZE_THREAD: (skip)
+ *
+ * This macro is defined with value `1` when instrumented with
+ * ThreadSanitizer, otherwise `0`.
+ */
+#define VALENT_SANITIZE_THREAD 0
+#if defined(__SANITIZE_THREAD__)
+ #undef VALENT_SANITIZE_THREAD
+ #define VALENT_SANITIZE_THREAD 1
+#elif defined(__has_feature)
+ #if __has_feature(thread_sanitizer)
+  #undef VALENT_SANITIZE_THREAD
+  #define VALENT_SANITIZE_THREAD 1
+ #endif
+#endif
+
 G_END_DECLS
 
 #endif /* __GI_SCANNER__ */
