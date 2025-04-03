@@ -102,19 +102,6 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
                          ##__VA_ARGS__))     \
 
 /**
- * VALENT_NO_ASAN:
- *
- * A function attribute that disables AddressSanitizer.
- */
-#define VALENT_NO_ASAN
-#if defined(__has_attribute)
-  #if __has_attribute(no_sanitize)
-    #undef VALENT_NO_ASAN
-    #define VALENT_NO_ASAN __attribute__((no_sanitize("address")))
-  #endif
-#endif
-
-/**
  * VALENT_HAVE_ASAN:
  *
  * A function attribute that disables AddressSanitizer.
@@ -131,19 +118,6 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 #endif
 
 /**
- * VALENT_NO_TSAN:
- *
- * A function attribute that disables ThreadSanitizer.
- */
-#define VALENT_NO_TSAN
-#if defined(__has_attribute)
-  #if __has_attribute(no_sanitize)
-    #undef VALENT_NO_TSAN
-    #define VALENT_NO_TSAN __attribute__((no_sanitize("thread")))
-  #endif
-#endif
-
-/**
  * VALENT_HAVE_TSAN:
  *
  * Whether ThreadSanitizer is in use.
@@ -156,36 +130,6 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
  #if __has_feature(thread_sanitizer)
   #undef VALENT_HAVE_TSAN
   #define VALENT_HAVE_TSAN 1
- #endif
-#endif
-
-/**
- * VALENT_NO_UBSAN:
- *
- * A function attribute that disables UndefinedBehaviourSanitizer.
- *
- * This macro only works on Clang.
- */
-#define VALENT_NO_UBSAN
-#if defined(__has_feature)
- #if __has_feature(undefined_sanitizer)
-  #undef VALENT_NO_UBSAN
-  #define VALENT_NO_UBSAN __attribute__((no_sanitize("undefined")))
- #endif
-#endif
-
-/**
- * VALENT_HAVE_UBSAN:
- *
- * Whether UndefinedBehaviourSanitizer is in use.
- *
- * This macro only works on Clang.
- */
-#define VALENT_HAVE_UBSAN 0
-#if defined(__has_feature)
- #if __has_feature(undefined_sanitizer)
-  #undef VALENT_HAVE_UBSAN
-  #define VALENT_HAVE_UBSAN 1
  #endif
 #endif
 
@@ -246,7 +190,7 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 #define v_assert_packet_field(p, m)                                            \
   G_STMT_START {                                                               \
     JsonObject *__body = valent_packet_get_body (p);                           \
-    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+    if G_UNLIKELY (!json_object_has_member (__body, m))                        \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            "packet body should have " #m " member");           \
   } G_STMT_END
@@ -261,7 +205,7 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 #define v_assert_packet_no_field(p, m)                                         \
   G_STMT_START {                                                               \
     JsonObject *__body = valent_packet_get_body (p);                           \
-    if G_LIKELY (!json_object_has_member (__body, m)) ; else                   \
+    if G_UNLIKELY (json_object_has_member (__body, m))                         \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            "packet body should not have " #m " member");       \
   } G_STMT_END
@@ -276,10 +220,10 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 #define v_assert_packet_true(p, m)                                             \
   G_STMT_START {                                                               \
     JsonObject *__body = valent_packet_get_body (p);                           \
-    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+    if G_UNLIKELY (!json_object_has_member (__body, m))                        \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            "packet body should have " #m " member");           \
-    if G_LIKELY (json_object_get_boolean_member (__body, m)) ; else            \
+    if G_UNLIKELY (!json_object_get_boolean_member (__body, m))                \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            #m " should be TRUE");                              \
   } G_STMT_END
@@ -294,10 +238,10 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 #define v_assert_packet_false(p, m)                                            \
   G_STMT_START {                                                               \
     JsonObject *__body = valent_packet_get_body (p);                           \
-    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+    if G_UNLIKELY (!json_object_has_member (__body, m))                        \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            "packet body should have " #m " member");           \
-    if G_LIKELY (!json_object_get_boolean_member (__body, m)) ; else           \
+    if G_UNLIKELY (json_object_get_boolean_member (__body, m))                 \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            #m " should be FALSE");                             \
   } G_STMT_END
@@ -314,7 +258,7 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 #define v_assert_packet_cmpfloat(p, m, cmp, num)                               \
   G_STMT_START {                                                               \
     JsonObject *__body = valent_packet_get_body (p);                           \
-    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+    if G_UNLIKELY (!json_object_has_member (__body, m))                        \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            "packet body should have " #m " member");           \
     double __n1 = json_object_get_double_member (__body, m);                   \
@@ -336,7 +280,7 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 #define v_assert_packet_cmpint(p, m, cmp, num)                                 \
   G_STMT_START {                                                               \
     JsonObject *__body = valent_packet_get_body (p);                           \
-    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+    if G_UNLIKELY (!json_object_has_member (__body, m))                        \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            "packet body should have " #m " member");           \
     int64_t __n1 = json_object_get_int_member (__body, m);                  \
@@ -358,7 +302,7 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
 #define v_assert_packet_cmpstr(p, m, cmp, str)                                 \
   G_STMT_START {                                                               \
     JsonObject *__body = valent_packet_get_body (p);                           \
-    if G_LIKELY (json_object_has_member (__body, m)) ; else                    \
+    if G_UNLIKELY (!json_object_has_member (__body, m))                        \
       g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC,        \
                            "packet body should have " #m " member");           \
     const char *__s1 = json_object_get_string_member (__body, m);              \
