@@ -601,7 +601,7 @@ static LanTestCase compliance_tests[] = {
     .errmsg = "*Packet too large*",
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
-#if !(VALENT_HAVE_ASAN)
+#if !(VALENT_SANITIZE_ADDRESS)
   {
     .name = TEST_OUTGOING_IDENTITY_TIMEOUT,
     .errmsg = "*timed out waiting for peer identity*",
@@ -612,7 +612,7 @@ static LanTestCase compliance_tests[] = {
     .errmsg = "*timed out waiting for peer identity*",
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
-#endif /* !VALENT_HAVE_ASAN */
+#endif /* !VALENT_SANITIZE_ADDRESS */
   {
     .name = TEST_INCOMING_INVALID_ID,
     .errmsg = "*invalid device ID*",
