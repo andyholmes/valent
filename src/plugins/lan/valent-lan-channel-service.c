@@ -126,8 +126,8 @@ timeout_cancellable_new (GCancellable  *cancellable,
     {
       *cancellable_id = g_cancellable_connect (cancellable,
                                                G_CALLBACK (timeout_cancellable_cb),
-                                               timeout,
-                                               NULL);
+                                               g_object_ref (timeout),
+                                               g_object_unref);
     }
 
   return g_steal_pointer (&timeout);
