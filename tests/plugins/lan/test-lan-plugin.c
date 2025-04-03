@@ -601,7 +601,7 @@ static LanTestCase compliance_tests[] = {
     .errmsg = "*Packet too large*",
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
-#if !(VALENT_HAVE_ASAN || VALENT_HAVE_TSAN)
+#if !(VALENT_HAVE_ASAN)
   {
     .name = TEST_OUTGOING_IDENTITY_TIMEOUT,
     .errmsg = "*timed out waiting for peer identity*",
