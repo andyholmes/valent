@@ -41,8 +41,7 @@
  *
  * Implementations should override [vfunc@Valent.Channel.download] and
  * [vfunc@Valent.Channel.upload] to support accepting and opening auxiliary
- * connections, respectively. To know when to store persistent data related to
- * the connection, override [vfunc@Valent.Channel.store_data].
+ * connections, respectively.
  *
  * Since: 1.0
  */
@@ -208,43 +207,6 @@ valent_channel_real_upload_finish (ValentChannel  *channel,
   g_assert (error == NULL || *error == NULL);
 
   return g_task_propagate_pointer (G_TASK (result), error);
-}
-
-static void
-valent_channel_real_store_data (ValentChannel *channel,
-                                ValentContext *context)
-{
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
-
-  g_assert (VALENT_IS_CHANNEL (channel));
-  g_assert (VALENT_IS_CONTEXT (context));
-
-  if (priv->certificate != NULL)
-    {
-      g_autofree char *certificate_pem = NULL;
-      g_autoptr (GFile) certificate_file = NULL;
-      g_autoptr (GError) error = NULL;
-
-      g_object_get (priv->peer_certificate,
-                    "certificate-pem", &certificate_pem,
-                    NULL);
-      certificate_file = valent_context_get_config_file (context,
-                                                         "certificate.pem");
-      g_file_set_contents_full (g_file_peek_path (certificate_file),
-                                certificate_pem,
-                                strlen (certificate_pem),
-                                G_FILE_SET_CONTENTS_DURABLE,
-                                0600,
-                                &error);
-
-      if (error != NULL)
-        {
-          g_warning ("%s(): failed to write \"%s\": %s",
-                     G_STRFUNC,
-                     g_file_peek_path (certificate_file),
-                     error->message);
-        }
-    }
 }
 /* LCOV_EXCL_STOP */
 
@@ -443,7 +405,6 @@ valent_channel_class_init (ValentChannelClass *klass)
   klass->upload = valent_channel_real_upload;
   klass->upload_async = valent_channel_real_upload_async;
   klass->upload_finish = valent_channel_real_upload_finish;
-  klass->store_data = valent_channel_real_store_data;
 
   /**
    * ValentChannel:base-stream: (getter ref_base_stream)
@@ -990,35 +951,6 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
   ret = g_task_propagate_boolean (G_TASK (result), error);
 
   VALENT_RETURN (ret);
-}
-
-/**
- * valent_channel_store_data: (virtual store_data)
- * @channel: a `ValentChannel`
- * @context: a `ValentContext`
- *
- * Store channel metadata.
- *
- * This method is called to store channel specific data. The default
- * implementation stores the peer certificate.
- *
- * Implementations that override [vfunc@Valent.Channel.store_data] must
- * chain-up.
- *
- * Since: 1.0
- */
-void
-valent_channel_store_data (ValentChannel *channel,
-                           ValentContext  *context)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_CHANNEL (channel));
-  g_return_if_fail (VALENT_IS_CONTEXT (context));
-
-  VALENT_CHANNEL_GET_CLASS (channel)->store_data (channel, context);
-
-  VALENT_EXIT;
 }
 
 /**
