@@ -38,6 +38,7 @@ struct _ValentDeviceManager
 {
   ValentApplicationPlugin   parent_instance;
 
+  GSettings                *settings;
   GCancellable             *cancellable;
   ValentContext            *context;
 
@@ -734,6 +735,9 @@ valent_device_manager_shutdown (ValentApplicationPlugin *plugin)
   g_cancellable_cancel (self->cancellable);
   g_clear_object (&self->cancellable);
 
+  g_signal_handlers_disconnect_by_data (self->settings, self);
+  g_clear_object (&self->settings);
+
   g_signal_handlers_disconnect_by_data (valent_get_plugin_engine (), self);
   g_hash_table_remove_all (self->plugins);
   valent_device_manager_save_state (self);
@@ -775,6 +779,13 @@ valent_device_manager_startup (ValentApplicationPlugin *plugin)
 
   self->cancellable = g_cancellable_new ();
   valent_device_manager_load_state (self);
+
+  self->settings = g_settings_new ("ca.andyholmes.Valent");
+  g_signal_connect_object (self->settings,
+                           "changed::known-hosts",
+                           G_CALLBACK (valent_device_manager_refresh),
+                           self,
+                           G_CONNECT_SWAPPED);
 
   engine = valent_get_plugin_engine ();
   g_signal_connect_object (engine,
@@ -904,10 +915,16 @@ valent_device_manager_refresh (ValentDeviceManager *manager)
 {
   GHashTableIter iter;
   ValentPlugin *plugin;
+  g_auto (GStrv) addresses = NULL;
 
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_DEVICE_MANAGER (manager));
+
+  if (manager->cancellable == NULL)
+    VALENT_EXIT;
+
+  addresses = g_settings_get_strv (manager->settings, "device-addresses");
 
   g_hash_table_iter_init (&iter, manager->plugins);
   while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
@@ -917,6 +934,12 @@ valent_device_manager_refresh (ValentDeviceManager *manager)
 
       valent_channel_service_identify (VALENT_CHANNEL_SERVICE (plugin->extension),
                                        NULL);
+
+      for (size_t i = 0; addresses[i] != NULL; i++)
+        {
+          valent_channel_service_identify (VALENT_CHANNEL_SERVICE (plugin->extension),
+                                           addresses[i]);
+        }
     }
 
   VALENT_EXIT;
