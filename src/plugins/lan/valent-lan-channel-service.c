@@ -801,7 +801,7 @@ valent_lan_channel_service_socket_send (GSocket      *socket,
   return G_SOURCE_REMOVE;
 }
 
-static void
+static gboolean
 valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
                                          GSocketAddress          *address)
 {
@@ -812,8 +812,8 @@ valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
   g_assert (G_IS_SOCKET_ADDRESS (address));
 
   family = g_socket_address_get_family (address);
-  if (family != G_SOCKET_FAMILY_IPV4 && family != G_SOCKET_FAMILY_IPV6)
-    g_return_if_reached ();
+  g_return_val_if_fail (family == G_SOCKET_FAMILY_IPV4 ||
+                        family == G_SOCKET_FAMILY_IPV6, FALSE);
 
   valent_object_lock (VALENT_OBJECT (self));
   if ((self->udp_socket6 != NULL && family == G_SOCKET_FAMILY_IPV6) ||
@@ -850,7 +850,57 @@ valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
                              g_object_ref (address),
                              g_object_unref);
       g_source_attach (source, g_main_loop_get_context (self->udp_context));
+
+      return TRUE;
     }
+
+  return FALSE;
+}
+
+static void
+g_socket_address_enumerator_next_cb (GObject      *object,
+                                     GAsyncResult *result,
+                                     gpointer      user_data)
+{
+  GSocketAddressEnumerator *iter = G_SOCKET_ADDRESS_ENUMERATOR (object);
+  g_autoptr (ValentLanChannelService) self = g_steal_pointer (&user_data);
+  g_autoptr (GSocketAddress) address = NULL;
+  g_autoptr (GError) error = NULL;
+
+  address = g_socket_address_enumerator_next_finish (iter, result, &error);
+  if (address == NULL)
+    {
+      if (error && !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_debug ("%s(): %s", G_STRFUNC, error->message);
+
+      return;
+    }
+
+  if (!valent_lan_channel_service_socket_queue (self, address))
+    {
+      g_socket_address_enumerator_next_async (iter,
+                                              g_task_get_cancellable (G_TASK (result)),
+                                              g_socket_address_enumerator_next_cb,
+                                              g_object_ref (self));
+    }
+}
+
+static void
+valent_lan_channel_service_socket_queue_resolve (ValentLanChannelService *self,
+                                                 GSocketConnectable      *host)
+{
+  g_autoptr (GSocketAddressEnumerator) iter = NULL;
+  g_autoptr (GCancellable) destroy = NULL;
+
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
+  g_assert (G_IS_SOCKET_CONNECTABLE (host));
+
+  iter = g_socket_connectable_enumerate (host);
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  g_socket_address_enumerator_next_async (iter,
+                                          destroy,
+                                          g_socket_address_enumerator_next_cb,
+                                          g_object_ref (self));
 }
 
 static gpointer
@@ -1133,31 +1183,32 @@ valent_lan_channel_service_identify (ValentChannelService *service,
       g_autoptr (GSocketConnectable) net = NULL;
       const char *hostname = NULL;
       uint16_t port = 0;
-      g_autoptr (GError) error = NULL;
 
-      net = g_network_address_parse (target, VALENT_LAN_PROTOCOL_PORT, &error);
+      net = g_network_address_parse (target, VALENT_LAN_PROTOCOL_PORT, NULL);
       if (net == NULL)
         {
-          g_debug ("%s(): failed to parse \"%s\": %s",
-                   G_STRFUNC,
-                   target,
-                   error->message);
+          g_debug ("%s(): failed to parse \"%s\"", G_STRFUNC, target);
           return;
         }
 
+      /* If a socket address can't be created, try resolving the network address
+       */
       hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (net));
       port = g_network_address_get_port (G_NETWORK_ADDRESS (net));
       address = g_inet_socket_address_new_from_string (hostname, port);
+      if (address != NULL)
+        valent_lan_channel_service_socket_queue (self, address);
+      else
+        valent_lan_channel_service_socket_queue_resolve (self, net);
     }
   else
     {
       valent_object_lock (VALENT_OBJECT (self));
       address = g_inet_socket_address_new_from_string (self->broadcast_address,
                                                        self->port);
+      valent_lan_channel_service_socket_queue (self, address);
       valent_object_unlock (VALENT_OBJECT (self));
     }
-
-  valent_lan_channel_service_socket_queue (self, address);
 }
 
 static void
