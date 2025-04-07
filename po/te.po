@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-03-20 11:58-0700\n"
+"POT-Creation-Date: 2025-04-06 19:31-0700\n"
 "PO-Revision-Date: 2024-09-29 08:24+0530\n"
 "Last-Translator: Aryan Karamtoth <aryankmmiv@outlook.com>\n"
 "Language-Team: Telugu l10n Translation Team <ubuntu-l10n-te@lists.launchpad."
@@ -21,7 +21,6 @@ msgstr ""
 
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
-#: src/plugins/gnome/valent-preferences-dialog.ui:11
 #: src/plugins/gnome/valent-window.c:220 src/plugins/gnome/valent-window.ui:8
 #: src/plugins/gnome/valent-window.ui:45
 msgid "Valent"
@@ -48,6 +47,17 @@ msgstr "పేరు"
 #: data/gsettings/ca.andyholmes.Valent.gschema.xml:11
 msgid "The display name for the local device."
 msgstr "స్థానిక పరికరం కోసం ప్రదర్శన పేరు."
+
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:15
+#: src/plugins/gnome/valent-preferences-dialog.ui:93
+#, fuzzy
+msgid "Device Addresses"
+msgstr "పరికరాలు"
+
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:16
+#: src/plugins/gnome/valent-preferences-dialog.ui:63
+msgid "Add devices by hostname or IP address"
+msgstr ""
 
 #: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:10
 msgid "Plugin State"
@@ -169,22 +179,22 @@ msgstr "రిమోట్ పరికరాలను పర్యవేక్�
 msgid "Andy Holmes"
 msgstr "ఆండీ హోమ్స్"
 
-#: src/libvalent/device/valent-device.c:523
+#: src/libvalent/device/valent-device.c:521
 #, c-format
 msgid "Pairing request from “%s”"
 msgstr "“%s” నుండి జత చేసే అభ్యర్థన"
 
-#: src/libvalent/device/valent-device.c:533
+#: src/libvalent/device/valent-device.c:531
 #: src/plugins/gnome/valent-device-page.ui:118
 msgid "Reject"
 msgstr "తిరస్కరించు"
 
-#: src/libvalent/device/valent-device.c:538
+#: src/libvalent/device/valent-device.c:536
 #: src/plugins/gnome/valent-device-page.ui:132
 msgid "Accept"
 msgstr "అంగీకరించు"
 
-#: src/libvalent/device/valent-device.c:568
+#: src/libvalent/device/valent-device.c:565
 #, c-format
 msgid "Failed to pair with “%s”"
 msgstr ""
@@ -239,7 +249,7 @@ msgid "Connect devices over Bluetooth"
 msgstr "బ్లూటూత్ ద్వారా పరికరాలను కనెక్ట్ చేయండి"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
-#: src/plugins/gnome/valent-preferences-dialog.c:396
+#: src/plugins/gnome/valent-preferences-dialog.c:600
 msgid "Clipboard"
 msgstr "క్లిప్‌బోర్డ్"
 
@@ -296,7 +306,7 @@ msgstr "%s: %s"
 #: src/plugins/gnome/valent-conversation-page.ui:181
 #: src/plugins/gnome/valent-conversation-page.ui:205
 #: src/plugins/gnome/valent-messages-window.c:241
-#: src/plugins/gnome/valent-preferences-dialog.c:403
+#: src/plugins/gnome/valent-preferences-dialog.c:607
 msgid "Contacts"
 msgstr "పరిచయాలు"
 
@@ -371,7 +381,7 @@ msgstr "మొబైల్"
 
 #: src/plugins/gnome/valent-contact-page.c:316
 #: src/plugins/gnome/valent-messages-window.c:424
-#: src/plugins/sftp/valent-sftp-plugin.c:634
+#: src/plugins/sftp/valent-sftp-plugin.c:640
 msgid "Home"
 msgstr "హోమ్"
 
@@ -438,7 +448,7 @@ msgid "Open"
 msgstr "తెరవండి"
 
 #: src/plugins/gnome/valent-conversation-page.c:1004
-#: src/plugins/share/valent-share-plugin.c:1114
+#: src/plugins/share/valent-share-plugin.c:1136
 msgid "Save"
 msgstr "సేవ్ చేయండి"
 
@@ -665,6 +675,7 @@ msgid "Remove the command"
 msgstr "ఆదేశాన్ని తీసివేయండి"
 
 #: src/plugins/gnome/valent-device-preferences-commands-editor.ui:69
+#: src/plugins/gnome/valent-preferences-dialog.c:357
 msgid "Remove"
 msgstr "తొలగించు"
 
@@ -723,11 +734,13 @@ msgstr "సమకాలీకరించు"
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:42
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:47
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:62
+#: src/plugins/gnome/valent-preferences-dialog.ui:110
+#: src/plugins/gnome/valent-preferences-dialog.ui:114
 msgid "Plugins"
 msgstr "ప్లగిన్లు"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:55
-#: src/plugins/gnome/valent-preferences-dialog.ui:68
+#: src/plugins/gnome/valent-preferences-dialog.ui:122
 msgid "No Plugins"
 msgstr "ప్లగిన్‌లు లేవు"
 
@@ -1009,47 +1022,79 @@ msgid "Website"
 msgstr "వెబ్సైట్"
 
 #. TRANSLATORS: %s is a list of forbidden characters
-#: src/plugins/gnome/valent-preferences-dialog.c:291
+#: src/plugins/gnome/valent-preferences-dialog.c:485
 #, c-format
 msgid "The device name must not contain punctuation or brackets, including %s"
 msgstr ""
 
-#: src/plugins/gnome/valent-preferences-dialog.c:382
+#: src/plugins/gnome/valent-preferences-dialog.c:586
 msgid "Application"
 msgstr "అప్లికేషన్"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:389
+#: src/plugins/gnome/valent-preferences-dialog.c:593
 msgid "Device Connections"
 msgstr "పరికర కనెక్షన్లు"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:410
+#: src/plugins/gnome/valent-preferences-dialog.c:614
 msgid "Mouse and Keyboard"
 msgstr "మౌస్ మరియు కీబోర్డ్"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:417
+#: src/plugins/gnome/valent-preferences-dialog.c:621
 msgid "Media Players"
 msgstr "మీడియా ప్లేయర్లు"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:424
+#: src/plugins/gnome/valent-preferences-dialog.c:628
 msgid "Volume Control"
 msgstr "వాల్యూమ్ నియంత్రణ"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:431
+#: src/plugins/gnome/valent-preferences-dialog.c:635
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "నోటిఫికేషన్‌లు"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:438
+#: src/plugins/gnome/valent-preferences-dialog.c:642
 msgid "Session Manager"
 msgstr "సెషన్ మేనేజర్"
 
-#: src/plugins/gnome/valent-preferences-dialog.ui:18
+#: src/plugins/gnome/valent-preferences-dialog.ui:13
+msgid "General"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:20
 msgid "Device Name"
 msgstr "పరికరం పేరు"
 
-#: src/plugins/gnome/valent-preferences-dialog.ui:60
-msgid "Desktop Integration"
-msgstr "డెస్క్‌టాప్ ఇంటిగ్రేషన్"
+#: src/plugins/gnome/valent-preferences-dialog.ui:62
+#, fuzzy
+msgid "Manual Device Setup"
+msgstr "పరికర మెను"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:67
+#: src/plugins/gnome/valent-preferences-dialog.ui:140
+#, fuzzy
+msgid "Add Device"
+msgstr "పరికరాలు"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:85
+#, fuzzy
+msgid "No configured addresses"
+msgstr "పరికరాలు"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:153
+#: src/plugins/share/valent-share-plugin.c:136
+#: src/plugins/share/valent-share-plugin.c:266
+#: src/plugins/share/valent-share-plugin.c:369
+#: src/plugins/share/valent-share-plugin.c:516
+msgid "Cancel"
+msgstr "రద్దు చేయి"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:159
+msgid "Add"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:179
+msgid "Hostname or IP address"
+msgstr ""
 
 #: src/plugins/gnome/valent-presenter-remote.c:89
 msgid "Select Presentation"
@@ -1371,20 +1416,20 @@ msgstr "ఫైళ్లు"
 msgid "Share files and directories with SFTP"
 msgstr "SFTPతో ఫైల్‌లు మరియు డైరెక్టరీలను భాగస్వామ్యం చేయండి"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:640
+#: src/plugins/sftp/valent-sftp-plugin.c:646
 msgid "Permission denied"
 msgstr "అనుమతి నిరాకరించబడింది"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:765
+#: src/plugins/sftp/valent-sftp-plugin.c:771
 #, fuzzy
 msgid "Browse Folders"
 msgstr "ఫైళ్లను బ్రౌజ్ చేయండి"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:782
+#: src/plugins/sftp/valent-sftp-plugin.c:788
 msgid "Unmount"
 msgstr ""
 
-#: src/plugins/sftp/valent-sftp-plugin.c:792
+#: src/plugins/sftp/valent-sftp-plugin.c:798
 msgid "Mount"
 msgstr ""
 
@@ -1397,7 +1442,7 @@ msgid "Direct file, link and text sharing"
 msgstr "డైరెక్ట్ ఫైల్, లింక్ మరియు టెక్స్ట్ షేరింగ్"
 
 #: src/plugins/share/valent-share-plugin.c:102
-#: src/plugins/share/valent-share-plugin.c:467
+#: src/plugins/share/valent-share-plugin.c:482
 msgid "Transferring Files"
 msgstr "ఫైల్‌లను బదిలీ చేస్తోంది"
 
@@ -1410,8 +1455,8 @@ msgstr[0] "%1$s నుండి ఒక ఫైల్ అందుతోంది"
 msgstr[1] "%1$s నుండి %2$d ఫైల్‌లను స్వీకరిస్తోంది"
 
 #: src/plugins/share/valent-share-plugin.c:111
-#: src/plugins/share/valent-share-plugin.c:342
-#: src/plugins/share/valent-share-plugin.c:476
+#: src/plugins/share/valent-share-plugin.c:350
+#: src/plugins/share/valent-share-plugin.c:491
 msgid "Transfer Complete"
 msgstr "బదిలీ పూర్తయింది"
 
@@ -1423,67 +1468,60 @@ msgstr[0] "%1$s నుండి ఒక ఫైల్ స్వీకరించ�
 msgstr[1] "%1$s నుండి %2$d ఫైల్‌లు స్వీకరించబడ్డాయి"
 
 #: src/plugins/share/valent-share-plugin.c:120
-#: src/plugins/share/valent-share-plugin.c:246
-#: src/plugins/share/valent-share-plugin.c:348
-#: src/plugins/share/valent-share-plugin.c:485
+#: src/plugins/share/valent-share-plugin.c:253
+#: src/plugins/share/valent-share-plugin.c:356
+#: src/plugins/share/valent-share-plugin.c:500
 msgid "Transfer Failed"
 msgstr "బదిలీ విఫలమైంది"
 
-#: src/plugins/share/valent-share-plugin.c:136
-#: src/plugins/share/valent-share-plugin.c:259
-#: src/plugins/share/valent-share-plugin.c:361
-#: src/plugins/share/valent-share-plugin.c:501
-msgid "Cancel"
-msgstr "రద్దు చేయి"
-
 #: src/plugins/share/valent-share-plugin.c:154
-#: src/plugins/share/valent-share-plugin.c:738
+#: src/plugins/share/valent-share-plugin.c:760
 msgid "Open Folder"
 msgstr "ఫోల్డర్ తెరవండి"
 
 #: src/plugins/share/valent-share-plugin.c:165
-#: src/plugins/share/valent-share-plugin.c:743
+#: src/plugins/share/valent-share-plugin.c:765
 msgid "Open File"
 msgstr "ఫైల్‌ని తెరవండి"
 
-#: src/plugins/share/valent-share-plugin.c:236
-#: src/plugins/share/valent-share-plugin.c:336
+#: src/plugins/share/valent-share-plugin.c:243
+#: src/plugins/share/valent-share-plugin.c:344
 msgid "Transferring File"
 msgstr "ఫైల్‌ను బదిలీ చేస్తోంది"
 
-#: src/plugins/share/valent-share-plugin.c:237
-#: src/plugins/share/valent-share-plugin.c:247
+#: src/plugins/share/valent-share-plugin.c:244
+#: src/plugins/share/valent-share-plugin.c:254
 #, c-format
 msgid "Opening “%s” from “%s”"
 msgstr "“%s” నుండి “%s” తెరవడం"
 
-#: src/plugins/share/valent-share-plugin.c:337
-#: src/plugins/share/valent-share-plugin.c:349
+#: src/plugins/share/valent-share-plugin.c:345
+#: src/plugins/share/valent-share-plugin.c:357
 #, c-format
 msgid "Opening “%s” on “%s”"
 msgstr "“%s” లో “%s” తెరవడం"
 
-#: src/plugins/share/valent-share-plugin.c:343
+#: src/plugins/share/valent-share-plugin.c:351
 #, c-format
 msgid "Opened “%s” on “%s”"
 msgstr "\"%s\" లో \"%s\" తెరవబడింది"
 
-#: src/plugins/share/valent-share-plugin.c:468
-#: src/plugins/share/valent-share-plugin.c:486
+#: src/plugins/share/valent-share-plugin.c:483
+#: src/plugins/share/valent-share-plugin.c:501
 #, c-format
 msgid "Sending one file to %1$s"
 msgid_plural "Sending %2$d files to %1$s"
 msgstr[0] "ఒక ఫైల్‌ని %1$s కి పంపుతోంది"
 msgstr[1] "%2$d ఫైల్‌లను %1$s కి పంపుతోంది"
 
-#: src/plugins/share/valent-share-plugin.c:477
+#: src/plugins/share/valent-share-plugin.c:492
 #, c-format
 msgid "Sent one file to %1$s"
 msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] "%1$s కి ఒక ఫైల్ పంపబడింది"
 msgstr[1] "%2$d ఫైల్‌లను %1$s కి పంపారు"
 
-#: src/plugins/share/valent-share-plugin.c:731
+#: src/plugins/share/valent-share-plugin.c:753
 #, c-format
 msgid "Text from “%s” saved to “%s”"
 msgstr "“%s” నుండి వచనం “%s” కి సేవ్ చేయబడింది"
@@ -1492,17 +1530,17 @@ msgstr "“%s” నుండి వచనం “%s” కి సేవ్ చ�
 #. * the first "%s" is the date and the second "%s" is the device name, e.g.
 #. * "Text from 07-12-2024 10:00:46 PM (OnePlus 6)"
 #. *
-#: src/plugins/share/valent-share-plugin.c:786
+#: src/plugins/share/valent-share-plugin.c:808
 #, c-format
 msgid "Text from %s (%s).txt"
 msgstr "%s (%s).txt నుండి వచనం"
 
-#: src/plugins/share/valent-share-plugin.c:1108
+#: src/plugins/share/valent-share-plugin.c:1130
 #, c-format
 msgid "Text from “%s”"
 msgstr "“%s” నుండి వచనం"
 
-#: src/plugins/share/valent-share-plugin.c:1119
+#: src/plugins/share/valent-share-plugin.c:1141
 msgid "Copy"
 msgstr "కాపీ చేయండి"
 
@@ -1590,6 +1628,9 @@ msgstr[1] ""
 #, fuzzy
 msgid "System Sounds"
 msgstr "సిస్టమ్ వాల్యూమ్"
+
+#~ msgid "Desktop Integration"
+#~ msgstr "డెస్క్‌టాప్ ఇంటిగ్రేషన్"
 
 #~ msgid "Unavailable"
 #~ msgstr "అందుబాటులో లేదు"
