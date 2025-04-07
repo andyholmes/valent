@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-03-20 11:58-0700\n"
+"POT-Creation-Date: 2025-04-06 19:31-0700\n"
 "PO-Revision-Date: 2024-03-21 03:05+0100\n"
 "Last-Translator: Gianni Lerro <glerro@pm.me>\n"
 "Language-Team: Italian <>\n"
@@ -20,7 +20,6 @@ msgstr ""
 
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
-#: src/plugins/gnome/valent-preferences-dialog.ui:11
 #: src/plugins/gnome/valent-window.c:220 src/plugins/gnome/valent-window.ui:8
 #: src/plugins/gnome/valent-window.ui:45
 msgid "Valent"
@@ -47,6 +46,17 @@ msgstr "Nome"
 #: data/gsettings/ca.andyholmes.Valent.gschema.xml:11
 msgid "The display name for the local device."
 msgstr "Il nome visualizzato per il dispositivo locale."
+
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:15
+#: src/plugins/gnome/valent-preferences-dialog.ui:93
+#, fuzzy
+msgid "Device Addresses"
+msgstr "Dispositivi"
+
+#: data/gsettings/ca.andyholmes.Valent.gschema.xml:16
+#: src/plugins/gnome/valent-preferences-dialog.ui:63
+msgid "Add devices by hostname or IP address"
+msgstr ""
 
 #: data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml:10
 msgid "Plugin State"
@@ -173,22 +183,22 @@ msgstr "Associa e collega i tuoi dispositivi"
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
-#: src/libvalent/device/valent-device.c:523
+#: src/libvalent/device/valent-device.c:521
 #, fuzzy, c-format
 msgid "Pairing request from “%s”"
 msgstr "Richiesta di abbinamento da %s"
 
-#: src/libvalent/device/valent-device.c:533
+#: src/libvalent/device/valent-device.c:531
 #: src/plugins/gnome/valent-device-page.ui:118
 msgid "Reject"
 msgstr "Rifiuta"
 
-#: src/libvalent/device/valent-device.c:538
+#: src/libvalent/device/valent-device.c:536
 #: src/plugins/gnome/valent-device-page.ui:132
 msgid "Accept"
 msgstr "Accetta"
 
-#: src/libvalent/device/valent-device.c:568
+#: src/libvalent/device/valent-device.c:565
 #, c-format
 msgid "Failed to pair with “%s”"
 msgstr ""
@@ -244,7 +254,7 @@ msgid "Connect devices over Bluetooth"
 msgstr "Connetti i dispositivi tramite LAN"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
-#: src/plugins/gnome/valent-preferences-dialog.c:396
+#: src/plugins/gnome/valent-preferences-dialog.c:600
 msgid "Clipboard"
 msgstr "Appunti"
 
@@ -301,7 +311,7 @@ msgstr "%s: %s"
 #: src/plugins/gnome/valent-conversation-page.ui:181
 #: src/plugins/gnome/valent-conversation-page.ui:205
 #: src/plugins/gnome/valent-messages-window.c:241
-#: src/plugins/gnome/valent-preferences-dialog.c:403
+#: src/plugins/gnome/valent-preferences-dialog.c:607
 msgid "Contacts"
 msgstr "Contatti"
 
@@ -378,7 +388,7 @@ msgstr "Cellulare"
 
 #: src/plugins/gnome/valent-contact-page.c:316
 #: src/plugins/gnome/valent-messages-window.c:424
-#: src/plugins/sftp/valent-sftp-plugin.c:634
+#: src/plugins/sftp/valent-sftp-plugin.c:640
 msgid "Home"
 msgstr "Casa"
 
@@ -447,7 +457,7 @@ msgid "Open"
 msgstr "Apri"
 
 #: src/plugins/gnome/valent-conversation-page.c:1004
-#: src/plugins/share/valent-share-plugin.c:1114
+#: src/plugins/share/valent-share-plugin.c:1136
 msgid "Save"
 msgstr "Salva"
 
@@ -681,6 +691,7 @@ msgid "Remove the command"
 msgstr "Rimuovi il comando"
 
 #: src/plugins/gnome/valent-device-preferences-commands-editor.ui:69
+#: src/plugins/gnome/valent-preferences-dialog.c:357
 msgid "Remove"
 msgstr "Rimuovi"
 
@@ -739,11 +750,13 @@ msgstr "Sincronizzazione"
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:42
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:47
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:62
+#: src/plugins/gnome/valent-preferences-dialog.ui:110
+#: src/plugins/gnome/valent-preferences-dialog.ui:114
 msgid "Plugins"
 msgstr "Plugin"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:55
-#: src/plugins/gnome/valent-preferences-dialog.ui:68
+#: src/plugins/gnome/valent-preferences-dialog.ui:122
 msgid "No Plugins"
 msgstr "Nessun plugin"
 
@@ -1030,47 +1043,79 @@ msgid "Website"
 msgstr ""
 
 #. TRANSLATORS: %s is a list of forbidden characters
-#: src/plugins/gnome/valent-preferences-dialog.c:291
+#: src/plugins/gnome/valent-preferences-dialog.c:485
 #, c-format
 msgid "The device name must not contain punctuation or brackets, including %s"
 msgstr ""
 
-#: src/plugins/gnome/valent-preferences-dialog.c:382
+#: src/plugins/gnome/valent-preferences-dialog.c:586
 msgid "Application"
 msgstr "Applicazione"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:389
+#: src/plugins/gnome/valent-preferences-dialog.c:593
 msgid "Device Connections"
 msgstr "Connessioni del dispositivo"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:410
+#: src/plugins/gnome/valent-preferences-dialog.c:614
 msgid "Mouse and Keyboard"
 msgstr "Mouse e tastiera"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:417
+#: src/plugins/gnome/valent-preferences-dialog.c:621
 msgid "Media Players"
 msgstr "Lettori multimediali"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:424
+#: src/plugins/gnome/valent-preferences-dialog.c:628
 msgid "Volume Control"
 msgstr "Controllo del volume"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:431
+#: src/plugins/gnome/valent-preferences-dialog.c:635
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "Notifiche"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:438
+#: src/plugins/gnome/valent-preferences-dialog.c:642
 msgid "Session Manager"
 msgstr "Responsabile della sessione"
 
-#: src/plugins/gnome/valent-preferences-dialog.ui:18
+#: src/plugins/gnome/valent-preferences-dialog.ui:13
+msgid "General"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:20
 msgid "Device Name"
 msgstr "Nome del dispositivo"
 
-#: src/plugins/gnome/valent-preferences-dialog.ui:60
-msgid "Desktop Integration"
-msgstr "Integrazione desktop"
+#: src/plugins/gnome/valent-preferences-dialog.ui:62
+#, fuzzy
+msgid "Manual Device Setup"
+msgstr "Menù dispositivo"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:67
+#: src/plugins/gnome/valent-preferences-dialog.ui:140
+#, fuzzy
+msgid "Add Device"
+msgstr "Dispositivi"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:85
+#, fuzzy
+msgid "No configured addresses"
+msgstr "Dispositivi"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:153
+#: src/plugins/share/valent-share-plugin.c:136
+#: src/plugins/share/valent-share-plugin.c:266
+#: src/plugins/share/valent-share-plugin.c:369
+#: src/plugins/share/valent-share-plugin.c:516
+msgid "Cancel"
+msgstr "Annulla"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:159
+msgid "Add"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:179
+msgid "Hostname or IP address"
+msgstr ""
 
 #: src/plugins/gnome/valent-presenter-remote.c:89
 msgid "Select Presentation"
@@ -1397,20 +1442,20 @@ msgstr "Salva"
 msgid "Share files and directories with SFTP"
 msgstr "Condividi file e cartelle con SFTP"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:640
+#: src/plugins/sftp/valent-sftp-plugin.c:646
 msgid "Permission denied"
 msgstr "Permesso negato"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:765
+#: src/plugins/sftp/valent-sftp-plugin.c:771
 #, fuzzy
 msgid "Browse Folders"
 msgstr "Sfoglia file"
 
-#: src/plugins/sftp/valent-sftp-plugin.c:782
+#: src/plugins/sftp/valent-sftp-plugin.c:788
 msgid "Unmount"
 msgstr ""
 
-#: src/plugins/sftp/valent-sftp-plugin.c:792
+#: src/plugins/sftp/valent-sftp-plugin.c:798
 msgid "Mount"
 msgstr ""
 
@@ -1423,7 +1468,7 @@ msgid "Direct file, link and text sharing"
 msgstr "Condivisione diretta di file, collegamenti e testo"
 
 #: src/plugins/share/valent-share-plugin.c:102
-#: src/plugins/share/valent-share-plugin.c:467
+#: src/plugins/share/valent-share-plugin.c:482
 msgid "Transferring Files"
 msgstr "Trasferimento di file"
 
@@ -1436,8 +1481,8 @@ msgstr[0] "Ricezione di un file da %1$s"
 msgstr[1] "Ricezione di %2$d file da %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:111
-#: src/plugins/share/valent-share-plugin.c:342
-#: src/plugins/share/valent-share-plugin.c:476
+#: src/plugins/share/valent-share-plugin.c:350
+#: src/plugins/share/valent-share-plugin.c:491
 msgid "Transfer Complete"
 msgstr "Trasferimento completato"
 
@@ -1449,67 +1494,60 @@ msgstr[0] "Ricevuto un file da %1$s"
 msgstr[1] "Ricevuti %2$d file da %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:120
-#: src/plugins/share/valent-share-plugin.c:246
-#: src/plugins/share/valent-share-plugin.c:348
-#: src/plugins/share/valent-share-plugin.c:485
+#: src/plugins/share/valent-share-plugin.c:253
+#: src/plugins/share/valent-share-plugin.c:356
+#: src/plugins/share/valent-share-plugin.c:500
 msgid "Transfer Failed"
 msgstr "Trasferimento fallito"
 
-#: src/plugins/share/valent-share-plugin.c:136
-#: src/plugins/share/valent-share-plugin.c:259
-#: src/plugins/share/valent-share-plugin.c:361
-#: src/plugins/share/valent-share-plugin.c:501
-msgid "Cancel"
-msgstr "Annulla"
-
 #: src/plugins/share/valent-share-plugin.c:154
-#: src/plugins/share/valent-share-plugin.c:738
+#: src/plugins/share/valent-share-plugin.c:760
 msgid "Open Folder"
 msgstr "Apri cartella"
 
 #: src/plugins/share/valent-share-plugin.c:165
-#: src/plugins/share/valent-share-plugin.c:743
+#: src/plugins/share/valent-share-plugin.c:765
 msgid "Open File"
 msgstr "Apri file"
 
-#: src/plugins/share/valent-share-plugin.c:236
-#: src/plugins/share/valent-share-plugin.c:336
+#: src/plugins/share/valent-share-plugin.c:243
+#: src/plugins/share/valent-share-plugin.c:344
 msgid "Transferring File"
 msgstr "Trasferimento file"
 
-#: src/plugins/share/valent-share-plugin.c:237
-#: src/plugins/share/valent-share-plugin.c:247
+#: src/plugins/share/valent-share-plugin.c:244
+#: src/plugins/share/valent-share-plugin.c:254
 #, fuzzy, c-format
 msgid "Opening “%s” from “%s”"
 msgstr "Apertura “%s” da %s"
 
-#: src/plugins/share/valent-share-plugin.c:337
-#: src/plugins/share/valent-share-plugin.c:349
+#: src/plugins/share/valent-share-plugin.c:345
+#: src/plugins/share/valent-share-plugin.c:357
 #, fuzzy, c-format
 msgid "Opening “%s” on “%s”"
 msgstr "Apertura “%s” su %s"
 
-#: src/plugins/share/valent-share-plugin.c:343
+#: src/plugins/share/valent-share-plugin.c:351
 #, fuzzy, c-format
 msgid "Opened “%s” on “%s”"
 msgstr "Aperto “%s” su %s"
 
-#: src/plugins/share/valent-share-plugin.c:468
-#: src/plugins/share/valent-share-plugin.c:486
+#: src/plugins/share/valent-share-plugin.c:483
+#: src/plugins/share/valent-share-plugin.c:501
 #, c-format
 msgid "Sending one file to %1$s"
 msgid_plural "Sending %2$d files to %1$s"
 msgstr[0] "Invio di un file a %1$s"
 msgstr[1] "Invio di %2$d file a %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:477
+#: src/plugins/share/valent-share-plugin.c:492
 #, c-format
 msgid "Sent one file to %1$s"
 msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] "Inviato un file a %1$s"
 msgstr[1] "Inviati %2$d file a %1$s"
 
-#: src/plugins/share/valent-share-plugin.c:731
+#: src/plugins/share/valent-share-plugin.c:753
 #, c-format
 msgid "Text from “%s” saved to “%s”"
 msgstr ""
@@ -1518,17 +1556,17 @@ msgstr ""
 #. * the first "%s" is the date and the second "%s" is the device name, e.g.
 #. * "Text from 07-12-2024 10:00:46 PM (OnePlus 6)"
 #. *
-#: src/plugins/share/valent-share-plugin.c:786
+#: src/plugins/share/valent-share-plugin.c:808
 #, c-format
 msgid "Text from %s (%s).txt"
 msgstr ""
 
-#: src/plugins/share/valent-share-plugin.c:1108
+#: src/plugins/share/valent-share-plugin.c:1130
 #, fuzzy, c-format
 msgid "Text from “%s”"
 msgstr "Richiesta di abbinamento da %s"
 
-#: src/plugins/share/valent-share-plugin.c:1119
+#: src/plugins/share/valent-share-plugin.c:1141
 msgid "Copy"
 msgstr "Copia"
 
@@ -1617,6 +1655,9 @@ msgstr[1] ""
 #, fuzzy
 msgid "System Sounds"
 msgstr "Volume di systema"
+
+#~ msgid "Desktop Integration"
+#~ msgstr "Integrazione desktop"
 
 #~ msgid "Unavailable"
 #~ msgstr "Non disponibile"
