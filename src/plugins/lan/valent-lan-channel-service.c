@@ -805,55 +805,52 @@ static void
 valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
                                          GSocketAddress          *address)
 {
-  g_autoptr (JsonNode) identity = NULL;
-  g_autoptr (GBytes) identity_bytes = NULL;
-  char *identity_json = NULL;
+  g_autoptr (GSocket) socket = NULL;
   GSocketFamily family = G_SOCKET_FAMILY_INVALID;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
   g_assert (G_IS_SOCKET_ADDRESS (address));
 
-  /* Ignore errant socket addresses */
   family = g_socket_address_get_family (address);
-
   if (family != G_SOCKET_FAMILY_IPV4 && family != G_SOCKET_FAMILY_IPV6)
     g_return_if_reached ();
-
-  /* Serialize the identity */
-  identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
-  identity_json = valent_packet_serialize (identity);
-  identity_bytes = g_bytes_new_take (identity_json, strlen (identity_json));
-  g_object_set_data_full (G_OBJECT (address),
-                          "valent-lan-broadcast",
-                          g_bytes_ref (identity_bytes),
-                          (GDestroyNotify)g_bytes_unref);
 
   valent_object_lock (VALENT_OBJECT (self));
   if ((self->udp_socket6 != NULL && family == G_SOCKET_FAMILY_IPV6) ||
       (self->udp_socket6 != NULL && g_socket_speaks_ipv4 (self->udp_socket6)))
     {
-      g_autoptr (GSource) source = NULL;
-
-      source = g_socket_create_source (self->udp_socket6, G_IO_OUT, NULL);
-      g_source_set_callback (source,
-                             G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
-                             g_object_ref (address),
-                             g_object_unref);
-      g_source_attach (source, g_main_loop_get_context (self->udp_context));
+      socket = g_object_ref (self->udp_socket6);
     }
-
-  if (self->udp_socket4 != NULL && family == G_SOCKET_FAMILY_IPV4)
+  else if (self->udp_socket4 != NULL && family == G_SOCKET_FAMILY_IPV4)
     {
-      g_autoptr (GSource) source = NULL;
-
-      source = g_socket_create_source (self->udp_socket4, G_IO_OUT, NULL);
-      g_source_set_callback (source,
-                             G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
-                             g_object_ref (address),
-                             g_object_unref);
-      g_source_attach (source, g_main_loop_get_context (self->udp_context));
+      socket = g_object_ref (self->udp_socket4);
     }
   valent_object_unlock (VALENT_OBJECT (self));
+
+  if (socket != NULL)
+    {
+      g_autoptr (GSource) source = NULL;
+      g_autoptr (JsonNode) identity = NULL;
+      g_autoptr (GBytes) identity_bytes = NULL;
+      char *identity_json = NULL;
+
+      /* Embed the serialized identity as private data
+       */
+      identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
+      identity_json = valent_packet_serialize (identity);
+      identity_bytes = g_bytes_new_take (identity_json, strlen (identity_json));
+      g_object_set_data_full (G_OBJECT (address),
+                              "valent-lan-broadcast",
+                              g_bytes_ref (identity_bytes),
+                              (GDestroyNotify)g_bytes_unref);
+
+      source = g_socket_create_source (socket, G_IO_OUT, NULL);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
+                             g_object_ref (address),
+                             g_object_unref);
+      g_source_attach (source, g_main_loop_get_context (self->udp_context));
+    }
 }
 
 static gpointer
