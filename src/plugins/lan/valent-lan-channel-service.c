@@ -784,9 +784,19 @@ valent_lan_channel_service_socket_send (GSocket      *socket,
                               NULL,
                               &error);
 
-  /* We only check for real errors, not partial writes */
+  /* Partial writes are ignored
+   */
   if (written == -1)
-    g_warning ("%s(): failed to identify: %s", G_STRFUNC, error->message);
+    {
+      g_autofree char *host = NULL;
+
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+        return G_SOURCE_CONTINUE;
+
+      host = g_socket_connectable_to_string (G_SOCKET_CONNECTABLE (address));
+      g_warning ("%s(): failed to announce to \"%s\": %s",
+                 G_STRFUNC, host, error->message);
+    }
 
   return G_SOURCE_REMOVE;
 }
