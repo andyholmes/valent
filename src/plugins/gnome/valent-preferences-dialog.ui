@@ -5,11 +5,13 @@
 
 <interface domain="valent">
   <template class="ValentPreferencesDialog" parent="AdwPreferencesDialog">
+
+    <!-- General -->
     <child>
       <object class="AdwPreferencesPage" id="main_page">
         <property name="name">main</property>
-        <property name="title" translatable="yes">Valent</property>
-        <property name="icon-name">phonelink-symbolic</property>
+        <property name="title" translatable="yes">General</property>
+        <property name="icon-name">valent-settings-symbolic</property>
         <property name="vexpand">1</property>
         <child>
           <object class="AdwPreferencesGroup" id="general_group">
@@ -56,8 +58,60 @@
           </object>
         </child>
         <child>
+          <object class="AdwPreferencesGroup" id="network_address_group">
+            <property name="title" translatable="yes">Manual Device Setup</property>
+            <property name="description" translatable="yes">Add devices by hostname or IP address</property>
+            <property name="header-suffix">
+              <object class="GtkButton">
+                <property name="icon-name">list-add-symbolic</property>
+                <property name="tooltip-text" translatable="yes">Add Device</property>
+                <property name="valign">start</property>
+                <signal name="clicked"
+                        handler="adw_dialog_present"
+                        object="network_address_dialog"
+                        swapped="yes"/>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </property>
+            <child>
+              <object class="GtkListBox" id="network_address_list">
+                <property name="hexpand">1</property>
+                <property name="margin-top">12</property>
+                <property name="selection-mode">none</property>
+                <child type="placeholder">
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">No configured addresses</property>
+                    <property name="height-request">54</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+                <accessibility>
+                  <property name="label" translatable="yes">Device Addresses</property>
+                </accessibility>
+                <style>
+                  <class name="boxed-list"/>
+                  <class name="boxed-list-placeholder"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <!-- Plugins -->
+    <child>
+      <object class="AdwPreferencesPage" id="plugins_page">
+        <property name="name">plugins</property>
+        <property name="title" translatable="yes">Plugins</property>
+        <property name="icon-name">valent-plugins-symbolic</property>
+        <child>
           <object class="AdwPreferencesGroup" id="plugin_group">
-            <property name="title" translatable="yes">Desktop Integration</property>
+            <property name="title" translatable="yes">Plugins</property>
             <child>
               <object class="GtkListBox" id="plugin_list">
                 <property name="hexpand">1</property>
@@ -82,4 +136,64 @@
       </object>
     </child>
   </template>
+  <object class="AdwDialog" id="network_address_dialog">
+    <property name="title" translatable="yes">Add Device</property>
+    <property name="default-widget">network_address_entry</property>
+    <property name="focus-widget">network_address_entry</property>
+    <property name="follows-content-size">1</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="show-end-title-buttons">0</property>
+            <property name="show-start-title-buttons">0</property>
+            <child type="start">
+              <object class="GtkButton">
+                <property name="action-name">window.close</property>
+                <property name="label" translatable="yes">Cancel</property>
+                <property name="valign">center</property>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton" id="network_address_add">
+                <property name="label" translatable="yes">Add</property>
+                <property name="sensitive">0</property>
+                <property name="valign">center</property>
+                <signal name="clicked"
+                        handler="on_network_address_activated"
+                        object="ValentPreferencesDialog"
+                        swapped="no"/>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwEntryRow" id="network_address_entry">
+                    <property name="title" translatable="yes">Hostname or IP address</property>
+                    <property name="input-hints">none</property>
+                    <property name="input-purpose">free-form</property>
+                    <signal name="entry-activated"
+                            handler="on_network_address_activated"
+                            object="ValentPreferencesDialog"
+                            swapped="no"/>
+                    <signal name="changed"
+                            handler="on_network_address_changed"
+                            object="network_address_add"
+                            swapped="no"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
 </interface>

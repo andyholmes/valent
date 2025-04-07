@@ -24,12 +24,17 @@ struct _ValentPreferencesDialog
 
   /* template */
   AdwPreferencesPage   *main_page;
-
   AdwPreferencesGroup  *general_group;
   AdwEntryRow          *name_entry;
   GtkRevealer          *name_error;
   GtkLabel             *name_error_label;
+  AdwPreferencesGroup  *network_address_group;
+  GtkListBox           *network_address_list;
+  AdwDialog            *network_address_dialog;
+  GtkEditable          *network_address_entry;
+  GtkButton            *network_address_add;
 
+  AdwPreferencesPage   *plugin_page;
   AdwPreferencesGroup  *plugin_group;
   GtkListBox           *plugin_list;
 };
@@ -259,8 +264,187 @@ on_unload_plugin (PeasEngine              *engine,
 }
 
 /*
+ * Manual Connections
+ */
+static gboolean
+validate_host_entry (const char *input)
+{
+  g_autoptr (GSocketConnectable) net = NULL;
+
+  if (input == NULL || *input == '\0')
+    return FALSE;
+
+  net = g_network_address_parse (input, 1716, NULL);
+  if (net == NULL)
+    return FALSE;
+
+  return TRUE;
+}
+
+static void
+on_network_address_activated (GtkWidget               *widget,
+                              ValentPreferencesDialog *self)
+{
+  const char *hostname = NULL;
+
+  g_assert (GTK_IS_EDITABLE (widget) || GTK_IS_BUTTON (widget));
+  g_assert (VALENT_IS_PREFERENCES_DIALOG (self));
+
+  hostname = gtk_editable_get_text (GTK_EDITABLE (self->network_address_entry));
+  if (validate_host_entry (hostname))
+    {
+      gtk_widget_activate_action (GTK_WIDGET (self),
+                                  "network.add-address",
+                                  "s", hostname);
+      gtk_editable_set_text (GTK_EDITABLE (self->network_address_entry), "");
+      gtk_widget_grab_focus (GTK_WIDGET (self->network_address_entry));
+      adw_dialog_close (self->network_address_dialog);
+    }
+}
+
+static void
+on_network_address_changed (GtkEditable *editable,
+                            GtkButton   *button)
+{
+  const char *hostname = NULL;
+
+  g_assert (GTK_IS_EDITABLE (editable));
+  g_assert (GTK_IS_BUTTON (button));
+
+  hostname = gtk_editable_get_text (editable);
+  if (validate_host_entry (hostname))
+    {
+      gtk_widget_set_sensitive (GTK_WIDGET (button), TRUE);
+      gtk_widget_remove_css_class (GTK_WIDGET (editable), "warning");
+      gtk_accessible_reset_state (GTK_ACCESSIBLE (editable),
+                                  GTK_ACCESSIBLE_STATE_INVALID);
+    }
+  else if (hostname == NULL || *hostname == '\0')
+    {
+      gtk_widget_set_sensitive (GTK_WIDGET (button), FALSE);
+      gtk_widget_remove_css_class (GTK_WIDGET (editable), "warning");
+      gtk_accessible_reset_state (GTK_ACCESSIBLE (editable),
+                                  GTK_ACCESSIBLE_STATE_INVALID);
+    }
+  else
+    {
+      gtk_widget_set_sensitive (GTK_WIDGET (button), FALSE);
+      gtk_widget_add_css_class (GTK_WIDGET (editable), "warning");
+      gtk_accessible_update_state (GTK_ACCESSIBLE (editable),
+                                   GTK_ACCESSIBLE_STATE_INVALID,
+                                   GTK_ACCESSIBLE_INVALID_TRUE,
+                                   -1);
+    }
+}
+
+static GtkWidget *
+network_address_create_row (gpointer item,
+                            gpointer user_data)
+{
+  GtkStringObject *string = GTK_STRING_OBJECT (item);
+  GtkWidget *row, *button;
+  const char *address;
+
+  address = gtk_string_object_get_string (string);
+  row = g_object_new (ADW_TYPE_ACTION_ROW,
+                      "title",      gtk_string_object_get_string (string),
+                      "use-markup", FALSE,
+                      NULL);
+  button = g_object_new (GTK_TYPE_BUTTON,
+                         "icon-name",     "edit-delete-symbolic",
+                         "action-target", g_variant_new_string (address),
+                         "action-name",   "network.remove-address",
+                         "tooltip-text",  _("Remove"),
+                         "valign",        GTK_ALIGN_CENTER,
+                         NULL);
+  gtk_widget_add_css_class (button, "flat");
+  adw_action_row_add_suffix (ADW_ACTION_ROW (row), button);
+
+  return row;
+}
+
+static void
+on_device_addresses_changed (GSettings               *settings,
+                             const char              *key,
+                             ValentPreferencesDialog *self)
+{
+  g_auto (GStrv) addresses = NULL;
+  g_autoptr (GtkStringList) model = NULL;
+
+  g_assert (G_IS_SETTINGS (settings));
+  g_assert (key != NULL && *key != '\0');
+  g_assert (VALENT_IS_PREFERENCES_DIALOG (self));
+
+  addresses = g_settings_get_strv (self->settings, "device-addresses");
+  model = gtk_string_list_new ((const char * const *)addresses);
+  gtk_list_box_bind_model (self->network_address_list,
+                           G_LIST_MODEL (model),
+                           network_address_create_row,
+                           NULL, NULL);
+}
+
+/*
  * GActions
  */
+static void
+add_address_action (GtkWidget  *widget,
+                    const char *action_name,
+                    GVariant   *parameter)
+{
+  ValentPreferencesDialog *self = VALENT_PREFERENCES_DIALOG (widget);
+  g_auto (GStrv) addresses = NULL;
+  const char *address = NULL;
+
+  g_assert (VALENT_IS_PREFERENCES_DIALOG (self));
+
+  address = g_variant_get_string (parameter, NULL);
+  addresses = g_settings_get_strv (self->settings, "device-addresses");
+  if (!g_strv_contains ((const char * const *)addresses, address))
+    {
+      g_autoptr (GStrvBuilder) builder = NULL;
+
+      builder = g_strv_builder_new ();
+      g_strv_builder_add (builder, address);
+      g_strv_builder_addv (builder, (const char **)addresses);
+
+      g_clear_pointer (&addresses, g_strfreev);
+      addresses = g_strv_builder_end (builder);
+      g_settings_set_strv (self->settings, "device-addresses",
+                           (const char * const *)addresses);
+    }
+}
+
+static void
+remove_address_action (GtkWidget  *widget,
+                       const char *action_name,
+                       GVariant   *parameter)
+{
+  ValentPreferencesDialog *self = VALENT_PREFERENCES_DIALOG (widget);
+  g_auto (GStrv) addresses = NULL;
+  const char *address = NULL;
+
+  g_assert (VALENT_IS_PREFERENCES_DIALOG (self));
+
+  address = g_variant_get_string (parameter, NULL);
+  addresses = g_settings_get_strv (self->settings, "device-addresses");
+  if (g_strv_contains ((const char * const *)addresses, address))
+    {
+      g_autoptr (GStrvBuilder) builder = NULL;
+
+      builder = g_strv_builder_new ();
+      for (size_t i = 0; addresses[i] != NULL; i++)
+        {
+          if (!g_str_equal (addresses[i], address))
+            g_strv_builder_add (builder, addresses[i]);
+        }
+
+      g_clear_pointer (&addresses, g_strfreev);
+      addresses = g_strv_builder_end (builder);
+      g_settings_set_strv (self->settings, "device-addresses",
+                           (const char * const *)addresses);
+    }
+}
+
 static void
 page_action (GtkWidget  *widget,
              const char *action_name,
@@ -287,12 +471,8 @@ valent_preferences_dialog_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_preferences_dialog_parent_class)->constructed (object);
 
-  // TRANSLATORS: %s is a list of forbidden characters
-  error_label = g_strdup_printf (_("The device name must not contain "
-                                   "punctuation or brackets, including %s"),
-                                 "<b><tt>\"',;:.!?()[]&lt;&gt;</tt></b>");
-  gtk_label_set_markup (self->name_error_label, error_label);
-
+  /* Device Name
+   */
   self->settings = g_settings_new ("ca.andyholmes.Valent");
   g_signal_connect_object (self->settings,
                            "changed::name",
@@ -301,7 +481,22 @@ valent_preferences_dialog_constructed (GObject *object)
   name = g_settings_get_string (self->settings, "name");
   gtk_editable_set_text (GTK_EDITABLE (self->name_entry), name);
 
-  /* Application Plugins
+  // TRANSLATORS: %s is a list of forbidden characters
+  error_label = g_strdup_printf (_("The device name must not contain "
+                                   "punctuation or brackets, including %s"),
+                                 "<b><tt>\"',;:.!?()[]&lt;&gt;</tt></b>");
+  gtk_label_set_markup (self->name_error_label, error_label);
+
+  /* Manual Device Setup
+   */
+  g_signal_connect_object (self->settings,
+                           "changed::device-addresses",
+                           G_CALLBACK (on_device_addresses_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
+  on_device_addresses_changed (self->settings, "device-addresses", self);
+
+  /* Plugins
    */
   engine = valent_get_plugin_engine ();
   g_signal_connect_object (engine,
@@ -370,9 +565,18 @@ valent_preferences_dialog_class_init (ValentPreferencesDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, name_entry);
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, name_error);
   gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, name_error_label);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, network_address_group);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, network_address_list);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, network_address_dialog);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, network_address_add);
+  gtk_widget_class_bind_template_child (widget_class, ValentPreferencesDialog, network_address_entry);
   gtk_widget_class_bind_template_callback (widget_class, on_name_apply);
   gtk_widget_class_bind_template_callback (widget_class, on_name_changed);
+  gtk_widget_class_bind_template_callback (widget_class, on_network_address_activated);
+  gtk_widget_class_bind_template_callback (widget_class, on_network_address_changed);
 
+  gtk_widget_class_install_action (widget_class, "network.add-address", "s", add_address_action);
+  gtk_widget_class_install_action (widget_class, "network.remove-address", "s", remove_address_action);
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
 
   /* ... */
