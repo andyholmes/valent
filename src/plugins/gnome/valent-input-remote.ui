@@ -16,6 +16,7 @@
     <child>
       <object class="GtkEventControllerKey" id="keyboard">
         <property name="name">keyboard</property>
+        <property name="propagation-phase">capture</property>
         <signal name="key-pressed"
                 handler="on_key_pressed"
                 object="ValentInputRemote"
@@ -98,6 +99,10 @@
         </child>
         <property name="content">
           <object class="AdwViewStack" id="stack">
+            <signal name="notify::visible-child-name"
+                    handler="on_stack_page_changed"
+                    object="ValentInputRemote"
+                    swapped="no"/>
             <child>
               <object class="AdwViewStackPage">
                 <property name="name">touchpad</property>
@@ -111,6 +116,17 @@
                     <property name="margin-end">12</property>
                     <property name="orientation">vertical</property>
                     <property name="spacing">12</property>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow">
+                            <property name="title" translatable="yes">Capture Keyboard</property>
+                            <property name="subtitle" translatable="yes">Press left Control + Alt to release</property>
+                            <property name="action-name">remote.capture-keyboard</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
                     <child>
                       <object class="GtkFrame" id="touchpad">
                         <property name="hexpand">1</property>
