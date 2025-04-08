@@ -27,9 +27,8 @@
       </object>
     </child>
     <property name="content">
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <child>
+      <object class="AdwToolbarView">
+        <child type="top">
           <object class="GtkHeaderBar">
             <property name="show-title-buttons">1</property>
             <property name="title-widget">
@@ -97,157 +96,174 @@
             </style>
           </object>
         </child>
-        <child>
-          <object class="GtkBox">
-            <property name="margin-top">12</property>
-            <property name="margin-bottom">12</property>
-            <property name="margin-start">12</property>
-            <property name="margin-end">12</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">12</property>
+        <property name="content">
+          <object class="AdwViewStack" id="stack">
             <child>
-              <object class="GtkFrame" id="touchpad">
-                <property name="hexpand">1</property>
-                <property name="vexpand">1</property>
-                <child>
-                  <object class="GtkEventControllerScroll" id="pointer_scroll">
-                    <property name="name">pointer-scroll</property>
-                    <property name="flags">vertical | horizontal</property>
-                    <signal name="scroll"
-                            handler="on_scroll"
-                            object="ValentInputRemote"
-                            swapped="no"/>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkGestureDrag" id="touch_single">
-                    <property name="name">touch-single</property>
-                    <property name="n-points">1</property>
-                    <property name="button">0</property>
-                    <signal name="drag-begin"
-                            handler="on_single_begin"
-                            object="ValentInputRemote"
-                            swapped="no"/>
-                    <signal name="update"
-                            handler="on_single_update"
-                            object="ValentInputRemote"
-                            swapped="no"/>
-                    <signal name="drag-end"
-                            handler="on_single_end"
-                            object="ValentInputRemote"
-                            swapped="no"/>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkGestureDrag" id="touch_double">
-                    <property name="name">touch-double</property>
-                    <property name="n-points">2</property>
-                    <property name="touch-only">1</property>
-                    <signal name="drag-begin"
-                            handler="on_double_begin"
-                            object="ValentInputRemote"
-                            swapped="no"/>
-                    <signal name="drag-end"
-                            handler="on_double_end"
-                            object="ValentInputRemote"
-                            swapped="no"/>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkGestureDrag" id="touch_triple">
-                    <property name="name">touch-triple</property>
-                    <property name="n-points">3</property>
-                    <property name="touch-only">1</property>
-                    <signal name="drag-begin"
-                            handler="on_triple_begin"
-                            object="ValentInputRemote"
-                            swapped="no"/>
-                    <signal name="drag-end"
-                            handler="on_triple_end"
-                            object="ValentInputRemote"
-                            swapped="no"/>
-                  </object>
-                </child>
-                <child>
+              <object class="AdwViewStackPage">
+                <property name="name">touchpad</property>
+                <property name="title">Touchpad</property>
+                <property name="icon-name">input-touchpad-symbolic</property>
+                <property name="child">
                   <object class="GtkBox">
+                    <property name="margin-top">12</property>
+                    <property name="margin-bottom">12</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
                     <property name="orientation">vertical</property>
-                    <property name="halign">center</property>
-                    <property name="hexpand">1</property>
-                    <property name="valign">center</property>
-                    <property name="vexpand">1</property>
-                    <property name="spacing">6</property>
+                    <property name="spacing">12</property>
                     <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Drag one finger to move</property>
-                        <property name="xalign">0.0</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Drag two fingers to scroll</property>
-                        <property name="xalign">0.0</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Tap one finger to click</property>
-                        <property name="margin-top">18</property>
-                        <property name="xalign">0.0</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Tap two fingers to right click</property>
-                        <property name="xalign">0.0</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Tap three fingers to middle click</property>
-                        <property name="xalign">0.0</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Hold one finger to grab</property>
-                        <property name="margin-top">18</property>
-                        <property name="xalign">0.0</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Tap one finger to release</property>
-                        <property name="xalign">0.0</property>
-                        <style>
-                          <class name="dim-label"/>
-                        </style>
+                      <object class="GtkFrame" id="touchpad">
+                        <property name="hexpand">1</property>
+                        <property name="vexpand">1</property>
+                        <accessibility>
+                          <property name="label" translatable="yes">Touchpad</property>
+                        </accessibility>
+                        <child>
+                          <object class="GtkEventControllerScroll" id="pointer_scroll">
+                            <property name="name">pointer-scroll</property>
+                            <property name="flags">vertical | horizontal</property>
+                            <signal name="scroll"
+                                    handler="on_scroll"
+                                    object="ValentInputRemote"
+                                    swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkGestureDrag" id="touch_single">
+                            <property name="name">touch-single</property>
+                            <property name="n-points">1</property>
+                            <property name="button">0</property>
+                            <signal name="drag-begin"
+                                    handler="on_single_begin"
+                                    object="ValentInputRemote"
+                                    swapped="no"/>
+                            <signal name="update"
+                                    handler="on_single_update"
+                                    object="ValentInputRemote"
+                                    swapped="no"/>
+                            <signal name="drag-end"
+                                    handler="on_single_end"
+                                    object="ValentInputRemote"
+                                    swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkGestureDrag" id="touch_double">
+                            <property name="name">touch-double</property>
+                            <property name="n-points">2</property>
+                            <property name="touch-only">1</property>
+                            <signal name="drag-begin"
+                                    handler="on_double_begin"
+                                    object="ValentInputRemote"
+                                    swapped="no"/>
+                            <signal name="drag-end"
+                                    handler="on_double_end"
+                                    object="ValentInputRemote"
+                                    swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkGestureDrag" id="touch_triple">
+                            <property name="name">touch-triple</property>
+                            <property name="n-points">3</property>
+                            <property name="touch-only">1</property>
+                            <signal name="drag-begin"
+                                    handler="on_triple_begin"
+                                    object="ValentInputRemote"
+                                    swapped="no"/>
+                            <signal name="drag-end"
+                                    handler="on_triple_end"
+                                    object="ValentInputRemote"
+                                    swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+                            <property name="halign">center</property>
+                            <property name="hexpand">1</property>
+                            <property name="valign">center</property>
+                            <property name="vexpand">1</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Drag one finger to move</property>
+                                <property name="xalign">0.0</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Drag two fingers to scroll</property>
+                                <property name="xalign">0.0</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Tap one finger to click</property>
+                                <property name="margin-top">18</property>
+                                <property name="xalign">0.0</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Tap two fingers to right click</property>
+                                <property name="xalign">0.0</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Tap three fingers to middle click</property>
+                                <property name="xalign">0.0</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Hold one finger to grab</property>
+                                <property name="margin-top">18</property>
+                                <property name="xalign">0.0</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Tap one finger to release</property>
+                                <property name="xalign">0.0</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>
-                </child>
-                <style>
-                  <class name="content-view"/>
-                </style>
+                </property>
               </object>
             </child>
+          </object>
+        </property>
+        <child type="bottom">
+          <object class="AdwViewSwitcherBar" id="switcher_bar">
+            <property name="reveal">1</property>
+            <property name="stack">stack</property>
           </object>
         </child>
       </object>
