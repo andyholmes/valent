@@ -137,6 +137,7 @@
     <file preprocess="xml-stripblanks" alias="scalable/devices/tablet-symbolic.svg">data/icons/hicolor/scalable/devices/tablet-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/devices/tv-symbolic.svg">data/icons/hicolor/scalable/devices/tv-symbolic.svg</file>
 
+    <file preprocess="xml-stripblanks" alias="scalable/devices/input-compose-symbolic.svg">data/icons/hicolor/scalable/devices/input-compose-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/devices/input-keyboard-symbolic.svg">data/icons/hicolor/scalable/devices/input-keyboard-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/devices/input-mouse-symbolic.svg">data/icons/hicolor/scalable/devices/input-mouse-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/devices/input-touchpad-symbolic.svg">data/icons/hicolor/scalable/devices/input-touchpad-symbolic.svg</file>

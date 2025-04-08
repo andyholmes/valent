@@ -274,6 +274,90 @@
                 </property>
               </object>
             </child>
+            <child>
+              <object class="AdwViewStackPage">
+                <property name="name">compose</property>
+                <property name="title">Compose</property>
+                <property name="icon-name">input-compose-symbolic</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="margin-top">12</property>
+                    <property name="margin-bottom">12</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkShortcutController">
+                        <property name="scope">local</property>
+                        <property name="propagation-phase">capture</property>
+                        <child>
+                          <object class="GtkShortcut">
+                            <property name="trigger">&lt;Control&gt;Return</property>
+                            <property name="action">action(remote.compose-send)</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkFrame">
+                        <child>
+                          <object class="GtkScrolledWindow">
+                            <property name="hscrollbar-policy">never</property>
+                            <child>
+                              <object class="GtkTextView">
+                                <property name="hexpand">1</property>
+                                <property name="vexpand">1</property>
+                                <property name="bottom-margin">12</property>
+                                <property name="left-margin">12</property>
+                                <property name="right-margin">12</property>
+                                <property name="top-margin">12</property>
+                                <property name="wrap-mode">word-char</property>
+                                <property name="buffer">
+                                  <object class="GtkTextBuffer" id="compose_text">
+                                    <signal name="changed"
+                                            handler="on_compose_text_changed"
+                                            object="ValentInputRemote"
+                                            swapped="no"/>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="halign">center</property>
+                        <property name="homogeneous">1</property>
+                        <property name="orientation">horizontal</property>
+                        <property name="spacing">12</property>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">Clear</property>
+                            <property name="action-name">remote.compose-clear</property>
+                            <style>
+                              <class name="pill"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="label" translatable="yes">Send</property>
+                            <property name="action-name">remote.compose-send</property>
+                            <style>
+                              <class name="pill"/>
+                              <class name="suggested-action"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </property>
         <child type="bottom">
