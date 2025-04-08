@@ -98,7 +98,7 @@ on_key_pressed (GtkEventControllerKey *controller,
   return TRUE;
 }
 
-static gboolean
+static void
 on_key_released (GtkEventControllerKey *controller,
                  unsigned int           keyval,
                  unsigned int           keycode,
@@ -109,8 +109,6 @@ on_key_released (GtkEventControllerKey *controller,
 
   if (valent_input_remote_check_adapter (self))
     valent_input_adapter_keyboard_keysym (self->adapter, keyval, FALSE);
-
-  return TRUE;
 }
 
 /*
