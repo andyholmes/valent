@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-04-06 19:31-0700\n"
+"POT-Creation-Date: 2025-04-08 05:37+0000\n"
 "PO-Revision-Date: 2024-03-21 03:05+0100\n"
 "Last-Translator: Gianni Lerro <glerro@pm.me>\n"
 "Language-Team: Italian <>\n"
@@ -882,33 +882,54 @@ msgstr "Connesso"
 msgid "Input Remote"
 msgstr "Telecomando di ingresso"
 
-#: src/plugins/gnome/valent-input-remote.ui:204
+#: src/plugins/gnome/valent-input-remote.ui:123
+#, fuzzy
+msgid "Capture Keyboard"
+msgstr "Mouse e tastiera"
+
+#: src/plugins/gnome/valent-input-remote.ui:124
+msgid "Press left Control + Alt to release"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:135
+msgid "Touchpad"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:206
 msgid "Drag one finger to move"
 msgstr "Trascina un dito per muovere"
 
-#: src/plugins/gnome/valent-input-remote.ui:213
+#: src/plugins/gnome/valent-input-remote.ui:215
 msgid "Drag two fingers to scroll"
 msgstr "Trascina due dita per scorrere"
 
-#: src/plugins/gnome/valent-input-remote.ui:222
+#: src/plugins/gnome/valent-input-remote.ui:224
 msgid "Tap one finger to click"
 msgstr "Tocca con un dito per cliccare"
 
-#: src/plugins/gnome/valent-input-remote.ui:232
+#: src/plugins/gnome/valent-input-remote.ui:234
 msgid "Tap two fingers to right click"
 msgstr "Tocca con due dita per cliccare con il tasto destro"
 
-#: src/plugins/gnome/valent-input-remote.ui:241
+#: src/plugins/gnome/valent-input-remote.ui:243
 msgid "Tap three fingers to middle click"
 msgstr "Tocca con tre dita per cliccare con il tasto centrale"
 
-#: src/plugins/gnome/valent-input-remote.ui:250
+#: src/plugins/gnome/valent-input-remote.ui:252
 msgid "Hold one finger to grab"
 msgstr "Tieni premuto con un dito per afferrare"
 
-#: src/plugins/gnome/valent-input-remote.ui:260
+#: src/plugins/gnome/valent-input-remote.ui:262
 msgid "Tap one finger to release"
 msgstr "Tocca con un dito per rilasciare"
+
+#: src/plugins/gnome/valent-input-remote.ui:338
+msgid "Clear"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:347
+msgid "Send"
+msgstr ""
 
 #: src/plugins/gnome/valent-media-remote.c:234
 msgid "Pause"
