@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-04-06 19:31-0700\n"
+"POT-Creation-Date: 2025-04-08 05:37+0000\n"
 "PO-Revision-Date: 2022-03-28 11:21-0700\n"
 "Last-Translator: Andy Holmes <andrew.g.r.holmes@gmail.com>\n"
 "Language-Team: English <andrew.g.r.holmes@gmail.com>\n"
@@ -861,32 +861,52 @@ msgstr ""
 msgid "Input Remote"
 msgstr ""
 
-#: src/plugins/gnome/valent-input-remote.ui:204
+#: src/plugins/gnome/valent-input-remote.ui:123
+msgid "Capture Keyboard"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:124
+msgid "Press left Control + Alt to release"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:135
+msgid "Touchpad"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:206
 msgid "Drag one finger to move"
 msgstr ""
 
-#: src/plugins/gnome/valent-input-remote.ui:213
+#: src/plugins/gnome/valent-input-remote.ui:215
 msgid "Drag two fingers to scroll"
 msgstr ""
 
-#: src/plugins/gnome/valent-input-remote.ui:222
+#: src/plugins/gnome/valent-input-remote.ui:224
 msgid "Tap one finger to click"
 msgstr ""
 
-#: src/plugins/gnome/valent-input-remote.ui:232
+#: src/plugins/gnome/valent-input-remote.ui:234
 msgid "Tap two fingers to right click"
 msgstr ""
 
-#: src/plugins/gnome/valent-input-remote.ui:241
+#: src/plugins/gnome/valent-input-remote.ui:243
 msgid "Tap three fingers to middle click"
 msgstr ""
 
-#: src/plugins/gnome/valent-input-remote.ui:250
+#: src/plugins/gnome/valent-input-remote.ui:252
 msgid "Hold one finger to grab"
 msgstr ""
 
-#: src/plugins/gnome/valent-input-remote.ui:260
+#: src/plugins/gnome/valent-input-remote.ui:262
 msgid "Tap one finger to release"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:338
+msgid "Clear"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:347
+msgid "Send"
 msgstr ""
 
 #: src/plugins/gnome/valent-media-remote.c:234
