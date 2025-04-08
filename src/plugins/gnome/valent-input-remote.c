@@ -23,10 +23,13 @@ struct _ValentInputRemote
   GListModel         *adapters;
   ValentInputAdapter *adapter;
 
+  /* Keyboard State */
+  unsigned int        capture_keyboard : 1;
+  unsigned int        capture_keyboard_release : 1;
+
   /* Pointer State */
   unsigned int        claimed : 1;
   uint32_t            timestamp;
-
   double              last_x;
   double              last_y;
   double              last_v;
@@ -48,9 +51,10 @@ G_DEFINE_FINAL_TYPE (ValentInputRemote, valent_input_remote, ADW_TYPE_WINDOW)
 
 typedef enum {
   PROP_ADAPTERS = 1,
+  PROP_CAPTURE_KEYBOARD,
 } ValentInputRemoteProperty;
 
-static GParamSpec *properties[PROP_ADAPTERS + 1] = { NULL, };
+static GParamSpec *properties[PROP_CAPTURE_KEYBOARD + 1] = { NULL, };
 
 static gboolean
 valent_input_remote_filter (gpointer item,
@@ -92,6 +96,21 @@ on_key_pressed (GtkEventControllerKey *controller,
 {
   g_assert (VALENT_IS_INPUT_REMOTE (self));
 
+  if (!self->capture_keyboard)
+    return FALSE;
+
+  /* Check for <Control_L> + <Alt_L> capture release shortcut
+   */
+  if ((keyval == GDK_KEY_Alt_L && state == GDK_CONTROL_MASK) ||
+      (keyval == GDK_KEY_Control_L && state == GDK_ALT_MASK))
+    {
+      self->capture_keyboard_release = TRUE;
+    }
+  else
+    {
+      self->capture_keyboard_release = FALSE;
+    }
+
   if (valent_input_remote_check_adapter (self))
     valent_input_adapter_keyboard_keysym (self->adapter, keyval, TRUE);
 
@@ -106,6 +125,22 @@ on_key_released (GtkEventControllerKey *controller,
                  ValentInputRemote     *self)
 {
   g_assert (VALENT_IS_INPUT_REMOTE (self));
+
+  if (!self->capture_keyboard)
+    return;
+
+  /* Check for <Control_L> + <Alt_L> capture release shortcut
+   */
+  if (self->capture_keyboard_release)
+    {
+      if ((keyval == GDK_KEY_Alt_L && state == GDK_ALT_MASK) ||
+          (keyval == GDK_KEY_Control_L && state == GDK_CONTROL_MASK))
+        {
+          self->capture_keyboard_release = FALSE;
+          self->capture_keyboard = FALSE;
+          g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_CAPTURE_KEYBOARD]);
+        }
+    }
 
   if (valent_input_remote_check_adapter (self))
     valent_input_adapter_keyboard_keysym (self->adapter, keyval, FALSE);
@@ -388,6 +423,21 @@ on_selected_item (GObject           *object,
     valent_input_remote_check_adapter (self);
 }
 
+static void
+on_stack_page_changed (GObject           *object,
+                       GParamSpec        *pspec,
+                       ValentInputRemote *self)
+{
+  AdwViewStack *stack = ADW_VIEW_STACK (object);
+  const char *page_name = NULL;
+
+  g_assert (VALENT_IS_INPUT_REMOTE (self));
+
+  page_name = adw_view_stack_get_visible_child_name (stack);
+  if (self->capture_keyboard && g_strcmp0 (page_name, "touchpad") != 0)
+    g_object_set (self, "capture-keyboard", FALSE, NULL);
+}
+
 /*
  * GObject
  */
@@ -418,6 +468,10 @@ valent_input_remote_get_property (GObject    *object,
       g_value_set_object (value, self->adapters);
       break;
 
+    case PROP_CAPTURE_KEYBOARD:
+      g_value_set_boolean (value, self->capture_keyboard);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -435,6 +489,10 @@ valent_input_remote_set_property (GObject      *object,
     {
     case PROP_ADAPTERS:
       self->adapters = g_value_dup_object (value);
+      break;
+
+    case PROP_CAPTURE_KEYBOARD:
+      self->capture_keyboard = g_value_get_boolean (value);
       break;
 
     default:
@@ -464,6 +522,7 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, model);
 
   gtk_widget_class_bind_template_callback (widget_class, on_selected_item);
+  gtk_widget_class_bind_template_callback (widget_class, on_stack_page_changed);
   gtk_widget_class_bind_template_callback (widget_class, on_key_pressed);
   gtk_widget_class_bind_template_callback (widget_class, on_key_released);
   gtk_widget_class_bind_template_callback (widget_class, on_scroll);
@@ -482,7 +541,17 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_STATIC_STRINGS));
 
+  properties [PROP_CAPTURE_KEYBOARD] =
+    g_param_spec_boolean ("capture-keyboard", NULL, NULL,
+                          FALSE,
+                          (G_PARAM_READWRITE |
+                           G_PARAM_STATIC_STRINGS));
+
   g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
+
+  gtk_widget_class_install_property_action (widget_class,
+                                            "remote.capture-keyboard",
+                                            "capture-keyboard");
 }
 
 static void
