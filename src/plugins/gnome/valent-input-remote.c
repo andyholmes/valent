@@ -43,6 +43,7 @@ struct _ValentInputRemote
   GtkGesture         *touch_single;
   GtkGesture         *touch_double;
   GtkGesture         *touch_triple;
+  GtkTextBuffer      *compose_text;
   GtkFilter          *filter;
   GtkFilterListModel *model;
 };
@@ -408,6 +409,29 @@ on_triple_end (GtkGestureDrag    *gesture,
                                        FALSE);
 }
 
+/*
+ * Compose
+ */
+static void
+on_compose_text_changed (GtkTextBuffer     *buffer,
+                         ValentInputRemote *self)
+{
+  gboolean enabled = FALSE;
+
+  if (gtk_text_buffer_get_char_count (buffer) > 0)
+    enabled = valent_input_remote_check_adapter (self);
+
+  gtk_widget_action_set_enabled (GTK_WIDGET (self),
+                                 "remote.compose-send",
+                                 enabled);
+  gtk_widget_action_set_enabled (GTK_WIDGET (self),
+                                 "remote.compose-clear",
+                                 enabled);
+}
+
+/*
+ * UI Callbacks
+ */
 static void
 on_selected_item (GObject           *object,
                   GParamSpec        *pspec,
@@ -418,9 +442,10 @@ on_selected_item (GObject           *object,
   g_assert (VALENT_IS_INPUT_REMOTE (self));
 
   adapter = gtk_drop_down_get_selected_item (GTK_DROP_DOWN (object));
-
   if (g_set_object (&self->adapter, adapter))
     valent_input_remote_check_adapter (self);
+
+  on_compose_text_changed (self->compose_text, self);
 }
 
 static void
@@ -436,6 +461,53 @@ on_stack_page_changed (GObject           *object,
   page_name = adw_view_stack_get_visible_child_name (stack);
   if (self->capture_keyboard && g_strcmp0 (page_name, "touchpad") != 0)
     g_object_set (self, "capture-keyboard", FALSE, NULL);
+}
+
+/*
+ * GActions
+ */
+static void
+remote_compose_send_action (GtkWidget  *widget,
+                            const char *action_name,
+                            GVariant   *parameter)
+{
+  ValentInputRemote *self = VALENT_INPUT_REMOTE (widget);
+  g_autofree char *text = NULL;
+  const char *next;
+  gunichar codepoint;
+
+  g_assert (VALENT_IS_INPUT_REMOTE (self));
+
+  if (!valent_input_remote_check_adapter (self) ||
+      gtk_text_buffer_get_char_count (self->compose_text) == 0)
+    return;
+
+  g_object_get (self->compose_text, "text", &text, NULL);
+  g_object_set (self->compose_text, "text", "", NULL);
+
+  next = text;
+  while ((codepoint = g_utf8_get_char (next)) != 0)
+    {
+      uint32_t keysym;
+
+      keysym = gdk_unicode_to_keyval (codepoint);
+      valent_input_adapter_keyboard_keysym (self->adapter, keysym, TRUE);
+      valent_input_adapter_keyboard_keysym (self->adapter, keysym, FALSE);
+      next = g_utf8_next_char (next);
+    }
+}
+
+static void
+remote_compose_clear_action (GtkWidget  *widget,
+                             const char *action_name,
+                             GVariant   *parameter)
+{
+  ValentInputRemote *self = VALENT_INPUT_REMOTE (widget);
+
+  g_assert (VALENT_IS_INPUT_REMOTE (self));
+
+  if (gtk_text_buffer_get_char_count (self->compose_text) > 0)
+    g_object_set (self->compose_text, "text", "", NULL);
 }
 
 /*
@@ -518,6 +590,7 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, touch_single);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, touch_double);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, touch_triple);
+  gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, compose_text);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, filter);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, model);
 
@@ -533,6 +606,7 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_double_end);
   gtk_widget_class_bind_template_callback (widget_class, on_triple_begin);
   gtk_widget_class_bind_template_callback (widget_class, on_triple_end);
+  gtk_widget_class_bind_template_callback (widget_class, on_compose_text_changed);
 
   properties [PROP_ADAPTERS] =
     g_param_spec_object ("adapters", NULL, NULL,
@@ -549,6 +623,8 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
 
   g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 
+  gtk_widget_class_install_action (widget_class, "remote.compose-clear", NULL, remote_compose_clear_action);
+  gtk_widget_class_install_action (widget_class, "remote.compose-send", NULL, remote_compose_send_action);
   gtk_widget_class_install_property_action (widget_class,
                                             "remote.capture-keyboard",
                                             "capture-keyboard");
