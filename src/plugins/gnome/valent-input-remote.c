@@ -394,14 +394,6 @@ on_selected_item (GObject           *object,
  * GObject
  */
 static void
-valent_input_remote_constructed (GObject *object)
-{
-  /* ValentInputRemote *self = VALENT_INPUT_REMOTE (object); */
-
-  G_OBJECT_CLASS (valent_input_remote_parent_class)->constructed (object);
-}
-
-static void
 valent_input_remote_dispose (GObject *object)
 {
   ValentInputRemote *self = VALENT_INPUT_REMOTE (object);
@@ -458,7 +450,6 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  object_class->constructed = valent_input_remote_constructed;
   object_class->dispose = valent_input_remote_dispose;
   object_class->get_property = valent_input_remote_get_property;
   object_class->set_property = valent_input_remote_set_property;
