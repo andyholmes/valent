@@ -34,7 +34,6 @@ struct _ValentInputRemote
 
   /* template */
   GtkDropDown        *input_adapter;
-  GtkWidget          *editor;
   GtkEventController *keyboard;
   GtkWidget          *touchpad;
   GtkGesture         *pointer_scroll;
@@ -466,7 +465,6 @@ valent_input_remote_class_init (ValentInputRemoteClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-input-remote.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, input_adapter);
-  gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, editor);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, keyboard);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, pointer_scroll);
   gtk_widget_class_bind_template_child (widget_class, ValentInputRemote, touchpad);
