@@ -670,12 +670,10 @@ valent_conversation_page_send_message_cb (ValentMessagesAdapter *adapter,
       g_clear_object (&self->attachments);
       gtk_editable_set_text (GTK_EDITABLE (self->message_entry), "");
       gtk_widget_remove_css_class (self->message_entry, "error");
-      gtk_widget_set_sensitive (self->message_entry, TRUE);
     }
   else if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
     {
       gtk_widget_add_css_class (self->message_entry, "error");
-      gtk_widget_set_sensitive (self->message_entry, TRUE);
     }
 }
 
@@ -726,7 +724,6 @@ valent_conversation_page_send_message (ValentConversationPage *self)
                                         NULL,
                                         (GAsyncReadyCallback)valent_conversation_page_send_message_cb,
                                         g_object_ref (self));
-  gtk_widget_set_sensitive (self->message_entry, FALSE);
 }
 
 /*
