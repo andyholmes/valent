@@ -42,6 +42,7 @@
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-help-symbolic.svg">data/icons/hicolor/scalable/ui/valent-help-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-media-albumart-symbolic.svg">data/icons/hicolor/scalable/ui/valent-media-albumart-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-media-player-symbolic.svg">data/icons/hicolor/scalable/ui/valent-media-player-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-mixer-controls-symbolic.svg">data/icons/hicolor/scalable/ui/valent-mixer-controls-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-other-symbolic.svg">data/icons/hicolor/scalable/ui/valent-other-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-plugins-symbolic.svg">data/icons/hicolor/scalable/ui/valent-plugins-symbolic.svg</file>
     <file preprocess="xml-stripblanks" alias="scalable/actions/valent-network-symbolic.svg">data/icons/hicolor/scalable/ui/valent-network-symbolic.svg</file>
