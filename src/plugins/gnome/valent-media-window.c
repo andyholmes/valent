@@ -18,10 +18,14 @@
 
 struct _ValentMediaWindow
 {
-  AdwWindow   parent_instance;
+  AdwWindow    parent_instance;
 
-  GListModel *mixers;
-  GListModel *players;
+  GListModel  *mixers;
+  GListModel  *players;
+
+  /* template */
+  GtkDropDown *media_player;
+  GtkDropDown *mixer_adapter;
 };
 
 G_DEFINE_FINAL_TYPE (ValentMediaWindow, valent_media_window, ADW_TYPE_WINDOW)
@@ -32,6 +36,50 @@ typedef enum {
 } ValentMediaWindowProperty;
 
 static GParamSpec *properties[PROP_PLAYERS + 1] = { NULL, };
+
+static void
+on_player_selected (GtkDropDown       *dropdown,
+                    GParamSpec        *pspec,
+                    ValentMediaWindow *self)
+{
+  ValentMediaPlayer *player = NULL;
+  ValentResource *player_source = NULL;
+  unsigned int n_items = 0;
+
+  g_assert (VALENT_IS_MEDIA_WINDOW (self));
+
+  player = gtk_drop_down_get_selected_item (self->media_player);
+  if (player == NULL)
+    return;
+
+  player_source = valent_resource_get_source (VALENT_RESOURCE (player));
+  if (player_source == NULL)
+    return;
+
+  n_items = g_list_model_get_n_items (self->mixers);
+  for (unsigned int i = 0; i < n_items; i++)
+    {
+      g_autoptr (ValentMixerAdapter) item = NULL;
+      ValentResource *item_source = NULL;
+
+      item = g_list_model_get_item (self->mixers, i);
+      item_source = valent_resource_get_source (VALENT_RESOURCE (item));
+      if (item_source == player_source)
+        {
+          gtk_drop_down_set_selected (self->mixer_adapter, i);
+          break;
+        }
+
+      // TODO: this should only be reached for local players, whose direct
+      //       source doesn't match the player. The hypothetical solution is
+      //       `valent_object_get_ancestor (object, VALENT_TYPE_DATA_SOURCE)`
+      if (!VALENT_IS_DEVICE (player_source) && !VALENT_IS_DEVICE (item_source))
+        {
+          gtk_drop_down_set_selected (self->mixer_adapter, i);
+          break;
+        }
+    }
+}
 
 /*
  * GObject
@@ -103,8 +151,6 @@ valent_media_window_class_init (ValentMediaWindowClass *klass)
   object_class->get_property = valent_media_window_get_property;
   object_class->set_property = valent_media_window_set_property;
 
-  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-media-window.ui");
-
   properties [PROP_MIXERS] =
     g_param_spec_object ("mixers", NULL, NULL,
                          G_TYPE_LIST_MODEL,
@@ -120,6 +166,11 @@ valent_media_window_class_init (ValentMediaWindowClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
+
+  gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-media-window.ui");
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaWindow, media_player);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaWindow, mixer_adapter);
+  gtk_widget_class_bind_template_callback (widget_class, on_player_selected);
 }
 
 static void
