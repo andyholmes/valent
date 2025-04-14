@@ -163,6 +163,7 @@ list_names_cb (GDBusConnection *connection,
                                       g_async_initable_new_async_cb,
                                       self,
                                       "bus-name", name,
+                                      "source",   self,
                                       NULL);
         }
     }
