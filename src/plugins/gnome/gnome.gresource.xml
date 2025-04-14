@@ -39,118 +39,118 @@
   <gresource prefix="/ca/andyholmes/Valent/icons">
     <file preprocess="xml-stripblanks" alias="scalable/apps/valent-gnome-plugin-symbolic.svg">data/valent-gnome-plugin-symbolic.svg</file>
 
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-help-symbolic.svg">data/icons/hicolor/scalable/ui/valent-help-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-media-albumart-symbolic.svg">data/icons/hicolor/scalable/ui/valent-media-albumart-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-media-player-symbolic.svg">data/icons/hicolor/scalable/ui/valent-media-player-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-mixer-controls-symbolic.svg">data/icons/hicolor/scalable/ui/valent-mixer-controls-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-other-symbolic.svg">data/icons/hicolor/scalable/ui/valent-other-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-plugins-symbolic.svg">data/icons/hicolor/scalable/ui/valent-plugins-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-network-symbolic.svg">data/icons/hicolor/scalable/ui/valent-network-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-settings-symbolic.svg">data/icons/hicolor/scalable/ui/valent-settings-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-status-symbolic.svg">data/icons/hicolor/scalable/ui/valent-status-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/valent-sync-symbolic.svg">data/icons/hicolor/scalable/ui/valent-sync-symbolic.svg</file>
+    <!-- General UI -->
+    <file preprocess="xml-stripblanks">scalable/categories/valent-help-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/categories/valent-plugins-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/categories/valent-network-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/categories/valent-settings-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/categories/valent-status-symbolic.svg</file>
+    <file preprocess="xml-stripblanks" >scalable/categories/valent-sync-symbolic.svg</file>
 
     <!-- Battery Icons -->
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-0-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-0-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-0-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-0-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-10-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-10-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-10-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-10-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-20-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-20-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-20-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-20-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-30-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-30-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-30-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-30-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-40-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-40-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-40-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-40-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-50-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-50-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-50-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-50-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-60-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-60-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-60-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-60-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-70-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-70-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-70-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-70-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-80-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-80-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-80-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-80-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-90-charging-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-90-charging-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-90-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-90-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-100-charged-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-100-charged-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-level-100-symbolic.svg">data/icons/hicolor/scalable/status/battery-level-100-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/battery-missing-symbolic.svg">data/icons/hicolor/scalable/status/battery-missing-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-0-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-0-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-10-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-10-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-20-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-20-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-30-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-30-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-40-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-40-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-50-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-50-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-60-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-60-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-70-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-70-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-80-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-80-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-90-charging-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-90-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-100-charged-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-level-100-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/battery-missing-symbolic.svg</file>
 
     <!-- Connectivity Icons -->
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-2g-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-2g-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-3g-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-3g-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-4g-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-4g-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-5g-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-5g-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-edge-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-edge-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-gprs-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-gprs-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-hspa-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-hspa-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-offline-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-offline-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-excellent-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-signal-excellent-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-good-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-signal-good-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-none-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-signal-none-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-ok-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-signal-ok-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/network-cellular-signal-weak-symbolic.svg">data/icons/hicolor/scalable/status/network-cellular-signal-weak-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-2g-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-3g-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-4g-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-5g-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-edge-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-gprs-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-hspa-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-offline-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-signal-excellent-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-signal-good-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-signal-none-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-signal-ok-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/network-cellular-signal-weak-symbolic.svg</file>
 
     <!-- Media Icons -->
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playback-pause-symbolic.svg">data/icons/hicolor/scalable/actions/media-playback-pause-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playback-start-symbolic.svg">data/icons/hicolor/scalable/actions/media-playback-start-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playback-stop-symbolic.svg">data/icons/hicolor/scalable/actions/media-playback-stop-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playlist-consecutive-symbolic.svg">data/icons/hicolor/scalable/actions/media-playlist-consecutive-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playlist-repeat-song-symbolic.svg">data/icons/hicolor/scalable/actions/media-playlist-repeat-song-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-playlist-repeat-symbolic.svg">data/icons/hicolor/scalable/actions/media-playlist-repeat-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-10-symbolic-rtl.svg">data/icons/hicolor/scalable/actions/media-seek-backward-10-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-10-symbolic.svg">data/icons/hicolor/scalable/actions/media-seek-backward-10-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-30-symbolic-rtl.svg">data/icons/hicolor/scalable/actions/media-seek-backward-30-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-30-symbolic.svg">data/icons/hicolor/scalable/actions/media-seek-backward-30-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-symbolic-rtl.svg">data/icons/hicolor/scalable/actions/media-seek-backward-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-backward-symbolic.svg">data/icons/hicolor/scalable/actions/media-seek-backward-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-10-symbolic-rtl.svg">data/icons/hicolor/scalable/actions/media-seek-forward-10-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-10-symbolic.svg">data/icons/hicolor/scalable/actions/media-seek-forward-10-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-30-symbolic-rtl.svg">data/icons/hicolor/scalable/actions/media-seek-forward-30-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-30-symbolic.svg">data/icons/hicolor/scalable/actions/media-seek-forward-30-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-symbolic-rtl.svg">data/icons/hicolor/scalable/actions/media-seek-forward-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-seek-forward-symbolic.svg">data/icons/hicolor/scalable/actions/media-seek-forward-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-backward-symbolic-rtl.svg">data/icons/hicolor/scalable/actions/media-skip-backward-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-backward-symbolic.svg">data/icons/hicolor/scalable/actions/media-skip-backward-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-forward-symbolic-rtl.svg">data/icons/hicolor/scalable/actions/media-skip-forward-symbolic-rtl.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/media-skip-forward-symbolic.svg">data/icons/hicolor/scalable/actions/media-skip-forward-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-playback-pause-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-playback-start-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-playback-stop-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-playlist-consecutive-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-playlist-repeat-song-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-playlist-repeat-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-backward-10-symbolic-rtl.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-backward-10-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-backward-30-symbolic-rtl.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-backward-30-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-backward-symbolic-rtl.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-backward-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-forward-10-symbolic-rtl.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-forward-10-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-forward-30-symbolic-rtl.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-forward-30-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-forward-symbolic-rtl.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-seek-forward-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-skip-backward-symbolic-rtl.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-skip-backward-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-skip-forward-symbolic-rtl.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/media-skip-forward-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/valent-media-player-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/valent-mixer-controls-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/valent-media-albumart-symbolic.svg</file>
 
     <!-- Messages Icons -->
-    <file preprocess="xml-stripblanks" alias="scalable/actions/message-attachment-symbolic.svg">data/icons/hicolor/scalable/actions/message-attachment-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/message-send-symbolic.svg">data/icons/hicolor/scalable/actions/message-send-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/message-empty-symbolic.svg">data/icons/hicolor/scalable/status/message-empty-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/status/message-group-symbolic.svg">data/icons/hicolor/scalable/status/message-group-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/message-attachment-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/message-send-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/message-empty-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/status/message-group-symbolic.svg</file>
 
     <!-- Presentation Remote -->
-    <file preprocess="xml-stripblanks" alias="scalable/actions/presenter-open-symbolic.svg">data/icons/hicolor/scalable/actions/presenter-open-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/presenter-pointer-symbolic.svg">data/icons/hicolor/scalable/actions/presenter-pointer-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/presenter-start-symbolic.svg">data/icons/hicolor/scalable/actions/presenter-start-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/presenter-stop-symbolic.svg">data/icons/hicolor/scalable/actions/presenter-stop-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/presenter-open-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/presenter-pointer-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/presenter-start-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/presenter-stop-symbolic.svg</file>
 
     <!-- Sharing -->
-    <file preprocess="xml-stripblanks" alias="scalable/actions/document-send-symbolic.svg">data/icons/hicolor/scalable/actions/document-send-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/share-file-symbolic.svg">data/icons/hicolor/scalable/actions/share-file-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/share-link-symbolic.svg">data/icons/hicolor/scalable/actions/share-link-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/actions/share-symbolic.svg">data/icons/hicolor/scalable/actions/share-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/document-send-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/share-file-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/share-link-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/actions/share-symbolic.svg</file>
 
     <!-- Device Icons -->
-    <file preprocess="xml-stripblanks" alias="scalable/devices/computer-symbolic.svg">data/icons/hicolor/scalable/devices/computer-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/laptop-symbolic.svg">data/icons/hicolor/scalable/devices/laptop-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/phone-symbolic.svg">data/icons/hicolor/scalable/devices/phone-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/tablet-symbolic.svg">data/icons/hicolor/scalable/devices/tablet-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/tv-symbolic.svg">data/icons/hicolor/scalable/devices/tv-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/computer-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/laptop-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/phone-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/tablet-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/tv-symbolic.svg</file>
 
-    <file preprocess="xml-stripblanks" alias="scalable/devices/input-compose-symbolic.svg">data/icons/hicolor/scalable/devices/input-compose-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/input-keyboard-symbolic.svg">data/icons/hicolor/scalable/devices/input-keyboard-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/input-mouse-symbolic.svg">data/icons/hicolor/scalable/devices/input-mouse-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/input-touchpad-symbolic.svg">data/icons/hicolor/scalable/devices/input-touchpad-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/input-compose-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/input-keyboard-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/input-mouse-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/input-touchpad-symbolic.svg</file>
 
     <!-- Phonelink Icons -->
-    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-delete-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-delete-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-lock-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-lock-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-off-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-off-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-ring-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-ring-symbolic.svg</file>
-    <file preprocess="xml-stripblanks" alias="scalable/devices/phonelink-setup-symbolic.svg">data/icons/hicolor/scalable/devices/phonelink-setup-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/phonelink-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/phonelink-delete-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/phonelink-lock-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/phonelink-off-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/phonelink-ring-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">scalable/devices/phonelink-setup-symbolic.svg</file>
   </gresource>
 </gresources>
 

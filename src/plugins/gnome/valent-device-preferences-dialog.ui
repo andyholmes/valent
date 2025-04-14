@@ -30,7 +30,7 @@
       <object class="AdwPreferencesPage" id="other_page">
         <property name="name">other</property>
         <property name="title" translatable="yes">Other</property>
-        <property name="icon-name">valent-other-symbolic</property>
+        <property name="icon-name">valent-settings-symbolic</property>
         <property name="vexpand">1</property>
       </object>
     </child>

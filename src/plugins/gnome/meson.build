@@ -74,6 +74,7 @@ plugin_gnome_resources = gnome.compile_resources('gnome-resources',
                                                  'gnome.gresource.xml',
         c_name: 'gnome',
   dependencies: [plugin_gnome_info],
+    source_dir: ['data' / 'icons' ],
 )
 plugin_gnome_sources += plugin_gnome_resources
 
