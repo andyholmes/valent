@@ -53,7 +53,7 @@
                         <property name="child">
                           <object class="GtkPicture" id="media_art_icon">
                             <property name="accessible-role">presentation</property>
-                            <property name="file">resource:///ca/andyholmes/Valent/icons/scalable/actions/valent-media-albumart-symbolic.svg</property>
+                            <property name="file">resource:///ca/andyholmes/Valent/icons/scalable/status/valent-media-albumart-symbolic.svg</property>
                             <property name="opacity">0.25</property>
                             <style>
                               <class name="fallback"/>
