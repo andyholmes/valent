@@ -141,6 +141,10 @@
                          ]]></property>
                           </object>
                         </property>
+                        <signal name="notify::selected-item"
+                                handler="on_player_selected"
+                                object="ValentMediaWindow"
+                                swapped="no"/>
                       </object>
                     </child>
                     <style>
