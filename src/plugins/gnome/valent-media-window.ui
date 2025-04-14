@@ -28,9 +28,8 @@
             <property name="child">
               <object class="AdwToolbarView">
                 <child type="top">
-                  <object class="GtkHeaderBar">
-                    <property name="show-title-buttons">0</property>
-                    <child type="title">
+                  <object class="AdwHeaderBar">
+                    <property name="title-widget">
                       <object class="GtkDropDown" id="mixer_adapter">
                         <binding name="model">
                           <lookup name="mixers">ValentMediaWindow</lookup>
@@ -63,7 +62,7 @@
                           </object>
                         </property>
                       </object>
-                    </child>
+                    </property>
                     <style>
                       <class name="flat"/>
                     </style>
@@ -101,6 +100,7 @@
                     </child>
                     <child type="title">
                       <object class="GtkDropDown" id="media_player">
+                        <property name="hexpand">1</property>
                         <property name="model">
                           <object class="GtkFlattenListModel">
                             <binding name="model">
@@ -108,7 +108,6 @@
                             </binding>
                           </object>
                         </property>
-                        <property name="hexpand">1</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
                             <property name="bytes"><![CDATA[
@@ -141,6 +140,7 @@
                          ]]></property>
                           </object>
                         </property>
+                        <property name="visible">0</property>
                         <signal name="notify::selected-item"
                                 handler="on_player_selected"
                                 object="ValentMediaWindow"
@@ -153,10 +153,31 @@
                   </object>
                 </child>
                 <property name="content">
-                  <object class="ValentMediaRemote">
-                    <binding name="player">
-                      <lookup name="selected-item">media_player</lookup>
-                    </binding>
+                  <object class="GtkStack" id="media_stack">
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">empty-state</property>
+                        <property name="child">
+                          <object class="AdwStatusPage">
+                            <property name="icon-name">valent-media-player-symbolic</property>
+                            <property name="title" translatable="yes">Control Media</property>
+                            <property name="description" translatable="yes">Open a media player on a connected device</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">player</property>
+                        <property name="child">
+                          <object class="ValentMediaRemote">
+                            <binding name="player">
+                              <lookup name="selected-item">media_player</lookup>
+                            </binding>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </property>
               </object>

@@ -25,6 +25,7 @@ struct _ValentMediaWindow
 
   /* template */
   GtkDropDown *media_player;
+  GtkStack    *media_stack;
   GtkDropDown *mixer_adapter;
 };
 
@@ -50,7 +51,11 @@ on_player_selected (GtkDropDown       *dropdown,
 
   player = gtk_drop_down_get_selected_item (self->media_player);
   if (player == NULL)
-    return;
+    {
+      gtk_widget_set_visible (GTK_WIDGET (self->media_player), FALSE);
+      gtk_stack_set_visible_child_name (self->media_stack, "empty-state");
+      return;
+    }
 
   player_source = valent_resource_get_source (VALENT_RESOURCE (player));
   if (player_source == NULL)
@@ -79,6 +84,9 @@ on_player_selected (GtkDropDown       *dropdown,
           break;
         }
     }
+
+  gtk_widget_set_visible (GTK_WIDGET (self->media_player), TRUE);
+  gtk_stack_set_visible_child_name (self->media_stack, "player");
 }
 
 /*
@@ -169,6 +177,7 @@ valent_media_window_class_init (ValentMediaWindowClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/plugins/gnome/valent-media-window.ui");
   gtk_widget_class_bind_template_child (widget_class, ValentMediaWindow, media_player);
+  gtk_widget_class_bind_template_child (widget_class, ValentMediaWindow, media_stack);
   gtk_widget_class_bind_template_child (widget_class, ValentMediaWindow, mixer_adapter);
   gtk_widget_class_bind_template_callback (widget_class, on_player_selected);
 }
