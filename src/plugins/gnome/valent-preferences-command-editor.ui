@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentPreferencesCommandEditor" parent="AdwDialog">
+    <property name="title" translatable="yes">Edit Command</property>
+    <property name="follows-content-size">1</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="show-start-title-buttons">0</property>
+            <property name="show-end-title-buttons">0</property>
+            <child type="start">
+              <object class="GtkButton">
+                <property name="action-name">window.close</property>
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use-underline">1</property>
+             </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton">
+                <property name="action-name">editor.save</property>
+                <property name="label" translatable="yes">_Save</property>
+                <property name="use-underline">1</property>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+             </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwEntryRow" id="name_entry">
+                    <property name="title" translatable="yes">Name</property>
+                    <signal name="changed"
+                            handler="on_entry_changed"
+                            object="ValentPreferencesCommandEditor"
+                            swapped="no"/>
+                    <signal name="entry-activated"
+                            handler="on_entry_activated"
+                            object="ValentPreferencesCommandEditor"
+                            swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwEntryRow" id="argv_entry">
+                    <property name="title" translatable="yes">Command Line</property>
+                    <signal name="changed"
+                            handler="on_entry_changed"
+                            object="ValentPreferencesCommandEditor"
+                            swapped="no"/>
+                    <signal name="entry-activated"
+                            handler="on_entry_activated"
+                            object="ValentPreferencesCommandEditor"
+                            swapped="no"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+        <child type="bottom">
+          <object class="GtkButton" id="remove_button">
+            <property name="action-name">editor.remove</property>
+            <property name="label" translatable="yes">Remove</property>
+            <property name="halign">center</property>
+            <property name="margin-bottom">18</property>
+            <property name="visible"
+                      bind-source="remove_button"
+                      bind-property="sensitive"
+                      bind-flags="sync-create"/>
+            <style>
+              <class name="destructive-action"/>
+              <class name="pill"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
+

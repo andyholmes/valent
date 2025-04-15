@@ -5,33 +5,31 @@
 
 <interface domain="valent">
   <template class="ValentDevicePreferencesDialog" parent="AdwPreferencesDialog">
-    <!-- Status Category -->
     <child>
-      <object class="AdwPreferencesPage" id="status_page">
-        <property name="name">status</property>
-        <property name="title" translatable="yes">Status</property>
-        <property name="icon-name">valent-status-symbolic</property>
-        <property name="vexpand">1</property>
+      <object class="ValentPreferencesStatusPage" id="status_page">
+        <binding name="context">
+          <lookup name="context" type="ValentDevice">
+            <lookup name="device">ValentDevicePreferencesDialog</lookup>
+          </lookup>
+        </binding>
       </object>
     </child>
-
-    <!-- Sync Category -->
     <child>
-      <object class="AdwPreferencesPage" id="sync_page">
-        <property name="name">sync</property>
-        <property name="title" translatable="yes">Sync</property>
-        <property name="icon-name">valent-sync-symbolic</property>
-        <property name="vexpand">1</property>
+      <object class="ValentPreferencesSyncPage" id="sync_page">
+        <binding name="context">
+          <lookup name="context" type="ValentDevice">
+            <lookup name="device">ValentDevicePreferencesDialog</lookup>
+          </lookup>
+        </binding>
       </object>
     </child>
-
-    <!-- Other Category -->
     <child>
-      <object class="AdwPreferencesPage" id="other_page">
-        <property name="name">other</property>
-        <property name="title" translatable="yes">Other</property>
-        <property name="icon-name">valent-settings-symbolic</property>
-        <property name="vexpand">1</property>
+      <object class="ValentPreferencesOtherPage" id="other_page">
+        <binding name="context">
+          <lookup name="context" type="ValentDevice">
+            <lookup name="device">ValentDevicePreferencesDialog</lookup>
+          </lookup>
+        </binding>
       </object>
     </child>
 

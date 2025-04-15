@@ -6,16 +6,7 @@
 #include <libvalent-test.h>
 
 #include "valent-device-preferences-dialog.h"
-#include "valent-device-preferences-battery.h"
-#include "valent-device-preferences-clipboard.h"
-#include "valent-device-preferences-commands.h"
-#include "valent-device-preferences-commands-editor.h"
-#include "valent-device-preferences-connectivity.h"
-#include "valent-device-preferences-contacts.h"
-#include "valent-device-preferences-notification.h"
-#include "valent-device-preferences-sftp.h"
-#include "valent-device-preferences-share.h"
-#include "valent-device-preferences-telephony.h"
+#include "valent-preferences-command-editor.h"
 
 static void
 test_device_preferences_dialog (ValentTestFixture *fixture,
@@ -51,133 +42,46 @@ test_device_preferences_dialog (ValentTestFixture *fixture,
   valent_test_await_nullptr (&dialog);
 }
 
-typedef struct
-{
-  const char *module;
-  GType gtype;
-} PreferencesTest;
-
 static void
-test_device_preferences_group_init (ValentTestFixture *fixture,
-                                    gconstpointer      user_data)
+test_preferences_command_editor (void)
 {
-  PreferencesTest *test = (PreferencesTest *)user_data;
-  g_autofree char *path = g_strdup_printf ("plugin-%s.json", test->module);
+  ValentPreferencesCommandEditor *editor = NULL;
+  g_autoptr (GVariant) command = NULL;
+  g_autoptr (GVariant) command_out = NULL;
+  g_autofree char *uuid = NULL;
+  g_autofree char *uuid_out = NULL;
 
-  valent_test_fixture_init (fixture, path);
-}
+  uuid = g_uuid_string_random ();
+  command = g_variant_new_parsed ("{'name': <'%s'>, 'command': <'%s'>}",
+                                  "Test Command", "echo \"foobar\"");
+  g_variant_ref_sink (command);
 
-static void
-test_device_preferences_group (ValentTestFixture *fixture,
-                               gconstpointer      user_data)
-{
-  PreferencesTest *test = (PreferencesTest *)user_data;
-  PeasEngine *engine;
-  PeasPluginInfo *info;
-  g_autoptr (PeasPluginInfo) info_out = NULL;
-  ValentContext *context;
-  g_autoptr (ValentContext) plugin_context = NULL;
-  g_autoptr (ValentContext) plugin_context_out = NULL;
-  GtkWidget *prefs;
-
-  VALENT_TEST_CHECK ("Plugin can be constructed");
-  engine = valent_get_plugin_engine ();
-  info = peas_engine_get_plugin_info (engine, test->module);
-  context = valent_device_get_context (fixture->device);
-  plugin_context = valent_context_get_plugin_context (context, info);
-  prefs = g_object_new (test->gtype,
-                        "context",     plugin_context,
-                        "plugin-info", info,
-                        NULL);
-  g_object_ref_sink (prefs);
+  VALENT_TEST_CHECK ("Dialog can be constructed");
+  editor = g_object_new (VALENT_TYPE_PREFERENCES_COMMAND_EDITOR,
+                         "uuid",    uuid,
+                         "command", command,
+                         NULL);
+  adw_dialog_present (ADW_DIALOG (editor), NULL);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
-  g_object_get (prefs,
-                "context",     &plugin_context_out,
-                "plugin-info", &info_out,
-                NULL);
-  g_assert_true (plugin_context == plugin_context_out);
-  g_assert_true (info == info_out);
-
-  g_object_unref (prefs);
-}
-
-static void
-on_command_changed (ValentRuncommandEditor  *editor,
-                    GParamSpec              *pspec,
-                    GVariant               **out)
-{
-  if (out)
-    *out = valent_runcommand_editor_get_command (editor);
-}
-
-static void
-test_device_preferences_commands_editor (void)
-{
-  g_autoptr (ValentRuncommandEditor) editor = NULL;
-  g_autoptr (GVariant) command = NULL;
-  g_autoptr (GVariant) test_command = NULL;
-  g_autofree char *uuid = NULL;
-  GVariant *out = NULL;
-
-#if 0
-  VALENT_TEST_CHECK ("Window can be constructed");
-  dialog = g_object_new (VALENT_TYPE_RUNCOMMAND_EDITOR, NULL);
-  gtk_window_present (GTK_WINDOW (dialog));
-
-  VALENT_TEST_CHECK ("Window properties start empty");
-  g_assert_cmpstr (valent_runcommand_editor_get_command (dialog), ==, "");
-  g_assert_cmpstr (valent_runcommand_editor_get_name (dialog), ==, "");
-  g_assert_cmpstr (valent_runcommand_editor_get_uuid (dialog), ==, "");
-
-  VALENT_TEST_CHECK ("Window properties can be set");
-  valent_runcommand_editor_set_command (dialog, "command");
-  valent_runcommand_editor_set_name (dialog, "name");
-  valent_runcommand_editor_set_uuid (dialog, "uuid");
-#endif
-
-  test_command = g_variant_new_parsed ("{'name': <'%s'>, 'command': <'%s'>}",
-                                       "Test Command", "echo \"foobar\"");
-  g_variant_ref_sink (test_command);
-
-  editor = g_object_new (VALENT_TYPE_RUNCOMMAND_EDITOR,
-                         "uuid",    "test",
-                         "command", test_command,
-                         NULL);
-  g_signal_connect (editor,
-                    "notify::command",
-                    G_CALLBACK (on_command_changed),
-                    &out);
-  gtk_window_present (GTK_WINDOW (editor));
-
-  /* Properties */
   g_object_get (editor,
-                "uuid",    &uuid,
-                "command", &command,
+                "uuid",    &uuid_out,
+                "command", &command_out,
                 NULL);
+  g_assert_true (command_out == command);
+  g_assert_cmpstr (uuid_out, ==, uuid);
 
-  g_assert_true (command == test_command);
-  g_assert_cmpstr (uuid, ==, "test");
-  g_clear_pointer (&command, g_variant_unref);
-  g_clear_pointer (&uuid, g_free);
-
-  VALENT_TEST_CHECK ("Edit operation can be cancelled");
-  gtk_widget_activate_action (GTK_WIDGET (editor), "editor.cancel", NULL);
-  g_assert_true (out == test_command);
-  g_assert_true (valent_runcommand_editor_get_command (editor) == test_command);
-  g_assert_cmpstr (valent_runcommand_editor_get_uuid (editor), ==, "test");
-
-  /* Save */
+  VALENT_TEST_CHECK ("Save action functions correctly");
   gtk_widget_activate_action (GTK_WIDGET (editor), "editor.save", NULL);
-  g_assert_true (out != test_command);
-  g_assert_true (valent_runcommand_editor_get_command (editor) != test_command);
-  g_assert_cmpstr (valent_runcommand_editor_get_uuid (editor), ==, "test");
+  g_assert_true (valent_preferences_command_editor_get_command (editor) != command);
+  g_assert_cmpstr (valent_preferences_command_editor_get_uuid (editor), ==, uuid);
 
-  /* Remove */
+  VALENT_TEST_CHECK ("Remove action functions correctly");
   gtk_widget_activate_action (GTK_WIDGET (editor), "editor.remove", NULL);
-  g_assert_true (out == NULL);
-  g_assert_null (valent_runcommand_editor_get_command (editor));
-  g_assert_cmpstr (valent_runcommand_editor_get_uuid (editor), ==, "test");
+  g_assert_null (valent_preferences_command_editor_get_command (editor));
+  g_assert_cmpstr (valent_preferences_command_editor_get_uuid (editor), ==, uuid);
+
+  adw_dialog_force_close (ADW_DIALOG (editor));
 }
 
 int
@@ -185,44 +89,6 @@ main (int   argc,
       char *argv[])
 {
   const char *path = "plugin-mock.json";
-  const PreferencesTest plugin_tests[] = {
-    {
-      .module = "battery",
-      .gtype = VALENT_TYPE_BATTERY_PREFERENCES,
-    },
-    {
-      .module = "clipboard",
-      .gtype = VALENT_TYPE_CLIPBOARD_PREFERENCES,
-    },
-    {
-      .module = "runcommand",
-      .gtype = VALENT_TYPE_RUNCOMMAND_PREFERENCES,
-    },
-    {
-      .module = "connectivity_report",
-      .gtype = VALENT_TYPE_CONNECTIVITY_REPORT_PREFERENCES,
-    },
-    {
-      .module = "contacts",
-      .gtype = VALENT_TYPE_CONTACTS_PREFERENCES,
-    },
-    {
-      .module = "notification",
-      .gtype = VALENT_TYPE_NOTIFICATION_PREFERENCES,
-    },
-    {
-      .module = "sftp",
-      .gtype = VALENT_TYPE_SFTP_PREFERENCES,
-    },
-    {
-      .module = "share",
-      .gtype = VALENT_TYPE_SHARE_PREFERENCES,
-    },
-    {
-      .module = "telephony",
-      .gtype = VALENT_TYPE_TELEPHONY_PREFERENCES,
-    },
-  };
 
   valent_test_ui_init (&argc, &argv, NULL);
 
@@ -232,21 +98,8 @@ main (int   argc,
               test_device_preferences_dialog,
               valent_test_fixture_clear);
 
-  for (size_t i = 0; i < G_N_ELEMENTS (plugin_tests); i++)
-    {
-      g_autofree char *test_path = NULL;
-
-      test_path = g_strdup_printf ("/plugins/gnome/device-preferences/%s",
-                                   plugin_tests[i].module);
-      g_test_add (test_path,
-                  ValentTestFixture, &plugin_tests[i],
-                  test_device_preferences_group_init,
-                  test_device_preferences_group,
-                  valent_test_fixture_clear);
-    }
-
-  g_test_add_func ("/plugins/gnome/device-preferences/commands-editor",
-                   test_device_preferences_commands_editor);
+  g_test_add_func ("/plugins/gnome/preferences-command-editor",
+                   test_preferences_command_editor);
 
   return g_test_run ();
 }
