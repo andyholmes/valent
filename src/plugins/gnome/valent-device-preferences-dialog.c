@@ -357,7 +357,6 @@ valent_device_preferences_dialog_class_init (ValentDevicePreferencesDialogClass 
                          VALENT_TYPE_DEVICE,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
-                          G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
   g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
