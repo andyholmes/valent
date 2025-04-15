@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-04-08 05:37+0000\n"
+"POT-Creation-Date: 2025-04-15 15:14-0700\n"
 "PO-Revision-Date: 2023-11-09 18:24+0100\n"
 "Last-Translator: HDavo <h.davoc24@gmail.com>\n"
 "Language-Team: Spanish - Spain <>\n"
@@ -41,7 +41,7 @@ msgid "Whether the device is paired"
 msgstr "Si el dispositivo está emparejado"
 
 #: data/gsettings/ca.andyholmes.Valent.gschema.xml:10
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:39
+#: src/plugins/gnome/valent-preferences-command-editor.ui:41
 msgid "Name"
 msgstr "Nombre"
 
@@ -212,6 +212,7 @@ msgstr ""
 #: src/plugins/battery/battery.plugin.desktop.in:7
 #: src/plugins/gnome/valent-device-page.ui:217
 #: src/plugins/gnome/valent-device-row.ui:124
+#: src/plugins/gnome/valent-preferences-status-page.ui:15
 msgid "Battery"
 msgstr "Batería"
 
@@ -257,6 +258,7 @@ msgstr "Conectar dispositivos a través de LAN"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 #: src/plugins/gnome/valent-preferences-dialog.c:600
+#: src/plugins/gnome/valent-preferences-sync-page.ui:15
 msgid "Clipboard"
 msgstr "Portapapeles"
 
@@ -276,6 +278,7 @@ msgstr "Monitorizar el estado de la conexión móvil"
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
 #: src/plugins/gnome/valent-device-page.ui:243
 #: src/plugins/gnome/valent-device-row.ui:116
+#: src/plugins/gnome/valent-preferences-status-page.ui:112
 msgid "Mobile Network"
 msgstr "Red Móvil"
 
@@ -314,6 +317,7 @@ msgstr "%s: %s"
 #: src/plugins/gnome/valent-conversation-page.ui:205
 #: src/plugins/gnome/valent-messages-window.c:241
 #: src/plugins/gnome/valent-preferences-dialog.c:607
+#: src/plugins/gnome/valent-preferences-sync-page.ui:36
 msgid "Contacts"
 msgstr "Contactos"
 
@@ -395,8 +399,8 @@ msgid "Home"
 msgstr "Inicio"
 
 #: src/plugins/gnome/valent-contact-page.c:318
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:32
 #: src/plugins/gnome/valent-messages-window.c:426
+#: src/plugins/gnome/valent-preferences-other-page.ui:9
 msgid "Other"
 msgstr "Otros"
 
@@ -443,22 +447,22 @@ msgid_plural "New message from %s, with %d attachments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/plugins/gnome/valent-conversation-page.c:950
-#: src/plugins/gnome/valent-conversation-page.c:1097
+#: src/plugins/gnome/valent-conversation-page.c:947
+#: src/plugins/gnome/valent-conversation-page.c:1094
 #: src/plugins/gnome/valent-conversation-page.ui:77
 #, fuzzy
 msgid "Attach Files"
 msgstr "Todos los Archivos"
 
-#: src/plugins/gnome/valent-conversation-page.c:951
-#: src/plugins/gnome/valent-conversation-page.c:1098
-#: src/plugins/gnome/valent-device-preferences-share.c:94
+#: src/plugins/gnome/valent-conversation-page.c:948
+#: src/plugins/gnome/valent-conversation-page.c:1095
+#: src/plugins/gnome/valent-preferences-other-page.c:251
 #: src/plugins/gnome/valent-presenter-remote.c:90
 #: src/plugins/gnome/valent-presenter-remote.ui:100
 msgid "Open"
 msgstr "Abrir"
 
-#: src/plugins/gnome/valent-conversation-page.c:1004
+#: src/plugins/gnome/valent-conversation-page.c:1001
 #: src/plugins/share/valent-share-plugin.c:1136
 msgid "Save"
 msgstr "Guardar"
@@ -634,246 +638,18 @@ msgstr "Preferencias"
 msgid "Unpair"
 msgstr "Desemparejar"
 
-#: src/plugins/gnome/valent-device-preferences-battery.ui:10
-msgid "Full Battery Notification"
-msgstr "Notificación de Carga Completa"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:11
-msgid "Notify when the remote battery is full"
-msgstr "Avisar si el dispositivo remoto está completamente cargado"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:16
-#: src/plugins/gnome/valent-device-preferences-battery.ui:36
-msgid "Level Threshold"
-msgstr "Umbral de Carga"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:30
-msgid "Low Battery Notification"
-msgstr "Notificación de Batería Baja"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:31
-msgid "Notify when the remote battery is low"
-msgstr "Avisar si la batería del dispositivo se está agotando"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:10
-msgid "Remote Clipboard"
-msgstr "Portapapeles Remoto"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:11
-msgid "Copy changes to the local clipboard"
-msgstr "Copiar cambios al portapapeles remoto"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:17
-msgid "Local Clipboard"
-msgstr "Portapapeles Local"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:18
-msgid "Report changes to the remote device"
-msgstr "Informar de cambios en el dispositivo remoto"
-
-#: src/plugins/gnome/valent-device-preferences-commands.c:85
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:8
-msgid "Edit Command"
-msgstr "Editar Comando"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:17
-msgid "_Cancel"
-msgstr "_Cancelar"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:24
-msgid "_Save"
-msgstr "_Guardar"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:48
-msgid "Command Line"
-msgstr "Línea de Comandos"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:63
-msgid "Remove the command"
-msgstr "Eliminar el comando"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:69
-#: src/plugins/gnome/valent-preferences-dialog.c:357
-msgid "Remove"
-msgstr "Eliminar"
-
-#: src/plugins/gnome/valent-device-preferences-commands.ui:14
-msgid "Add a command"
-msgstr "Añadir un comando"
-
-#: src/plugins/gnome/valent-device-preferences-commands.ui:24
-msgid "Local Commands"
-msgstr "Comandos Locales"
-
-#: src/plugins/gnome/valent-device-preferences-commands.ui:25
-msgid "Commands that can be executed by remote devices"
-msgstr "Comandos que pueden ser ejecutados por dispositivos remotos"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:10
-msgid "Local Connectivity"
-msgstr "Conexión Local"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:11
-msgid "Send updates to the remote device"
-msgstr "Enviar actualizaciones al dispositivo remoto"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:17
-msgid "Remote Connectivity"
-msgstr "Conectividad Remota"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:18
-msgid "Notify if the remote device loses connectivity"
-msgstr "Avisar si el dispositivo remoto pierde la conexión"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:10
-msgid "Remote Contacts"
-msgstr "Contactos Remotos"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:11
-msgid "Import contacts from the remote device"
-msgstr "Importar contactos desde un dispositivo remoto"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:17
-msgid "Local Contacts"
-msgstr "Contactos Locales"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:18
-msgid "Share contacts with the remote device"
-msgstr "Compartir contactos con un dispositivo remoto"
-
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:12
-msgid "Status"
-msgstr "Estado"
-
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:22
-msgid "Sync"
-msgstr "Sincronizar"
-
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:42
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:47
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:62
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:40
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:45
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:60
 #: src/plugins/gnome/valent-preferences-dialog.ui:110
 #: src/plugins/gnome/valent-preferences-dialog.ui:114
 msgid "Plugins"
 msgstr "Plugins"
 
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:55
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:53
 #: src/plugins/gnome/valent-preferences-dialog.ui:122
 msgid "No Plugins"
 msgstr "Sin Plugins"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:10
-msgid "Local Notifications"
-msgstr "Notificaciones locales"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:11
-msgid "Forward notifications to the remote device"
-msgstr "Reenviar notificaciones al dispositivo remoto"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:16
-msgid "Intelligent Sync"
-msgstr "Sincronización Inteligente"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:17
-msgid "Notifications follow the active device"
-msgstr "Enviar las notificaciones al dispositivo activo"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:23
-msgid "Filter by Application"
-msgstr "Filtrar por Aplicación"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:90
-msgid "Filter applications"
-msgstr "Filtrar aplicaciones"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:116
-#: src/plugins/gnome/valent-messages-window.ui:223
-msgid "Search"
-msgstr "Buscar"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:129
-msgid "Reset"
-msgstr "Reiniciar"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:144
-msgid "No Applications"
-msgstr "Ninguna Aplicación"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:10
-msgid "Automatically Mount"
-msgstr "Montar Automáticamente"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:11
-msgid "Mount shared folders when the device connects"
-msgstr "Montar carpetas compartidas cuando el dispositivo se conecta"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:17
-msgid "Local Files"
-msgstr "Archivos Locales"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:18
-msgid "Share local files and directories"
-msgstr "Compartir archivos locales y carpetas"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:23
-msgid "Port"
-msgstr "Puerto"
-
-#: src/plugins/gnome/valent-device-preferences-share.c:93
-msgid "Select download folder"
-msgstr "Seleccionar carpeta de descargas"
-
-#: src/plugins/gnome/valent-device-preferences-share.ui:10
-msgid "Download directory"
-msgstr "Directorio de descargas"
-
-#: src/plugins/gnome/valent-device-preferences-share.ui:11
-msgid "Where received files are stored"
-msgstr "Donde se almacenan los archivos recibidos"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:11
-msgid "Incoming Calls"
-msgstr "Llamadas Entrantes"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:12
-msgid "What to do when the phone rings"
-msgstr "Qué hacer cuando el teléfono suena"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:16
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:41
-#: src/plugins/gnome/valent-media-remote.ui:214
-msgid "Volume"
-msgstr "Volumen"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:26
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:57
-msgid "Pause Media"
-msgstr "Pausar Reproducción"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:36
-msgid "Ongoing Calls"
-msgstr "Llamadas en Curso"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:37
-msgid "What to do when the phone is answered"
-msgstr "Qué hacer cuando se contesta el teléfono"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:51
-msgid "Mute Microphone"
-msgstr "Silenciar micrófono"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:66
-msgid "Nothing"
-msgstr "Nada"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:67
-msgid "Lower"
-msgstr "Bajar"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:68
-#: src/plugins/telephony/valent-telephony-plugin.c:399
-msgid "Mute"
-msgstr "Silenciar"
 
 #: src/plugins/gnome/valent-device-row.c:246
 msgid "Connected"
@@ -942,6 +718,12 @@ msgstr "Pausar"
 msgid "Play"
 msgstr "Reproducir"
 
+#: src/plugins/gnome/valent-media-remote.ui:214
+#: src/plugins/gnome/valent-preferences-status-page.ui:70
+#: src/plugins/gnome/valent-preferences-status-page.ui:91
+msgid "Volume"
+msgstr "Volumen"
+
 #: src/plugins/gnome/valent-media-remote.ui:222
 #: src/plugins/gnome/valent-menu-list.c:663
 #: src/plugins/gnome/valent-presenter-remote.ui:146
@@ -982,10 +764,18 @@ msgstr "Aleatorio"
 msgid "Media Remote"
 msgstr "Control Multimedia"
 
-#: src/plugins/gnome/valent-media-window.ui:88
+#: src/plugins/gnome/valent-media-window.ui:87
 #, fuzzy
 msgid "Player"
 msgstr "Reproducir"
+
+#: src/plugins/gnome/valent-media-window.ui:163
+msgid "Control Media"
+msgstr ""
+
+#: src/plugins/gnome/valent-media-window.ui:164
+msgid "Open a media player on a connected device"
+msgstr ""
 
 #: src/plugins/gnome/valent-menu-list.c:528
 msgid "No Actions"
@@ -1033,6 +823,11 @@ msgstr "Ninguna conversación seleccionada"
 msgid "Select or start a conversation"
 msgstr "Selecciona o inicia una conversación"
 
+#: src/plugins/gnome/valent-messages-window.ui:223
+#: src/plugins/gnome/valent-preferences-sync-page.ui:204
+msgid "Search"
+msgstr "Buscar"
+
 #: src/plugins/gnome/valent-messages-window.ui:231
 msgid "Search messages…"
 msgstr "Buscar mensajes…"
@@ -1065,6 +860,28 @@ msgstr ""
 msgid "Website"
 msgstr ""
 
+#: src/plugins/gnome/valent-preferences-command-editor.ui:8
+#: src/plugins/gnome/valent-preferences-other-page.c:84
+msgid "Edit Command"
+msgstr "Editar Comando"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:19
+msgid "_Cancel"
+msgstr "_Cancelar"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:26
+msgid "_Save"
+msgstr "_Guardar"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:54
+msgid "Command Line"
+msgstr "Línea de Comandos"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:72
+#: src/plugins/gnome/valent-preferences-dialog.c:357
+msgid "Remove"
+msgstr "Eliminar"
+
 #. TRANSLATORS: %s is a list of forbidden characters
 #: src/plugins/gnome/valent-preferences-dialog.c:485
 #, c-format
@@ -1092,6 +909,7 @@ msgid "Volume Control"
 msgstr "Control de Volumen"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:635
+#: src/plugins/gnome/valent-preferences-sync-page.ui:58
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "Notificaciones"
@@ -1139,6 +957,212 @@ msgstr ""
 #: src/plugins/gnome/valent-preferences-dialog.ui:179
 msgid "Hostname or IP address"
 msgstr ""
+
+#: src/plugins/gnome/valent-preferences-other-page.c:250
+msgid "Select download folder"
+msgstr "Seleccionar carpeta de descargas"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:15
+#: src/plugins/share/share.plugin.desktop.in:7
+msgid "Sharing"
+msgstr "Compartiendo"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:18
+#, fuzzy
+msgid "Download Directory"
+msgstr "Directorio de descargas"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:19
+#, fuzzy
+msgid "Where to store received files"
+msgstr "Donde se almacenan los archivos recibidos"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:53
+#: src/plugins/gnome/valent-preferences-other-page.ui:82
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
+msgid "Commands"
+msgstr "Comandos"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:54
+#, fuzzy
+msgid "Define commands that can be executed by remote devices"
+msgstr "Comandos que pueden ser ejecutados por dispositivos remotos"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:61
+#, fuzzy
+msgid "Add command"
+msgstr "Añadir un comando"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:75
+#, fuzzy
+msgid "No commands"
+msgstr "Comandos"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:9
+msgid "Status"
+msgstr "Estado"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:18
+msgid "Full Battery Notification"
+msgstr "Notificación de Carga Completa"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:19
+msgid "Notify when the remote battery is full"
+msgstr "Avisar si el dispositivo remoto está completamente cargado"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:24
+#: src/plugins/gnome/valent-preferences-status-page.ui:44
+msgid "Level Threshold"
+msgstr "Umbral de Carga"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:38
+msgid "Low Battery Notification"
+msgstr "Notificación de Batería Baja"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:39
+msgid "Notify when the remote battery is low"
+msgstr "Avisar si la batería del dispositivo se está agotando"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:62
+#: src/plugins/telephony/telephony.plugin.desktop.in:7
+msgid "Telephony"
+msgstr "Telefonía"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:65
+msgid "Incoming Calls"
+msgstr "Llamadas Entrantes"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:66
+msgid "What to do when the phone rings"
+msgstr "Qué hacer cuando el teléfono suena"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:79
+#: src/plugins/gnome/valent-preferences-status-page.ui:105
+msgid "Pause Media"
+msgstr "Pausar Reproducción"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:86
+msgid "Ongoing Calls"
+msgstr "Llamadas en Curso"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:87
+msgid "What to do when the phone is answered"
+msgstr "Qué hacer cuando se contesta el teléfono"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:100
+msgid "Mute Microphone"
+msgstr "Silenciar micrófono"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:113
+#, fuzzy
+msgid "Notify if the device loses connectivity"
+msgstr "Avisar si el dispositivo remoto pierde la conexión"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:122
+msgid "Nothing"
+msgstr "Nada"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:123
+msgid "Lower"
+msgstr "Bajar"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:124
+#: src/plugins/telephony/valent-telephony-plugin.c:399
+msgid "Mute"
+msgstr "Silenciar"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:9
+msgid "Sync"
+msgstr "Sincronizar"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:18
+msgid "Remote Clipboard"
+msgstr "Portapapeles Remoto"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:19
+msgid "Copy changes to the local clipboard"
+msgstr "Copiar cambios al portapapeles remoto"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:25
+msgid "Local Clipboard"
+msgstr "Portapapeles Local"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:26
+msgid "Report changes to the remote device"
+msgstr "Informar de cambios en el dispositivo remoto"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:39
+msgid "Remote Contacts"
+msgstr "Contactos Remotos"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:40
+msgid "Import contacts from the remote device"
+msgstr "Importar contactos desde un dispositivo remoto"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:46
+msgid "Local Contacts"
+msgstr "Contactos Locales"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:47
+msgid "Share contacts with the remote device"
+msgstr "Compartir contactos con un dispositivo remoto"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:61
+msgid "Local Notifications"
+msgstr "Notificaciones locales"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:62
+msgid "Forward notifications to the remote device"
+msgstr "Reenviar notificaciones al dispositivo remoto"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:67
+msgid "Intelligent Sync"
+msgstr "Sincronización Inteligente"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:68
+msgid "Notifications follow the active device"
+msgstr "Enviar las notificaciones al dispositivo activo"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:74
+msgid "Filter by Application"
+msgstr "Filtrar por Aplicación"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:98
+#: src/plugins/sftp/sftp.plugin.desktop.in:7
+msgid "Files"
+msgstr "Archivos"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:101
+msgid "Automatically Mount"
+msgstr "Montar Automáticamente"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:102
+msgid "Mount shared folders when the device connects"
+msgstr "Montar carpetas compartidas cuando el dispositivo se conecta"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:108
+msgid "Local Files"
+msgstr "Archivos Locales"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:109
+msgid "Share local files and directories"
+msgstr "Compartir archivos locales y carpetas"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:114
+msgid "Port"
+msgstr "Puerto"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:178
+msgid "Filter applications"
+msgstr "Filtrar aplicaciones"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:217
+msgid "Reset"
+msgstr "Reiniciar"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:232
+msgid "No Applications"
+msgstr "Ninguna Aplicación"
 
 #: src/plugins/gnome/valent-presenter-remote.c:89
 msgid "Select Presentation"
@@ -1445,10 +1469,6 @@ msgstr "PulseAudio"
 msgid "Integration with PulseAudio"
 msgstr "Integración con PulseAudio"
 
-#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
-msgid "Commands"
-msgstr "Comandos"
-
 #: src/plugins/runcommand/runcommand.plugin.desktop.in:8
 msgid "Execute commands remotely"
 msgstr "Ejecutar comandos de forma remota"
@@ -1456,10 +1476,6 @@ msgstr "Ejecutar comandos de forma remota"
 #: src/plugins/runcommand/valent-runcommand-plugin.c:317
 msgid "Run Command"
 msgstr "Ejecutar Comando"
-
-#: src/plugins/sftp/sftp.plugin.desktop.in:7
-msgid "Files"
-msgstr "Archivos"
 
 #: src/plugins/sftp/sftp.plugin.desktop.in:8
 msgid "Share files and directories with SFTP"
@@ -1481,10 +1497,6 @@ msgstr ""
 #: src/plugins/sftp/valent-sftp-plugin.c:798
 msgid "Mount"
 msgstr ""
-
-#: src/plugins/share/share.plugin.desktop.in:7
-msgid "Sharing"
-msgstr "Compartiendo"
 
 #: src/plugins/share/share.plugin.desktop.in:8
 msgid "Direct file, link and text sharing"
@@ -1609,10 +1621,6 @@ msgstr "Volumen del Sistema"
 msgid "Monitor volume levels and microphones"
 msgstr "Controlar los niveles de volumen y de los micrófonos"
 
-#: src/plugins/telephony/telephony.plugin.desktop.in:7
-msgid "Telephony"
-msgstr "Telefonía"
-
 #: src/plugins/telephony/telephony.plugin.desktop.in:8
 msgid "Be notified of incoming and ongoing calls"
 msgstr "Ser notificado de llamadas entrantes y de llamadas en curso"
@@ -1678,6 +1686,21 @@ msgstr[1] ""
 #, fuzzy
 msgid "System Sounds"
 msgstr "Volumen del Sistema"
+
+#~ msgid "Remove the command"
+#~ msgstr "Eliminar el comando"
+
+#~ msgid "Local Commands"
+#~ msgstr "Comandos Locales"
+
+#~ msgid "Local Connectivity"
+#~ msgstr "Conexión Local"
+
+#~ msgid "Send updates to the remote device"
+#~ msgstr "Enviar actualizaciones al dispositivo remoto"
+
+#~ msgid "Remote Connectivity"
+#~ msgstr "Conectividad Remota"
 
 #~ msgid "Desktop Integration"
 #~ msgstr "Integración con Escritorio"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-04-08 05:37+0000\n"
+"POT-Creation-Date: 2025-04-15 15:14-0700\n"
 "PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
@@ -39,7 +39,7 @@ msgid "Whether the device is paired"
 msgstr "设备是否已配对"
 
 #: data/gsettings/ca.andyholmes.Valent.gschema.xml:10
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:39
+#: src/plugins/gnome/valent-preferences-command-editor.ui:41
 msgid "Name"
 msgstr "名称"
 
@@ -206,6 +206,7 @@ msgstr ""
 #: src/plugins/battery/battery.plugin.desktop.in:7
 #: src/plugins/gnome/valent-device-page.ui:217
 #: src/plugins/gnome/valent-device-row.ui:124
+#: src/plugins/gnome/valent-preferences-status-page.ui:15
 msgid "Battery"
 msgstr "电池"
 
@@ -251,6 +252,7 @@ msgstr "通过局域网连接设备"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 #: src/plugins/gnome/valent-preferences-dialog.c:600
+#: src/plugins/gnome/valent-preferences-sync-page.ui:15
 msgid "Clipboard"
 msgstr "剪切板"
 
@@ -270,6 +272,7 @@ msgstr "监测手机信号状态"
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
 #: src/plugins/gnome/valent-device-page.ui:243
 #: src/plugins/gnome/valent-device-row.ui:116
+#: src/plugins/gnome/valent-preferences-status-page.ui:112
 msgid "Mobile Network"
 msgstr "移动网络"
 
@@ -308,6 +311,7 @@ msgstr ""
 #: src/plugins/gnome/valent-conversation-page.ui:205
 #: src/plugins/gnome/valent-messages-window.c:241
 #: src/plugins/gnome/valent-preferences-dialog.c:607
+#: src/plugins/gnome/valent-preferences-sync-page.ui:36
 msgid "Contacts"
 msgstr "联系人"
 
@@ -388,8 +392,8 @@ msgid "Home"
 msgstr "首页"
 
 #: src/plugins/gnome/valent-contact-page.c:318
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:32
 #: src/plugins/gnome/valent-messages-window.c:426
+#: src/plugins/gnome/valent-preferences-other-page.ui:9
 msgid "Other"
 msgstr "其他"
 
@@ -435,22 +439,22 @@ msgid "New message from %s, with %d attachment"
 msgid_plural "New message from %s, with %d attachments"
 msgstr[0] ""
 
-#: src/plugins/gnome/valent-conversation-page.c:950
-#: src/plugins/gnome/valent-conversation-page.c:1097
+#: src/plugins/gnome/valent-conversation-page.c:947
+#: src/plugins/gnome/valent-conversation-page.c:1094
 #: src/plugins/gnome/valent-conversation-page.ui:77
 #, fuzzy
 msgid "Attach Files"
 msgstr "所有文件"
 
-#: src/plugins/gnome/valent-conversation-page.c:951
-#: src/plugins/gnome/valent-conversation-page.c:1098
-#: src/plugins/gnome/valent-device-preferences-share.c:94
+#: src/plugins/gnome/valent-conversation-page.c:948
+#: src/plugins/gnome/valent-conversation-page.c:1095
+#: src/plugins/gnome/valent-preferences-other-page.c:251
 #: src/plugins/gnome/valent-presenter-remote.c:90
 #: src/plugins/gnome/valent-presenter-remote.ui:100
 msgid "Open"
 msgstr "打开"
 
-#: src/plugins/gnome/valent-conversation-page.c:1004
+#: src/plugins/gnome/valent-conversation-page.c:1001
 #: src/plugins/share/valent-share-plugin.c:1136
 msgid "Save"
 msgstr "保存"
@@ -626,247 +630,18 @@ msgstr "首选项"
 msgid "Unpair"
 msgstr "未配对"
 
-#: src/plugins/gnome/valent-device-preferences-battery.ui:10
-msgid "Full Battery Notification"
-msgstr "电量充满通知"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:11
-msgid "Notify when the remote battery is full"
-msgstr "远程设备电量充满时通知"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:16
-#: src/plugins/gnome/valent-device-preferences-battery.ui:36
-msgid "Level Threshold"
-msgstr "提醒阈值"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:30
-msgid "Low Battery Notification"
-msgstr "低电量通知"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:31
-msgid "Notify when the remote battery is low"
-msgstr "远程设备电量不足时通知"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:10
-msgid "Remote Clipboard"
-msgstr "远程剪贴板"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:11
-msgid "Copy changes to the local clipboard"
-msgstr "将远程设备剪切板变化同步到本地"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:17
-msgid "Local Clipboard"
-msgstr "本地剪贴板"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:18
-msgid "Report changes to the remote device"
-msgstr "向远程设备报告本地剪切板变化"
-
-#: src/plugins/gnome/valent-device-preferences-commands.c:85
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:8
-msgid "Edit Command"
-msgstr "编辑命令"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:17
-msgid "_Cancel"
-msgstr ""
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:24
-msgid "_Save"
-msgstr ""
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:48
-msgid "Command Line"
-msgstr "命令行"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:63
-msgid "Remove the command"
-msgstr "移除命令"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:69
-#: src/plugins/gnome/valent-preferences-dialog.c:357
-msgid "Remove"
-msgstr "移除"
-
-#: src/plugins/gnome/valent-device-preferences-commands.ui:14
-msgid "Add a command"
-msgstr "添加一个命令"
-
-#: src/plugins/gnome/valent-device-preferences-commands.ui:24
-msgid "Local Commands"
-msgstr "本地命令"
-
-#: src/plugins/gnome/valent-device-preferences-commands.ui:25
-msgid "Commands that can be executed by remote devices"
-msgstr "可由远程设备执行的命令"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:10
-msgid "Local Connectivity"
-msgstr "本机连接性"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:11
-msgid "Send updates to the remote device"
-msgstr "向远程设备发送连接性更新信息"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:17
-msgid "Remote Connectivity"
-msgstr "远程设备连接性"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:18
-msgid "Notify if the remote device loses connectivity"
-msgstr "远程设备失去连接时发出通知"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:10
-msgid "Remote Contacts"
-msgstr "远程联系人"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:11
-msgid "Import contacts from the remote device"
-msgstr "从远程设备导入联系人"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:17
-msgid "Local Contacts"
-msgstr "本地联系人"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:18
-msgid "Share contacts with the remote device"
-msgstr "与远程设备共享联系人"
-
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:12
-msgid "Status"
-msgstr "状态"
-
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:22
-msgid "Sync"
-msgstr "同步"
-
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:42
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:47
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:62
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:40
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:45
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:60
 #: src/plugins/gnome/valent-preferences-dialog.ui:110
 #: src/plugins/gnome/valent-preferences-dialog.ui:114
 msgid "Plugins"
 msgstr "插件"
 
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:55
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:53
 #: src/plugins/gnome/valent-preferences-dialog.ui:122
 msgid "No Plugins"
 msgstr "无插件"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:10
-msgid "Local Notifications"
-msgstr "本地通知"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:11
-msgid "Forward notifications to the remote device"
-msgstr "转发通知到远程设备"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:16
-msgid "Intelligent Sync"
-msgstr "智能同步"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:17
-msgid "Notifications follow the active device"
-msgstr "通知跟随活动的设备"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:23
-msgid "Filter by Application"
-msgstr "按应用过滤"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:90
-#, fuzzy
-msgid "Filter applications"
-msgstr "按应用过滤"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:116
-#: src/plugins/gnome/valent-messages-window.ui:223
-msgid "Search"
-msgstr "搜索"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:129
-msgid "Reset"
-msgstr ""
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:144
-msgid "No Applications"
-msgstr "无应用"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:10
-msgid "Automatically Mount"
-msgstr "自动挂载"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:11
-msgid "Mount shared folders when the device connects"
-msgstr "设备连接时挂载共享文件夹"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:17
-msgid "Local Files"
-msgstr "本地文件"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:18
-msgid "Share local files and directories"
-msgstr "共享本地文件和目录"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:23
-msgid "Port"
-msgstr "端口"
-
-#: src/plugins/gnome/valent-device-preferences-share.c:93
-msgid "Select download folder"
-msgstr "选择下载文件夹"
-
-#: src/plugins/gnome/valent-device-preferences-share.ui:10
-msgid "Download directory"
-msgstr "下载目录"
-
-#: src/plugins/gnome/valent-device-preferences-share.ui:11
-msgid "Where received files are stored"
-msgstr "收到的文件储存位置"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:11
-msgid "Incoming Calls"
-msgstr "来电"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:12
-msgid "What to do when the phone rings"
-msgstr "当电话响起时"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:16
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:41
-#: src/plugins/gnome/valent-media-remote.ui:214
-msgid "Volume"
-msgstr "音量"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:26
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:57
-msgid "Pause Media"
-msgstr "暂停媒体"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:36
-msgid "Ongoing Calls"
-msgstr "正在进行呼叫"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:37
-msgid "What to do when the phone is answered"
-msgstr "当电话接通时"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:51
-msgid "Mute Microphone"
-msgstr "麦克风静音"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:66
-msgid "Nothing"
-msgstr "无"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:67
-msgid "Lower"
-msgstr "降低"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:68
-#: src/plugins/telephony/valent-telephony-plugin.c:399
-msgid "Mute"
-msgstr "静音"
 
 #: src/plugins/gnome/valent-device-row.c:246
 msgid "Connected"
@@ -936,6 +711,12 @@ msgstr "暂停"
 msgid "Play"
 msgstr "播放"
 
+#: src/plugins/gnome/valent-media-remote.ui:214
+#: src/plugins/gnome/valent-preferences-status-page.ui:70
+#: src/plugins/gnome/valent-preferences-status-page.ui:91
+msgid "Volume"
+msgstr "音量"
+
 #: src/plugins/gnome/valent-media-remote.ui:222
 #: src/plugins/gnome/valent-menu-list.c:663
 #: src/plugins/gnome/valent-presenter-remote.ui:146
@@ -976,10 +757,18 @@ msgstr "随机"
 msgid "Media Remote"
 msgstr "远程媒体控制"
 
-#: src/plugins/gnome/valent-media-window.ui:88
+#: src/plugins/gnome/valent-media-window.ui:87
 #, fuzzy
 msgid "Player"
 msgstr "播放"
+
+#: src/plugins/gnome/valent-media-window.ui:163
+msgid "Control Media"
+msgstr ""
+
+#: src/plugins/gnome/valent-media-window.ui:164
+msgid "Open a media player on a connected device"
+msgstr ""
 
 #: src/plugins/gnome/valent-menu-list.c:528
 msgid "No Actions"
@@ -1027,6 +816,11 @@ msgstr "无选择对话"
 msgid "Select or start a conversation"
 msgstr "选择或开始一个对话"
 
+#: src/plugins/gnome/valent-messages-window.ui:223
+#: src/plugins/gnome/valent-preferences-sync-page.ui:204
+msgid "Search"
+msgstr "搜索"
+
 #: src/plugins/gnome/valent-messages-window.ui:231
 msgid "Search messages…"
 msgstr "搜索信息..."
@@ -1059,6 +853,28 @@ msgstr ""
 msgid "Website"
 msgstr ""
 
+#: src/plugins/gnome/valent-preferences-command-editor.ui:8
+#: src/plugins/gnome/valent-preferences-other-page.c:84
+msgid "Edit Command"
+msgstr "编辑命令"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:19
+msgid "_Cancel"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:26
+msgid "_Save"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:54
+msgid "Command Line"
+msgstr "命令行"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:72
+#: src/plugins/gnome/valent-preferences-dialog.c:357
+msgid "Remove"
+msgstr "移除"
+
 #. TRANSLATORS: %s is a list of forbidden characters
 #: src/plugins/gnome/valent-preferences-dialog.c:485
 #, c-format
@@ -1087,6 +903,7 @@ msgid "Volume Control"
 msgstr "音量控制"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:635
+#: src/plugins/gnome/valent-preferences-sync-page.ui:58
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "通知"
@@ -1134,6 +951,213 @@ msgstr ""
 #: src/plugins/gnome/valent-preferences-dialog.ui:179
 msgid "Hostname or IP address"
 msgstr ""
+
+#: src/plugins/gnome/valent-preferences-other-page.c:250
+msgid "Select download folder"
+msgstr "选择下载文件夹"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:15
+#: src/plugins/share/share.plugin.desktop.in:7
+msgid "Sharing"
+msgstr "共享"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:18
+#, fuzzy
+msgid "Download Directory"
+msgstr "下载目录"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:19
+#, fuzzy
+msgid "Where to store received files"
+msgstr "收到的文件储存位置"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:53
+#: src/plugins/gnome/valent-preferences-other-page.ui:82
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
+msgid "Commands"
+msgstr "命令"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:54
+#, fuzzy
+msgid "Define commands that can be executed by remote devices"
+msgstr "可由远程设备执行的命令"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:61
+#, fuzzy
+msgid "Add command"
+msgstr "添加一个命令"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:75
+#, fuzzy
+msgid "No commands"
+msgstr "命令"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:9
+msgid "Status"
+msgstr "状态"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:18
+msgid "Full Battery Notification"
+msgstr "电量充满通知"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:19
+msgid "Notify when the remote battery is full"
+msgstr "远程设备电量充满时通知"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:24
+#: src/plugins/gnome/valent-preferences-status-page.ui:44
+msgid "Level Threshold"
+msgstr "提醒阈值"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:38
+msgid "Low Battery Notification"
+msgstr "低电量通知"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:39
+msgid "Notify when the remote battery is low"
+msgstr "远程设备电量不足时通知"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:62
+#: src/plugins/telephony/telephony.plugin.desktop.in:7
+msgid "Telephony"
+msgstr "电话"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:65
+msgid "Incoming Calls"
+msgstr "来电"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:66
+msgid "What to do when the phone rings"
+msgstr "当电话响起时"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:79
+#: src/plugins/gnome/valent-preferences-status-page.ui:105
+msgid "Pause Media"
+msgstr "暂停媒体"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:86
+msgid "Ongoing Calls"
+msgstr "正在进行呼叫"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:87
+msgid "What to do when the phone is answered"
+msgstr "当电话接通时"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:100
+msgid "Mute Microphone"
+msgstr "麦克风静音"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:113
+#, fuzzy
+msgid "Notify if the device loses connectivity"
+msgstr "远程设备失去连接时发出通知"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:122
+msgid "Nothing"
+msgstr "无"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:123
+msgid "Lower"
+msgstr "降低"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:124
+#: src/plugins/telephony/valent-telephony-plugin.c:399
+msgid "Mute"
+msgstr "静音"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:9
+msgid "Sync"
+msgstr "同步"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:18
+msgid "Remote Clipboard"
+msgstr "远程剪贴板"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:19
+msgid "Copy changes to the local clipboard"
+msgstr "将远程设备剪切板变化同步到本地"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:25
+msgid "Local Clipboard"
+msgstr "本地剪贴板"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:26
+msgid "Report changes to the remote device"
+msgstr "向远程设备报告本地剪切板变化"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:39
+msgid "Remote Contacts"
+msgstr "远程联系人"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:40
+msgid "Import contacts from the remote device"
+msgstr "从远程设备导入联系人"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:46
+msgid "Local Contacts"
+msgstr "本地联系人"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:47
+msgid "Share contacts with the remote device"
+msgstr "与远程设备共享联系人"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:61
+msgid "Local Notifications"
+msgstr "本地通知"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:62
+msgid "Forward notifications to the remote device"
+msgstr "转发通知到远程设备"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:67
+msgid "Intelligent Sync"
+msgstr "智能同步"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:68
+msgid "Notifications follow the active device"
+msgstr "通知跟随活动的设备"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:74
+msgid "Filter by Application"
+msgstr "按应用过滤"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:98
+#: src/plugins/sftp/sftp.plugin.desktop.in:7
+msgid "Files"
+msgstr "文件"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:101
+msgid "Automatically Mount"
+msgstr "自动挂载"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:102
+msgid "Mount shared folders when the device connects"
+msgstr "设备连接时挂载共享文件夹"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:108
+msgid "Local Files"
+msgstr "本地文件"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:109
+msgid "Share local files and directories"
+msgstr "共享本地文件和目录"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:114
+msgid "Port"
+msgstr "端口"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:178
+#, fuzzy
+msgid "Filter applications"
+msgstr "按应用过滤"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:217
+msgid "Reset"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:232
+msgid "No Applications"
+msgstr "无应用"
 
 #: src/plugins/gnome/valent-presenter-remote.c:89
 msgid "Select Presentation"
@@ -1440,10 +1464,6 @@ msgstr "PulseAudio"
 msgid "Integration with PulseAudio"
 msgstr "与 PulseAudio 集成"
 
-#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
-msgid "Commands"
-msgstr "命令"
-
 #: src/plugins/runcommand/runcommand.plugin.desktop.in:8
 msgid "Execute commands remotely"
 msgstr "远程设备执行命令"
@@ -1451,10 +1471,6 @@ msgstr "远程设备执行命令"
 #: src/plugins/runcommand/valent-runcommand-plugin.c:317
 msgid "Run Command"
 msgstr "运行命令"
-
-#: src/plugins/sftp/sftp.plugin.desktop.in:7
-msgid "Files"
-msgstr "文件"
 
 #: src/plugins/sftp/sftp.plugin.desktop.in:8
 msgid "Share files and directories with SFTP"
@@ -1476,10 +1492,6 @@ msgstr ""
 #: src/plugins/sftp/valent-sftp-plugin.c:798
 msgid "Mount"
 msgstr ""
-
-#: src/plugins/share/share.plugin.desktop.in:7
-msgid "Sharing"
-msgstr "共享"
 
 #: src/plugins/share/share.plugin.desktop.in:8
 msgid "Direct file, link and text sharing"
@@ -1600,10 +1612,6 @@ msgstr "系统音量"
 msgid "Monitor volume levels and microphones"
 msgstr "显示器音量和麦克风音量"
 
-#: src/plugins/telephony/telephony.plugin.desktop.in:7
-msgid "Telephony"
-msgstr "电话"
-
 #: src/plugins/telephony/telephony.plugin.desktop.in:8
 msgid "Be notified of incoming and ongoing calls"
 msgstr "来电和去电时发出通知"
@@ -1668,6 +1676,21 @@ msgstr[0] ""
 #, fuzzy
 msgid "System Sounds"
 msgstr "系统音量"
+
+#~ msgid "Remove the command"
+#~ msgstr "移除命令"
+
+#~ msgid "Local Commands"
+#~ msgstr "本地命令"
+
+#~ msgid "Local Connectivity"
+#~ msgstr "本机连接性"
+
+#~ msgid "Send updates to the remote device"
+#~ msgstr "向远程设备发送连接性更新信息"
+
+#~ msgid "Remote Connectivity"
+#~ msgstr "远程设备连接性"
 
 #~ msgid "Desktop Integration"
 #~ msgstr "桌面集成"
