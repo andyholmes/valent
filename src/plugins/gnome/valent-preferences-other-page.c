@@ -66,11 +66,13 @@ valent_runcommand_preferences_populate (ValentPreferencesOtherPage *self)
         {
           GtkWidget *row;
           GtkWidget *icon;
+          g_autofree char *subtitle = NULL;
 
+          subtitle = g_markup_printf_escaped ("<tt>%s</tt>", command);
           row = g_object_new (ADW_TYPE_ACTION_ROW,
                               "name",          uuid,
                               "title",         name,
-                              "subtitle",      command,
+                              "subtitle",      subtitle,
                               "activatable",   TRUE,
                               "selectable",    FALSE,
                               "action-target", g_variant_new_string (uuid),
