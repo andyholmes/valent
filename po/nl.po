@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-04-08 05:37+0000\n"
+"POT-Creation-Date: 2025-04-15 15:14-0700\n"
 "PO-Revision-Date: 2025-03-05 11:14+0100\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -38,7 +38,7 @@ msgid "Whether the device is paired"
 msgstr "Of het apparaat is gekoppeld."
 
 #: data/gsettings/ca.andyholmes.Valent.gschema.xml:10
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:39
+#: src/plugins/gnome/valent-preferences-command-editor.ui:41
 msgid "Name"
 msgstr "Naam"
 
@@ -209,6 +209,7 @@ msgstr "De klokken lopen niet gelijk"
 #: src/plugins/battery/battery.plugin.desktop.in:7
 #: src/plugins/gnome/valent-device-page.ui:217
 #: src/plugins/gnome/valent-device-row.ui:124
+#: src/plugins/gnome/valent-preferences-status-page.ui:15
 msgid "Battery"
 msgstr "Accu"
 
@@ -253,6 +254,7 @@ msgstr "Maak verbinding met apparaten via bluetooth"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 #: src/plugins/gnome/valent-preferences-dialog.c:600
+#: src/plugins/gnome/valent-preferences-sync-page.ui:15
 msgid "Clipboard"
 msgstr "Klembord"
 
@@ -272,6 +274,7 @@ msgstr "Bekijk de mobieleverbindingsstatus"
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:162
 #: src/plugins/gnome/valent-device-page.ui:243
 #: src/plugins/gnome/valent-device-row.ui:116
+#: src/plugins/gnome/valent-preferences-status-page.ui:112
 msgid "Mobile Network"
 msgstr "Mobiel internet"
 
@@ -310,6 +313,7 @@ msgstr "%s: %s"
 #: src/plugins/gnome/valent-conversation-page.ui:205
 #: src/plugins/gnome/valent-messages-window.c:241
 #: src/plugins/gnome/valent-preferences-dialog.c:607
+#: src/plugins/gnome/valent-preferences-sync-page.ui:36
 msgid "Contacts"
 msgstr "Contactpersonen"
 
@@ -389,8 +393,8 @@ msgid "Home"
 msgstr "Persoonlijke map"
 
 #: src/plugins/gnome/valent-contact-page.c:318
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:32
 #: src/plugins/gnome/valent-messages-window.c:426
+#: src/plugins/gnome/valent-preferences-other-page.ui:9
 msgid "Other"
 msgstr "Overig"
 
@@ -435,21 +439,21 @@ msgid_plural "New message from %s, with %d attachments"
 msgstr[0] "Nieuw bericht van ‘%s’, voorzien van %d bijlage"
 msgstr[1] "Nieuw bericht van ‘%s’, voorzien van %d bijlagen"
 
-#: src/plugins/gnome/valent-conversation-page.c:950
-#: src/plugins/gnome/valent-conversation-page.c:1097
+#: src/plugins/gnome/valent-conversation-page.c:947
+#: src/plugins/gnome/valent-conversation-page.c:1094
 #: src/plugins/gnome/valent-conversation-page.ui:77
 msgid "Attach Files"
 msgstr "Bijlagen toevoegen"
 
-#: src/plugins/gnome/valent-conversation-page.c:951
-#: src/plugins/gnome/valent-conversation-page.c:1098
-#: src/plugins/gnome/valent-device-preferences-share.c:94
+#: src/plugins/gnome/valent-conversation-page.c:948
+#: src/plugins/gnome/valent-conversation-page.c:1095
+#: src/plugins/gnome/valent-preferences-other-page.c:251
 #: src/plugins/gnome/valent-presenter-remote.c:90
 #: src/plugins/gnome/valent-presenter-remote.ui:100
 msgid "Open"
 msgstr "Openen"
 
-#: src/plugins/gnome/valent-conversation-page.c:1004
+#: src/plugins/gnome/valent-conversation-page.c:1001
 #: src/plugins/share/valent-share-plugin.c:1136
 msgid "Save"
 msgstr "Opslaan"
@@ -619,246 +623,18 @@ msgstr "Voorkeuren"
 msgid "Unpair"
 msgstr "Ontkoppelen"
 
-#: src/plugins/gnome/valent-device-preferences-battery.ui:10
-msgid "Full Battery Notification"
-msgstr "Volledig opgeladen"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:11
-msgid "Notify when the remote battery is full"
-msgstr "Melding tonen als de accu volledig is opgeladen"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:16
-#: src/plugins/gnome/valent-device-preferences-battery.ui:36
-msgid "Level Threshold"
-msgstr "Niveaus"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:30
-msgid "Low Battery Notification"
-msgstr "Laag accuniveau"
-
-#: src/plugins/gnome/valent-device-preferences-battery.ui:31
-msgid "Notify when the remote battery is low"
-msgstr "Melding tonen als de accu bijna leeg is"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:10
-msgid "Remote Clipboard"
-msgstr "Extern klembord"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:11
-msgid "Copy changes to the local clipboard"
-msgstr "Kopieer wijzigingen naar het lokale klembord"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:17
-msgid "Local Clipboard"
-msgstr "Lokaal klembord"
-
-#: src/plugins/gnome/valent-device-preferences-clipboard.ui:18
-msgid "Report changes to the remote device"
-msgstr "Geef wijzigingen door aan het externe apparaat"
-
-#: src/plugins/gnome/valent-device-preferences-commands.c:85
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:8
-msgid "Edit Command"
-msgstr "Opdracht bewerken"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:17
-msgid "_Cancel"
-msgstr "_Annuleren"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:24
-msgid "_Save"
-msgstr "Op_slaan"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:48
-msgid "Command Line"
-msgstr "Opdrachtregel"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:63
-msgid "Remove the command"
-msgstr "Opdracht verwijderen"
-
-#: src/plugins/gnome/valent-device-preferences-commands-editor.ui:69
-#: src/plugins/gnome/valent-preferences-dialog.c:357
-msgid "Remove"
-msgstr "Verwijderen"
-
-#: src/plugins/gnome/valent-device-preferences-commands.ui:14
-msgid "Add a command"
-msgstr "Opdracht toevoegen"
-
-#: src/plugins/gnome/valent-device-preferences-commands.ui:24
-msgid "Local Commands"
-msgstr "Lokale opdrachten"
-
-#: src/plugins/gnome/valent-device-preferences-commands.ui:25
-msgid "Commands that can be executed by remote devices"
-msgstr "Opdrachten die op het externe apparaat kunnen worden uitgevoerd"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:10
-msgid "Local Connectivity"
-msgstr "Lokale verbinding"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:11
-msgid "Send updates to the remote device"
-msgstr "Verstuur wijzigingen naar het externe apparaat"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:17
-msgid "Remote Connectivity"
-msgstr "Externe verbinding"
-
-#: src/plugins/gnome/valent-device-preferences-connectivity.ui:18
-msgid "Notify if the remote device loses connectivity"
-msgstr "Melding tonen als het externe apparaat geen verbinding meer heeft"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:10
-msgid "Remote Contacts"
-msgstr "Externe contactpersonen"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:11
-msgid "Import contacts from the remote device"
-msgstr "Importeer contactpersonen van het externe apparaat"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:17
-msgid "Local Contacts"
-msgstr "Lokale contactpersonen"
-
-#: src/plugins/gnome/valent-device-preferences-contacts.ui:18
-msgid "Share contacts with the remote device"
-msgstr "Deel contactpersonen met het externe apparaat"
-
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:12
-msgid "Status"
-msgstr "Status"
-
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:22
-msgid "Sync"
-msgstr "Synchroniseren"
-
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:42
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:47
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:62
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:40
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:45
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:60
 #: src/plugins/gnome/valent-preferences-dialog.ui:110
 #: src/plugins/gnome/valent-preferences-dialog.ui:114
 msgid "Plugins"
 msgstr "Plug-ins"
 
-#: src/plugins/gnome/valent-device-preferences-dialog.ui:55
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:53
 #: src/plugins/gnome/valent-preferences-dialog.ui:122
 msgid "No Plugins"
 msgstr "Er zijn geen plug-ins."
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:10
-msgid "Local Notifications"
-msgstr "Lokale meldingen"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:11
-msgid "Forward notifications to the remote device"
-msgstr "Verstuur meldingen naar het externe apparaat"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:16
-msgid "Intelligent Sync"
-msgstr "Slimme synchronisatie"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:17
-msgid "Notifications follow the active device"
-msgstr "Toon meldingen van het actieve apparaat"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:23
-msgid "Filter by Application"
-msgstr "Filteren op toepassing"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:90
-msgid "Filter applications"
-msgstr "Toepassingen filteren"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:116
-#: src/plugins/gnome/valent-messages-window.ui:223
-msgid "Search"
-msgstr "Zoeken"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:129
-msgid "Reset"
-msgstr "Standaardwaarden"
-
-#: src/plugins/gnome/valent-device-preferences-notification.ui:144
-msgid "No Applications"
-msgstr "Geen toepassingen"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:10
-msgid "Automatically Mount"
-msgstr "Automatisch aankoppelen"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:11
-msgid "Mount shared folders when the device connects"
-msgstr "Koppel gedeelde mappen aan als het apparaat verbinding maakt"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:17
-msgid "Local Files"
-msgstr "Lokale bestanden"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:18
-msgid "Share local files and directories"
-msgstr "Deel lokale bestanden en mappen"
-
-#: src/plugins/gnome/valent-device-preferences-sftp.ui:23
-msgid "Port"
-msgstr "Poort"
-
-#: src/plugins/gnome/valent-device-preferences-share.c:93
-msgid "Select download folder"
-msgstr "Kies een downloadmap"
-
-#: src/plugins/gnome/valent-device-preferences-share.ui:10
-msgid "Download directory"
-msgstr "Downloadmap"
-
-#: src/plugins/gnome/valent-device-preferences-share.ui:11
-msgid "Where received files are stored"
-msgstr "Waar ontvangen bestanden dienen te worden opgeslagen"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:11
-msgid "Incoming Calls"
-msgstr "Inkomende oproepen"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:12
-msgid "What to do when the phone rings"
-msgstr "Wat te doen als de telefoon overgaat"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:16
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:41
-#: src/plugins/gnome/valent-media-remote.ui:214
-msgid "Volume"
-msgstr "Volume"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:26
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:57
-msgid "Pause Media"
-msgstr "Media onderbreken"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:36
-msgid "Ongoing Calls"
-msgstr "Actieve gesprekken"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:37
-msgid "What to do when the phone is answered"
-msgstr "Wat te doen als de telefoon wordt opgenomen"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:51
-msgid "Mute Microphone"
-msgstr "Microfoon dempen"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:66
-msgid "Nothing"
-msgstr "Niets doen"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:67
-msgid "Lower"
-msgstr "Verlagen"
-
-#: src/plugins/gnome/valent-device-preferences-telephony.ui:68
-#: src/plugins/telephony/valent-telephony-plugin.c:399
-msgid "Mute"
-msgstr "Dempen"
 
 #: src/plugins/gnome/valent-device-row.c:246
 msgid "Connected"
@@ -927,6 +703,12 @@ msgstr "Pauzeren"
 msgid "Play"
 msgstr "Afspelen"
 
+#: src/plugins/gnome/valent-media-remote.ui:214
+#: src/plugins/gnome/valent-preferences-status-page.ui:70
+#: src/plugins/gnome/valent-preferences-status-page.ui:91
+msgid "Volume"
+msgstr "Volume"
+
 #: src/plugins/gnome/valent-media-remote.ui:222
 #: src/plugins/gnome/valent-menu-list.c:663
 #: src/plugins/gnome/valent-presenter-remote.ui:146
@@ -963,9 +745,17 @@ msgstr "Willekeurige modu_s"
 msgid "Media Remote"
 msgstr "Externe media"
 
-#: src/plugins/gnome/valent-media-window.ui:88
+#: src/plugins/gnome/valent-media-window.ui:87
 msgid "Player"
 msgstr "Mediaspeler"
+
+#: src/plugins/gnome/valent-media-window.ui:163
+msgid "Control Media"
+msgstr ""
+
+#: src/plugins/gnome/valent-media-window.ui:164
+msgid "Open a media player on a connected device"
+msgstr ""
 
 #: src/plugins/gnome/valent-menu-list.c:528
 msgid "No Actions"
@@ -1012,6 +802,11 @@ msgstr "Er is geen gesprek gekozen"
 msgid "Select or start a conversation"
 msgstr "Kies of begin een gesprek"
 
+#: src/plugins/gnome/valent-messages-window.ui:223
+#: src/plugins/gnome/valent-preferences-sync-page.ui:204
+msgid "Search"
+msgstr "Zoeken"
+
 #: src/plugins/gnome/valent-messages-window.ui:231
 msgid "Search messages…"
 msgstr "Berichten doorzoeken…"
@@ -1044,6 +839,28 @@ msgstr "Versie"
 msgid "Website"
 msgstr "Website"
 
+#: src/plugins/gnome/valent-preferences-command-editor.ui:8
+#: src/plugins/gnome/valent-preferences-other-page.c:84
+msgid "Edit Command"
+msgstr "Opdracht bewerken"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:19
+msgid "_Cancel"
+msgstr "_Annuleren"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:26
+msgid "_Save"
+msgstr "Op_slaan"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:54
+msgid "Command Line"
+msgstr "Opdrachtregel"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:72
+#: src/plugins/gnome/valent-preferences-dialog.c:357
+msgid "Remove"
+msgstr "Verwijderen"
+
 #. TRANSLATORS: %s is a list of forbidden characters
 #: src/plugins/gnome/valent-preferences-dialog.c:485
 #, c-format
@@ -1071,6 +888,7 @@ msgid "Volume Control"
 msgstr "Volumeregeling"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:635
+#: src/plugins/gnome/valent-preferences-sync-page.ui:58
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Notifications"
 msgstr "Meldingen"
@@ -1118,6 +936,212 @@ msgstr ""
 #: src/plugins/gnome/valent-preferences-dialog.ui:179
 msgid "Hostname or IP address"
 msgstr ""
+
+#: src/plugins/gnome/valent-preferences-other-page.c:250
+msgid "Select download folder"
+msgstr "Kies een downloadmap"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:15
+#: src/plugins/share/share.plugin.desktop.in:7
+msgid "Sharing"
+msgstr "Delen"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:18
+#, fuzzy
+msgid "Download Directory"
+msgstr "Downloadmap"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:19
+#, fuzzy
+msgid "Where to store received files"
+msgstr "Waar ontvangen bestanden dienen te worden opgeslagen"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:53
+#: src/plugins/gnome/valent-preferences-other-page.ui:82
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
+msgid "Commands"
+msgstr "Opdrachten"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:54
+#, fuzzy
+msgid "Define commands that can be executed by remote devices"
+msgstr "Opdrachten die op het externe apparaat kunnen worden uitgevoerd"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:61
+#, fuzzy
+msgid "Add command"
+msgstr "Opdracht toevoegen"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:75
+#, fuzzy
+msgid "No commands"
+msgstr "Opdrachten"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:9
+msgid "Status"
+msgstr "Status"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:18
+msgid "Full Battery Notification"
+msgstr "Volledig opgeladen"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:19
+msgid "Notify when the remote battery is full"
+msgstr "Melding tonen als de accu volledig is opgeladen"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:24
+#: src/plugins/gnome/valent-preferences-status-page.ui:44
+msgid "Level Threshold"
+msgstr "Niveaus"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:38
+msgid "Low Battery Notification"
+msgstr "Laag accuniveau"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:39
+msgid "Notify when the remote battery is low"
+msgstr "Melding tonen als de accu bijna leeg is"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:62
+#: src/plugins/telephony/telephony.plugin.desktop.in:7
+msgid "Telephony"
+msgstr "Oproepen"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:65
+msgid "Incoming Calls"
+msgstr "Inkomende oproepen"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:66
+msgid "What to do when the phone rings"
+msgstr "Wat te doen als de telefoon overgaat"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:79
+#: src/plugins/gnome/valent-preferences-status-page.ui:105
+msgid "Pause Media"
+msgstr "Media onderbreken"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:86
+msgid "Ongoing Calls"
+msgstr "Actieve gesprekken"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:87
+msgid "What to do when the phone is answered"
+msgstr "Wat te doen als de telefoon wordt opgenomen"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:100
+msgid "Mute Microphone"
+msgstr "Microfoon dempen"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:113
+#, fuzzy
+msgid "Notify if the device loses connectivity"
+msgstr "Melding tonen als het externe apparaat geen verbinding meer heeft"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:122
+msgid "Nothing"
+msgstr "Niets doen"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:123
+msgid "Lower"
+msgstr "Verlagen"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:124
+#: src/plugins/telephony/valent-telephony-plugin.c:399
+msgid "Mute"
+msgstr "Dempen"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:9
+msgid "Sync"
+msgstr "Synchroniseren"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:18
+msgid "Remote Clipboard"
+msgstr "Extern klembord"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:19
+msgid "Copy changes to the local clipboard"
+msgstr "Kopieer wijzigingen naar het lokale klembord"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:25
+msgid "Local Clipboard"
+msgstr "Lokaal klembord"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:26
+msgid "Report changes to the remote device"
+msgstr "Geef wijzigingen door aan het externe apparaat"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:39
+msgid "Remote Contacts"
+msgstr "Externe contactpersonen"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:40
+msgid "Import contacts from the remote device"
+msgstr "Importeer contactpersonen van het externe apparaat"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:46
+msgid "Local Contacts"
+msgstr "Lokale contactpersonen"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:47
+msgid "Share contacts with the remote device"
+msgstr "Deel contactpersonen met het externe apparaat"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:61
+msgid "Local Notifications"
+msgstr "Lokale meldingen"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:62
+msgid "Forward notifications to the remote device"
+msgstr "Verstuur meldingen naar het externe apparaat"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:67
+msgid "Intelligent Sync"
+msgstr "Slimme synchronisatie"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:68
+msgid "Notifications follow the active device"
+msgstr "Toon meldingen van het actieve apparaat"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:74
+msgid "Filter by Application"
+msgstr "Filteren op toepassing"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:98
+#: src/plugins/sftp/sftp.plugin.desktop.in:7
+msgid "Files"
+msgstr "Bestanden"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:101
+msgid "Automatically Mount"
+msgstr "Automatisch aankoppelen"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:102
+msgid "Mount shared folders when the device connects"
+msgstr "Koppel gedeelde mappen aan als het apparaat verbinding maakt"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:108
+msgid "Local Files"
+msgstr "Lokale bestanden"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:109
+msgid "Share local files and directories"
+msgstr "Deel lokale bestanden en mappen"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:114
+msgid "Port"
+msgstr "Poort"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:178
+msgid "Filter applications"
+msgstr "Toepassingen filteren"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:217
+msgid "Reset"
+msgstr "Standaardwaarden"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:232
+msgid "No Applications"
+msgstr "Geen toepassingen"
 
 #: src/plugins/gnome/valent-presenter-remote.c:89
 msgid "Select Presentation"
@@ -1419,10 +1443,6 @@ msgstr "PulseAudio"
 msgid "Integration with PulseAudio"
 msgstr "Integratie met PulseAudio"
 
-#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
-msgid "Commands"
-msgstr "Opdrachten"
-
 #: src/plugins/runcommand/runcommand.plugin.desktop.in:8
 msgid "Execute commands remotely"
 msgstr "Voer externe opdrachten uit"
@@ -1430,10 +1450,6 @@ msgstr "Voer externe opdrachten uit"
 #: src/plugins/runcommand/valent-runcommand-plugin.c:317
 msgid "Run Command"
 msgstr "Opdracht uitvoeren"
-
-#: src/plugins/sftp/sftp.plugin.desktop.in:7
-msgid "Files"
-msgstr "Bestanden"
 
 #: src/plugins/sftp/sftp.plugin.desktop.in:8
 msgid "Share files and directories with SFTP"
@@ -1455,10 +1471,6 @@ msgstr ""
 #: src/plugins/sftp/valent-sftp-plugin.c:798
 msgid "Mount"
 msgstr ""
-
-#: src/plugins/share/share.plugin.desktop.in:7
-msgid "Sharing"
-msgstr "Delen"
 
 #: src/plugins/share/share.plugin.desktop.in:8
 msgid "Direct file, link and text sharing"
@@ -1583,10 +1595,6 @@ msgstr "Systeemvolume"
 msgid "Monitor volume levels and microphones"
 msgstr "Bedien de volumeniveaus en microfonen"
 
-#: src/plugins/telephony/telephony.plugin.desktop.in:7
-msgid "Telephony"
-msgstr "Oproepen"
-
 #: src/plugins/telephony/telephony.plugin.desktop.in:8
 msgid "Be notified of incoming and ongoing calls"
 msgstr "Toon een melding bij inkomende en actieve gesprekken"
@@ -1651,6 +1659,21 @@ msgstr[1] ""
 #, fuzzy
 msgid "System Sounds"
 msgstr "Systeemvolume"
+
+#~ msgid "Remove the command"
+#~ msgstr "Opdracht verwijderen"
+
+#~ msgid "Local Commands"
+#~ msgstr "Lokale opdrachten"
+
+#~ msgid "Local Connectivity"
+#~ msgstr "Lokale verbinding"
+
+#~ msgid "Send updates to the remote device"
+#~ msgstr "Verstuur wijzigingen naar het externe apparaat"
+
+#~ msgid "Remote Connectivity"
+#~ msgstr "Externe verbinding"
 
 #~ msgid "Desktop Integration"
 #~ msgstr "Bureaubladintegratie"
