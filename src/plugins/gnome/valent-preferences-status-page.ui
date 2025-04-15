@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentPreferencesStatusPage" parent="ValentPreferencesPage">
+    <property name="name">status</property>
+    <property name="title" translatable="yes">Status</property>
+    <property name="icon-name">valent-status-symbolic</property>
+
+    <!-- Battery -->
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Battery</property>
+        <child>
+          <object class="AdwExpanderRow" id="full_notification">
+            <property name="title" translatable="yes">Full Battery Notification</property>
+            <property name="subtitle" translatable="yes">Notify when the remote battery is full</property>
+            <property name="selectable">0</property>
+            <property name="show-enable-switch">1</property>
+            <child>
+              <object class="AdwSpinRow">
+                <property name="title" translatable="yes">Level Threshold</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment" id="full_notification_level">
+                    <property name="lower">1</property>
+                    <property name="upper">100</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="low_notification">
+            <property name="title" translatable="yes">Low Battery Notification</property>
+            <property name="subtitle" translatable="yes">Notify when the remote battery is low</property>
+            <property name="selectable">0</property>
+            <property name="show-enable-switch">1</property>
+            <child>
+              <object class="AdwSpinRow">
+                <property name="title" translatable="yes">Level Threshold</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment" id="low_notification_level">
+                    <property name="lower">1</property>
+                    <property name="upper">100</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <!-- Telephony -->
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Telephony</property>
+        <child>
+          <object class="AdwExpanderRow">
+            <property name="title" translatable="yes">Incoming Calls</property>
+            <property name="subtitle" translatable="yes">What to do when the phone rings</property>
+            <property name="selectable">0</property>
+            <child>
+              <object class="AdwComboRow" id="ringing_volume">
+                <property name="title" translatable="yes">Volume</property>
+                <property name="model">volume-model</property>
+                <property name="expression">
+                  <lookup name="string" type="GtkStringObject"/>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSwitchRow" id="ringing_pause">
+                <property name="title" translatable="yes">Pause Media</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow">
+            <property name="title" translatable="yes">Ongoing Calls</property>
+            <property name="subtitle" translatable="yes">What to do when the phone is answered</property>
+            <property name="selectable">0</property>
+            <child>
+              <object class="AdwComboRow" id="talking_volume">
+                <property name="title" translatable="yes">Volume</property>
+                <property name="model">volume-model</property>
+                <property name="expression">
+                  <lookup name="string" type="GtkStringObject"/>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSwitchRow" id="talking_microphone">
+                <property name="title" translatable="yes">Mute Microphone</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSwitchRow" id="talking_pause">
+                <property name="title" translatable="yes">Pause Media</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwSwitchRow" id="offline_notification">
+            <property name="title" translatable="yes">Mobile Network</property>
+            <property name="subtitle" translatable="yes">Notify if the device loses connectivity</property>
+            <property name="selectable">0</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkStringList" id="volume-model">
+    <items>
+      <item translatable="yes">Nothing</item>
+      <item translatable="yes">Lower</item>
+      <item translatable="yes">Mute</item>
+    </items>
+  </object>
+</interface>
+

@@ -4,34 +4,122 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <interface domain="valent">
-  <template class="ValentNotificationPreferences" parent="ValentDevicePreferencesGroup">
+  <template class="ValentPreferencesSyncPage" parent="ValentPreferencesPage">
+    <property name="name">sync</property>
+    <property name="title" translatable="yes">Sync</property>
+    <property name="icon-name">valent-sync-symbolic</property>
+
+    <!-- Battery -->
     <child>
-      <object class="AdwExpanderRow" id="forward_notifications">
-        <property name="title" translatable="yes">Local Notifications</property>
-        <property name="subtitle" translatable="yes">Forward notifications to the remote device</property>
-        <property name="selectable">0</property>
-        <property name="show-enable-switch">1</property>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Clipboard</property>
         <child>
-          <object class="AdwSwitchRow" id="forward_when_active">
-            <property name="title" translatable="yes">Intelligent Sync</property>
-            <property name="subtitle" translatable="yes">Notifications follow the active device</property>
+          <object class="AdwSwitchRow" id="sync_pull">
+            <property name="title" translatable="yes">Remote Clipboard</property>
+            <property name="subtitle" translatable="yes">Copy changes to the local clipboard</property>
             <property name="selectable">0</property>
           </object>
         </child>
         <child>
-          <object class="AdwActionRow" id="application_row">
-            <property name="title" translatable="yes">Filter by Application</property>
-            <property name="activatable">1</property>
+          <object class="AdwSwitchRow" id="sync_push">
+            <property name="title" translatable="yes">Local Clipboard</property>
+            <property name="subtitle" translatable="yes">Report changes to the remote device</property>
             <property name="selectable">0</property>
-            <property name="action-name">preferences.applications</property>
-            <child type="suffix">
-              <object class="GtkImage">
-                <property name="accessible-role">presentation</property>
-                <property name="icon-name">go-next-symbolic</property>
-                <property name="valign">center</property>
-                <style>
-                  <class name="dim-label"/>
-                </style>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <!-- Connectivity -->
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Contacts</property>
+        <child>
+          <object class="AdwSwitchRow" id="remote_sync">
+            <property name="title" translatable="yes">Remote Contacts</property>
+            <property name="subtitle" translatable="yes">Import contacts from the remote device</property>
+            <property name="selectable">0</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="local_sync">
+            <property name="title" translatable="yes">Local Contacts</property>
+            <property name="subtitle" translatable="yes">Share contacts with the remote device</property>
+            <property name="selectable">0</property>
+            <property name="show-enable-switch">1</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <!-- Notifications -->
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Notifications</property>
+        <child>
+          <object class="AdwExpanderRow" id="forward_notifications">
+            <property name="title" translatable="yes">Local Notifications</property>
+            <property name="subtitle" translatable="yes">Forward notifications to the remote device</property>
+            <property name="selectable">0</property>
+            <property name="show-enable-switch">1</property>
+            <child>
+              <object class="AdwSwitchRow" id="forward_when_active">
+                <property name="title" translatable="yes">Intelligent Sync</property>
+                <property name="subtitle" translatable="yes">Notifications follow the active device</property>
+                <property name="selectable">0</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="application_row">
+                <property name="title" translatable="yes">Filter by Application</property>
+                <property name="activatable">1</property>
+                <property name="selectable">0</property>
+                <property name="action-name">preferences.applications</property>
+                <child type="suffix">
+                  <object class="GtkImage">
+                    <property name="accessible-role">presentation</property>
+                    <property name="icon-name">go-next-symbolic</property>
+                    <property name="valign">center</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <!-- Files -->
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Files</property>
+        <child>
+          <object class="AdwSwitchRow" id="auto_mount">
+            <property name="title" translatable="yes">Automatically Mount</property>
+            <property name="subtitle" translatable="yes">Mount shared folders when the device connects</property>
+            <property name="selectable">0</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="local_allow">
+            <property name="title" translatable="yes">Local Files</property>
+            <property name="subtitle" translatable="yes">Share local files and directories</property>
+            <property name="selectable">0</property>
+            <property name="show-enable-switch">1</property>
+            <child>
+              <object class="AdwSpinRow">
+                <property name="title" translatable="yes">Port</property>
+                <property name="selectable">0</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment" id="local_port">
+                    <property name="lower">0</property>
+                    <property name="upper">65535</property>
+                    <property name="step-increment">1</property>
+                  </object>
+                </property>
               </object>
             </child>
           </object>
@@ -161,3 +249,4 @@
     </child>
   </object>
 </interface>
+

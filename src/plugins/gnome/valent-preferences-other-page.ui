@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
+
+<interface domain="valent">
+  <template class="ValentPreferencesOtherPage" parent="ValentPreferencesPage">
+    <property name="name">other</property>
+    <property name="title" translatable="yes">Other</property>
+    <property name="icon-name">valent-settings-symbolic</property>
+
+    <!-- Sharing -->
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Sharing</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Download Directory</property>
+            <property name="subtitle" translatable="yes">Where to store received files</property>
+            <property name="activatable">1</property>
+            <property name="selectable">0</property>
+            <property name="action-name">preferences.select-download-folder</property>
+            <child type="suffix">
+              <object class="GtkBox">
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkLabel" id="download_folder_label">
+                    <property name="ellipsize">start</property>
+                    <property name="max-width-chars">16</property>
+                    <property name="valign">center</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImage">
+                    <property name="accessible-role">presentation</property>
+                    <property name="icon-name">folder-symbolic</property>
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <!-- Commands -->
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Commands</property>
+        <property name="description" translatable="yes">Define commands that can be executed by remote devices</property>
+        <property name="header-suffix">
+          <object class="GtkButton">
+            <property name="action-name">preferences.add-command</property>
+            <property name="icon-name">list-add-symbolic</property>
+            <property name="valign">start</property>
+            <accessibility>
+              <property name="label" translatable="yes">Add command</property>
+            </accessibility>
+            <style>
+              <class name="flat"/>
+            </style>
+          </object>
+        </property>
+        <child>
+          <object class="GtkListBox" id="command_list">
+            <property name="hexpand">1</property>
+            <property name="selection-mode">none</property>
+            <child type="placeholder">
+              <object class="GtkLabel">
+                <property name="height-request">54</property>
+                <property name="label" translatable="yes">No commands</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <accessibility>
+              <property name="label" translatable="yes">Commands</property>
+            </accessibility>
+            <style>
+              <class name="boxed-list"/>
+              <class name="boxed-list-placeholder"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
+

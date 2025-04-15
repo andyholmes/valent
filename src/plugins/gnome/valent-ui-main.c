@@ -10,16 +10,6 @@
 
 #include "valent-device-page.h"
 #include "valent-device-row.h"
-#include "valent-device-preferences-battery.h"
-#include "valent-device-preferences-clipboard.h"
-#include "valent-device-preferences-commands.h"
-#include "valent-device-preferences-connectivity.h"
-#include "valent-device-preferences-contacts.h"
-#include "valent-device-preferences-notification.h"
-#include "valent-device-preferences-sftp.h"
-#include "valent-device-preferences-share.h"
-#include "valent-device-preferences-telephony.h"
-#include "valent-device-preferences-group.h"
 #include "valent-device-preferences-dialog.h"
 #include "valent-gnome-application.h"
 #include "valent-input-remote.h"
@@ -29,6 +19,10 @@
 #include "valent-menu-stack.h"
 #include "valent-mixer-remote.h"
 #include "valent-preferences-dialog.h"
+#include "valent-preferences-page.h"
+#include "valent-preferences-other-page.h"
+#include "valent-preferences-status-page.h"
+#include "valent-preferences-sync-page.h"
 #include "valent-ui-utils-private.h"
 #include "valent-window.h"
 
@@ -54,17 +48,7 @@ valent_ui_init_types (void)
 {
   g_type_ensure (VALENT_TYPE_DEVICE_PAGE);
   g_type_ensure (VALENT_TYPE_DEVICE_ROW);
-  g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_GROUP);
   g_type_ensure (VALENT_TYPE_DEVICE_PREFERENCES_DIALOG);
-  g_type_ensure (VALENT_TYPE_BATTERY_PREFERENCES);
-  g_type_ensure (VALENT_TYPE_CLIPBOARD_PREFERENCES);
-  g_type_ensure (VALENT_TYPE_RUNCOMMAND_PREFERENCES);
-  g_type_ensure (VALENT_TYPE_CONNECTIVITY_REPORT_PREFERENCES);
-  g_type_ensure (VALENT_TYPE_CONTACTS_PREFERENCES);
-  g_type_ensure (VALENT_TYPE_NOTIFICATION_PREFERENCES);
-  g_type_ensure (VALENT_TYPE_SFTP_PREFERENCES);
-  g_type_ensure (VALENT_TYPE_SHARE_PREFERENCES);
-  g_type_ensure (VALENT_TYPE_TELEPHONY_PREFERENCES);
   g_type_ensure (VALENT_TYPE_GNOME_APPLICATION);
   g_type_ensure (VALENT_TYPE_INPUT_REMOTE);
   g_type_ensure (VALENT_TYPE_MEDIA_REMOTE);
@@ -73,6 +57,10 @@ valent_ui_init_types (void)
   g_type_ensure (VALENT_TYPE_MENU_STACK);
   g_type_ensure (VALENT_TYPE_MIXER_REMOTE);
   g_type_ensure (VALENT_TYPE_PREFERENCES_DIALOG);
+  g_type_ensure (VALENT_TYPE_PREFERENCES_PAGE);
+  g_type_ensure (VALENT_TYPE_PREFERENCES_OTHER_PAGE);
+  g_type_ensure (VALENT_TYPE_PREFERENCES_STATUS_PAGE);
+  g_type_ensure (VALENT_TYPE_PREFERENCES_SYNC_PAGE);
   g_type_ensure (VALENT_TYPE_WINDOW);
 }
 
@@ -103,3 +91,4 @@ valent_ui_init (void)
 
   return initialized;
 }
+
