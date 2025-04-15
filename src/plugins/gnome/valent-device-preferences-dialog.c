@@ -258,6 +258,8 @@ valent_device_preferences_dialog_constructed (GObject *object)
 {
   ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (object);
 
+  G_OBJECT_CLASS (valent_device_preferences_dialog_parent_class)->constructed (object);
+
   /* Device */
   g_object_bind_property (self->device, "name",
                           self,         "title",
@@ -273,8 +275,6 @@ valent_device_preferences_dialog_constructed (GObject *object)
                            G_CALLBACK (on_plugins_changed),
                            self, 0);
   on_plugins_changed (self->device, NULL, self);
-
-  G_OBJECT_CLASS (valent_device_preferences_dialog_parent_class)->constructed (object);
 }
 
 static void
