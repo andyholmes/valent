@@ -81,16 +81,10 @@ struct _ValentDevice
   GMenu           *menu;
 };
 
-static void       valent_device_reload_plugins  (ValentDevice   *device);
-static void       valent_device_update_plugins  (ValentDevice   *device);
-static gboolean   valent_device_supports_plugin (ValentDevice   *device,
-                                                 PeasPluginInfo *info);
-
-static void       g_action_group_iface_init     (GActionGroupInterface *iface);
+static void   g_action_group_iface_init (GActionGroupInterface *iface);
 
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_RESOURCE,
                                G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init))
-
 
 typedef enum {
   PROP_CONTEXT = 1,
@@ -290,10 +284,10 @@ valent_device_enable_plugin (ValentDevice *device,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
-  /* Register packet handlers */
+  /* Register packet handlers
+   */
   incoming = peas_plugin_info_get_external_data (plugin->info,
                                                  "DevicePluginIncoming");
-
   if (incoming != NULL)
     {
       g_auto (GStrv) capabilities = NULL;
@@ -315,9 +309,9 @@ valent_device_enable_plugin (ValentDevice *device,
         }
     }
 
-  /* Register plugin actions */
+  /* Register plugin actions
+   */
   actions = g_action_group_list_actions (G_ACTION_GROUP (plugin->extension));
-
   for (unsigned int i = 0; actions[i] != NULL; i++)
     {
       on_plugin_action_added (G_ACTION_GROUP (plugin->extension),
@@ -342,7 +336,8 @@ valent_device_enable_plugin (ValentDevice *device,
                     G_CALLBACK (on_plugin_action_state_changed),
                     plugin);
 
-  /* Bootstrap the newly instantiated plugin */
+  /* Bootstrap the newly instantiated plugin
+   */
   valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (plugin->extension),
                                      valent_device_get_state (device));
 }
@@ -358,41 +353,40 @@ valent_device_disable_plugin (ValentDevice *device,
   g_assert (plugin != NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 
-  /* Unregister actions */
+  /* Unregister actions
+   */
   g_signal_handlers_disconnect_by_data (plugin->extension, plugin);
   actions = g_action_group_list_actions (G_ACTION_GROUP (plugin->extension));
-
-  for (unsigned int i = 0; actions[i]; i++)
+  for (size_t i = 0; actions[i]; i++)
     {
       on_plugin_action_removed (G_ACTION_GROUP (plugin->extension),
                                 actions[i],
                                 plugin);
     }
 
-  /* Unregister packet handlers */
+  /* Unregister packet handlers
+   */
   incoming = peas_plugin_info_get_external_data (plugin->info,
                                                  "DevicePluginIncoming");
-
   if (incoming != NULL)
     {
       g_auto (GStrv) capabilities = NULL;
 
       capabilities = g_strsplit (incoming, ";", -1);
-
-      for (unsigned int i = 0; capabilities[i] != NULL; i++)
+      for (size_t i = 0; capabilities[i] != NULL; i++)
         {
-          const char *type = capabilities[i];
           GPtrArray *handlers = NULL;
 
-          if ((handlers = g_hash_table_lookup (device->handlers, type)) == NULL)
+          handlers = g_hash_table_lookup (device->handlers, capabilities[i]);
+          if (handlers == NULL)
             continue;
 
-          if (g_ptr_array_remove (handlers, plugin->extension) && handlers->len == 0)
-            g_hash_table_remove (device->handlers, type);
+          g_ptr_array_remove (handlers, plugin->extension);
+          if (handlers->len == 0)
+            g_hash_table_remove (device->handlers, capabilities[i]);
         }
     }
 
-  /* `::action-removed` needs to be emitted before the plugin is freed */
   valent_object_destroy (VALENT_OBJECT (plugin->extension));
   g_clear_object (&plugin->extension);
 }
@@ -409,6 +403,151 @@ on_plugin_enabled_changed (ValentPlugin *plugin)
     valent_device_disable_plugin (plugin->parent, plugin);
 }
 
+static gboolean
+valent_device_supports_plugin (ValentDevice   *device,
+                               PeasPluginInfo *info)
+{
+  const char **device_incoming;
+  const char **device_outgoing;
+  const char *in_str, *out_str;
+
+  g_assert (VALENT_IS_DEVICE (device));
+  g_assert (info != NULL);
+
+  if (!peas_engine_provides_extension (device->engine,
+                                       info,
+                                       VALENT_TYPE_DEVICE_PLUGIN))
+    return FALSE;
+
+  /* Plugins that don't handle packets aren't dependent on capabilities
+   */
+  in_str = peas_plugin_info_get_external_data (info, "DevicePluginIncoming");
+  out_str = peas_plugin_info_get_external_data (info, "DevicePluginOutgoing");
+  if (in_str == NULL && out_str == NULL)
+    return TRUE;
+
+  /* If capabilities are ready, check if the plugin outgoing matches the
+   * incoming device or vice-versa.
+   */
+  device_incoming = (const char **)device->incoming_capabilities;
+  device_outgoing = (const char **)device->outgoing_capabilities;
+  if (device_incoming == NULL || device_outgoing == NULL)
+    return FALSE;
+
+  if (out_str != NULL)
+    {
+      g_auto (GStrv) plugin_outgoing = NULL;
+
+      plugin_outgoing = g_strsplit (out_str, ";", -1);
+      for (size_t i = 0; plugin_outgoing[i] != NULL; i++)
+        {
+          if (g_strv_contains (device_incoming, plugin_outgoing[i]))
+            return TRUE;
+        }
+    }
+
+  if (in_str != NULL)
+    {
+      g_auto (GStrv) plugin_incoming = NULL;
+
+      plugin_incoming = g_strsplit (in_str, ";", -1);
+      for (size_t i = 0; plugin_incoming[i] != NULL; i++)
+        {
+          if (g_strv_contains (device_outgoing, plugin_incoming[i]))
+            return TRUE;
+        }
+    }
+
+  return FALSE;
+}
+
+static void
+on_load_plugin (PeasEngine     *engine,
+                PeasPluginInfo *plugin_info,
+                ValentDevice   *self)
+{
+  ValentPlugin *plugin;
+
+  g_assert (PEAS_IS_ENGINE (engine));
+  g_assert (plugin_info != NULL);
+  g_assert (VALENT_IS_DEVICE (self));
+
+  if (!valent_device_supports_plugin (self, plugin_info))
+    return;
+
+  VALENT_NOTE ("%s: %s",
+               self->name,
+               peas_plugin_info_get_module_name (plugin_info));
+
+  plugin = valent_plugin_new (self, self->context, plugin_info,
+                              G_CALLBACK (on_plugin_enabled_changed));
+  g_hash_table_insert (self->plugins, plugin_info, plugin);
+
+  if (valent_plugin_get_enabled (plugin))
+    valent_device_enable_plugin (self, plugin);
+
+  g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_PLUGINS]);
+}
+
+static void
+on_unload_plugin (PeasEngine     *engine,
+                  PeasPluginInfo *plugin_info,
+                  ValentDevice   *device)
+{
+  g_assert (PEAS_IS_ENGINE (engine));
+  g_assert (plugin_info != NULL);
+  g_assert (VALENT_IS_DEVICE (device));
+
+  if (g_hash_table_remove (device->plugins, plugin_info))
+    {
+      VALENT_NOTE ("%s: %s",
+                   device->name,
+                   peas_plugin_info_get_module_name (plugin_info));
+      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PLUGINS]);
+    }
+}
+
+static void
+valent_device_reload_plugins (ValentDevice *self)
+{
+  unsigned int n_plugins = 0;
+
+  g_assert (VALENT_IS_DEVICE (self));
+
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (self->engine));
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) plugin_info = NULL;
+
+      plugin_info = g_list_model_get_item (G_LIST_MODEL (self->engine), i);
+      if (!g_hash_table_contains (self->plugins, plugin_info))
+        on_load_plugin (self->engine, plugin_info, self);
+      else if (!valent_device_supports_plugin (self, plugin_info))
+        on_unload_plugin (self->engine, plugin_info, self);
+    }
+}
+
+static void
+valent_device_update_plugins (ValentDevice *self)
+{
+  ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
+  GHashTableIter iter;
+  ValentPlugin *plugin;
+
+  g_assert (VALENT_IS_DEVICE (self));
+
+  state = valent_device_get_state (self);
+
+  g_hash_table_iter_init (&iter, self->plugins);
+  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
+    {
+      if (plugin->extension == NULL)
+        continue;
+
+      valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (plugin->extension),
+                                         state);
+    }
+}
 
 /*
  * Private pairing methods
@@ -606,8 +745,6 @@ valent_device_handle_pair (ValentDevice *device,
         {
           int64_t timestamp = 0;
 
-          valent_device_reset_pair (device);
-
           VALENT_NOTE ("Pairing requested by \"%s\"", device->name);
 
           if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8 &&
@@ -618,6 +755,7 @@ valent_device_handle_pair (ValentDevice *device,
               VALENT_EXIT;
             }
 
+          valent_device_reset_pair (device);
           device->pair_timestamp = timestamp;
           device->incoming_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
                                                          valent_device_reset_pair,
@@ -654,7 +792,9 @@ valent_device_handle_identity (ValentDevice *device,
 
   valent_object_lock (VALENT_OBJECT (device));
 
-  /* Device ID, which MUST exist and MUST match the construct-time value */
+  /* The ID must match the construct-time value, while the device name is
+   * assumed to be validated already.
+   */
   if (!valent_packet_get_string (packet, "deviceId", &device_id) ||
       !g_str_equal (device->id, device_id))
     {
@@ -665,16 +805,25 @@ valent_device_handle_identity (ValentDevice *device,
       VALENT_EXIT;
     }
 
-  /* Device Name */
   if (!valent_packet_get_string (packet, "deviceName", &device_name))
-    device_name = "Unnamed";
+    {
+      g_critical ("%s(): expected \"deviceName\" field holding a string",
+                  G_STRFUNC);
+      valent_object_unlock (VALENT_OBJECT (device));
+      VALENT_EXIT;
+    }
 
   if (g_set_str (&device->name, device_name))
     g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_NAME]);
 
-  /* Device Type */
+  /* The device type is only used to generate an icon name.
+   */
   if (!valent_packet_get_string (packet, "deviceType", &device_type))
-    device_type = DEVICE_TYPE_DESKTOP;
+    {
+      g_warning ("%s(): expected \"deviceType\" field holding a string",
+                  G_STRFUNC);
+      device_type = DEVICE_TYPE_DESKTOP;
+    }
 
   if (g_set_str (&device->type, device_type))
     {
@@ -695,120 +844,74 @@ valent_device_handle_identity (ValentDevice *device,
         g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_ICON_NAME]);
     }
 
-  /* Generally, these should be static, but could change if the connection type
-   * changes between eg. TCP and Bluetooth */
+  /* In practice these are static, but in principle could change with the
+   * channel (e.g. TCP and Bluetooth).
+   */
   g_clear_pointer (&device->incoming_capabilities, g_strfreev);
-  device->incoming_capabilities = valent_packet_dup_strv (packet,
-                                                          "incomingCapabilities");
+  device->incoming_capabilities =
+    valent_packet_dup_strv (packet, "incomingCapabilities");
 
   g_clear_pointer (&device->outgoing_capabilities, g_strfreev);
-  device->outgoing_capabilities = valent_packet_dup_strv (packet,
-                                                          "outgoingCapabilities");
+  device->outgoing_capabilities =
+    valent_packet_dup_strv (packet, "outgoingCapabilities");
 
-  /* Protocol Version */
+  /* It's not clear if this is only a required field for TLS connections,
+   * or if it applies to Bluetooth as well.
+   */
   if (!valent_packet_get_int (packet, "protocolVersion", &device->protocol_version))
     device->protocol_version = VALENT_NETWORK_PROTOCOL_V8;
 
   valent_object_unlock (VALENT_OBJECT (device));
 
-  /* Recheck plugins and load or unload if capabilities have changed */
+  /* Recheck plugins against current capabilities
+   */
   valent_device_reload_plugins (device);
 
   VALENT_EXIT;
 }
 
 static void
-valent_device_handle_packet (ValentDevice *device,
+valent_device_handle_packet (ValentDevice *self,
                              JsonNode     *packet)
 {
   GPtrArray *handlers = NULL;
   const char *type;
 
-  g_assert (VALENT_IS_DEVICE (device));
+  g_assert (VALENT_IS_DEVICE (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  VALENT_JSON (packet, device->name);
+  VALENT_JSON (packet, self->name);
 
   type = valent_packet_get_type (packet);
+  if G_UNLIKELY (g_str_equal (type, "kdeconnect.pair"))
+    {
+      valent_device_handle_pair (self, packet);
+      return;
+    }
 
-  if G_UNLIKELY (strcmp (type, "kdeconnect.pair") == 0)
+  if G_UNLIKELY (!self->paired)
     {
-      valent_device_handle_pair (device, packet);
+      g_debug ("%s(): unexpected \"%s\" packet from unpaired device %s",
+               G_STRFUNC, type, self->name);
+      valent_device_send_pair (self, FALSE);
+      return;
     }
-  else if G_UNLIKELY (!device->paired)
-    {
-      valent_device_send_pair (device, FALSE);
-    }
-  else if ((handlers = g_hash_table_lookup (device->handlers, type)) != NULL)
-    {
-      for (unsigned int i = 0, len = handlers->len; i < len; i++)
-        {
-          ValentDevicePlugin *handler = g_ptr_array_index (handlers, i);
 
-          valent_device_plugin_handle_packet (handler, type, packet);
-        }
-    }
-  else
+  handlers = g_hash_table_lookup (self->handlers, type);
+  if G_UNLIKELY (handlers == NULL)
     {
-      VALENT_NOTE ("%s: Unsupported packet \"%s\"", device->name, type);
+      g_debug ("%s(): unsupported \"%s\" packet from %s",
+               G_STRFUNC, type, self->name);
+      return;
+    }
+
+  for (unsigned int i = 0, len = handlers->len; i < len; i++)
+    {
+      ValentDevicePlugin *handler = g_ptr_array_index (handlers, i);
+
+      valent_device_plugin_handle_packet (handler, type, packet);
     }
 }
-
-/*
- * ValentEngine callbacks
- */
-static void
-on_load_plugin (PeasEngine     *engine,
-                PeasPluginInfo *info,
-                ValentDevice   *self)
-{
-  ValentPlugin *plugin;
-
-  g_assert (PEAS_IS_ENGINE (engine));
-  g_assert (info != NULL);
-  g_assert (VALENT_IS_DEVICE (self));
-
-  if (!valent_device_supports_plugin (self, info))
-    return;
-
-  if (g_hash_table_contains (self->plugins, info))
-    return;
-
-  VALENT_NOTE ("%s: %s",
-               self->name,
-               peas_plugin_info_get_module_name (info));
-
-  /* Register the plugin & data (hash tables are ref owners) */
-  plugin = valent_plugin_new (self, self->context, info,
-                              G_CALLBACK (on_plugin_enabled_changed));
-  g_hash_table_insert (self->plugins, info, plugin);
-
-  if (valent_plugin_get_enabled (plugin))
-    valent_device_enable_plugin (self, plugin);
-
-  g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_PLUGINS]);
-}
-
-static void
-on_unload_plugin (PeasEngine     *engine,
-                  PeasPluginInfo *info,
-                  ValentDevice   *device)
-{
-  g_assert (PEAS_IS_ENGINE (engine));
-  g_assert (info != NULL);
-  g_assert (VALENT_IS_DEVICE (device));
-
-  if (!g_hash_table_contains (device->plugins, info))
-    return;
-
-  VALENT_NOTE ("%s: %s",
-               device->name,
-               peas_plugin_info_get_module_name (info));
-
-  g_hash_table_remove (device->plugins, info);
-  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PLUGINS]);
-}
-
 
 /*
  * GActions
@@ -1296,25 +1399,27 @@ valent_device_send_packet (ValentDevice        *device,
   if G_UNLIKELY (device->channel == NULL)
     {
       valent_object_unlock (VALENT_OBJECT (device));
-      return g_task_report_new_error (device,
-                                      callback,
-                                      user_data,
-                                      valent_device_send_packet,
-                                      G_IO_ERROR,
-                                      G_IO_ERROR_NOT_CONNECTED,
-                                      "%s is disconnected", device->name);
+      g_task_report_new_error (device,
+                               callback,
+                               user_data,
+                               valent_device_send_packet,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_CONNECTED,
+                               "%s is disconnected", device->name);
+      return;
     }
 
   if G_UNLIKELY (!device->paired)
     {
       valent_object_unlock (VALENT_OBJECT (device));
-      return g_task_report_new_error (device,
-                                      callback,
-                                      user_data,
-                                      valent_device_send_packet,
-                                      G_IO_ERROR,
-                                      G_IO_ERROR_PERMISSION_DENIED,
-                                      "%s is unpaired", device->name);
+      g_task_report_new_error (device,
+                               callback,
+                               user_data,
+                               valent_device_send_packet,
+                               G_IO_ERROR,
+                               G_IO_ERROR_PERMISSION_DENIED,
+                               "%s is unpaired", device->name);
+      return;
     }
 
   task = g_task_new (device, cancellable, callback, user_data);
@@ -1389,9 +1494,10 @@ read_packet_cb (ValentChannel *channel,
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_DEVICE (device));
 
+  /* If successful, queue another read before handling the packet. Otherwise
+   * drop our reference if it's still the active channel.
+   */
   packet = valent_channel_read_packet_finish (channel, result, &error);
-
-  /* On success, queue another read before handling the packet */
   if (packet != NULL)
     {
       valent_channel_read_packet (channel,
@@ -1400,8 +1506,6 @@ read_packet_cb (ValentChannel *channel,
                                   g_object_ref (device));
       valent_device_handle_packet (device, packet);
     }
-
-  /* On failure, drop our reference if it's still the active channel */
   else
     {
       VALENT_NOTE ("%s: %s", device->name, error->message);
@@ -1467,6 +1571,7 @@ valent_device_set_channel (ValentDevice  *device,
                                   cancellable,
                                   (GAsyncReadyCallback)read_packet_cb,
                                   g_object_ref (device));
+      is_connected = TRUE;
     }
 
   valent_object_unlock (VALENT_OBJECT (device));
@@ -1923,137 +2028,5 @@ valent_device_validate_name (const char *name)
     }
 
   return has_nonwhitespace;
-}
-
-/*< private >
- * valent_device_reload_plugins:
- * @device: a `ValentDevice`
- *
- * Reload all plugins.
- *
- * Check each available plugin and load or unload them if the required
- * capabilities have changed.
- */
-static void
-valent_device_reload_plugins (ValentDevice *device)
-{
-  unsigned int n_plugins = 0;
-
-  g_assert (VALENT_IS_DEVICE (device));
-
-  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (device->engine));
-
-  for (unsigned int i = 0; i < n_plugins; i++)
-    {
-      g_autoptr (PeasPluginInfo) info = NULL;
-
-      info = g_list_model_get_item (G_LIST_MODEL (device->engine), i);
-
-      if (valent_device_supports_plugin (device, info))
-        on_load_plugin (device->engine, info, device);
-      else
-        on_unload_plugin (device->engine, info, device);
-    }
-}
-
-/*< private >
- * valent_device_update_plugins:
- * @device: a `ValentDevice`
- *
- * Update all plugins.
- *
- * Call [method@Valent.DevicePlugin.update_state] on each enabled plugin.
- */
-static void
-valent_device_update_plugins (ValentDevice *device)
-{
-  ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
-  GHashTableIter iter;
-  ValentPlugin *plugin;
-
-  g_assert (VALENT_IS_DEVICE (device));
-
-  state = valent_device_get_state (device);
-
-  g_hash_table_iter_init (&iter, device->plugins);
-
-  while (g_hash_table_iter_next (&iter, NULL, (void **)&plugin))
-    {
-      if (plugin->extension == NULL)
-        continue;
-
-      valent_device_plugin_update_state (VALENT_DEVICE_PLUGIN (plugin->extension),
-                                         state);
-    }
-}
-
-/*< private >
- * valent_device_supports_plugin:
- * @device: a `ValentDevice`
- * @info: a `PeasPluginInfo`
- *
- * Check if @device supports the plugin described by @info.
- *
- * Returns: %TRUE if supported, or %FALSE if not
- */
-static gboolean
-valent_device_supports_plugin (ValentDevice   *device,
-                               PeasPluginInfo *info)
-{
-  const char **device_incoming;
-  const char **device_outgoing;
-  const char *in_str, *out_str;
-
-  g_assert (VALENT_IS_DEVICE (device));
-  g_assert (info != NULL);
-
-  if (!peas_engine_provides_extension (device->engine,
-                                       info,
-                                       VALENT_TYPE_DEVICE_PLUGIN))
-    return FALSE;
-
-  /* Packet-less plugins aren't dependent on device capabilities */
-  in_str = peas_plugin_info_get_external_data (info, "DevicePluginIncoming");
-  out_str = peas_plugin_info_get_external_data (info, "DevicePluginOutgoing");
-
-  if (in_str == NULL && out_str == NULL)
-    return TRUE;
-
-  /* Device hasn't supplied an identity packet yet */
-  device_incoming = (const char **)device->incoming_capabilities;
-  device_outgoing = (const char **)device->outgoing_capabilities;
-
-  if (device_incoming == NULL || device_outgoing == NULL)
-    return FALSE;
-
-  /* Check if outgoing from plugin matches incoming from device */
-  if (out_str != NULL)
-    {
-      g_auto (GStrv) plugin_outgoing = NULL;
-
-      plugin_outgoing = g_strsplit(out_str, ";", -1);
-
-      for (int i = 0; plugin_outgoing[i]; i++)
-        {
-          if (g_strv_contains (device_incoming, plugin_outgoing[i]))
-            return TRUE;
-        }
-    }
-
-  /* Check if incoming from plugin matches outgoing from device */
-  if (in_str != NULL)
-    {
-      g_auto (GStrv) plugin_incoming = NULL;
-
-      plugin_incoming = g_strsplit(in_str, ";", -1);
-
-      for (int i = 0; plugin_incoming[i]; i++)
-        {
-          if (g_strv_contains (device_outgoing, plugin_incoming[i]))
-            return TRUE;
-        }
-    }
-
-  return FALSE;
 }
 
