@@ -357,7 +357,7 @@ valent_object_unlock (ValentObject *object)
 }
 
 /**
- * valent_object_ref_cancellable:
+ * valent_object_ref_cancellable: (get-property cancellable)
  * @object: a `ValentObject`
  *
  * Get a [class@Gio.Cancellable] for the object.
@@ -378,59 +378,6 @@ valent_object_ref_cancellable (ValentObject *object)
   if (priv->cancellable == NULL)
     priv->cancellable = g_cancellable_new ();
   ret = g_object_ref (priv->cancellable);
-  valent_object_private_unlock (priv);
-
-  return g_steal_pointer (&ret);
-}
-
-/**
- * valent_object_chain_cancellable:
- * @object: a `ValentObject`
- * @cancellable: (nullable): a `GCancellable`
- *
- * Chain a cancellable to the object's cancellable.
- *
- * This connects @cancellable to @objects's [signal@Gio.Cancellable::cancelled]
- * so that if @object is destroyed, @cancellable will be cancelled. If
- * @cancellable is %NULL, this method will return a new reference to
- * [property@Valent.Object:cancellable], otherwise it returns a new reference to
- * @cancellable.
- *
- * Typically the returned [class@Gio.Cancellable] is passed to an internal
- * asynchronous operation, to ensure it is cancelled if @cancellable is
- * triggered or @object is destroyed.
- *
- * Returns: (transfer full) (not nullable): a `GCancellable`
- *
- * Since: 1.0
- */
-GCancellable *
-valent_object_chain_cancellable (ValentObject *object,
-                                 GCancellable *cancellable)
-{
-  ValentObjectPrivate *priv = valent_object_get_instance_private (object);
-  GCancellable *ret;
-
-  g_return_val_if_fail (VALENT_IS_OBJECT (object), NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-
-  valent_object_private_lock (priv);
-  if (priv->cancellable == NULL)
-    priv->cancellable = g_cancellable_new ();
-
-  if (cancellable != NULL)
-    {
-      g_signal_connect_object (priv->cancellable,
-                               "cancelled",
-                               G_CALLBACK (g_cancellable_cancel),
-                               cancellable,
-                               G_CONNECT_SWAPPED);
-      ret = g_object_ref (cancellable);
-    }
-  else
-    {
-      ret = g_object_ref (priv->cancellable);
-    }
   valent_object_private_unlock (priv);
 
   return g_steal_pointer (&ret);

@@ -291,17 +291,10 @@ valent_device_manager_enable_plugin (ValentDeviceManager *self,
 
   if (G_IS_ASYNC_INITABLE (plugin->extension))
     {
-      g_autoptr (GCancellable) destroy = NULL;
-
-      /* Use a cancellable in case the plugin is unloaded before the operation
-       * completes. Chain to the manager in case it's destroyed. */
       plugin->cancellable = g_cancellable_new ();
-      destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
-                                                 plugin->cancellable);
-
       g_async_initable_init_async (G_ASYNC_INITABLE (plugin->extension),
                                    G_PRIORITY_DEFAULT,
-                                   destroy,
+                                   plugin->cancellable,
                                    (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                    NULL);
     }
@@ -314,6 +307,9 @@ valent_device_manager_disable_plugin (ValentDeviceManager *self,
   g_assert (VALENT_IS_DEVICE_MANAGER (self));
   g_assert (plugin != NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
+
+  g_cancellable_cancel (plugin->cancellable);
+  g_clear_object (&plugin->cancellable);
 
   if (plugin->extension != NULL)
     {

@@ -1287,7 +1287,6 @@ valent_device_send_packet (ValentDevice        *device,
                            gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
 
   g_return_if_fail (VALENT_IS_DEVICE (device));
   g_return_if_fail (VALENT_IS_PACKET (packet));
@@ -1318,17 +1317,14 @@ valent_device_send_packet (ValentDevice        *device,
                                       "%s is unpaired", device->name);
     }
 
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (device),
-                                             cancellable);
-  task = g_task_new (device, destroy, callback, user_data);
+  task = g_task_new (device, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_device_send_packet);
-
-  VALENT_JSON (packet, device->name);
   valent_channel_write_packet (device->channel,
                                packet,
-                               destroy,
+                               cancellable,
                                (GAsyncReadyCallback)valent_device_send_packet_cb,
                                g_steal_pointer (&task));
+  VALENT_JSON (packet, device->name);
 
   valent_object_unlock (VALENT_OBJECT (device));
 }

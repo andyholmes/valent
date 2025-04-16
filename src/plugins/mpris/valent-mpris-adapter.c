@@ -200,21 +200,16 @@ valent_mpris_adapter_init_async (GAsyncInitable      *initable,
 {
   ValentMPRISAdapter *self = VALENT_MPRIS_ADAPTER (initable);
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_MPRIS_ADAPTER (self));
 
-  /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
-                                             cancellable);
-
-  task = g_task_new (initable, destroy, callback, user_data);
+  task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_mpris_adapter_init_async);
 
   self->connection = g_bus_get_sync (G_BUS_TYPE_SESSION,
-                                     destroy,
+                                     cancellable,
                                      &error);
 
   if (self->connection == NULL)
@@ -234,7 +229,7 @@ valent_mpris_adapter_init_async (GAsyncInitable      *initable,
                           NULL,
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
-                          destroy,
+                          cancellable,
                           (GAsyncReadyCallback)list_names_cb,
                           g_steal_pointer (&task));
 }

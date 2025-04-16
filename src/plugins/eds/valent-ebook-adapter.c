@@ -157,20 +157,15 @@ valent_ebook_adapter_init_async (GAsyncInitable        *initable,
                                  gpointer               user_data)
 {
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
 
   g_assert (VALENT_IS_EBOOK_ADAPTER (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
-                                             cancellable);
-
-  task = g_task_new (initable, destroy, callback, user_data);
+  task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_ebook_adapter_init_async);
 
-  e_source_registry_new (destroy,
+  e_source_registry_new (cancellable,
                          e_source_registry_new_cb,
                          g_steal_pointer (&task));
 }

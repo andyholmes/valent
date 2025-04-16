@@ -451,16 +451,11 @@ valent_bluez_channel_service_init_async (GAsyncInitable      *initable,
                                          gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
 
   g_assert (VALENT_IS_CHANNEL_SERVICE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
-                                             cancellable);
-
-  task = g_task_new (initable, destroy, callback, user_data);
+  task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_bluez_channel_service_init_async);
 
@@ -470,7 +465,7 @@ valent_bluez_channel_service_init_async (GAsyncInitable      *initable,
                             "org.bluez",
                             "/",
                             "org.freedesktop.DBus.ObjectManager",
-                            destroy,
+                            cancellable,
                             (GAsyncReadyCallback)g_dbus_proxy_new_for_bus_cb,
                             g_steal_pointer (&task));
 }

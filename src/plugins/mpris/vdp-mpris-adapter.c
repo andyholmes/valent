@@ -184,18 +184,14 @@ on_device_state_changed (ValentDevice    *device,
 
   if (available && self->cancellable == NULL)
     {
-      g_autoptr (GCancellable) cancellable = NULL;
-
-      cancellable = g_cancellable_new ();
-      self->cancellable = valent_object_chain_cancellable (VALENT_OBJECT (self),
-                                                           cancellable);
+      self->cancellable = g_cancellable_new ();
       vdp_mpris_adapter_request_player_list (self);
     }
   else if (!available && self->cancellable != NULL)
     {
-      g_hash_table_remove_all (self->players);
       g_cancellable_cancel (self->cancellable);
       g_clear_object (&self->cancellable);
+      g_hash_table_remove_all (self->players);
     }
 }
 

@@ -26,6 +26,7 @@
 
 typedef struct
 {
+  GCancellable        *cancellable;
   GError              *error;
   char                *id;
   double               progress;
@@ -84,6 +85,7 @@ valent_transfer_finalize (GObject *object)
   ValentTransferPrivate *priv = valent_transfer_get_instance_private (self);
 
   valent_object_lock (VALENT_OBJECT (self));
+  g_clear_object (&priv->cancellable);
   g_clear_error (&priv->error);
   g_clear_pointer (&priv->id, g_free);
   valent_object_unlock (VALENT_OBJECT (self));
@@ -422,14 +424,22 @@ valent_transfer_execute (ValentTransfer      *transfer,
       VALENT_EXIT;
     }
 
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (transfer),
-                                             cancellable);
+  g_clear_object (&priv->cancellable);
+  priv->cancellable = g_cancellable_new ();
+  if (cancellable != NULL)
+    {
+      g_signal_connect_object (cancellable,
+                               "cancelled",
+                               G_CALLBACK (g_cancellable_cancel),
+                               priv->cancellable,
+                               G_CONNECT_SWAPPED);
+    }
 
   task = g_task_new (transfer, destroy, callback, user_data);
   g_task_set_source_tag (task, valent_transfer_execute);
 
   VALENT_TRANSFER_GET_CLASS (transfer)->execute (transfer,
-                                                 destroy,
+                                                 priv->cancellable,
                                                  valent_transfer_execute_cb,
                                                  g_steal_pointer (&task));
 
@@ -487,14 +497,13 @@ valent_transfer_execute_finish (ValentTransfer  *transfer,
 void
 valent_transfer_cancel (ValentTransfer *transfer)
 {
-  g_autoptr (GCancellable) cancellable = NULL;
+  ValentTransferPrivate *priv = valent_transfer_get_instance_private (transfer);
 
   VALENT_ENTRY;
 
   g_return_if_fail (VALENT_IS_TRANSFER (transfer));
 
-  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (transfer));
-  g_cancellable_cancel (cancellable);
+  g_cancellable_cancel (priv->cancellable);
 
   VALENT_EXIT;
 }

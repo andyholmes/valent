@@ -245,22 +245,17 @@ valent_fdo_notifications_init_async (GAsyncInitable             *initable,
                                      gpointer                    user_data)
 {
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
   g_autoptr (GDBusConnection) connection = NULL;
   g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_FDO_SESSION (initable));
 
-  /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
-                                             cancellable);
-
-  task = g_task_new (initable, destroy, callback, user_data);
+  task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_fdo_notifications_init_async);
 
   /* Get a bus address */
-  connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, destroy, &error);
+  connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, cancellable, &error);
 
   if (connection == NULL)
     {
@@ -280,7 +275,7 @@ valent_fdo_notifications_init_async (GAsyncInitable             *initable,
                           G_VARIANT_TYPE ("(o)"),
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
-                          destroy,
+                          cancellable,
                           (GAsyncReadyCallback)get_user_cb,
                           g_steal_pointer (&task));
 }
