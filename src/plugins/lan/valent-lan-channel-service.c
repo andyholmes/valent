@@ -1242,14 +1242,9 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (initable);
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
-                                             cancellable);
 
   self->network_available = g_network_monitor_get_network_available (self->monitor);
   g_signal_connect_object (self->monitor,
@@ -1257,7 +1252,7 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
                            G_CALLBACK (on_network_changed),
                            self, 0);
 
-  task = g_task_new (initable, destroy, callback, user_data);
+  task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_lan_channel_service_init_async);
   g_task_run_in_thread (task, valent_lan_channel_service_init_task);

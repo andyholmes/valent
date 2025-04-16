@@ -215,12 +215,9 @@ valent_component_enable_plugin (ValentComponent *self,
       g_autoptr (GCancellable) destroy = NULL;
 
       plugin->cancellable = g_cancellable_new ();
-      destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
-                                                 plugin->cancellable);
-
       g_async_initable_init_async (initable,
                                    G_PRIORITY_DEFAULT,
-                                   destroy,
+                                   plugin->cancellable,
                                    g_async_initable_init_async_cb,
                                    NULL);
     }
@@ -231,10 +228,7 @@ valent_component_enable_plugin (ValentComponent *self,
       g_autoptr (GError) error = NULL;
 
       plugin->cancellable = g_cancellable_new ();
-      destroy = valent_object_chain_cancellable (VALENT_OBJECT (self),
-                                                 plugin->cancellable);
-
-      if (!g_initable_init (initable, destroy, &error) &&
+      if (!g_initable_init (initable, plugin->cancellable, &error) &&
           !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         {
           g_warning ("%s initialization failed: %s",

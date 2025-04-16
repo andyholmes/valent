@@ -209,11 +209,7 @@ on_device_state_changed (ValentDevice         *device,
 
   if (available && self->cancellable == NULL)
     {
-      g_autoptr (GCancellable) cancellable = NULL;
-
-      cancellable = g_cancellable_new ();
-      self->cancellable = valent_object_chain_cancellable (VALENT_OBJECT (self),
-                                                           cancellable);
+      self->cancellable = g_cancellable_new ();
       valent_contacts_device_request_all_uids_timestamps (self);
     }
   else if (!available && self->cancellable != NULL)

@@ -112,16 +112,11 @@ valent_xdp_session_init_async (GAsyncInitable      *initable,
                                gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
   g_autoptr (XdpParent) parent = NULL;
 
   g_assert (VALENT_IS_XDP_SESSION (initable));
 
-  /* Cancel initialization if the object is destroyed */
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
-                                             cancellable);
-
-  task = g_task_new (initable, destroy, callback, user_data);
+  task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_xdp_session_init_async);
 
@@ -129,7 +124,7 @@ valent_xdp_session_init_async (GAsyncInitable      *initable,
   xdp_portal_session_monitor_start (valent_xdp_get_default (),
                                     parent,
                                     XDP_SESSION_MONITOR_FLAG_NONE,
-                                    destroy,
+                                    cancellable,
                                     xdp_portal_session_monitor_start_cb,
                                     g_steal_pointer (&task));
 }

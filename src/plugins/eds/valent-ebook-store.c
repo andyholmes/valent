@@ -251,21 +251,17 @@ valent_ebook_store_init_async (GAsyncInitable      *initable,
 {
   ValentEBookStore *self = VALENT_EBOOK_STORE (initable);
   g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
 
   g_assert (VALENT_IS_EBOOK_STORE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  destroy = valent_object_chain_cancellable (VALENT_OBJECT (initable),
-                                             cancellable);
-
-  task = g_task_new (initable, destroy, callback, user_data);
+  task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_ebook_store_init_async);
 
   e_book_client_connect (self->source,
                          -1,
-                         destroy,
+                         cancellable,
                          (GAsyncReadyCallback)e_book_client_connect_cb,
                          g_steal_pointer (&task));
 }
