@@ -197,7 +197,7 @@ main (int   argc,
 {
   const char *path = "plugin-sms.json";
 
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_init (&argc, &argv, NULL);
 
   g_test_add ("/plugins/sms/basic",
               ValentTestFixture, path,

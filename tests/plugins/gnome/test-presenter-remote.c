@@ -4,6 +4,8 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "test-gnome-common.h"
+
 #include "valent-presenter-remote.h"
 
 
@@ -39,7 +41,7 @@ main (int   argc,
 {
   const char *path = "plugin-presenter.json";
 
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_gnome_init (&argc, &argv, NULL);
 
   g_test_add ("/plugins/presenter/remote",
               ValentTestFixture, path,

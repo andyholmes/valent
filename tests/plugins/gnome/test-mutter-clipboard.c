@@ -7,6 +7,8 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "test-gnome-common.h"
+
 #define CLIPBOARD_NAME "org.gnome.Mutter.RemoteDesktop"
 #define CLIPBOARD_PATH "/org/gnome/Mutter/RemoteDesktop"
 #define CLIPBOARD_IFACE "org.gnome.Mutter.RemoteDesktop"

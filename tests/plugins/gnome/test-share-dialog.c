@@ -4,6 +4,8 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "test-gnome-common.h"
+
 #include "valent-mock-channel.h"
 #include "valent-mock-channel-service.h"
 #include "valent-share-dialog.h"
@@ -58,7 +60,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_gnome_init (&argc, &argv, NULL);
 
   g_test_add_func ("/plugins/share/dialog",
                    test_share_dialog);

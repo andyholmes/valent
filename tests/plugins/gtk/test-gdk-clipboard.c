@@ -3,6 +3,7 @@
 
 #include <gio/gio.h>
 #include <gdk/gdk.h>
+#include <gtk/gtk.h>
 #include <valent.h>
 #include <libvalent-test.h>
 
@@ -199,7 +200,8 @@ int
 main (int   argc,
       char *argv[])
 {
-  valent_test_ui_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+  valent_test_init (&argc, &argv, NULL);
+  gtk_init ();
 
   g_test_add ("/plugins/gtk/clipboard",
               GdkClipboardFixture, NULL,

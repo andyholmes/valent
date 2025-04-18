@@ -5,6 +5,8 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "test-gnome-common.h"
+
 #define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentWindow"))
 
 typedef struct
@@ -189,7 +191,7 @@ int
 main (int argc,
      char *argv[])
 {
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_gnome_init (&argc, &argv, NULL);
 
   g_test_add ("/libvalent/ui/window/basic",
               TestWindowFixture, NULL,

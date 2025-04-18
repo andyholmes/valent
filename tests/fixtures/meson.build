@@ -61,10 +61,6 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 # Dependencies
 libvalent_test_deps = [
   libvalent_dep,
-
-  # TODO: these should be optional depending on plugin tests
-  gtk_dep,
-  libadwaita_dep,
   libwalbottle_dep,
 ]
 
