@@ -13,8 +13,5 @@ ValentDevice * valent_device_new_full      (JsonNode      *identity,
 _VALENT_EXTERN
 void           valent_device_set_channel   (ValentDevice  *device,
                                             ValentChannel *channel);
-_VALENT_EXTERN
-void           valent_device_set_paired    (ValentDevice  *device,
-                                            gboolean       paired);
 
 G_END_DECLS
