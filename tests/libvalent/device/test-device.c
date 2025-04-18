@@ -161,7 +161,6 @@ test_device_new (void)
   g_autofree char *icon_name = NULL;
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
-  g_auto (GStrv) plugins = NULL;
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
 
   GMenuModel *menu;
@@ -174,7 +173,6 @@ test_device_new (void)
                 "id",        &id,
                 "icon-name", &icon_name,
                 "name",      &name,
-                "plugins",   &plugins,
                 "state",     &state,
                 NULL);
 
@@ -182,8 +180,6 @@ test_device_new (void)
   g_assert_cmpstr (id, ==, device_id);
   g_assert_null (icon_name);
   g_assert_null (name);
-  /* Only "Packetless" plugin should be loaded */
-  g_assert_cmpuint (g_strv_length (plugins), ==, 1);
   g_assert_cmpuint (state, ==, VALENT_DEVICE_STATE_NONE);
 
   menu = valent_device_get_menu (device);
@@ -203,7 +199,6 @@ test_device_basic (DeviceFixture *fixture,
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
   g_autofree char *icon_name = NULL;
-  g_auto (GStrv) plugins = NULL;
   ValentDeviceState state = VALENT_DEVICE_STATE_NONE;
 
   /* Test properties */
@@ -211,7 +206,6 @@ test_device_basic (DeviceFixture *fixture,
                 "context",          &context,
                 "id",               &id,
                 "name",             &name,
-                "plugins",          &plugins,
                 "icon-name",        &icon_name,
                 "state",            &state,
                 NULL);
@@ -221,8 +215,6 @@ test_device_basic (DeviceFixture *fixture,
   g_assert_cmpstr (valent_device_get_id (fixture->device), ==, id);
   g_assert_cmpstr (name, ==, "Test Device");
   g_assert_cmpstr (valent_device_get_name (fixture->device), ==, "Test Device");
-  /* "Packetless" and "Mock" plugins should be loaded */
-  g_assert_cmpuint (g_strv_length (plugins), ==, 2);
   g_assert_cmpstr (icon_name, ==, "phone-symbolic");
   g_assert_cmpstr (valent_device_get_icon_name (fixture->device), ==, "phone-symbolic");
   g_assert_cmpuint (state, ==, VALENT_DEVICE_STATE_NONE);
@@ -355,28 +347,8 @@ test_device_verification_key (DeviceFixture *fixture,
 }
 
 /*
- * Device Plugins
+ * Device Actions
  */
-static void
-toggle_plugin (const char   *module_name,
-               ValentDevice *device)
-{
-  g_autofree char *path = NULL;
-  g_autoptr (GSettings) settings = NULL;
-  gboolean enabled;
-
-  g_assert_true (VALENT_IS_DEVICE (device));
-  g_assert_nonnull (module_name);
-
-  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
-                          valent_device_get_id (device),
-                          module_name);
-  settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
-
-  enabled = g_settings_get_boolean (settings, "enabled");
-  g_settings_set_boolean (settings, "enabled", !enabled);
-}
-
 static void
 test_device_actions (DeviceFixture *fixture,
                      gconstpointer  user_data)
@@ -463,56 +435,74 @@ test_device_actions (DeviceFixture *fixture,
   valent_test_watch_clear (actions, &watch);
 }
 
+static inline void
+_valent_device_toggle_plugin (ValentDevice   *device,
+                              PeasPluginInfo *plugin_info)
+{
+  g_autofree char *path = NULL;
+  g_autoptr (GSettings) settings = NULL;
+  gboolean enabled;
+
+  g_assert_true (VALENT_IS_DEVICE (device));
+  g_assert_true (PEAS_IS_PLUGIN_INFO (plugin_info));
+
+  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/plugin/%s/",
+                          valent_device_get_id (device),
+                          peas_plugin_info_get_module_name (plugin_info));
+  settings = g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
+
+  enabled = g_settings_get_boolean (settings, "enabled");
+  g_settings_set_boolean (settings, "enabled", !enabled);
+}
+
 static void
 test_device_plugins (DeviceFixture *fixture,
                      gconstpointer  user_data)
 {
   PeasEngine *engine;
-  GStrv device_plugins;
   unsigned int n_plugins = 0;
 
-  /* Plugins should be loaded */
-  device_plugins = valent_device_get_plugins (fixture->device);
-  g_assert_cmpuint (g_strv_length (device_plugins), >, 0);
-  g_clear_pointer (&device_plugins, g_strfreev);
-
-  /* Unload & Load Plugins (Engine) */
   engine = valent_get_plugin_engine ();
   n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
 
-  /* Unload Plugins */
+  VALENT_TEST_CHECK ("Device can unload plugins");
   for (unsigned int i = 0; i < n_plugins; i++)
     {
-      g_autoptr (PeasPluginInfo) info = NULL;
+      g_autoptr (PeasPluginInfo) plugin_info = NULL;
 
-      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
-      peas_engine_unload_plugin (engine, info);
+      plugin_info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      if (peas_engine_provides_extension (engine, plugin_info, VALENT_TYPE_DEVICE_PLUGIN))
+        peas_engine_unload_plugin (engine, plugin_info);
     }
 
-  device_plugins = valent_device_get_plugins (fixture->device);
-  g_assert_cmpuint (g_strv_length (device_plugins), ==, 0);
-  g_clear_pointer (&device_plugins, g_strfreev);
-
-  /* Load Plugins */
+  VALENT_TEST_CHECK ("Device can load plugins");
   for (unsigned int i = 0; i < n_plugins; i++)
     {
-      g_autoptr (PeasPluginInfo) info = NULL;
+      g_autoptr (PeasPluginInfo) plugin_info = NULL;
 
-      info = g_list_model_get_item (G_LIST_MODEL (engine), i);
-      peas_engine_load_plugin (engine, info);
+      plugin_info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      peas_engine_load_plugin (engine, plugin_info);
     }
 
-  device_plugins = valent_device_get_plugins (fixture->device);
-  g_assert_cmpuint (g_strv_length (device_plugins), >, 0);
+  VALENT_TEST_CHECK ("Device can disable plugins");
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) plugin_info = NULL;
 
-  /* Enable/Disable Plugins */
-  for (unsigned int i = 0; device_plugins[i] != NULL; i++)
-    toggle_plugin (device_plugins[i], fixture->device);
+      plugin_info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      if (peas_engine_provides_extension (engine, plugin_info, VALENT_TYPE_DEVICE_PLUGIN))
+        _valent_device_toggle_plugin (fixture->device, plugin_info);
+    }
 
-  for (unsigned int i = 0; device_plugins[i] != NULL; i++)
-    toggle_plugin (device_plugins[i], fixture->device);
+  VALENT_TEST_CHECK ("Device can enable plugins");
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) plugin_info = NULL;
 
-  g_clear_pointer (&device_plugins, g_strfreev);
+      plugin_info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      if (peas_engine_provides_extension (engine, plugin_info, VALENT_TYPE_DEVICE_PLUGIN))
+        _valent_device_toggle_plugin (fixture->device, plugin_info);
+    }
 }
 
 /*

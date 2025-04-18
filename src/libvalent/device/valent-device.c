@@ -91,7 +91,6 @@ typedef enum {
   PROP_ICON_NAME,
   PROP_ID,
   PROP_NAME,
-  PROP_PLUGINS,
   PROP_STATE,
 } ValentDeviceProperty;
 
@@ -485,8 +484,6 @@ on_load_plugin (PeasEngine     *engine,
 
   if (valent_plugin_get_enabled (plugin))
     valent_device_enable_plugin (self, plugin);
-
-  g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_PLUGINS]);
 }
 
 static void
@@ -503,7 +500,6 @@ on_unload_plugin (PeasEngine     *engine,
       VALENT_NOTE ("%s: %s",
                    device->name,
                    peas_plugin_info_get_module_name (plugin_info));
-      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_PLUGINS]);
     }
 }
 
@@ -1091,10 +1087,6 @@ valent_device_get_property (GObject    *object,
       g_value_set_string (value, self->name);
       break;
 
-    case PROP_PLUGINS:
-      g_value_take_boxed (value, valent_device_get_plugins (self));
-      break;
-
     case PROP_STATE:
       g_value_set_flags (value, valent_device_get_state (self));
       break;
@@ -1124,7 +1116,6 @@ valent_device_set_property (GObject      *object,
 
     case PROP_ICON_NAME:
     case PROP_NAME:
-    case PROP_PLUGINS:
     case PROP_STATE:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1242,20 +1233,6 @@ valent_device_class_init (ValentDeviceClass *klass)
                          (G_PARAM_READABLE |
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
-
-  /**
-   * ValentDevice:plugins: (getter get_plugins)
-   *
-   * A list of loaded plugin names.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_PLUGINS] =
-    g_param_spec_boxed ("plugins", NULL, NULL,
-                        G_TYPE_STRV,
-                        (G_PARAM_READABLE |
-                         G_PARAM_EXPLICIT_NOTIFY |
-                         G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentDevice:state: (getter get_state)
@@ -1785,34 +1762,6 @@ valent_device_set_paired (ValentDevice *device,
   /* Update plugins and notify */
   valent_device_update_plugins (device);
   valent_device_reset_pair (device);
-}
-
-/**
- * valent_device_get_plugins: (get-property plugins)
- * @device: a `ValentDevice`
- *
- * Get a list of the loaded plugins.
- *
- * Returns: (transfer full): a list of loaded plugins
- *
- * Since: 1.0
- */
-GStrv
-valent_device_get_plugins (ValentDevice *device)
-{
-  g_autoptr (GStrvBuilder) builder = NULL;
-  GHashTableIter iter;
-  PeasPluginInfo *info;
-
-  g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
-
-  builder = g_strv_builder_new ();
-  g_hash_table_iter_init (&iter, device->plugins);
-
-  while (g_hash_table_iter_next (&iter, (void **)&info, NULL))
-    g_strv_builder_add (builder, peas_plugin_info_get_module_name (info));
-
-  return g_strv_builder_end (builder);
 }
 
 /**
