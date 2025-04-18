@@ -10,7 +10,16 @@
 
 #include "valent-message-attachment.h"
 
-
+/**
+ * ValentMessageAttachment:
+ *
+ * A class for representing a message attachment.
+ *
+ * `ValentMessageAttachment is a class for representing a message attachment,
+ * typically a small file or image with preview.
+ *
+ * Since: 1.0
+ */
 struct _ValentMessageAttachment
 {
   ValentResource  parent_instance;
@@ -102,8 +111,8 @@ valent_message_attachment_class_init (ValentMessageAttachmentClass *klass)
    * ValentMessageAttachment:file: (getter get_file) (setter set_file)
    *
    * A file for the attachment.
- *
- * Since: 1.0
+   *
+   * Since: 1.0
    */
   properties [PROP_FILE] =
     g_param_spec_object ("file", NULL, NULL,
@@ -116,8 +125,8 @@ valent_message_attachment_class_init (ValentMessageAttachmentClass *klass)
    * ValentMessageAttachment:preview: (getter get_preview) (setter set_preview)
    *
    * A thumbnail preview of the attachment.
- *
- * Since: 1.0
+   *
+   * Since: 1.0
    */
   properties [PROP_PREVIEW] =
     g_param_spec_object ("preview", NULL, NULL,

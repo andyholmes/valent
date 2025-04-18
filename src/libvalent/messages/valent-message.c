@@ -11,7 +11,16 @@
 #include "valent-message.h"
 #include "valent-message-attachment.h"
 
-
+/**
+ * ValentMessage:
+ *
+ * A class for representing a message.
+ *
+ * `ValentMessage` is a class for representing a unit of communication,
+ * typically a phone message like SMS or MMS.
+ *
+ * Since: 1.0
+ */
 struct _ValentMessage
 {
   ValentResource    parent_instance;

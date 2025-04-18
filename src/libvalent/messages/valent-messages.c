@@ -17,13 +17,13 @@
 /**
  * ValentMessages:
  *
- * A class for managing address books.
+ * A class for sending and receiving messages.
  *
- * `ValentMessages` is an address book manager, intended for use by
+ * `ValentMessages` is a messaging manager, intended for use by
  * [class@Valent.DevicePlugin] implementations.
  *
  * Plugins can implement [class@Valent.MessagesAdapter] to provide an interface
- * to manage instances of [class@Valent.MessagesAdapter].
+ * to manage collections of [class@Valent.Message].
  *
  * Since: 1.0
  */
