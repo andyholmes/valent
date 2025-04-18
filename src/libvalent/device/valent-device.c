@@ -631,7 +631,8 @@ valent_device_send_pair (ValentDevice *device,
   valent_packet_init (&builder, "kdeconnect.pair");
   json_builder_set_member_name (builder, "pair");
   json_builder_add_boolean_value (builder, pair);
-  if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
+  if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8 &&
+      device->incoming_pair == 0 && pair)
     {
       device->pair_timestamp = (int64_t)floor (valent_timestamp_ms () / 1000);
       json_builder_set_member_name (builder, "timestamp");
