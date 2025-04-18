@@ -5,6 +5,8 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "test-gnome-common.h"
+
 static void
 test_gnome_application (void)
 {
@@ -41,7 +43,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_gnome_init (&argc, &argv, NULL);
 
   g_test_add_func ("/plugins/gnome/application",
                    test_gnome_application);

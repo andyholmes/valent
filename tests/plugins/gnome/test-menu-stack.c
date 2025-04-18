@@ -6,6 +6,8 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "test-gnome-common.h"
+
 #define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentDevicePage"))
 
 
@@ -84,7 +86,7 @@ main (int   argc,
 {
   const char *path = "plugin-mock.json";
 
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_gnome_init (&argc, &argv, NULL);
 
   g_test_add ("/libvalent/ui/menu-stack/basic",
               ValentTestFixture, path,

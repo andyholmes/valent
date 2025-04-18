@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <sys/socket.h>
 
-#include <adwaita.h>
-#include <gtk/gtk.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
@@ -668,54 +666,5 @@ valent_test_init (int    *argcp,
   g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
   valent_type_ensure ();
-}
-
-/**
- * valent_test_ui_init:
- * @argcp: Address of the `argc` parameter of the
- *        main() function. Changed if any arguments were handled.
- * @argvp: (inout) (array length=argcp): Address of the
- *        `argv` parameter of main().
- *        Any parameters understood by g_test_init() or gtk_init() are
- *        stripped before return.
- * @...: currently unused
- *
- * This function is used to initialize a GUI test program for Valent.
- *
- * In order, it will:
- * - Call g_content_type_set_mime_dirs() to ensure GdkPixbuf works
- * - Call g_test_init() with the %G_TEST_OPTION_ISOLATE_DIRS option
- * - Call g_type_ensure() for public classes
- * - Register GResources
- * - Set the locale to “en_US.UTF-8”
- * - Call gtk_init()
- * - Call adw_init()
- *
- * Like g_test_init(), any known arguments will be processed and stripped from
- * @argcp and @argvp.
- */
-void
-valent_test_ui_init (int    *argcp,
-                     char ***argvp,
-                     ...)
-{
-  g_content_type_set_mime_dirs (NULL);
-  g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
-
-  valent_type_ensure ();
-
-  gtk_disable_setlocale ();
-  setlocale (LC_ALL, "en_US.UTF-8");
-  gtk_init ();
-  adw_init ();
-
-  /* Load the libvalent-ui plugin to initializes it's types
-   */
-  valent_get_plugin_engine ();
-
-  /* NOTE: Set manually since GDK_DEBUG=default-settings doesn't work for us */
-  g_object_set (gtk_settings_get_default (),
-                "gtk-enable-animations", FALSE,
-                NULL);
 }
 

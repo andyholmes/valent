@@ -14,9 +14,6 @@ G_BEGIN_DECLS
 void             valent_test_init          (int              *argcp,
                                             char           ***argvp,
                                                               ...);
-void             valent_test_ui_init       (int              *argcp,
-                                            char           ***argvp,
-                                                              ...);
 
 gboolean         valent_test_mute_fuzzing  (const char       *log_domain,
                                             GLogLevelFlags    log_level,

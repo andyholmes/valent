@@ -5,6 +5,8 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "test-gnome-common.h"
+
 #include "valent-device-preferences-dialog.h"
 #include "valent-preferences-command-editor.h"
 
@@ -90,7 +92,7 @@ main (int   argc,
 {
   const char *path = "plugin-mock.json";
 
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_gnome_init (&argc, &argv, NULL);
 
   g_test_add ("/plugins/gnome/device-preferences/dialog",
               ValentTestFixture, path,

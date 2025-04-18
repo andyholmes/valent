@@ -5,6 +5,8 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "test-gnome-common.h"
+
 #include "valent-date-label.h"
 
 
@@ -57,7 +59,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_gnome_init (&argc, &argv, NULL);
 
   g_test_add_func ("/plugins/gnome/date-label",
                    test_sms_date_label);

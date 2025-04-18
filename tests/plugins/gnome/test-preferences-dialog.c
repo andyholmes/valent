@@ -6,6 +6,8 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
+#include "test-gnome-common.h"
+
 #define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentPreferencesDialog"))
 
 
@@ -57,7 +59,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_gnome_init (&argc, &argv, NULL);
 
   g_test_add_func ("/plugins/gnome/preferences-dialog",
                    test_preferences_dialog_basic);
