@@ -57,11 +57,17 @@ void
 valent_test_fixture_init (ValentTestFixture *fixture,
                           gconstpointer      user_data)
 {
+  const char *path = (const char *)user_data;
   PeasEngine *engine = valent_get_plugin_engine ();
   unsigned int n_plugins = 0;
-  const char *path = (const char *)user_data;
-  g_autofree ValentChannel **channels = NULL;
   JsonNode *identity, *peer_identity;
+  g_autoptr (ValentContext) context = NULL;
+  g_autoptr (GFile) cert_file = NULL;
+  GTlsCertificate *peer_certificate = NULL;
+  const char *common_name = NULL;
+  g_autofree char *certificate_pem = NULL;
+  g_autoptr (GSettings) settings = NULL;
+  g_autofree char *spath = NULL;
 
   g_assert (path != NULL && *path != '\0');
 
@@ -69,21 +75,43 @@ valent_test_fixture_init (ValentTestFixture *fixture,
   identity = valent_test_fixture_lookup_packet (fixture, "identity");
   peer_identity = valent_test_fixture_lookup_packet (fixture, "peer-identity");
 
-  /* Init channels & device */
+  /* Setup the device connection
+   */
   valent_test_channel_pair (identity,
                             peer_identity,
                             &fixture->channel,
                             &fixture->endpoint);
-  fixture->device = valent_device_new_full (peer_identity, NULL);
-  valent_device_set_paired (fixture->device, TRUE);
 
-  /* Init settings */
+  /* Pre-Install the peer certificate
+   */
+  peer_certificate = valent_channel_get_peer_certificate (fixture->channel);
+  common_name = valent_certificate_get_common_name (peer_certificate);
+  g_object_get (peer_certificate, "certificate-pem", &certificate_pem, NULL);
+
+  context = valent_context_new (NULL, "device", common_name);
+  cert_file = valent_context_get_config_file (context, "certificate.pem");
+  g_file_replace_contents (cert_file,
+                           certificate_pem,
+                           strlen (certificate_pem),
+                           NULL,  /* etag */
+                           FALSE, /* make_backup */
+                           (G_FILE_CREATE_PRIVATE |
+                            G_FILE_CREATE_REPLACE_DESTINATION),
+                           NULL,  /* etag (out) */
+                           NULL,
+                           NULL);
+
+  spath = g_strdup_printf ("/ca/andyholmes/valent/device/%s/", common_name);
+  settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", spath);
+  g_settings_set_boolean (settings, "paired", TRUE);
+
+  /* Setup device plugin settings
+   */
   n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
   for (unsigned int i = 0; i < n_plugins; i++)
     {
       g_autoptr (PeasPluginInfo) plugin_info = NULL;
       const char *module_name = NULL;
-      ValentContext *context = NULL;
       g_autoptr (ValentContext) plugin_context = NULL;
 
       plugin_info = g_list_model_get_item (G_LIST_MODEL (engine), i);
@@ -95,13 +123,14 @@ valent_test_fixture_init (ValentTestFixture *fixture,
           g_str_equal (module_name, "packetless"))
         continue;
 
-      context = valent_device_get_context (fixture->device);
       plugin_context = valent_context_get_plugin_context (context, plugin_info);
       fixture->settings = valent_context_get_plugin_settings (plugin_context,
                                                               plugin_info,
                                                               "X-DevicePluginSettings");
       break;
     }
+
+  fixture->device = valent_device_new_full (peer_identity, NULL);
 }
 
 /**
@@ -256,6 +285,57 @@ valent_test_fixture_connect (ValentTestFixture *fixture,
   g_assert (fixture != NULL);
 
   valent_device_set_channel (fixture->device, connect ? fixture->channel : NULL);
+}
+
+/**
+ * valent_test_fixture_set_paired:
+ * @fixture: a `ValentTestFixture`
+ * @paired: whether to pair the device
+ *
+ * Set the paired state of the `ValentDevice`.
+ */
+void
+valent_test_fixture_set_paired (ValentTestFixture *fixture,
+                                gboolean           paired)
+{
+  GTlsCertificate *certificate = NULL;
+  const char *common_name = NULL;
+  g_autoptr (ValentContext) context = NULL;
+  g_autoptr (GFile) file = NULL;
+  g_autoptr (GSettings) settings = NULL;
+  g_autofree char *path = NULL;
+
+  certificate = valent_channel_get_peer_certificate (fixture->channel);
+  common_name = valent_certificate_get_common_name (certificate);
+  context = valent_context_new (NULL, "device", common_name);
+  file = valent_context_get_config_file (context, "certificate.pem");
+  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/", common_name);
+  settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", path);
+
+  if (paired)
+    {
+      g_autofree char *certificate_pem = NULL;
+
+      g_object_get (certificate,
+                    "certificate-pem", &certificate_pem,
+                    NULL);
+      g_file_replace_contents (file,
+                               certificate_pem,
+                               strlen (certificate_pem),
+                               NULL,  /* etag */
+                               FALSE, /* make_backup */
+                               (G_FILE_CREATE_PRIVATE |
+                                G_FILE_CREATE_REPLACE_DESTINATION),
+                               NULL,  /* etag (out) */
+                               NULL,
+                               NULL);
+      g_settings_set_boolean (settings, "paired", TRUE);
+    }
+  else
+    {
+      g_file_delete (file, NULL, NULL);
+      g_settings_set_boolean (settings, "paired", FALSE);
+    }
 }
 
 /**

@@ -149,6 +149,28 @@ endpoint_send_packet (DeviceFixture *fixture,
   valent_test_await_signal (fixture->device, "notify::state");
 }
 
+static inline void
+device_fixture_set_paired (DeviceFixture *fixture,
+                           gboolean       paired)
+{
+  GActionGroup *actions = G_ACTION_GROUP (fixture->device);
+
+  if (paired)
+    {
+      g_autoptr (JsonNode) pair = NULL;
+
+      g_action_group_activate_action (actions, "pair", NULL);
+      endpoint_expect_packet_pair (fixture, TRUE);
+
+      pair = create_pair_packet (TRUE);
+      endpoint_send_packet (fixture, pair);
+    }
+  else
+    {
+      g_action_group_activate_action (actions, "unpair", NULL);
+      endpoint_expect_packet_pair (fixture, FALSE);
+    }
+}
 
 /*
  * First test constructing a device before using the fixture
@@ -273,7 +295,7 @@ test_device_pairing (DeviceFixture *fixture,
   g_assert_true (valent_device_get_paired (fixture->device));
 
   /* Receive Pair (Request), Send Unpair (Reject) */
-  valent_device_set_paired (fixture->device, FALSE);
+  device_fixture_set_paired (fixture, FALSE);
   endpoint_send_packet (fixture, pair);
   g_assert_false (valent_device_get_paired (fixture->device));
 
@@ -365,7 +387,7 @@ test_device_actions (DeviceFixture *fixture,
 
   /* Attach channel */
   valent_device_set_channel (fixture->device, fixture->channel);
-  valent_device_set_paired (fixture->device, TRUE);
+  device_fixture_set_paired (fixture, TRUE);
 
   action_names = g_action_group_list_actions (actions);
   g_assert_cmpuint (g_strv_length (action_names), ==, 5);
@@ -402,10 +424,10 @@ test_device_actions (DeviceFixture *fixture,
   g_clear_pointer (&state, g_variant_unref);
 
   /* Enable/Disable */
-  valent_device_set_paired (fixture->device, FALSE);
+  device_fixture_set_paired (fixture, FALSE);
   valent_test_await_boolean (&watch);
 
-  valent_device_set_paired (fixture->device, TRUE);
+  device_fixture_set_paired (fixture, TRUE);
   valent_test_await_boolean (&watch);
 
   /* Activate */
@@ -516,7 +538,7 @@ test_handle_packet (DeviceFixture *fixture,
   g_assert_true (valent_device_get_connected (fixture->device));
 
   /* Local device is paired, we expect to receive the echo */
-  valent_device_set_paired (fixture->device, TRUE);
+  device_fixture_set_paired (fixture, TRUE);
   g_assert_true (valent_device_get_paired (fixture->device));
 
   valent_channel_write_packet (fixture->endpoint, packet, NULL, NULL, NULL);
@@ -524,7 +546,7 @@ test_handle_packet (DeviceFixture *fixture,
 
   /* Local device is unpaired, we expect to receive a pair packet informing us
    * that the device is unpaired. */
-  valent_device_set_paired (fixture->device, FALSE);
+  device_fixture_set_paired (fixture, FALSE);
   g_assert_false (valent_device_get_paired (fixture->device));
 
   valent_channel_write_packet (fixture->endpoint, packet, NULL, NULL, NULL);
@@ -578,13 +600,12 @@ test_send_packet (DeviceFixture *fixture,
                   gconstpointer  user_data)
 {
   g_autoptr (JsonNode) pair = create_pair_packet (TRUE);
+  JsonNode *packet = get_packet (fixture, "test-echo");
   gboolean done = FALSE;
 
-  /* Disconnected & Paired */
+  VALENT_TEST_CHECK ("Device refuses to send packets when disconnected");
   g_assert_false (valent_device_get_connected (fixture->device));
-
-  valent_device_set_paired (fixture->device, TRUE);
-  g_assert_true (valent_device_get_paired (fixture->device));
+  g_assert_false (valent_device_get_paired (fixture->device));
 
   valent_device_send_packet (fixture->device,
                              pair,
@@ -593,11 +614,21 @@ test_send_packet (DeviceFixture *fixture,
                              &done);
   valent_test_await_boolean (&done);
 
-  /* Connected & Paired */
+  VALENT_TEST_CHECK ("Device refuses to send packets when unpaired");
   valent_device_set_channel (fixture->device, fixture->channel);
   g_assert_true (valent_device_get_connected (fixture->device));
+  g_assert_false (valent_device_get_paired (fixture->device));
 
-  valent_device_set_paired (fixture->device, TRUE);
+  valent_device_send_packet (fixture->device,
+                             packet,
+                             NULL,
+                             (GAsyncReadyCallback)send_unpaired_cb,
+                             &done);
+  valent_test_await_boolean (&done);
+
+  VALENT_TEST_CHECK ("Device allows sending packets when connected and paired");
+  device_fixture_set_paired (fixture, TRUE);
+  g_assert_true (valent_device_get_connected (fixture->device));
   g_assert_true (valent_device_get_paired (fixture->device));
 
   valent_device_send_packet (fixture->device,
@@ -606,25 +637,6 @@ test_send_packet (DeviceFixture *fixture,
                              (GAsyncReadyCallback)send_available_cb,
                              &done);
   valent_test_await_boolean (&done);
-  endpoint_expect_packet_pair (fixture, TRUE);
-
-  /* Connected & Unpaired */
-  valent_device_set_channel (fixture->device, fixture->channel);
-  g_assert_true (valent_device_get_connected (fixture->device));
-
-  valent_device_set_paired (fixture->device, FALSE);
-  g_assert_false (valent_device_get_paired (fixture->device));
-
-  valent_device_send_packet (fixture->device,
-                             pair,
-                             NULL,
-                             (GAsyncReadyCallback)send_unpaired_cb,
-                             &done);
-  valent_test_await_boolean (&done);
-
-  /* Cleanup */
-  valent_device_set_channel (fixture->device, NULL);
-  g_assert_false (valent_device_get_connected (fixture->device));
 }
 
 static void

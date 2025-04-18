@@ -82,7 +82,7 @@ test_window_device_management (TestWindowFixture *fixture,
 
   VALENT_TEST_CHECK ("Window updates when the device state changes");
   device = g_list_model_get_item (G_LIST_MODEL (fixture->manager), 0);
-  valent_device_set_paired (device, TRUE);
+  valent_device_set_channel (device, NULL);
   valent_test_await_pending ();
 
   VALENT_TEST_CHECK ("Window can be destroyed with an active device");
