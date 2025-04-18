@@ -25,7 +25,7 @@
 /**
  * ValentMessagesAdapter:
  *
- * An abstract base class for address book providers.
+ * An abstract base class for messaging providers.
  *
  * `ValentMessagesAdapter` is a base class for plugins that provide an
  * interface to manage messaging (i.e. SMS/MMS). This usually means loading
