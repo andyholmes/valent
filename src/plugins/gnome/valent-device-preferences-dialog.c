@@ -20,7 +20,7 @@ struct _ValentDevicePreferencesDialog
   AdwPreferencesDialog  parent_instance;
 
   ValentDevice         *device;
-  GHashTable           *plugins;
+  GListStore           *plugins;
 
   /* template */
   AdwPreferencesPage   *status_page;
@@ -43,18 +43,12 @@ create_plugin_row (gpointer item,
                    gpointer user_data)
 {
   ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (user_data);
-  PeasEngine *engine;
-  PeasPluginInfo *plugin_info;
-  const char *module;
+  PeasPluginInfo *plugin_info = PEAS_PLUGIN_INFO (item);
   ValentContext *context = NULL;
   g_autoptr (ValentContext) plugin_context = NULL;
 
-  engine = valent_get_plugin_engine ();
-  module = gtk_string_object_get_string (GTK_STRING_OBJECT (item));
-  plugin_info = peas_engine_get_plugin_info (engine, module);
   context = valent_device_get_context (self->device);
   plugin_context = valent_context_get_plugin_context (context, plugin_info);
-
   return g_object_new (VALENT_TYPE_PLUGIN_ROW,
                        "context",     plugin_context,
                        "plugin-info", plugin_info,
@@ -63,31 +57,45 @@ create_plugin_row (gpointer item,
                        NULL);
 }
 
-static int
-plugin_sort (gconstpointer a,
-             gconstpointer b)
+static inline int
+plugin_sort_func (gconstpointer a,
+                  gconstpointer b,
+                  gpointer      user_data)
 {
-  const char *a_ = *(char **)a;
-  const char *b_ = *(char **)b;
-
-  return strcmp (a_, b_);
+  return g_utf8_collate (peas_plugin_info_get_name ((PeasPluginInfo *)a),
+                         peas_plugin_info_get_name ((PeasPluginInfo *)b));
 }
 
 static void
-on_plugins_changed (ValentDevice                  *device,
-                    GParamSpec                    *pspec,
-                    ValentDevicePreferencesDialog *self)
+on_load_plugin (PeasEngine                    *engine,
+                PeasPluginInfo                *plugin_info,
+                ValentDevicePreferencesDialog *self)
 {
-  g_auto (GStrv) plugins = NULL;
-  g_autoptr (GtkStringList) model = NULL;
+  g_assert (PEAS_IS_ENGINE (engine));
+  g_assert (plugin_info != NULL);
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_DIALOG (self));
 
-  plugins = valent_device_get_plugins (device);
-  qsort (plugins, g_strv_length (plugins), sizeof (char *), plugin_sort);
-  model = gtk_string_list_new ((const char * const *)plugins);
-  gtk_list_box_bind_model (self->plugin_list,
-                           G_LIST_MODEL (model),
-                           create_plugin_row,
-                           self, NULL);
+  if (peas_engine_provides_extension (engine, plugin_info, VALENT_TYPE_DEVICE_PLUGIN))
+    {
+      g_list_store_insert_sorted (self->plugins,
+                                  plugin_info,
+                                  plugin_sort_func, NULL);
+    }
+}
+
+static void
+on_unload_plugin (PeasEngine                    *engine,
+                  PeasPluginInfo                *plugin_info,
+                  ValentDevicePreferencesDialog *self)
+{
+  unsigned int position = 0;
+
+  g_assert (PEAS_IS_ENGINE (engine));
+  g_assert (plugin_info != NULL);
+  g_assert (VALENT_IS_DEVICE_PREFERENCES_DIALOG (self));
+
+  if (g_list_store_find (self->plugins, plugin_info, &position))
+    g_list_store_remove (self->plugins, position);
 }
 
 /*
@@ -97,6 +105,8 @@ static void
 valent_device_preferences_dialog_constructed (GObject *object)
 {
   ValentDevicePreferencesDialog *self = VALENT_DEVICE_PREFERENCES_DIALOG (object);
+  PeasEngine *engine;
+  unsigned int n_plugins = 0;
 
   G_OBJECT_CLASS (valent_device_preferences_dialog_parent_class)->constructed (object);
 
@@ -108,12 +118,28 @@ valent_device_preferences_dialog_constructed (GObject *object)
                                   "device",
                                   G_ACTION_GROUP (self->device));
 
-  g_signal_connect_object (self->device,
-                           "notify::plugins",
-                           G_CALLBACK (on_plugins_changed),
+  engine = valent_get_plugin_engine ();
+  g_signal_connect_object (engine,
+                           "load-plugin",
+                           G_CALLBACK (on_load_plugin),
+                           self,
+                           G_CONNECT_AFTER);
+
+  g_signal_connect_object (engine,
+                           "unload-plugin",
+                           G_CALLBACK (on_unload_plugin),
                            self,
                            G_CONNECT_DEFAULT);
-  on_plugins_changed (self->device, NULL, self);
+
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
+  for (unsigned int i = 0; i < n_plugins; i++)
+    {
+      g_autoptr (PeasPluginInfo) plugin_info = NULL;
+
+      plugin_info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      if (peas_plugin_info_is_loaded (plugin_info))
+        on_load_plugin (engine, plugin_info, self);
+    }
 }
 
 static void
@@ -207,5 +233,11 @@ static void
 valent_device_preferences_dialog_init (ValentDevicePreferencesDialog *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
+
+  self->plugins = g_list_store_new (PEAS_TYPE_PLUGIN_INFO);
+  gtk_list_box_bind_model (self->plugin_list,
+                           G_LIST_MODEL (self->plugins),
+                           create_plugin_row,
+                           self, NULL);
 }
 

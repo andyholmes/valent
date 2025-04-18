@@ -58,9 +58,9 @@ valent_test_fixture_init (ValentTestFixture *fixture,
                           gconstpointer      user_data)
 {
   PeasEngine *engine = valent_get_plugin_engine ();
+  unsigned int n_plugins = 0;
   const char *path = (const char *)user_data;
   g_autofree ValentChannel **channels = NULL;
-  g_auto (GStrv) plugins = NULL;
   JsonNode *identity, *peer_identity;
 
   g_assert (path != NULL && *path != '\0');
@@ -78,21 +78,24 @@ valent_test_fixture_init (ValentTestFixture *fixture,
   valent_device_set_paired (fixture->device, TRUE);
 
   /* Init settings */
-  plugins = valent_device_get_plugins (fixture->device);
-
-  for (unsigned int i = 0; plugins[i] != NULL; i++)
+  n_plugins = g_list_model_get_n_items (G_LIST_MODEL (engine));
+  for (unsigned int i = 0; i < n_plugins; i++)
     {
-      PeasPluginInfo *plugin_info;
-      const char *module_name = plugins[i];
+      g_autoptr (PeasPluginInfo) plugin_info = NULL;
+      const char *module_name = NULL;
       ValentContext *context = NULL;
       g_autoptr (ValentContext) plugin_context = NULL;
 
+      plugin_info = g_list_model_get_item (G_LIST_MODEL (engine), i);
+      if (!peas_engine_provides_extension (engine, plugin_info, VALENT_TYPE_DEVICE_PLUGIN))
+        continue;
+
+      module_name = peas_plugin_info_get_module_name (plugin_info);
       if (g_str_equal (module_name, "mock") ||
           g_str_equal (module_name, "packetless"))
         continue;
 
       context = valent_device_get_context (fixture->device);
-      plugin_info = peas_engine_get_plugin_info (engine, module_name);
       plugin_context = valent_context_get_plugin_context (context, plugin_info);
       fixture->settings = valent_context_get_plugin_settings (plugin_context,
                                                               plugin_info,
