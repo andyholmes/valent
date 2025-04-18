@@ -683,35 +683,6 @@ valent_device_notify_pair_requested (ValentDevice *device)
 }
 
 static void
-valent_device_notify_pair_failed (ValentDevice *device)
-{
-  GApplication *application = NULL;
-  g_autofree char *notification_id = NULL;
-  g_autoptr (GNotification) notification = NULL;
-  g_autoptr (GIcon) icon = NULL;
-  g_autofree char *title = NULL;
-
-  g_assert (VALENT_IS_DEVICE (device));
-
-  application = g_application_get_default ();
-  if (application == NULL)
-    return;
-
-  title = g_strdup_printf (_("Failed to pair with “%s”"), device->name);
-  icon = g_themed_icon_new ("dialog-warning-symbolic");
-
-  notification = g_notification_new (title);
-  g_notification_set_body (notification, _("Device clocks are out of sync"));
-  g_notification_set_icon (notification, icon);
-  g_notification_set_priority (notification, G_NOTIFICATION_PRIORITY_URGENT);
-
-  notification_id = g_strdup_printf ("%s::%s", device->id, PAIR_REQUEST_ID);
-  g_application_send_notification (application,
-                                   notification_id,
-                                   notification);
-}
-
-static void
 valent_device_handle_pair (ValentDevice *device,
                            JsonNode     *packet)
 {
@@ -739,20 +710,36 @@ valent_device_handle_pair (ValentDevice *device,
         }
       else
         {
-          int64_t timestamp = 0;
-
           VALENT_NOTE ("Pairing requested by \"%s\"", device->name);
 
-          if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8 &&
-              !valent_packet_get_int (packet, "timestamp", &timestamp))
+          valent_device_reset_pair (device);
+
+          if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
             {
-              g_warning ("%s(): expected \"timestamp\" field holding an integer",
-                         G_STRFUNC);
-              VALENT_EXIT;
+              int64_t timestamp = 0;
+              int64_t localtime = 0;
+              int64_t localtime_diff = 0;
+
+              if (!valent_packet_get_int (packet, "timestamp", &timestamp))
+                {
+                  g_warning ("%s(): expected \"timestamp\" field holding an integer",
+                             G_STRFUNC);
+                  VALENT_EXIT;
+                }
+
+              localtime = (int64_t)floor (valent_timestamp_ms () / 1000);
+              localtime_diff = ABS (timestamp - localtime);
+              if (localtime_diff > PAIR_REQUEST_THRESHOLD)
+                {
+                  g_warning ("%s(): device clocks are out of sync (%"PRId64"s)",
+                             G_STRFUNC,
+                             localtime_diff);
+                  VALENT_EXIT;
+                }
+
+              device->pair_timestamp = timestamp;
             }
 
-          valent_device_reset_pair (device);
-          device->pair_timestamp = timestamp;
           device->incoming_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
                                                          valent_device_reset_pair,
                                                          device);
@@ -922,21 +909,6 @@ pair_action (GSimpleAction *action,
   if (device->incoming_pair > 0)
     {
       VALENT_NOTE ("Accepting pair request from \"%s\"", device->name);
-
-      if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
-        {
-          int64_t timestamp = 0;
-          int64_t timestamp_diff = 0;
-
-          timestamp = (int64_t)floor (valent_timestamp_ms () / 1000);
-          timestamp_diff = ABS (device->pair_timestamp - timestamp);
-          if (timestamp_diff > PAIR_REQUEST_THRESHOLD)
-            {
-              valent_device_set_paired (device, FALSE);
-              valent_device_notify_pair_failed (device);
-              return;
-            }
-        }
 
       valent_device_send_pair (device, TRUE);
       valent_device_set_paired (device, TRUE);
