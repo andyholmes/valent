@@ -41,7 +41,7 @@ int
 main (int   argc,
       char *argv[])
 {
-  valent_test_ui_init (&argc, &argv, NULL);
+  valent_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/libvalent/core/application-plugin",
                    test_application_plugin);

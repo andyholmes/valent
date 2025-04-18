@@ -3,38 +3,39 @@
 
 
 plugin_tests = [
-  # Networking
-  'bluez',
-  'lan',
-
-  # Device Plugins
   'battery',
+  'bluez',
   'clipboard',
   'connectivity_report',
   'contacts',
+  # 'eds',
+  'fdo',
   'findmyphone',
   'gnome',
+  'gtk',
+  'lan',
   'lock',
   'mousepad',
   'mpris',
   'notification',
   'ping',
+  # 'pipewire',
   'presenter',
+  # 'pulseaudio',
   'runcommand',
   'sftp',
   'share',
   'sms',
   'systemvolume',
   'telephony',
-
-  # Integration
-  'fdo',
-  'gtk',
+  # 'xdp',
 ]
 
-foreach plugin : plugin_tests
-  if get_option('plugin_' + plugin)
-    subdir(plugin)
-  endif
-endforeach
+if get_option('plugins')
+  foreach plugin : plugin_tests
+    if get_option('plugin_@0@'.format(plugin))
+      subdir(plugin)
+    endif
+  endforeach
+endif
 

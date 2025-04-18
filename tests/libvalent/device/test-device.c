@@ -306,13 +306,11 @@ test_device_verification_key (DeviceFixture *fixture,
 {
   g_autoptr (ValentDevice) endpoint_device = NULL;
   JsonNode *endpoint_identity = NULL;
-  const char *endpoint_id = NULL;
   g_autofree char *channel_verification = NULL;
   g_autofree char *endpoint_verification = NULL;
 
   endpoint_identity = valent_channel_get_peer_identity (fixture->endpoint);
-  valent_packet_get_string (endpoint_identity, "deviceId", &endpoint_id);
-  endpoint_device = valent_device_new (endpoint_id);
+  endpoint_device = valent_device_new_full (endpoint_identity, NULL);
 
   /* Check verification key */
   channel_verification = valent_device_get_verification_key (fixture->device);
