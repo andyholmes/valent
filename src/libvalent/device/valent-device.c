@@ -548,7 +548,7 @@ valent_device_update_plugins (ValentDevice *self)
 /*
  * Private pairing methods
  */
-static gboolean
+static void
 valent_device_reset_pair (gpointer object)
 {
   ValentDevice *device = VALENT_DEVICE (object);
@@ -567,8 +567,20 @@ valent_device_reset_pair (gpointer object)
   g_clear_handle_id (&device->incoming_pair, g_source_remove);
   g_clear_handle_id (&device->outgoing_pair, g_source_remove);
   device->pair_timestamp = 0;
+}
 
-  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
+static gboolean
+valent_device_cancel_pair (gpointer object)
+{
+  ValentDevice *self = VALENT_DEVICE (object);
+
+  g_assert (VALENT_IS_DEVICE (self));
+
+  if (self->incoming_pair != 0 || self->outgoing_pair != 0)
+    {
+      valent_device_reset_pair (self);
+      g_object_notify_by_pspec (G_OBJECT (self), properties [PROP_STATE]);
+    }
 
   return G_SOURCE_REMOVE;
 }
@@ -741,8 +753,9 @@ valent_device_handle_pair (ValentDevice *device,
             }
 
           device->incoming_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
-                                                         valent_device_reset_pair,
+                                                         valent_device_cancel_pair,
                                                          device);
+          g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
           valent_device_notify_pair_requested (device);
         }
     }
@@ -751,8 +764,6 @@ valent_device_handle_pair (ValentDevice *device,
       VALENT_NOTE ("Pairing rejected by \"%s\"", device->name);
       valent_device_set_paired (device, FALSE);
     }
-
-  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 
   VALENT_EXIT;
 }
@@ -912,7 +923,6 @@ pair_action (GSimpleAction *action,
 
       valent_device_send_pair (device, TRUE);
       valent_device_set_paired (device, TRUE);
-      g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
     }
   else if (!device->paired)
     {
@@ -921,7 +931,7 @@ pair_action (GSimpleAction *action,
       valent_device_reset_pair (device);
       valent_device_send_pair (device, TRUE);
       device->outgoing_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
-                                                     valent_device_reset_pair,
+                                                     valent_device_cancel_pair,
                                                      device);
       g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
     }
@@ -1684,12 +1694,15 @@ valent_device_set_trusted (ValentDevice *self,
     }
 }
 
-/**
+/*< private >
  * valent_device_set_paired:
  * @device: a `ValentDevice`
  * @paired: %TRUE if paired, %FALSE if unpaired
  *
  * Set the paired state of the device.
+ *
+ * This method resets any ongoing pairing attempt and emits
+ * [signal@GObject.Object::notify] for [property@Valent.Device:state].
  *
  * NOTE: since valent_device_update_plugins() will be called as a side effect,
  * this must be called after valent_device_send_pair().
@@ -1701,11 +1714,9 @@ valent_device_set_paired (ValentDevice *device,
   g_assert (VALENT_IS_DEVICE (device));
 
   valent_object_lock (VALENT_OBJECT (device));
-
-  /* If nothing's changed, only reset pending pair timeouts */
   if (device->paired == paired)
     {
-      valent_device_reset_pair (device);
+      valent_device_cancel_pair (device);
       valent_object_unlock (VALENT_OBJECT (device));
       return;
     }
@@ -1728,12 +1739,11 @@ valent_device_set_paired (ValentDevice *device,
 
   device->paired = paired;
   g_settings_set_boolean (device->settings, "paired", device->paired);
-
   valent_object_unlock (VALENT_OBJECT (device));
 
-  /* Update plugins and notify */
-  valent_device_update_plugins (device);
   valent_device_reset_pair (device);
+  valent_device_update_plugins (device);
+  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /**
