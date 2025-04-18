@@ -73,6 +73,7 @@ libvalent_device_generated_headers += [libvalent_device_resources[1]]
 
 # Dependencies
 libvalent_deps += [
+  gnutls_dep,
   json_glib_dep,
 ]
 
