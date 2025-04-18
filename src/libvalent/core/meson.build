@@ -122,7 +122,6 @@ libvalent_deps += [
   libm_dep,
   gio_dep,
   gio_unix_dep,
-  gnutls_dep,
   libpeas_dep,
   libportal_dep,
   libsysprof_capture_dep,
