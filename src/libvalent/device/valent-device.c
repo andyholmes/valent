@@ -1867,7 +1867,7 @@ valent_device_get_verification_key (ValentDevice *device)
 char *
 valent_device_generate_id (void)
 {
-  static const char hex_digits[16] = "0123456789abcdef";
+  static const char hex_digits[16 + 1] = "0123456789abcdef";
   char *id = g_new (char, 32 + 1);
 
   for (size_t i = 0; i < 32; i++)
