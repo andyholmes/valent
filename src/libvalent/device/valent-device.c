@@ -29,9 +29,9 @@
 #define DEVICE_TYPE_TABLET   "tablet"
 #define DEVICE_TYPE_TV       "tv"
 
-#define PAIR_REQUEST_ID        "pair-request"
-#define PAIR_REQUEST_TIMEOUT   (30)
-#define PAIR_REQUEST_THRESHOLD (1800)
+#define PAIR_REQUEST_ID           "pair-request"
+#define PAIR_REQUEST_TIMEOUT      (30)
+#define PAIR_CLOCK_SKEW_THRESHOLD (1800)
 
 
 /**
@@ -814,7 +814,6 @@ valent_device_handle_pair (ValentDevice *device,
             {
               int64_t timestamp = 0;
               int64_t localtime = 0;
-              int64_t localtime_diff = 0;
 
               if (!valent_packet_get_int (packet, "timestamp", &timestamp))
                 {
@@ -824,12 +823,9 @@ valent_device_handle_pair (ValentDevice *device,
                 }
 
               localtime = (int64_t)floor (valent_timestamp_ms () / 1000);
-              localtime_diff = ABS (timestamp - localtime);
-              if (localtime_diff > PAIR_REQUEST_THRESHOLD)
+              if (ABS (localtime - timestamp) > PAIR_CLOCK_SKEW_THRESHOLD)
                 {
-                  g_warning ("%s(): device clocks are out of sync (%"PRId64"s)",
-                             G_STRFUNC,
-                             localtime_diff);
+                  g_warning ("%s(): device clocks are out of sync", G_STRFUNC);
                   VALENT_EXIT;
                 }
 
