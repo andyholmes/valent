@@ -16,14 +16,6 @@ typedef struct
   JsonNode      *packets;
 } DeviceFixture;
 
-
-static inline JsonNode *
-get_packet (DeviceFixture *fixture,
-            const char    *name)
-{
-  return json_object_get_member (json_node_get_object (fixture->packets), name);
-}
-
 static JsonNode *
 create_pair_packet (gboolean pair,
                     gboolean is_request)
@@ -64,8 +56,10 @@ device_fixture_set_up (DeviceFixture *fixture,
   JsonNode *identity, *peer_identity;
 
   fixture->packets = valent_test_load_json ("core.json");
-  identity = get_packet (fixture, "identity");
-  peer_identity = get_packet (fixture, "peer-identity");
+  identity = json_object_get_member (json_node_get_object (fixture->packets),
+                                     "identity");
+  peer_identity = json_object_get_member (json_node_get_object (fixture->packets),
+                                          "peer-identity");
 
   /* Init channels & device */
   valent_test_channel_pair (identity,
@@ -538,7 +532,8 @@ static void
 test_handle_packet (DeviceFixture *fixture,
                     gconstpointer  user_data)
 {
-  JsonNode *packet = get_packet (fixture, "test-echo");
+  JsonNode *packet = json_object_get_member (json_node_get_object (fixture->packets),
+                                             "test-echo");
 
   valent_device_set_channel (fixture->device, fixture->channel);
   g_assert_true (valent_device_get_connected (fixture->device));
@@ -605,8 +600,9 @@ static void
 test_send_packet (DeviceFixture *fixture,
                   gconstpointer  user_data)
 {
-  JsonNode *packet = get_packet (fixture, "test-echo");
   g_autoptr (JsonNode) pair_request = create_pair_packet (TRUE, TRUE);
+  JsonNode *packet = json_object_get_member (json_node_get_object (fixture->packets),
+                                             "test-echo");
   gboolean done = FALSE;
 
   VALENT_TEST_CHECK ("Device refuses to send packets when disconnected");
