@@ -632,7 +632,7 @@ valent_device_send_pair (ValentDevice *device,
   json_builder_set_member_name (builder, "pair");
   json_builder_add_boolean_value (builder, pair);
   if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8 &&
-      device->incoming_pair == 0 && pair)
+      device->pair_timestamp == 0 && pair)
     {
       device->pair_timestamp = (int64_t)floor (valent_timestamp_ms () / 1000);
       json_builder_set_member_name (builder, "timestamp");
@@ -834,6 +834,32 @@ valent_device_handle_pair (ValentDevice *device,
                 }
 
               device->pair_timestamp = timestamp;
+            }
+
+          if (device->paired)
+            {
+              /* In protocol v8, the timestamp field is mandatory for pair
+               * requests; unsolicited pair accept packets have been handled
+               * at this point, so the request can safely be auto-accepted.
+               *
+               * In protocol v7, pair request and accept packets are identical;
+               * if both devices interpret unsolicited accept packets as
+               * requests, they will get caught in an infinite loop.
+               */
+              if (device->pair_timestamp > 0)
+                {
+                  g_debug ("Accepting pair request from paired device \"%s\"",
+                           device->name);
+                  valent_device_send_pair (device, TRUE);
+                  valent_device_set_paired (device, TRUE);
+                  VALENT_EXIT;
+                }
+              else
+                {
+                  g_warning ("Pairing requested by paired device \"%s\"",
+                             device->name);
+                  valent_device_set_paired (device, FALSE);
+                }
             }
 
           device->incoming_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
