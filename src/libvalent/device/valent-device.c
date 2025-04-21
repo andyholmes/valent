@@ -801,11 +801,14 @@ valent_device_handle_pair (ValentDevice *device,
           g_debug ("Pairing accepted by \"%s\"", device->name);
           valent_device_set_paired (device, TRUE);
         }
+      else if (device->incoming_pair > 0)
+        {
+          g_debug ("Ignoring concurrent pairing request from \"%s\"",
+                   device->name);
+        }
       else
         {
           g_debug ("Pairing requested by \"%s\"", device->name);
-
-          valent_device_reset_pair (device);
 
           if (device->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
             {
@@ -1005,11 +1008,20 @@ pair_action (GSimpleAction *action,
       valent_device_send_pair (device, TRUE);
       valent_device_set_paired (device, TRUE);
     }
-  else if (!device->paired)
+  else if (device->outgoing_pair > 0)
+    {
+      g_warning ("Pairing request with \"%s\" already in progress",
+                 device->name);
+    }
+  else if (device->paired)
+    {
+      g_warning ("Ignoring attempt to pair with paired device \"%s\"",
+                 device->name);
+    }
+  else
     {
       g_debug ("Sending pair request to \"%s\"", device->name);
 
-      valent_device_reset_pair (device);
       valent_device_send_pair (device, TRUE);
       device->outgoing_pair = g_timeout_add_seconds (PAIR_REQUEST_TIMEOUT,
                                                      valent_device_cancel_pair,
