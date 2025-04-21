@@ -6,28 +6,14 @@
 #
 # The errors below are either known bugs being tracked or undiagnosed.
 #
-#mutex:valent_device_get_type_once
 mutex:valent_extension_get_type_once
-
-# src/plugins/sms/valent-messages-window.c
-race:_dl_deallocate_tls
-
-# tests/fixtures/valent-mock-channel.c
-race:valent_mock_channel_class_init
 
 #
 # Uninstrumented libraries (Yes, all of these are really necessary)
 #
 
 # src/plugins/lan/valent-lan-utils.c
-# See: https://gitlab.gnome.org/GNOME/glib-networking/-/issues/89
-#      https://www.gnutls.org/manual/gnutls.html#Thread-safety
-called_from_lib:p11-kit.so
-called_from_lib:p11-kit-trust
 called_from_lib:libtasn1
-
-# See: https://gitlab.gnome.org/GNOME/glib-networking/-/issues/184
-mutex:g_tls_certificate_gnutls_get_type_once
 
 # Unconfirmed: https://gitlab.gnome.org/GNOME/tinysparql/-/issues/new
 mutex:tracker_triples_cursor_reset
