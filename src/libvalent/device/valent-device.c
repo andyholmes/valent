@@ -798,12 +798,12 @@ valent_device_handle_pair (ValentDevice *device,
     {
       if (device->outgoing_pair > 0)
         {
-          VALENT_NOTE ("Pairing accepted by \"%s\"", device->name);
+          g_debug ("Pairing accepted by \"%s\"", device->name);
           valent_device_set_paired (device, TRUE);
         }
       else
         {
-          VALENT_NOTE ("Pairing requested by \"%s\"", device->name);
+          g_debug ("Pairing requested by \"%s\"", device->name);
 
           valent_device_reset_pair (device);
 
@@ -842,7 +842,7 @@ valent_device_handle_pair (ValentDevice *device,
     }
   else
     {
-      VALENT_NOTE ("Pairing rejected by \"%s\"", device->name);
+      g_debug ("Pairing rejected by \"%s\"", device->name);
       valent_device_set_paired (device, FALSE);
     }
 
@@ -1000,14 +1000,14 @@ pair_action (GSimpleAction *action,
 
   if (device->incoming_pair > 0)
     {
-      VALENT_NOTE ("Accepting pair request from \"%s\"", device->name);
+      g_debug ("Accepting pair request from \"%s\"", device->name);
 
       valent_device_send_pair (device, TRUE);
       valent_device_set_paired (device, TRUE);
     }
   else if (!device->paired)
     {
-      VALENT_NOTE ("Sending pair request to \"%s\"", device->name);
+      g_debug ("Sending pair request to \"%s\"", device->name);
 
       valent_device_reset_pair (device);
       valent_device_send_pair (device, TRUE);
