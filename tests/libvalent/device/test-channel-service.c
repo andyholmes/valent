@@ -350,8 +350,6 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
   g_assert_true (VALENT_IS_PACKET (identity_out));
   g_assert_true (VALENT_IS_PACKET (peer_identity_out));
 
-  g_assert_true (valent_channel_get_certificate (fixture->channel) == certificate_out);
-  g_assert_true (valent_channel_get_peer_certificate (fixture->channel) == peer_certificate_out);
   g_assert_true (json_node_equal (valent_channel_get_identity (fixture->channel), identity_out));
   g_assert_true (json_node_equal (valent_channel_get_peer_identity (fixture->channel), peer_identity_out));
 

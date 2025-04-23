@@ -338,7 +338,7 @@ valent_channel_get_property (GObject    *object,
       break;
 
     case PROP_CERTIFICATE:
-      g_value_set_object (value, priv->certificate);
+      g_value_take_object (value, valent_channel_ref_certificate (self));
       break;
 
     case PROP_IDENTITY:
@@ -346,7 +346,7 @@ valent_channel_get_property (GObject    *object,
       break;
 
     case PROP_PEER_CERTIFICATE:
-      g_value_set_object (value, priv->peer_certificate);
+      g_value_take_object (value, valent_channel_ref_peer_certificate (self));
       break;
 
     case PROP_PEER_IDENTITY:
@@ -374,7 +374,9 @@ valent_channel_set_property (GObject      *object,
       break;
 
     case PROP_CERTIFICATE:
+      valent_object_lock (VALENT_OBJECT (self));
       priv->certificate = g_value_dup_object (value);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_IDENTITY:
@@ -382,7 +384,9 @@ valent_channel_set_property (GObject      *object,
       break;
 
     case PROP_PEER_CERTIFICATE:
+      valent_object_lock (VALENT_OBJECT (self));
       priv->peer_certificate = g_value_dup_object (value);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_PEER_IDENTITY:
@@ -545,7 +549,7 @@ valent_channel_ref_base_stream (ValentChannel *channel)
 }
 
 /**
- * valent_channel_get_certificate: (get-property certificate)
+ * valent_channel_ref_certificate: (get-property certificate)
  * @channel: A `ValentChannel`
  *
  * Get the TLS certificate.
@@ -555,13 +559,19 @@ valent_channel_ref_base_stream (ValentChannel *channel)
  * Since: 1.0
  */
 GTlsCertificate *
-valent_channel_get_certificate (ValentChannel *channel)
+valent_channel_ref_certificate (ValentChannel *channel)
 {
   ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  GTlsCertificate *ret = NULL;
 
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
-  return priv->certificate;
+  valent_object_lock (VALENT_OBJECT (channel));
+  if (priv->certificate != NULL)
+    ret = g_object_ref (priv->certificate);
+  valent_object_unlock (VALENT_OBJECT (channel));
+
+  return g_steal_pointer (&ret);
 }
 
 /**
@@ -585,7 +595,7 @@ valent_channel_get_identity (ValentChannel *channel)
 }
 
 /**
- * valent_channel_get_peer_certificate: (get-property peer-certificate)
+ * valent_channel_ref_peer_certificate: (get-property peer-certificate)
  * @channel: A `ValentChannel`
  *
  * Get the peer TLS certificate.
@@ -595,13 +605,19 @@ valent_channel_get_identity (ValentChannel *channel)
  * Since: 1.0
  */
 GTlsCertificate *
-valent_channel_get_peer_certificate (ValentChannel *channel)
+valent_channel_ref_peer_certificate (ValentChannel *channel)
 {
   ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
+  GTlsCertificate *ret = NULL;
 
   g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
 
-  return priv->peer_certificate;
+  valent_object_lock (VALENT_OBJECT (channel));
+  if (priv->peer_certificate != NULL)
+    ret = g_object_ref (priv->peer_certificate);
+  valent_object_unlock (VALENT_OBJECT (channel));
+
+  return g_steal_pointer (&ret);
 }
 
 /**

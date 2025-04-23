@@ -1811,14 +1811,14 @@ valent_device_get_verification_key (ValentDevice *device)
   if (device->channel != NULL)
     {
       g_autoptr (GChecksum) checksum = NULL;
-      GTlsCertificate *cert = NULL;
-      GTlsCertificate *peer_cert = NULL;
+      g_autoptr (GTlsCertificate) cert = NULL;
+      g_autoptr (GTlsCertificate) peer_cert = NULL;
       GByteArray *pubkey;
       GByteArray *peer_pubkey;
       size_t cmplen;
 
-      cert = valent_channel_get_certificate (device->channel);
-      peer_cert = valent_channel_get_peer_certificate (device->channel);
+      cert = valent_channel_ref_certificate (device->channel);
+      peer_cert = valent_channel_ref_peer_certificate (device->channel);
       g_return_val_if_fail (cert != NULL || peer_cert != NULL, NULL);
 
       pubkey = valent_certificate_get_public_key (cert);
