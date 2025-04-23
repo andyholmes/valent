@@ -876,7 +876,9 @@ valent_channel_write_packet_func (gpointer data)
   ValentChannel *self = g_task_get_source_object (task);
   ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
   g_autoptr (GOutputStream) stream = NULL;
-  JsonNode *packet = NULL;
+  GBytes *packet = NULL;
+  const char *packet_str = NULL;
+  size_t packet_len = 0;
   GCancellable *cancellable = NULL;
   GError *error = NULL;
 
@@ -890,12 +892,21 @@ valent_channel_write_packet_func (gpointer data)
   valent_object_unlock (VALENT_OBJECT (self));
 
   packet = g_task_get_task_data (task);
+  packet_str = g_bytes_get_data (packet, &packet_len);
   cancellable = g_task_get_cancellable (task);
-
-  if (valent_packet_to_stream (stream, packet, cancellable, &error))
-    g_task_return_boolean (task, TRUE);
+  if (g_output_stream_write_all (stream,
+                                 packet_str,
+                                 packet_len,
+                                 NULL,
+                                 cancellable,
+                                 &error))
+    {
+      g_task_return_boolean (task, TRUE);
+    }
   else
-    g_task_return_error (task, error);
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+    }
 
   return G_SOURCE_REMOVE;
 }
@@ -926,6 +937,9 @@ valent_channel_write_packet (ValentChannel       *channel,
 {
   ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GBytes) bytes = NULL;
+  g_autofree char *packet_str = NULL;
+  size_t packet_len = 0;
 
   VALENT_ENTRY;
 
@@ -933,11 +947,14 @@ valent_channel_write_packet (ValentChannel       *channel,
   g_return_if_fail (VALENT_IS_PACKET (packet));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+  packet_str = valent_packet_serialize (packet, &packet_len);
+  bytes = g_bytes_new_take (g_steal_pointer (&packet_str), packet_len);
+
   task = g_task_new (channel, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_channel_write_packet);
   g_task_set_task_data (task,
-                        json_node_ref (packet),
-                        (GDestroyNotify)json_node_unref);
+                        g_steal_pointer (&bytes),
+                        (GDestroyNotify)g_bytes_unref);
 
   if (valent_channel_return_error_if_closed (channel, task))
     VALENT_EXIT;
