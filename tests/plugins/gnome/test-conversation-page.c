@@ -14,15 +14,12 @@ test_conversation_page (void)
 {
   GtkWidget *conversation;
   GtkWidget *window;
-  g_autoptr (GMainLoop) loop = NULL;
   g_autoptr (ValentContactsAdapter) contacts = NULL;
   g_autoptr (ValentMessagesAdapter) messages = NULL;
   g_autoptr (ValentContactsAdapter) contacts_out = NULL;
   g_autoptr (ValentMessagesAdapter) messages_out = NULL;
   g_autofree char *iri = NULL;
   g_autofree char *iri_out = NULL;
-
-  loop = g_main_loop_new (NULL, FALSE);
 
   VALENT_TEST_CHECK ("Widget can be constructed");
   conversation = g_object_new (VALENT_TYPE_CONVERSATION_PAGE,

@@ -46,25 +46,23 @@ dbusmock_modemmanager (GDBusConnection *connection,
 static void
 test_telephony_proxy (void)
 {
-  g_autoptr (GMainLoop) loop = NULL;
   g_autoptr (ValentTelephony) telephony = NULL;
   g_autoptr (GDBusConnection) connection = NULL;
   g_autoptr (JsonNode) signal_node = NULL;
   JsonObject *signal_obj, *signal_meta;
 
   /* Setup the network */
-  loop = g_main_loop_new (NULL, FALSE);
   telephony = valent_telephony_get_default ();
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
   g_signal_connect_swapped (telephony,
                             "changed",
-                            G_CALLBACK (g_main_loop_quit),
-                            loop);
+                            G_CALLBACK (valent_test_quit_loop),
+                            NULL);
 
   /* Modem should be offline */
   dbusmock_modemmanager (connection, "AddModem", 0);
-  g_main_loop_run (loop);
+  valent_test_run_loop ();
 
   signal_node = valent_telephony_get_signal_strengths (telephony);
   signal_obj = json_node_get_object (signal_node);
@@ -76,7 +74,7 @@ test_telephony_proxy (void)
 
   /* Modem should be online */
   dbusmock_modemmanager (connection, "SetModemOnline", 0);
-  g_main_loop_run (loop);
+  valent_test_run_loop ();
 
   signal_node = valent_telephony_get_signal_strengths (telephony);
   signal_obj = json_node_get_object (signal_node);
@@ -88,7 +86,7 @@ test_telephony_proxy (void)
 
   /* Modem should be offline */
   dbusmock_modemmanager (connection, "SetModemOffline", 0);
-  g_main_loop_run (loop);
+  valent_test_run_loop ();
 
   signal_node = valent_telephony_get_signal_strengths (telephony);
   signal_obj = json_node_get_object (signal_node);
@@ -100,14 +98,12 @@ test_telephony_proxy (void)
 
   /* Modem should be removed */
   dbusmock_modemmanager (connection, "RemoveModem", 0);
-  g_main_loop_run (loop);
+  valent_test_run_loop ();
 
   signal_node = valent_telephony_get_signal_strengths (telephony);
   signal_obj = json_node_get_object (signal_node);
 
   g_assert_cmpuint (json_object_get_size (signal_obj), ==, 0);
-
-  g_signal_handlers_disconnect_by_data (telephony, loop);
 }
 
 int

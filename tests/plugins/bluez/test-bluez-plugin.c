@@ -20,7 +20,6 @@
 
 typedef struct
 {
-  GMainLoop            *loop;
   JsonNode             *packets;
   GDBusConnection      *connection;
   int                  *fds;
@@ -40,7 +39,6 @@ bluez_service_fixture_set_up (BluezBackendFixture *fixture,
 {
   PeasPluginInfo *plugin_info;
 
-  fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->packets = valent_test_load_json ("plugin-bluez.json");
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
@@ -57,7 +55,6 @@ static void
 bluez_service_fixture_tear_down (BluezBackendFixture *fixture,
                                  gconstpointer        user_data)
 {
-  g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_pointer (&fixture->packets, json_node_unref);
   g_clear_object (&fixture->connection);
 
@@ -93,7 +90,7 @@ g_async_initable_init_async_cb (GAsyncInitable      *initable,
   g_assert_no_error (error);
   g_assert_true (ret);
 
-  g_main_loop_quit (fixture->loop);
+  valent_test_quit_loop ();
 }
 
 static void
@@ -102,7 +99,7 @@ on_channel (ValentChannelService *service,
             BluezBackendFixture  *fixture)
 {
   fixture->channel = g_object_ref (channel);
-  g_main_loop_quit (fixture->loop);
+  valent_test_quit_loop ();
 }
 
 static void
@@ -116,7 +113,7 @@ dbusmock_call_wait_cb (GDBusConnection     *connection,
   reply = g_dbus_connection_call_finish (connection, result, &error);
   g_assert_no_error (error);
 
-  g_main_loop_quit (fixture->loop);
+  valent_test_quit_loop ();
 }
 
 
@@ -138,7 +135,7 @@ dbusmock_pair_device (BluezBackendFixture *fixture)
                           NULL,
                           (GAsyncReadyCallback)dbusmock_call_wait_cb,
                           fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 }
 
 static void
@@ -178,7 +175,7 @@ dbusmock_update_uuids (BluezBackendFixture *fixture)
                           NULL,
                           (GAsyncReadyCallback)dbusmock_call_wait_cb,
                           fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 }
 
 static void
@@ -194,7 +191,7 @@ dbusmock_new_connection_cb (GDBusConnection     *connection,
                                                            result,
                                                            &error);
   g_assert_no_error (error);
-  g_main_loop_quit (fixture->loop);
+  valent_test_quit_loop ();
 }
 
 static void
@@ -233,7 +230,7 @@ dbusmock_new_connection (BluezBackendFixture *fixture)
                                             (GAsyncReadyCallback)dbusmock_new_connection_cb,
                                             fixture);
   g_object_unref (fd_list);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 }
 
 static void
@@ -264,7 +261,7 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
                                NULL,
                                (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 
   g_signal_connect (fixture->service,
                     "channel",
@@ -296,7 +293,7 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
                                    NULL,
                                    (GAsyncReadyCallback)handshake_cb,
                                    fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
   valent_object_destroy (VALENT_OBJECT (fixture->service));
@@ -318,7 +315,7 @@ test_bluez_service_channel (BluezBackendFixture *fixture,
                                NULL,
                                (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 
   /* Listen for an incoming TCP connection */
   await_incoming_connection (fixture);
@@ -341,7 +338,7 @@ test_bluez_service_channel (BluezBackendFixture *fixture,
                     "channel",
                     G_CALLBACK (on_channel),
                     fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 
   /* Transfers */
   file = g_file_new_for_uri ("resource:///tests/image.png");
