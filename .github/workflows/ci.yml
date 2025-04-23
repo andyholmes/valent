@@ -237,7 +237,7 @@ jobs:
       - name: Test
         run: |
           dbus-run-session \
-            xvfb-run -d \
+            xwfb-run -- \
               gnome-desktop-testing-runner --log-directory=_build/meson-logs \
                                            libvalent-1
 
