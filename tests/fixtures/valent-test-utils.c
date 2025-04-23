@@ -12,121 +12,73 @@
 
 #include "valent-test-utils.h"
 
-
-/*
- * Transfer Helpers
+/**
+ * valent_test_init:
+ * @argcp: Address of the `argc` parameter of the
+ *        main() function. Changed if any arguments were handled.
+ * @argvp: (inout) (array length=argcp): Address of the
+ *        `argv` parameter of main().
+ *        Any parameters understood by g_test_init() or gtk_init() are
+ *        stripped before return.
+ * @...: currently unused
+ *
+ * This function is used to initialize a test program for Valent.
+ *
+ * In order, it will:
+ * - Call g_content_type_set_mime_dirs() to ensure GdkPixbuf works
+ * - Call g_test_init() with the %G_TEST_OPTION_ISOLATE_DIRS option
+ * - Call g_type_ensure() for all public classes
+ *
+ * Like g_test_init(), any known arguments will be processed and stripped from
+ * @argcp and @argvp.
  */
-typedef struct
+void
+valent_test_init (int    *argcp,
+                  char ***argvp,
+                  ...)
 {
-  GRecMutex  lock;
-  JsonNode  *packet;
-  GFile     *file;
-} TransferOperation;
+  g_content_type_set_mime_dirs (NULL);
+  g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
-static void
-transfer_op_free (gpointer data)
-{
-  TransferOperation *op = data;
+  /* Core */
+  g_type_ensure (VALENT_TYPE_APPLICATION);
+  g_type_ensure (VALENT_TYPE_APPLICATION_PLUGIN);
+  g_type_ensure (VALENT_TYPE_CONTEXT);
+  g_type_ensure (VALENT_TYPE_EXTENSION);
+  g_type_ensure (VALENT_TYPE_OBJECT);
+  g_type_ensure (VALENT_TYPE_COMPONENT);
+  g_type_ensure (VALENT_TYPE_TRANSFER);
 
-  g_rec_mutex_lock (&op->lock);
-  g_clear_object (&op->file);
-  g_clear_pointer (&op->packet, json_node_unref);
-  g_rec_mutex_unlock (&op->lock);
-  g_rec_mutex_clear (&op->lock);
-  g_clear_pointer (&op, g_free);
-}
+  /* Device */
+  g_type_ensure (VALENT_TYPE_CHANNEL);
+  g_type_ensure (VALENT_TYPE_CHANNEL_SERVICE);
+  g_type_ensure (VALENT_TYPE_DEVICE);
+  g_type_ensure (VALENT_TYPE_DEVICE_MANAGER);
+  g_type_ensure (VALENT_TYPE_DEVICE_PLUGIN);
+  g_type_ensure (VALENT_TYPE_DEVICE_TRANSFER);
 
-static void
-upload_task (GTask        *task,
-             gpointer      source_object,
-             gpointer      task_data,
-             GCancellable *cancellable)
-{
-  TransferOperation *op = task_data;
-  g_autoptr (GIOStream) stream = NULL;
-  g_autoptr (GFileInfo) file_info = NULL;
-  g_autoptr (GFileInputStream) file_source = NULL;
-  goffset size;
-  GError *error = NULL;
-
-  g_rec_mutex_lock (&op->lock);
-
-  file_info = g_file_query_info (op->file, "standard::size", 0, NULL, &error);
-
-  if (file_info == NULL)
-    {
-      g_rec_mutex_unlock (&op->lock);
-      return g_task_return_error (task, error);
-    }
-
-  file_source = g_file_read (op->file, cancellable, &error);
-
-  if (file_source == NULL)
-    {
-      g_rec_mutex_unlock (&op->lock);
-      return g_task_return_error (task, error);
-    }
-
-  size = g_file_info_get_size (file_info);
-  valent_packet_set_payload_size (op->packet, size);
-
-  stream = valent_channel_upload (VALENT_CHANNEL (source_object),
-                                  op->packet,
-                                  cancellable,
-                                  &error);
-
-  if (stream == NULL)
-    {
-      g_rec_mutex_unlock (&op->lock);
-      return g_task_return_error (task, error);
-    }
-
-  g_output_stream_splice (g_io_stream_get_output_stream (stream),
-                          G_INPUT_STREAM (file_source),
-                          (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                           G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                          cancellable,
-                          &error);
-  g_rec_mutex_unlock (&op->lock);
-
-  if (error != NULL)
-    return g_task_return_error (task, error);
-
-  g_task_return_boolean (task, TRUE);
-}
-
-static void
-download_task (GTask        *task,
-               gpointer      source_object,
-               gpointer      task_data,
-               GCancellable *cancellable)
-{
-  JsonNode *packet = task_data;
-  g_autoptr (GIOStream) stream = NULL;
-  g_autoptr (GOutputStream) target = NULL;
-  GError *error = NULL;
-
-  stream = valent_channel_download (VALENT_CHANNEL (source_object),
-                                    packet,
-                                    cancellable,
-                                    &error);
-
-  if (stream == NULL)
-    return g_task_return_error (task, error);
-
-  target = g_memory_output_stream_new_resizable ();
-
-  g_output_stream_splice (target,
-                          g_io_stream_get_input_stream (stream),
-                          (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                           G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                          cancellable,
-                          &error);
-
-  if (error != NULL)
-    return g_task_return_error (task, error);
-
-  g_task_return_boolean (task, TRUE);
+  /* Components */
+  g_type_ensure (VALENT_TYPE_CLIPBOARD);
+  g_type_ensure (VALENT_TYPE_CLIPBOARD_ADAPTER);
+  g_type_ensure (VALENT_TYPE_CONTACTS);
+  g_type_ensure (VALENT_TYPE_CONTACTS_ADAPTER);
+  g_type_ensure (VALENT_TYPE_INPUT);
+  g_type_ensure (VALENT_TYPE_INPUT_ADAPTER);
+  g_type_ensure (VALENT_TYPE_MEDIA);
+  g_type_ensure (VALENT_TYPE_MEDIA_ADAPTER);
+  g_type_ensure (VALENT_TYPE_MEDIA_PLAYER);
+  g_type_ensure (VALENT_TYPE_MESSAGES);
+  g_type_ensure (VALENT_TYPE_MESSAGES_ADAPTER);
+  g_type_ensure (VALENT_TYPE_MESSAGE);
+  g_type_ensure (VALENT_TYPE_MESSAGE_ATTACHMENT);
+  g_type_ensure (VALENT_TYPE_MIXER);
+  g_type_ensure (VALENT_TYPE_MIXER_ADAPTER);
+  g_type_ensure (VALENT_TYPE_MIXER_STREAM);
+  g_type_ensure (VALENT_TYPE_NOTIFICATIONS);
+  g_type_ensure (VALENT_TYPE_NOTIFICATIONS_ADAPTER);
+  g_type_ensure (VALENT_TYPE_NOTIFICATION);
+  g_type_ensure (VALENT_TYPE_SESSION);
+  g_type_ensure (VALENT_TYPE_SESSION_ADAPTER);
 }
 
 /**
@@ -518,6 +470,61 @@ valent_test_channel_pair (JsonNode       *identity,
                                     NULL);
 }
 
+typedef struct
+{
+  GRecMutex  lock;
+  JsonNode  *packet;
+  GFile     *file;
+} TransferOperation;
+
+static void
+transfer_op_free (gpointer data)
+{
+  TransferOperation *op = data;
+
+  g_rec_mutex_lock (&op->lock);
+  g_clear_object (&op->file);
+  g_clear_pointer (&op->packet, json_node_unref);
+  g_rec_mutex_unlock (&op->lock);
+  g_rec_mutex_clear (&op->lock);
+  g_clear_pointer (&op, g_free);
+}
+
+static void
+download_task (GTask        *task,
+               gpointer      source_object,
+               gpointer      task_data,
+               GCancellable *cancellable)
+{
+  ValentChannel *channel = VALENT_CHANNEL (source_object);
+  JsonNode *packet = task_data;
+  g_autoptr (GIOStream) stream = NULL;
+  g_autoptr (GOutputStream) target = NULL;
+  GError *error = NULL;
+
+  stream = valent_channel_download (channel, packet, cancellable, &error);
+  if (stream == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  target = g_memory_output_stream_new_resizable ();
+  g_output_stream_splice (target,
+                          g_io_stream_get_input_stream (stream),
+                          (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
+                           G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
+                          cancellable,
+                          &error);
+  if (error != NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_task_return_boolean (task, TRUE);
+}
+
 /**
  * valent_test_download:
  * @channel: a `ValentChannel`
@@ -550,6 +557,65 @@ valent_test_download (ValentChannel  *channel,
     g_main_context_iteration (NULL, FALSE);
 
   return g_task_propagate_boolean (task, error);
+}
+
+static void
+upload_task (GTask        *task,
+             gpointer      source_object,
+             gpointer      task_data,
+             GCancellable *cancellable)
+{
+  ValentChannel *channel = VALENT_CHANNEL (source_object);
+  TransferOperation *op = task_data;
+  g_autoptr (GIOStream) stream = NULL;
+  g_autoptr (GFile) file = NULL;
+  g_autoptr (JsonNode) packet = NULL;
+  g_autoptr (GFileInfo) file_info = NULL;
+  g_autoptr (GFileInputStream) file_source = NULL;
+  goffset size;
+  GError *error = NULL;
+
+  g_rec_mutex_lock (&op->lock);
+  file = g_object_ref (op->file);
+  packet = json_node_ref (op->packet);
+  g_rec_mutex_unlock (&op->lock);
+
+  file_info = g_file_query_info (file, "standard::size", 0, NULL, &error);
+  if (file_info == NULL)
+    {
+      g_task_return_error (task, error);
+      return;
+    }
+
+  file_source = g_file_read (file, cancellable, &error);
+  if (file_source == NULL)
+    {
+      g_task_return_error (task, error);
+      return;
+    }
+
+  size = g_file_info_get_size (file_info);
+  valent_packet_set_payload_size (packet, size);
+  stream = valent_channel_upload (channel, packet, cancellable, &error);
+  if (stream == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_output_stream_splice (g_io_stream_get_output_stream (stream),
+                          G_INPUT_STREAM (file_source),
+                          (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
+                           G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
+                          cancellable,
+                          &error);
+  if (error != NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_task_return_boolean (task, TRUE);
 }
 
 /**
@@ -591,80 +657,5 @@ valent_test_upload (ValentChannel  *channel,
     g_main_context_iteration (NULL, FALSE);
 
   return g_task_propagate_boolean (task, error);
-}
-
-static void
-valent_type_ensure (void)
-{
-  /* Core */
-  g_type_ensure (VALENT_TYPE_APPLICATION);
-  g_type_ensure (VALENT_TYPE_APPLICATION_PLUGIN);
-  g_type_ensure (VALENT_TYPE_CONTEXT);
-  g_type_ensure (VALENT_TYPE_EXTENSION);
-  g_type_ensure (VALENT_TYPE_OBJECT);
-  g_type_ensure (VALENT_TYPE_COMPONENT);
-  g_type_ensure (VALENT_TYPE_TRANSFER);
-
-  /* Device */
-  g_type_ensure (VALENT_TYPE_CHANNEL);
-  g_type_ensure (VALENT_TYPE_CHANNEL_SERVICE);
-  g_type_ensure (VALENT_TYPE_DEVICE);
-  g_type_ensure (VALENT_TYPE_DEVICE_MANAGER);
-  g_type_ensure (VALENT_TYPE_DEVICE_PLUGIN);
-  g_type_ensure (VALENT_TYPE_DEVICE_TRANSFER);
-
-  /* Components */
-  g_type_ensure (VALENT_TYPE_CLIPBOARD);
-  g_type_ensure (VALENT_TYPE_CLIPBOARD_ADAPTER);
-  g_type_ensure (VALENT_TYPE_CONTACTS);
-  g_type_ensure (VALENT_TYPE_CONTACTS_ADAPTER);
-  g_type_ensure (VALENT_TYPE_INPUT);
-  g_type_ensure (VALENT_TYPE_INPUT_ADAPTER);
-  g_type_ensure (VALENT_TYPE_MEDIA);
-  g_type_ensure (VALENT_TYPE_MEDIA_ADAPTER);
-  g_type_ensure (VALENT_TYPE_MEDIA_PLAYER);
-  g_type_ensure (VALENT_TYPE_MESSAGES);
-  g_type_ensure (VALENT_TYPE_MESSAGES_ADAPTER);
-  g_type_ensure (VALENT_TYPE_MESSAGE);
-  g_type_ensure (VALENT_TYPE_MESSAGE_ATTACHMENT);
-  g_type_ensure (VALENT_TYPE_MIXER);
-  g_type_ensure (VALENT_TYPE_MIXER_ADAPTER);
-  g_type_ensure (VALENT_TYPE_MIXER_STREAM);
-  g_type_ensure (VALENT_TYPE_NOTIFICATIONS);
-  g_type_ensure (VALENT_TYPE_NOTIFICATIONS_ADAPTER);
-  g_type_ensure (VALENT_TYPE_NOTIFICATION);
-  g_type_ensure (VALENT_TYPE_SESSION);
-  g_type_ensure (VALENT_TYPE_SESSION_ADAPTER);
-}
-
-/**
- * valent_test_init:
- * @argcp: Address of the `argc` parameter of the
- *        main() function. Changed if any arguments were handled.
- * @argvp: (inout) (array length=argcp): Address of the
- *        `argv` parameter of main().
- *        Any parameters understood by g_test_init() or gtk_init() are
- *        stripped before return.
- * @...: currently unused
- *
- * This function is used to initialize a GUI test program for Valent.
- *
- * In order, it will:
- * - Call g_content_type_set_mime_dirs() to ensure GdkPixbuf works
- * - Call g_test_init() with the %G_TEST_OPTION_ISOLATE_DIRS option
- * - Call g_type_ensure() for all public classes
- *
- * Like g_test_init(), any known arguments will be processed and stripped from
- * @argcp and @argvp.
- */
-void
-valent_test_init (int    *argcp,
-                  char ***argvp,
-                  ...)
-{
-  g_content_type_set_mime_dirs (NULL);
-  g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
-
-  valent_type_ensure ();
 }
 
