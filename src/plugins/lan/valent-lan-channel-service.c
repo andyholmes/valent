@@ -53,7 +53,6 @@ typedef enum {
 
 static GParamSpec *properties[PROP_PORT + 1] = { NULL, };
 
-
 static void
 on_network_changed (GNetworkMonitor         *monitor,
                     gboolean                 network_available,
@@ -62,8 +61,20 @@ on_network_changed (GNetworkMonitor         *monitor,
   if (self->network_available == network_available)
     return;
 
-  if ((self->network_available = network_available))
-    valent_channel_service_identify (VALENT_CHANNEL_SERVICE (self), NULL);
+  self->network_available = network_available;
+  if (self->network_available)
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_ACTIVE,
+                                             NULL);
+      valent_channel_service_identify (VALENT_CHANNEL_SERVICE (self), NULL);
+    }
+  else
+    {
+      valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
+                                             VALENT_PLUGIN_STATE_INACTIVE,
+                                             NULL);
+    }
 }
 
 static void
@@ -1250,7 +1261,8 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
   g_signal_connect_object (self->monitor,
                            "network-changed",
                            G_CALLBACK (on_network_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   task = g_task_new (initable, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
