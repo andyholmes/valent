@@ -308,6 +308,7 @@ test_bluez_service_channel (BluezBackendFixture *fixture,
   JsonNode *packet;
   g_autoptr (GSocketAddress) address = NULL;
   g_autofree char *identity_str = NULL;
+  size_t identity_len;
   g_autoptr (GFile) file = NULL;
 
   g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
@@ -324,12 +325,12 @@ test_bluez_service_channel (BluezBackendFixture *fixture,
   address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
   packet = json_object_get_member (json_node_get_object (fixture->packets),
                                    "identity");
-  identity_str = valent_packet_serialize (packet);
+  identity_str = valent_packet_serialize (packet, &identity_len);
 
   g_socket_send_to (fixture->socket,
                     address,
                     identity_str,
-                    strlen (identity_str),
+                    identity_len,
                     NULL,
                     &error);
   g_assert_no_error (error);

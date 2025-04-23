@@ -273,6 +273,7 @@ test_lan_service_incoming_broadcast (LanTestFixture *fixture,
   GError *error = NULL;
   g_autoptr (GSocketAddress) address = NULL;
   g_autofree char *identity_json = NULL;
+  size_t identity_len;
   gboolean watch = FALSE;
 
   VALENT_TEST_CHECK ("The service can be initialized");
@@ -288,11 +289,11 @@ test_lan_service_incoming_broadcast (LanTestFixture *fixture,
 
   VALENT_TEST_CHECK ("The service accepts UDP broadcasts from the network");
   address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
-  identity_json = valent_packet_serialize (fixture->peer_identity);
+  identity_json = valent_packet_serialize (fixture->peer_identity, &identity_len);
   g_socket_send_to (fixture->socket,
                     address,
                     identity_json,
-                    strlen (identity_json),
+                    identity_len,
                     NULL,
                     &error);
   g_assert_no_error (error);
@@ -509,6 +510,7 @@ test_lan_service_channel (LanTestFixture *fixture,
   JsonNode *packet;
   g_autoptr (GSocketAddress) address = NULL;
   g_autofree char *identity_str = NULL;
+  size_t identity_len;
   char *host;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
@@ -528,12 +530,12 @@ test_lan_service_channel (LanTestFixture *fixture,
 
   /* Identify the mock endpoint to the service */
   address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
-  identity_str = valent_packet_serialize (fixture->peer_identity);
+  identity_str = valent_packet_serialize (fixture->peer_identity, &identity_len);
 
   g_socket_send_to (fixture->socket,
                     address,
                     identity_str,
-                    strlen (identity_str),
+                    identity_len,
                     NULL,
                     &error);
   g_assert_no_error (error);

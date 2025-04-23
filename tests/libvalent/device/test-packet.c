@@ -177,7 +177,7 @@ test_packet_serializing (PacketFixture *fixture,
 
   while (json_object_iter_next (&iter, NULL, &packet_in))
     {
-      packet_str = valent_packet_serialize (packet_in);
+      packet_str = valent_packet_serialize (packet_in, NULL);
       packet_out = valent_packet_deserialize (packet_str, &error);
       g_assert_no_error (error);
       g_assert_true (json_node_equal (packet_in, packet_out));
