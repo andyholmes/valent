@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-04-15 15:14-0700\n"
+"POT-Creation-Date: 2025-04-22 13:16-0700\n"
 "PO-Revision-Date: 2025-03-05 11:14+0100\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -17,14 +17,14 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
-#: data/ca.andyholmes.Valent.desktop.in.in:3
+#: data/ca.andyholmes.Valent.desktop.in.in:2
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: src/plugins/gnome/valent-window.c:220 src/plugins/gnome/valent-window.ui:8
 #: src/plugins/gnome/valent-window.ui:45
 msgid "Valent"
 msgstr "Valent"
 
-#: data/ca.andyholmes.Valent.desktop.in.in:4
+#: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
 msgid "Connect, control and sync devices"
 msgstr "Verbind met, beheer en synchroniseer tussen apparaten"
@@ -182,38 +182,29 @@ msgstr "Bekijk en bedien externe apparaten"
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
-#: src/libvalent/device/valent-device.c:521
+#: src/libvalent/device/valent-device.c:749
 #, c-format
 msgid "Pairing request from “%s”"
 msgstr "Koppelverzoek van “%s”"
 
-#: src/libvalent/device/valent-device.c:531
+#: src/libvalent/device/valent-device.c:759
 #: src/plugins/gnome/valent-device-page.ui:118
 msgid "Reject"
 msgstr "Afwijzen"
 
-#: src/libvalent/device/valent-device.c:536
+#: src/libvalent/device/valent-device.c:764
 #: src/plugins/gnome/valent-device-page.ui:132
 msgid "Accept"
 msgstr "Goedkeuren"
 
-#: src/libvalent/device/valent-device.c:565
-#, c-format
-msgid "Failed to pair with “%s”"
-msgstr "“%s” kan niet worden gekoppeld"
-
-#: src/libvalent/device/valent-device.c:569
-msgid "Device clocks are out of sync"
-msgstr "De klokken lopen niet gelijk"
-
-#: src/plugins/battery/battery.plugin.desktop.in:7
+#: src/plugins/battery/battery.plugin.desktop.in:6
 #: src/plugins/gnome/valent-device-page.ui:217
 #: src/plugins/gnome/valent-device-row.ui:124
 #: src/plugins/gnome/valent-preferences-status-page.ui:15
 msgid "Battery"
 msgstr "Accu"
 
-#: src/plugins/battery/battery.plugin.desktop.in:8
+#: src/plugins/battery/battery.plugin.desktop.in:7
 msgid "Monitor battery level and charging state"
 msgstr "Bekijk het accu- en oplaadniveau"
 
@@ -244,29 +235,29 @@ msgstr "%s: laag accuniveau"
 msgid "%g%% (%d∶%02d Remaining)"
 msgstr "%g%% (%d∶%02d resterend)"
 
-#: src/plugins/bluez/bluez.plugin.desktop.in:7
+#: src/plugins/bluez/bluez.plugin.desktop.in:6
 msgid "Bluez"
 msgstr "Bluez"
 
-#: src/plugins/bluez/bluez.plugin.desktop.in:8
+#: src/plugins/bluez/bluez.plugin.desktop.in:7
 msgid "Connect devices over Bluetooth"
 msgstr "Maak verbinding met apparaten via bluetooth"
 
-#: src/plugins/clipboard/clipboard.plugin.desktop.in:7
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:6
 #: src/plugins/gnome/valent-preferences-dialog.c:600
 #: src/plugins/gnome/valent-preferences-sync-page.ui:15
 msgid "Clipboard"
 msgstr "Klembord"
 
-#: src/plugins/clipboard/clipboard.plugin.desktop.in:8
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 msgid "Sync the clipboard between devices"
 msgstr "Synchroniseer klembordinhoud tussen apparaten"
 
-#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:6
 msgid "Connectivity"
 msgstr "Verbinding"
 
-#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:8
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
 msgid "Monitor mobile connectivity status"
 msgstr "Bekijk de mobieleverbindingsstatus"
 
@@ -306,7 +297,7 @@ msgstr "Geen simkaart"
 msgid "%s: %s"
 msgstr "%s: %s"
 
-#: src/plugins/contacts/contacts.plugin.desktop.in:7
+#: src/plugins/contacts/contacts.plugin.desktop.in:6
 #: src/plugins/gnome/valent-contact-page.ui:8
 #: src/plugins/gnome/valent-contact-page.ui:54
 #: src/plugins/gnome/valent-conversation-page.ui:181
@@ -317,31 +308,31 @@ msgstr "%s: %s"
 msgid "Contacts"
 msgstr "Contactpersonen"
 
-#: src/plugins/contacts/contacts.plugin.desktop.in:8
+#: src/plugins/contacts/contacts.plugin.desktop.in:7
 msgid "Sync contacts between devices"
 msgstr "Synchroniseer contactpersonen tussen apparaten"
 
-#: src/plugins/eds/eds.plugin.desktop.in:7
+#: src/plugins/eds/eds.plugin.desktop.in:6
 msgid "Evolution Data Server"
 msgstr "Evolution Data Server"
 
-#: src/plugins/eds/eds.plugin.desktop.in:8
+#: src/plugins/eds/eds.plugin.desktop.in:7
 msgid "Integration with Evolution Data Server"
 msgstr "Integratie met Evolution Data Server"
 
-#: src/plugins/fdo/fdo.plugin.desktop.in:7
+#: src/plugins/fdo/fdo.plugin.desktop.in:6
 msgid "freedesktop.org"
 msgstr "freedesktop.org"
 
-#: src/plugins/fdo/fdo.plugin.desktop.in:8
+#: src/plugins/fdo/fdo.plugin.desktop.in:7
 msgid "Freedesktop.org Based Modules"
 msgstr "Op Freedesktop.org gebaseerde modules"
 
-#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:6
 msgid "Find My Phone"
 msgstr "Telefoon zoeken"
 
-#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:8
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
 msgid "Find a device by making it ring"
 msgstr "Zoek een apparaat door het te bellen"
 
@@ -353,11 +344,11 @@ msgstr "Bellen"
 msgid "Find My Device"
 msgstr "Apparaat zoeken"
 
-#: src/plugins/gnome/gnome.plugin.desktop.in:7
+#: src/plugins/gnome/gnome.plugin.desktop.in:6
 msgid "GNOME"
 msgstr "GNOME"
 
-#: src/plugins/gnome/gnome.plugin.desktop.in:8
+#: src/plugins/gnome/gnome.plugin.desktop.in:7
 msgid "Integration with GNOME"
 msgstr "Integratie met GNOME"
 
@@ -610,7 +601,7 @@ msgid "Request Pairing"
 msgstr "Koppelverzoek versturen"
 
 #: src/plugins/gnome/valent-device-page.ui:259
-#: src/plugins/lock/lock.plugin.desktop.in:7
+#: src/plugins/lock/lock.plugin.desktop.in:6
 msgid "Lock"
 msgstr "Vergrendelen"
 
@@ -889,7 +880,7 @@ msgstr "Volumeregeling"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:635
 #: src/plugins/gnome/valent-preferences-sync-page.ui:58
-#: src/plugins/notification/notification.plugin.desktop.in:7
+#: src/plugins/notification/notification.plugin.desktop.in:6
 msgid "Notifications"
 msgstr "Meldingen"
 
@@ -942,7 +933,7 @@ msgid "Select download folder"
 msgstr "Kies een downloadmap"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:15
-#: src/plugins/share/share.plugin.desktop.in:7
+#: src/plugins/share/share.plugin.desktop.in:6
 msgid "Sharing"
 msgstr "Delen"
 
@@ -958,7 +949,7 @@ msgstr "Waar ontvangen bestanden dienen te worden opgeslagen"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:53
 #: src/plugins/gnome/valent-preferences-other-page.ui:82
-#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:6
 msgid "Commands"
 msgstr "Opdrachten"
 
@@ -1003,7 +994,7 @@ msgid "Notify when the remote battery is low"
 msgstr "Melding tonen als de accu bijna leeg is"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:62
-#: src/plugins/telephony/telephony.plugin.desktop.in:7
+#: src/plugins/telephony/telephony.plugin.desktop.in:6
 msgid "Telephony"
 msgstr "Oproepen"
 
@@ -1107,7 +1098,7 @@ msgid "Filter by Application"
 msgstr "Filteren op toepassing"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:98
-#: src/plugins/sftp/sftp.plugin.desktop.in:7
+#: src/plugins/sftp/sftp.plugin.desktop.in:6
 msgid "Files"
 msgstr "Bestanden"
 
@@ -1366,52 +1357,52 @@ msgstr "Over Valent"
 msgid "Quit"
 msgstr "Afsluiten"
 
-#: src/plugins/gtk/gtk.plugin.desktop.in:7
+#: src/plugins/gtk/gtk.plugin.desktop.in:6
 msgid "GTK"
 msgstr "GTK"
 
-#: src/plugins/gtk/gtk.plugin.desktop.in:8
+#: src/plugins/gtk/gtk.plugin.desktop.in:7
 msgid "Integration with GTK4"
 msgstr "Integratie met GTK4"
 
-#: src/plugins/lan/lan.plugin.desktop.in:7
+#: src/plugins/lan/lan.plugin.desktop.in:6
 msgid "LAN"
 msgstr "Lan"
 
-#: src/plugins/lan/lan.plugin.desktop.in:8
+#: src/plugins/lan/lan.plugin.desktop.in:7
 msgid "Connect devices over LAN"
 msgstr "Verbind met apparaten via lan"
 
-#: src/plugins/lock/lock.plugin.desktop.in:8
+#: src/plugins/lock/lock.plugin.desktop.in:7
 msgid "Lock and unlock"
 msgstr "Vergrendelen en ontgrendelen"
 
-#: src/plugins/mousepad/mousepad.plugin.desktop.in:7
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:6
 msgid "Mousepad"
 msgstr "Touchpad"
 
-#: src/plugins/mousepad/mousepad.plugin.desktop.in:8
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:7
 msgid "Control the mouse and keyboard"
 msgstr "Bedien de muis en het toetsenbord"
 
-#: src/plugins/mpris/mpris.plugin.desktop.in:7
+#: src/plugins/mpris/mpris.plugin.desktop.in:6
 msgid "MPRIS"
 msgstr "MPRIS"
 
-#: src/plugins/mpris/mpris.plugin.desktop.in:8
+#: src/plugins/mpris/mpris.plugin.desktop.in:7
 msgid "Share control of MPRISv2 players"
 msgstr "Bedien met MPRISv2 compatibele mediaspelers"
 
-#: src/plugins/notification/notification.plugin.desktop.in:8
+#: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Sync notifications"
 msgstr "Meldingen synchroniseren"
 
-#: src/plugins/ping/ping.plugin.desktop.in:7
+#: src/plugins/ping/ping.plugin.desktop.in:6
 #: src/plugins/ping/valent-ping-plugin.c:157
 msgid "Ping"
 msgstr "Rinkelen"
 
-#: src/plugins/ping/ping.plugin.desktop.in:8
+#: src/plugins/ping/ping.plugin.desktop.in:7
 msgid "Send and receive pings"
 msgstr "Ontvang en verstuur oproepjes"
 
@@ -1419,31 +1410,31 @@ msgstr "Ontvang en verstuur oproepjes"
 msgid "Ping!"
 msgstr "Rinkelen!"
 
-#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:6
 msgid "PipeWire"
 msgstr "PipeWire"
 
-#: src/plugins/pipewire/pipewire.plugin.desktop.in:8
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
 msgid "Integration with PipeWire"
 msgstr "Integratie met PipeWire"
 
-#: src/plugins/presenter/presenter.plugin.desktop.in:7
+#: src/plugins/presenter/presenter.plugin.desktop.in:6
 msgid "Presenter"
 msgstr "Afstandsbediening"
 
-#: src/plugins/presenter/presenter.plugin.desktop.in:8
+#: src/plugins/presenter/presenter.plugin.desktop.in:7
 msgid "Control presentations"
 msgstr "Bedien presentaties"
 
-#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:6
 msgid "PulseAudio"
 msgstr "PulseAudio"
 
-#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:8
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
 msgid "Integration with PulseAudio"
 msgstr "Integratie met PulseAudio"
 
-#: src/plugins/runcommand/runcommand.plugin.desktop.in:8
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
 msgid "Execute commands remotely"
 msgstr "Voer externe opdrachten uit"
 
@@ -1451,7 +1442,7 @@ msgstr "Voer externe opdrachten uit"
 msgid "Run Command"
 msgstr "Opdracht uitvoeren"
 
-#: src/plugins/sftp/sftp.plugin.desktop.in:8
+#: src/plugins/sftp/sftp.plugin.desktop.in:7
 msgid "Share files and directories with SFTP"
 msgstr "Verken bestanden en mappen met sftp"
 
@@ -1472,7 +1463,7 @@ msgstr ""
 msgid "Mount"
 msgstr ""
 
-#: src/plugins/share/share.plugin.desktop.in:8
+#: src/plugins/share/share.plugin.desktop.in:7
 msgid "Direct file, link and text sharing"
 msgstr "Deel bestanden, links en tekst"
 
@@ -1579,23 +1570,23 @@ msgstr "Tekst “%s”"
 msgid "Copy"
 msgstr "Kopiëren"
 
-#: src/plugins/sms/sms.plugin.desktop.in:7
+#: src/plugins/sms/sms.plugin.desktop.in:6
 msgid "SMS"
 msgstr "Sms"
 
-#: src/plugins/sms/sms.plugin.desktop.in:8
+#: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "Send and receive SMS messages"
 msgstr "Verstuur en ontvang sms'jes"
 
-#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:6
 msgid "System Volume"
 msgstr "Systeemvolume"
 
-#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:8
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
 msgid "Monitor volume levels and microphones"
 msgstr "Bedien de volumeniveaus en microfonen"
 
-#: src/plugins/telephony/telephony.plugin.desktop.in:8
+#: src/plugins/telephony/telephony.plugin.desktop.in:7
 msgid "Be notified of incoming and ongoing calls"
 msgstr "Toon een melding bij inkomende en actieve gesprekken"
 
@@ -1623,11 +1614,11 @@ msgstr "Apparaten synchroniseren"
 msgid "Valent wants to run as a service"
 msgstr "Valent wil worden uitgevoerd als achtergronddienst"
 
-#: src/plugins/xdp/xdp.plugin.desktop.in:7
+#: src/plugins/xdp/xdp.plugin.desktop.in:6
 msgid "Portals"
 msgstr "Portalen"
 
-#: src/plugins/xdp/xdp.plugin.desktop.in:8
+#: src/plugins/xdp/xdp.plugin.desktop.in:7
 msgid "Integration with desktop portals"
 msgstr "Integratie met bureaubladportalen"
 
@@ -1659,6 +1650,13 @@ msgstr[1] ""
 #, fuzzy
 msgid "System Sounds"
 msgstr "Systeemvolume"
+
+#, c-format
+#~ msgid "Failed to pair with “%s”"
+#~ msgstr "“%s” kan niet worden gekoppeld"
+
+#~ msgid "Device clocks are out of sync"
+#~ msgstr "De klokken lopen niet gelijk"
 
 #~ msgid "Remove the command"
 #~ msgstr "Opdracht verwijderen"

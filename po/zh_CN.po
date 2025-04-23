@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-04-15 15:14-0700\n"
+"POT-Creation-Date: 2025-04-22 13:16-0700\n"
 "PO-Revision-Date: 2023-07-03 19:05+0800\n"
 "Last-Translator: sky96111 <sky96111@outlook.com>\n"
 "Language-Team: Chinese Simplified\n"
@@ -18,14 +18,14 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.3.2\n"
 
-#: data/ca.andyholmes.Valent.desktop.in.in:3
+#: data/ca.andyholmes.Valent.desktop.in.in:2
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: src/plugins/gnome/valent-window.c:220 src/plugins/gnome/valent-window.ui:8
 #: src/plugins/gnome/valent-window.ui:45
 msgid "Valent"
 msgstr ""
 
-#: data/ca.andyholmes.Valent.desktop.in.in:4
+#: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
 msgid "Connect, control and sync devices"
 msgstr "连接、控制和同步设备"
@@ -179,38 +179,29 @@ msgstr "配对和连接你的设备"
 msgid "Andy Holmes"
 msgstr ""
 
-#: src/libvalent/device/valent-device.c:521
+#: src/libvalent/device/valent-device.c:749
 #, fuzzy, c-format
 msgid "Pairing request from “%s”"
 msgstr "来自 %s 的配对请求"
 
-#: src/libvalent/device/valent-device.c:531
+#: src/libvalent/device/valent-device.c:759
 #: src/plugins/gnome/valent-device-page.ui:118
 msgid "Reject"
 msgstr "拒绝"
 
-#: src/libvalent/device/valent-device.c:536
+#: src/libvalent/device/valent-device.c:764
 #: src/plugins/gnome/valent-device-page.ui:132
 msgid "Accept"
 msgstr "接受"
 
-#: src/libvalent/device/valent-device.c:565
-#, c-format
-msgid "Failed to pair with “%s”"
-msgstr ""
-
-#: src/libvalent/device/valent-device.c:569
-msgid "Device clocks are out of sync"
-msgstr ""
-
-#: src/plugins/battery/battery.plugin.desktop.in:7
+#: src/plugins/battery/battery.plugin.desktop.in:6
 #: src/plugins/gnome/valent-device-page.ui:217
 #: src/plugins/gnome/valent-device-row.ui:124
 #: src/plugins/gnome/valent-preferences-status-page.ui:15
 msgid "Battery"
 msgstr "电池"
 
-#: src/plugins/battery/battery.plugin.desktop.in:8
+#: src/plugins/battery/battery.plugin.desktop.in:7
 msgid "Monitor battery level and charging state"
 msgstr "监测电池电量和充电状态"
 
@@ -241,30 +232,30 @@ msgstr "%s: 电量低"
 msgid "%g%% (%d∶%02d Remaining)"
 msgstr "%g%% (剩余 %d∶%02d)"
 
-#: src/plugins/bluez/bluez.plugin.desktop.in:7
+#: src/plugins/bluez/bluez.plugin.desktop.in:6
 msgid "Bluez"
 msgstr ""
 
-#: src/plugins/bluez/bluez.plugin.desktop.in:8
+#: src/plugins/bluez/bluez.plugin.desktop.in:7
 #, fuzzy
 msgid "Connect devices over Bluetooth"
 msgstr "通过局域网连接设备"
 
-#: src/plugins/clipboard/clipboard.plugin.desktop.in:7
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:6
 #: src/plugins/gnome/valent-preferences-dialog.c:600
 #: src/plugins/gnome/valent-preferences-sync-page.ui:15
 msgid "Clipboard"
 msgstr "剪切板"
 
-#: src/plugins/clipboard/clipboard.plugin.desktop.in:8
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 msgid "Sync the clipboard between devices"
 msgstr "在设备间同步剪贴板"
 
-#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:6
 msgid "Connectivity"
 msgstr "连接性"
 
-#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:8
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
 msgid "Monitor mobile connectivity status"
 msgstr "监测手机信号状态"
 
@@ -304,7 +295,7 @@ msgstr "无SIM卡"
 msgid "%s: %s"
 msgstr ""
 
-#: src/plugins/contacts/contacts.plugin.desktop.in:7
+#: src/plugins/contacts/contacts.plugin.desktop.in:6
 #: src/plugins/gnome/valent-contact-page.ui:8
 #: src/plugins/gnome/valent-contact-page.ui:54
 #: src/plugins/gnome/valent-conversation-page.ui:181
@@ -315,31 +306,31 @@ msgstr ""
 msgid "Contacts"
 msgstr "联系人"
 
-#: src/plugins/contacts/contacts.plugin.desktop.in:8
+#: src/plugins/contacts/contacts.plugin.desktop.in:7
 msgid "Sync contacts between devices"
 msgstr "在设备间同步联系人"
 
-#: src/plugins/eds/eds.plugin.desktop.in:7
+#: src/plugins/eds/eds.plugin.desktop.in:6
 msgid "Evolution Data Server"
 msgstr "Evolution 数据服务器"
 
-#: src/plugins/eds/eds.plugin.desktop.in:8
+#: src/plugins/eds/eds.plugin.desktop.in:7
 msgid "Integration with Evolution Data Server"
 msgstr "与 Evolution 数据服务器集成"
 
-#: src/plugins/fdo/fdo.plugin.desktop.in:7
+#: src/plugins/fdo/fdo.plugin.desktop.in:6
 msgid "freedesktop.org"
 msgstr "freedesktop.org"
 
-#: src/plugins/fdo/fdo.plugin.desktop.in:8
+#: src/plugins/fdo/fdo.plugin.desktop.in:7
 msgid "Freedesktop.org Based Modules"
 msgstr "基于 Freedesktop.org 的模块"
 
-#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:6
 msgid "Find My Phone"
 msgstr "查找我的手机"
 
-#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:8
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
 msgid "Find a device by making it ring"
 msgstr "让设备响铃以查找设备"
 
@@ -352,11 +343,11 @@ msgstr "响铃"
 msgid "Find My Device"
 msgstr "查找我的手机"
 
-#: src/plugins/gnome/gnome.plugin.desktop.in:7
+#: src/plugins/gnome/gnome.plugin.desktop.in:6
 msgid "GNOME"
 msgstr ""
 
-#: src/plugins/gnome/gnome.plugin.desktop.in:8
+#: src/plugins/gnome/gnome.plugin.desktop.in:7
 #, fuzzy
 msgid "Integration with GNOME"
 msgstr "GTK4集成"
@@ -616,7 +607,7 @@ msgid "Request Pairing"
 msgstr "请求配对"
 
 #: src/plugins/gnome/valent-device-page.ui:259
-#: src/plugins/lock/lock.plugin.desktop.in:7
+#: src/plugins/lock/lock.plugin.desktop.in:6
 msgid "Lock"
 msgstr "锁定"
 
@@ -904,7 +895,7 @@ msgstr "音量控制"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:635
 #: src/plugins/gnome/valent-preferences-sync-page.ui:58
-#: src/plugins/notification/notification.plugin.desktop.in:7
+#: src/plugins/notification/notification.plugin.desktop.in:6
 msgid "Notifications"
 msgstr "通知"
 
@@ -957,7 +948,7 @@ msgid "Select download folder"
 msgstr "选择下载文件夹"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:15
-#: src/plugins/share/share.plugin.desktop.in:7
+#: src/plugins/share/share.plugin.desktop.in:6
 msgid "Sharing"
 msgstr "共享"
 
@@ -973,7 +964,7 @@ msgstr "收到的文件储存位置"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:53
 #: src/plugins/gnome/valent-preferences-other-page.ui:82
-#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:6
 msgid "Commands"
 msgstr "命令"
 
@@ -1018,7 +1009,7 @@ msgid "Notify when the remote battery is low"
 msgstr "远程设备电量不足时通知"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:62
-#: src/plugins/telephony/telephony.plugin.desktop.in:7
+#: src/plugins/telephony/telephony.plugin.desktop.in:6
 msgid "Telephony"
 msgstr "电话"
 
@@ -1122,7 +1113,7 @@ msgid "Filter by Application"
 msgstr "按应用过滤"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:98
-#: src/plugins/sftp/sftp.plugin.desktop.in:7
+#: src/plugins/sftp/sftp.plugin.desktop.in:6
 msgid "Files"
 msgstr "文件"
 
@@ -1387,52 +1378,52 @@ msgstr "关于"
 msgid "Quit"
 msgstr "退出"
 
-#: src/plugins/gtk/gtk.plugin.desktop.in:7
+#: src/plugins/gtk/gtk.plugin.desktop.in:6
 msgid "GTK"
 msgstr "GTK"
 
-#: src/plugins/gtk/gtk.plugin.desktop.in:8
+#: src/plugins/gtk/gtk.plugin.desktop.in:7
 msgid "Integration with GTK4"
 msgstr "GTK4集成"
 
-#: src/plugins/lan/lan.plugin.desktop.in:7
+#: src/plugins/lan/lan.plugin.desktop.in:6
 msgid "LAN"
 msgstr "局域网"
 
-#: src/plugins/lan/lan.plugin.desktop.in:8
+#: src/plugins/lan/lan.plugin.desktop.in:7
 msgid "Connect devices over LAN"
 msgstr "通过局域网连接设备"
 
-#: src/plugins/lock/lock.plugin.desktop.in:8
+#: src/plugins/lock/lock.plugin.desktop.in:7
 msgid "Lock and unlock"
 msgstr "锁定与解锁"
 
-#: src/plugins/mousepad/mousepad.plugin.desktop.in:7
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:6
 msgid "Mousepad"
 msgstr "键鼠"
 
-#: src/plugins/mousepad/mousepad.plugin.desktop.in:8
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:7
 msgid "Control the mouse and keyboard"
 msgstr "控制鼠标和键盘"
 
-#: src/plugins/mpris/mpris.plugin.desktop.in:7
+#: src/plugins/mpris/mpris.plugin.desktop.in:6
 msgid "MPRIS"
 msgstr "MPRIS"
 
-#: src/plugins/mpris/mpris.plugin.desktop.in:8
+#: src/plugins/mpris/mpris.plugin.desktop.in:7
 msgid "Share control of MPRISv2 players"
 msgstr "共享 MPRISv2 播放器的控制权"
 
-#: src/plugins/notification/notification.plugin.desktop.in:8
+#: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Sync notifications"
 msgstr "同步通知"
 
-#: src/plugins/ping/ping.plugin.desktop.in:7
+#: src/plugins/ping/ping.plugin.desktop.in:6
 #: src/plugins/ping/valent-ping-plugin.c:157
 msgid "Ping"
 msgstr "Ping"
 
-#: src/plugins/ping/ping.plugin.desktop.in:8
+#: src/plugins/ping/ping.plugin.desktop.in:7
 msgid "Send and receive pings"
 msgstr "发送和接收 PING"
 
@@ -1440,31 +1431,31 @@ msgstr "发送和接收 PING"
 msgid "Ping!"
 msgstr "Ping！"
 
-#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:6
 msgid "PipeWire"
 msgstr ""
 
-#: src/plugins/pipewire/pipewire.plugin.desktop.in:8
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
 msgid "Integration with PipeWire"
 msgstr "与 PipeWire 集成"
 
-#: src/plugins/presenter/presenter.plugin.desktop.in:7
+#: src/plugins/presenter/presenter.plugin.desktop.in:6
 msgid "Presenter"
 msgstr "幻灯片演示"
 
-#: src/plugins/presenter/presenter.plugin.desktop.in:8
+#: src/plugins/presenter/presenter.plugin.desktop.in:7
 msgid "Control presentations"
 msgstr "控制演示设备"
 
-#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:6
 msgid "PulseAudio"
 msgstr "PulseAudio"
 
-#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:8
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
 msgid "Integration with PulseAudio"
 msgstr "与 PulseAudio 集成"
 
-#: src/plugins/runcommand/runcommand.plugin.desktop.in:8
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
 msgid "Execute commands remotely"
 msgstr "远程设备执行命令"
 
@@ -1472,7 +1463,7 @@ msgstr "远程设备执行命令"
 msgid "Run Command"
 msgstr "运行命令"
 
-#: src/plugins/sftp/sftp.plugin.desktop.in:8
+#: src/plugins/sftp/sftp.plugin.desktop.in:7
 msgid "Share files and directories with SFTP"
 msgstr "用 SFTP 共享文件和目录"
 
@@ -1493,7 +1484,7 @@ msgstr ""
 msgid "Mount"
 msgstr ""
 
-#: src/plugins/share/share.plugin.desktop.in:8
+#: src/plugins/share/share.plugin.desktop.in:7
 msgid "Direct file, link and text sharing"
 msgstr "直接分享文件、链接和文本"
 
@@ -1596,23 +1587,23 @@ msgstr "来自 %s 的配对请求"
 msgid "Copy"
 msgstr "复制"
 
-#: src/plugins/sms/sms.plugin.desktop.in:7
+#: src/plugins/sms/sms.plugin.desktop.in:6
 msgid "SMS"
 msgstr "短信"
 
-#: src/plugins/sms/sms.plugin.desktop.in:8
+#: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "Send and receive SMS messages"
 msgstr "发送和接收短信"
 
-#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:6
 msgid "System Volume"
 msgstr "系统音量"
 
-#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:8
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
 msgid "Monitor volume levels and microphones"
 msgstr "显示器音量和麦克风音量"
 
-#: src/plugins/telephony/telephony.plugin.desktop.in:8
+#: src/plugins/telephony/telephony.plugin.desktop.in:7
 msgid "Be notified of incoming and ongoing calls"
 msgstr "来电和去电时发出通知"
 
@@ -1642,11 +1633,11 @@ msgstr "设备"
 msgid "Valent wants to run as a service"
 msgstr "Valent 希望作为一项服务运行"
 
-#: src/plugins/xdp/xdp.plugin.desktop.in:7
+#: src/plugins/xdp/xdp.plugin.desktop.in:6
 msgid "Portals"
 msgstr "桌面环境"
 
-#: src/plugins/xdp/xdp.plugin.desktop.in:8
+#: src/plugins/xdp/xdp.plugin.desktop.in:7
 msgid "Integration with desktop portals"
 msgstr "与桌面环境集成"
 
