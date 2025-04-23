@@ -68,16 +68,16 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
       continue;                                    \
   } G_STMT_END
 
-#define valent_test_await_pointer(ptr)             \
-  G_STMT_START {                                   \
-    while (ptr != NULL && *ptr == NULL)            \
-      g_main_context_iteration (NULL, FALSE);      \
+#define valent_test_await_pointer(ptr)                     \
+  G_STMT_START {                                           \
+    G_STATIC_ASSERT (sizeof (ptr) == sizeof (gpointer *)); \
+    valent_test_await_pointer ((gpointer *)ptr);           \
   } G_STMT_END
 
-#define valent_test_await_nullptr(ptr)             \
-  G_STMT_START {                                   \
-    while (ptr != NULL && *ptr != NULL)            \
-      g_main_context_iteration (NULL, FALSE);      \
+#define valent_test_await_nullptr(ptr)                     \
+  G_STMT_START {                                           \
+    G_STATIC_ASSERT (sizeof (ptr) == sizeof (gpointer *)); \
+    valent_test_await_nullptr ((gpointer *)ptr);           \
   } G_STMT_END
 
 
