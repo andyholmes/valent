@@ -780,20 +780,30 @@ valent_channel_read_packet_task (GTask        *task,
   valent_object_unlock (VALENT_OBJECT (self));
 
   line = g_data_input_stream_read_line_utf8 (stream, NULL, cancellable, &error);
-
   if (error != NULL)
-    return g_task_return_error (task, error);
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+  else if (line == NULL)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_CONNECTION_CLOSED,
+                               "Channel is closed");
+      return;
+    }
 
-  if (line == NULL)
-    return g_task_return_new_error (task,
-                                    G_IO_ERROR,
-                                    G_IO_ERROR_CONNECTION_CLOSED,
-                                    "Channel is closed");
+  packet = valent_packet_deserialize (line, &error);
+  if (packet == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
-  if ((packet = valent_packet_deserialize (line, &error)) == NULL)
-    return g_task_return_error (task, error);
-
-  g_task_return_pointer (task, packet, (GDestroyNotify)json_node_unref);
+  g_task_return_pointer (task,
+                         g_steal_pointer (&packet),
+                         (GDestroyNotify)json_node_unref);
 }
 
 /**
