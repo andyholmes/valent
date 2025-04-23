@@ -302,6 +302,17 @@ void
     continue;
 }
 
+static gboolean
+valent_test_await_pointer_cb (gpointer data)
+{
+  gpointer *target = (gpointer *)data;
+
+  if (*target == NULL)
+    return G_SOURCE_CONTINUE;
+
+  return valent_test_quit_loop ();
+}
+
 /**
  * valent_test_await_pointer:
  * @result: a pointer to a `gpointer` (i.e. `void **`)
@@ -314,12 +325,28 @@ void
 void
 (valent_test_await_pointer) (gpointer *result)
 {
-  while (result != NULL && *result == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  g_assert (result != NULL);
+
+  if G_UNLIKELY (*result != NULL)
+    return;
+
+  g_idle_add (valent_test_await_pointer_cb, result);
+  valent_test_run_loop ();
+}
+
+static gboolean
+valent_test_await_nullptr_cb (gpointer data)
+{
+  gpointer *target = (gpointer *)data;
+
+  if (*target != NULL)
+    return G_SOURCE_CONTINUE;
+
+  return valent_test_quit_loop ();
 }
 
 /**
- * valent_test_await_null_pointer:
+ * valent_test_await_nullptr:
  * @result: a pointer to a `gpointer` (i.e. `void **`)
  *
  * Wait for @ptr to be changed to %NULL, while iterating the main context.
@@ -330,8 +357,13 @@ void
 void
 (valent_test_await_nullptr) (gpointer *result)
 {
-  while (result != NULL && *result != NULL)
-    g_main_context_iteration (NULL, FALSE);
+  g_assert (result != NULL);
+
+  if G_UNLIKELY (*result == NULL)
+    return;
+
+  g_idle_add (valent_test_await_nullptr_cb, result);
+  valent_test_run_loop ();
 }
 
 /**
