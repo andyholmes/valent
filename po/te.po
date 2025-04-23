@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-04-15 15:14-0700\n"
+"POT-Creation-Date: 2025-04-22 13:16-0700\n"
 "PO-Revision-Date: 2024-09-29 08:24+0530\n"
 "Last-Translator: Aryan Karamtoth <aryankmmiv@outlook.com>\n"
-"Language-Team: Telugu l10n Translation Team <ubuntu-l10n-te@lists.launchpad."
-"net >\n"
+"Language-Team: Telugu l10n Translation Team <ubuntu-l10n-"
+"te@lists.launchpad.net >\n"
 "Language: te\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -19,14 +19,14 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 46.1\n"
 
-#: data/ca.andyholmes.Valent.desktop.in.in:3
+#: data/ca.andyholmes.Valent.desktop.in.in:2
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: src/plugins/gnome/valent-window.c:220 src/plugins/gnome/valent-window.ui:8
 #: src/plugins/gnome/valent-window.ui:45
 msgid "Valent"
 msgstr "వాలెంట్"
 
-#: data/ca.andyholmes.Valent.desktop.in.in:4
+#: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
 msgid "Connect, control and sync devices"
 msgstr "పరికరాలను కనెక్ట్ చేయండి, నియంత్రించండి మరియు సమకాలీకరించండి"
@@ -179,38 +179,29 @@ msgstr "రిమోట్ పరికరాలను పర్యవేక్�
 msgid "Andy Holmes"
 msgstr "ఆండీ హోమ్స్"
 
-#: src/libvalent/device/valent-device.c:521
+#: src/libvalent/device/valent-device.c:749
 #, c-format
 msgid "Pairing request from “%s”"
 msgstr "“%s” నుండి జత చేసే అభ్యర్థన"
 
-#: src/libvalent/device/valent-device.c:531
+#: src/libvalent/device/valent-device.c:759
 #: src/plugins/gnome/valent-device-page.ui:118
 msgid "Reject"
 msgstr "తిరస్కరించు"
 
-#: src/libvalent/device/valent-device.c:536
+#: src/libvalent/device/valent-device.c:764
 #: src/plugins/gnome/valent-device-page.ui:132
 msgid "Accept"
 msgstr "అంగీకరించు"
 
-#: src/libvalent/device/valent-device.c:565
-#, c-format
-msgid "Failed to pair with “%s”"
-msgstr ""
-
-#: src/libvalent/device/valent-device.c:569
-msgid "Device clocks are out of sync"
-msgstr ""
-
-#: src/plugins/battery/battery.plugin.desktop.in:7
+#: src/plugins/battery/battery.plugin.desktop.in:6
 #: src/plugins/gnome/valent-device-page.ui:217
 #: src/plugins/gnome/valent-device-row.ui:124
 #: src/plugins/gnome/valent-preferences-status-page.ui:15
 msgid "Battery"
 msgstr "బ్యాటరీ"
 
-#: src/plugins/battery/battery.plugin.desktop.in:8
+#: src/plugins/battery/battery.plugin.desktop.in:7
 msgid "Monitor battery level and charging state"
 msgstr "బ్యాటరీ స్థాయి మరియు ఛార్జింగ్ స్థితిని పర్యవేక్షించండి"
 
@@ -241,29 +232,29 @@ msgstr "%s: బ్యాటరీ తక్కువ"
 msgid "%g%% (%d∶%02d Remaining)"
 msgstr "%g%% (%d∶%02d మిగిలినవి)"
 
-#: src/plugins/bluez/bluez.plugin.desktop.in:7
+#: src/plugins/bluez/bluez.plugin.desktop.in:6
 msgid "Bluez"
 msgstr "బ్లూజ్"
 
-#: src/plugins/bluez/bluez.plugin.desktop.in:8
+#: src/plugins/bluez/bluez.plugin.desktop.in:7
 msgid "Connect devices over Bluetooth"
 msgstr "బ్లూటూత్ ద్వారా పరికరాలను కనెక్ట్ చేయండి"
 
-#: src/plugins/clipboard/clipboard.plugin.desktop.in:7
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:6
 #: src/plugins/gnome/valent-preferences-dialog.c:600
 #: src/plugins/gnome/valent-preferences-sync-page.ui:15
 msgid "Clipboard"
 msgstr "క్లిప్‌బోర్డ్"
 
-#: src/plugins/clipboard/clipboard.plugin.desktop.in:8
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 msgid "Sync the clipboard between devices"
 msgstr "పరికరాల మధ్య క్లిప్‌బోర్డ్‌ను సమకాలీకరించండి"
 
-#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:6
 msgid "Connectivity"
 msgstr "కనెక్టివిటీ"
 
-#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:8
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
 msgid "Monitor mobile connectivity status"
 msgstr "మొబైల్ కనెక్టివిటీ స్థితిని పర్యవేక్షించండి"
 
@@ -303,7 +294,7 @@ msgstr "సిమ్ లేదు"
 msgid "%s: %s"
 msgstr "%s: %s"
 
-#: src/plugins/contacts/contacts.plugin.desktop.in:7
+#: src/plugins/contacts/contacts.plugin.desktop.in:6
 #: src/plugins/gnome/valent-contact-page.ui:8
 #: src/plugins/gnome/valent-contact-page.ui:54
 #: src/plugins/gnome/valent-conversation-page.ui:181
@@ -314,31 +305,31 @@ msgstr "%s: %s"
 msgid "Contacts"
 msgstr "పరిచయాలు"
 
-#: src/plugins/contacts/contacts.plugin.desktop.in:8
+#: src/plugins/contacts/contacts.plugin.desktop.in:7
 msgid "Sync contacts between devices"
 msgstr "పరికరాల మధ్య పరిచయాలను సమకాలీకరించండి"
 
-#: src/plugins/eds/eds.plugin.desktop.in:7
+#: src/plugins/eds/eds.plugin.desktop.in:6
 msgid "Evolution Data Server"
 msgstr "ఎవల్యూషన్ డేటా సర్వర్"
 
-#: src/plugins/eds/eds.plugin.desktop.in:8
+#: src/plugins/eds/eds.plugin.desktop.in:7
 msgid "Integration with Evolution Data Server"
 msgstr "ఎవల్యూషన్ డేటా సర్వర్‌తో ఇంటిగ్రేషన్"
 
-#: src/plugins/fdo/fdo.plugin.desktop.in:7
+#: src/plugins/fdo/fdo.plugin.desktop.in:6
 msgid "freedesktop.org"
 msgstr "freedesktop.org"
 
-#: src/plugins/fdo/fdo.plugin.desktop.in:8
+#: src/plugins/fdo/fdo.plugin.desktop.in:7
 msgid "Freedesktop.org Based Modules"
 msgstr "Freedesktop.org ఆధారిత మాడ్యూల్స్"
 
-#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:6
 msgid "Find My Phone"
 msgstr "నా ఫోన్‌ని కనుగొనండి"
 
-#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:8
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
 msgid "Find a device by making it ring"
 msgstr "రింగ్ చేయడం ద్వారా పరికరాన్ని కనుగొనండి"
 
@@ -350,11 +341,11 @@ msgstr "రింగ్"
 msgid "Find My Device"
 msgstr "నా పరికరాన్ని కనుగొనండి"
 
-#: src/plugins/gnome/gnome.plugin.desktop.in:7
+#: src/plugins/gnome/gnome.plugin.desktop.in:6
 msgid "GNOME"
 msgstr "గ్నోమ్"
 
-#: src/plugins/gnome/gnome.plugin.desktop.in:8
+#: src/plugins/gnome/gnome.plugin.desktop.in:7
 msgid "Integration with GNOME"
 msgstr "GNOMEతో ఏకీకరణ"
 
@@ -607,7 +598,7 @@ msgid "Request Pairing"
 msgstr "జత చేయడాన్ని అభ్యర్థించండి"
 
 #: src/plugins/gnome/valent-device-page.ui:259
-#: src/plugins/lock/lock.plugin.desktop.in:7
+#: src/plugins/lock/lock.plugin.desktop.in:6
 msgid "Lock"
 msgstr "తాళం వేయండి"
 
@@ -887,7 +878,7 @@ msgstr "వాల్యూమ్ నియంత్రణ"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:635
 #: src/plugins/gnome/valent-preferences-sync-page.ui:58
-#: src/plugins/notification/notification.plugin.desktop.in:7
+#: src/plugins/notification/notification.plugin.desktop.in:6
 msgid "Notifications"
 msgstr "నోటిఫికేషన్‌లు"
 
@@ -940,7 +931,7 @@ msgid "Select download folder"
 msgstr "డౌన్‌లోడ్ ఫోల్డర్‌ని ఎంచుకోండి"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:15
-#: src/plugins/share/share.plugin.desktop.in:7
+#: src/plugins/share/share.plugin.desktop.in:6
 msgid "Sharing"
 msgstr "భాగస్వామ్యం"
 
@@ -956,7 +947,7 @@ msgstr "స్వీకరించిన ఫైల్‌లు ఎక్కడ 
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:53
 #: src/plugins/gnome/valent-preferences-other-page.ui:82
-#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:6
 msgid "Commands"
 msgstr "ఆదేశాలు"
 
@@ -1001,7 +992,7 @@ msgid "Notify when the remote battery is low"
 msgstr "రిమోట్ బ్యాటరీ తక్కువగా ఉన్నప్పుడు తెలియజేయండి"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:62
-#: src/plugins/telephony/telephony.plugin.desktop.in:7
+#: src/plugins/telephony/telephony.plugin.desktop.in:6
 msgid "Telephony"
 msgstr "టెలిఫోనీ"
 
@@ -1105,7 +1096,7 @@ msgid "Filter by Application"
 msgstr "అప్లికేషన్ ద్వారా ఫిల్టర్ చేయండి"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:98
-#: src/plugins/sftp/sftp.plugin.desktop.in:7
+#: src/plugins/sftp/sftp.plugin.desktop.in:6
 msgid "Files"
 msgstr "ఫైళ్లు"
 
@@ -1364,52 +1355,52 @@ msgstr "వాలెంట్ గురించి"
 msgid "Quit"
 msgstr "నిష్క్రమించు"
 
-#: src/plugins/gtk/gtk.plugin.desktop.in:7
+#: src/plugins/gtk/gtk.plugin.desktop.in:6
 msgid "GTK"
 msgstr "GTK"
 
-#: src/plugins/gtk/gtk.plugin.desktop.in:8
+#: src/plugins/gtk/gtk.plugin.desktop.in:7
 msgid "Integration with GTK4"
 msgstr "GTK4తో ఏకీకరణ"
 
-#: src/plugins/lan/lan.plugin.desktop.in:7
+#: src/plugins/lan/lan.plugin.desktop.in:6
 msgid "LAN"
 msgstr "LAN"
 
-#: src/plugins/lan/lan.plugin.desktop.in:8
+#: src/plugins/lan/lan.plugin.desktop.in:7
 msgid "Connect devices over LAN"
 msgstr "LAN ద్వారా పరికరాలను కనెక్ట్ చేయండి"
 
-#: src/plugins/lock/lock.plugin.desktop.in:8
+#: src/plugins/lock/lock.plugin.desktop.in:7
 msgid "Lock and unlock"
 msgstr "లాక్ మరియు అన్లాక్"
 
-#: src/plugins/mousepad/mousepad.plugin.desktop.in:7
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:6
 msgid "Mousepad"
 msgstr "మౌస్‌ప్యాడ్"
 
-#: src/plugins/mousepad/mousepad.plugin.desktop.in:8
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:7
 msgid "Control the mouse and keyboard"
 msgstr "మౌస్ మరియు కీబోర్డ్ నియంత్రించండి"
 
-#: src/plugins/mpris/mpris.plugin.desktop.in:7
+#: src/plugins/mpris/mpris.plugin.desktop.in:6
 msgid "MPRIS"
 msgstr "MPRIS"
 
-#: src/plugins/mpris/mpris.plugin.desktop.in:8
+#: src/plugins/mpris/mpris.plugin.desktop.in:7
 msgid "Share control of MPRISv2 players"
 msgstr "MPRISv2 ప్లేయర్‌ల నియంత్రణను భాగస్వామ్యం చేయండి"
 
-#: src/plugins/notification/notification.plugin.desktop.in:8
+#: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Sync notifications"
 msgstr "నోటిఫికేషన్‌లను సమకాలీకరించండి"
 
-#: src/plugins/ping/ping.plugin.desktop.in:7
+#: src/plugins/ping/ping.plugin.desktop.in:6
 #: src/plugins/ping/valent-ping-plugin.c:157
 msgid "Ping"
 msgstr "పింగ్"
 
-#: src/plugins/ping/ping.plugin.desktop.in:8
+#: src/plugins/ping/ping.plugin.desktop.in:7
 msgid "Send and receive pings"
 msgstr "పింగ్‌లను పంపండి మరియు స్వీకరించండి"
 
@@ -1417,31 +1408,31 @@ msgstr "పింగ్‌లను పంపండి మరియు స్వ
 msgid "Ping!"
 msgstr "పింగ్!"
 
-#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:6
 msgid "PipeWire"
 msgstr "పైప్‌వైర్"
 
-#: src/plugins/pipewire/pipewire.plugin.desktop.in:8
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
 msgid "Integration with PipeWire"
 msgstr "PipeWireతో ఏకీకరణ"
 
-#: src/plugins/presenter/presenter.plugin.desktop.in:7
+#: src/plugins/presenter/presenter.plugin.desktop.in:6
 msgid "Presenter"
 msgstr "ప్రెజెంటర్"
 
-#: src/plugins/presenter/presenter.plugin.desktop.in:8
+#: src/plugins/presenter/presenter.plugin.desktop.in:7
 msgid "Control presentations"
 msgstr "ప్రదర్శనలను నియంత్రించండి"
 
-#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:6
 msgid "PulseAudio"
 msgstr "PulseAudio"
 
-#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:8
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
 msgid "Integration with PulseAudio"
 msgstr "PulseAudioతో ఏకీకరణ"
 
-#: src/plugins/runcommand/runcommand.plugin.desktop.in:8
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
 msgid "Execute commands remotely"
 msgstr "రిమోట్‌గా ఆదేశాలను అమలు చేయండి"
 
@@ -1449,7 +1440,7 @@ msgstr "రిమోట్‌గా ఆదేశాలను అమలు చే
 msgid "Run Command"
 msgstr "ఆదేశాన్ని అమలు చేయండి"
 
-#: src/plugins/sftp/sftp.plugin.desktop.in:8
+#: src/plugins/sftp/sftp.plugin.desktop.in:7
 msgid "Share files and directories with SFTP"
 msgstr "SFTPతో ఫైల్‌లు మరియు డైరెక్టరీలను భాగస్వామ్యం చేయండి"
 
@@ -1470,7 +1461,7 @@ msgstr ""
 msgid "Mount"
 msgstr ""
 
-#: src/plugins/share/share.plugin.desktop.in:8
+#: src/plugins/share/share.plugin.desktop.in:7
 msgid "Direct file, link and text sharing"
 msgstr "డైరెక్ట్ ఫైల్, లింక్ మరియు టెక్స్ట్ షేరింగ్"
 
@@ -1577,23 +1568,23 @@ msgstr "“%s” నుండి వచనం"
 msgid "Copy"
 msgstr "కాపీ చేయండి"
 
-#: src/plugins/sms/sms.plugin.desktop.in:7
+#: src/plugins/sms/sms.plugin.desktop.in:6
 msgid "SMS"
 msgstr "SMS"
 
-#: src/plugins/sms/sms.plugin.desktop.in:8
+#: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "Send and receive SMS messages"
 msgstr "SMS సందేశాలను పంపండి మరియు స్వీకరించండి"
 
-#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:6
 msgid "System Volume"
 msgstr "సిస్టమ్ వాల్యూమ్"
 
-#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:8
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
 msgid "Monitor volume levels and microphones"
 msgstr "వాల్యూమ్ స్థాయిలు మరియు మైక్రోఫోన్‌లను పర్యవేక్షించండి"
 
-#: src/plugins/telephony/telephony.plugin.desktop.in:8
+#: src/plugins/telephony/telephony.plugin.desktop.in:7
 msgid "Be notified of incoming and ongoing calls"
 msgstr "ఇన్‌కమింగ్ మరియు కొనసాగుతున్న కాల్‌ల గురించి తెలియజేయండి"
 
@@ -1621,11 +1612,11 @@ msgstr "పరికరాలను సమకాలీకరించడం"
 msgid "Valent wants to run as a service"
 msgstr "వాలెంట్ సేవగా అమలు చేయాలనుకుంటున్నారు"
 
-#: src/plugins/xdp/xdp.plugin.desktop.in:7
+#: src/plugins/xdp/xdp.plugin.desktop.in:6
 msgid "Portals"
 msgstr "పోర్టల్స్"
 
-#: src/plugins/xdp/xdp.plugin.desktop.in:8
+#: src/plugins/xdp/xdp.plugin.desktop.in:7
 msgid "Integration with desktop portals"
 msgstr "డెస్క్‌టాప్ పోర్టల్‌లతో ఏకీకరణ"
 
