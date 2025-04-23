@@ -24,20 +24,6 @@ G_DEFINE_BOXED_TYPE (ValentTestFixture, valent_test_fixture,
                                         valent_test_fixture_ref,
                                         valent_test_fixture_unref)
 
-
-static void
-expect_packet_cb (ValentChannel  *channel,
-                  GAsyncResult   *result,
-                  JsonNode      **packet)
-{
-  g_autoptr (GError) error = NULL;
-
-  *packet = valent_channel_read_packet_finish (channel, result, &error);
-
-  if (error != NULL)
-    g_critical ("%s(): %s", G_STRFUNC, error->message);
-}
-
 static void
 valent_test_fixture_free (gpointer data)
 {
@@ -306,6 +292,19 @@ valent_test_fixture_lookup_packet (ValentTestFixture *fixture,
   return json_object_get_member (json_node_get_object (fixture->packets), name);
 }
 
+static void
+expect_packet_cb (ValentChannel  *channel,
+                  GAsyncResult   *result,
+                  JsonNode      **packet)
+{
+  GError *error = NULL;
+
+  *packet = valent_channel_read_packet_finish (channel, result, &error);
+  g_assert_no_error (error);
+
+  valent_test_quit_loop ();
+}
+
 /**
  * valent_test_fixture_expect_packet:
  * @fixture: a `ValentTestFixture`
@@ -324,9 +323,7 @@ valent_test_fixture_expect_packet (ValentTestFixture *fixture)
                               NULL,
                               (GAsyncReadyCallback)expect_packet_cb,
                               &packet);
-
-  while (packet == NULL)
-    g_main_context_iteration (NULL, FALSE);
+  valent_test_run_loop ();
 
   return g_steal_pointer (&packet);
 }
