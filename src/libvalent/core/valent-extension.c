@@ -381,7 +381,7 @@ valent_extension_get_property (GObject    *object,
   switch ((ValentExtensionProperty)prop_id)
     {
     case PROP_CONTEXT:
-      g_value_set_object (value, valent_extension_get_context (self));
+      g_value_set_object (value, priv->context);
       break;
 
     case PROP_PLUGIN_INFO:
