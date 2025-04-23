@@ -510,8 +510,8 @@ test_lan_service_channel (LanTestFixture *fixture,
   g_autoptr (GSocketAddress) address = NULL;
   g_autofree char *identity_str = NULL;
   char *host;
-  GTlsCertificate *certificate = NULL;
-  GTlsCertificate *peer_certificate = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
   uint16_t port;
   g_autoptr (GFile) file = NULL;
   gboolean watch = FALSE;
@@ -554,13 +554,17 @@ test_lan_service_channel (LanTestFixture *fixture,
   g_assert_cmpuint (port, ==, ENDPOINT_PORT);
   g_free (host);
 
-  certificate = valent_channel_get_certificate (fixture->endpoint);
-  peer_certificate = valent_channel_get_peer_certificate (fixture->channel);
+  certificate = valent_channel_ref_certificate (fixture->endpoint);
+  peer_certificate = valent_channel_ref_peer_certificate (fixture->channel);
   g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
+  g_clear_object (&certificate);
+  g_clear_object (&peer_certificate);
 
-  certificate = valent_channel_get_certificate (fixture->channel);
-  peer_certificate = valent_channel_get_peer_certificate (fixture->endpoint);
+  certificate = valent_channel_ref_certificate (fixture->channel);
+  peer_certificate = valent_channel_ref_peer_certificate (fixture->endpoint);
   g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
+  g_clear_object (&certificate);
+  g_clear_object (&peer_certificate);
 
   VALENT_TEST_CHECK ("Channel can transfer payloads");
   file = g_file_new_for_uri ("resource:///tests/image.png");

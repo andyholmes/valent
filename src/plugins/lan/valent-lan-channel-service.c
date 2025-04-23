@@ -81,14 +81,14 @@ static void
 on_channel_destroyed (ValentLanChannelService *self,
                       ValentLanChannel        *channel)
 {
-  GTlsCertificate *certificate = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
   const char *device_id = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
   g_assert (VALENT_IS_LAN_CHANNEL (channel));
 
   valent_object_lock (VALENT_OBJECT (self));
-  certificate = valent_channel_get_certificate (VALENT_CHANNEL (channel));
+  certificate = valent_channel_ref_certificate (VALENT_CHANNEL (channel));
   device_id = valent_certificate_get_common_name (certificate);
   g_hash_table_remove (self->channels, device_id);
   valent_object_unlock (VALENT_OBJECT (self));
@@ -220,7 +220,7 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
                                            GIOStream               *connection)
 {
   ValentLanChannel *channel = NULL;
-  GTlsCertificate *certificate = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
   const char *peer_certificate_cn = NULL;
   const char *device_id = NULL;
@@ -270,7 +270,7 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
   valent_object_lock (VALENT_OBJECT (self));
   channel = g_hash_table_lookup (self->channels, device_id);
   if (channel != NULL && !valent_object_in_destruction (VALENT_OBJECT (channel)))
-    certificate = valent_channel_get_peer_certificate (VALENT_CHANNEL (channel));
+    certificate = valent_channel_ref_peer_certificate (VALENT_CHANNEL (channel));
 
   if (certificate && !g_tls_certificate_is_same (certificate, peer_certificate))
     {
@@ -1155,14 +1155,14 @@ valent_lan_channel_service_channel (ValentChannelService *service,
                                     ValentChannel        *channel)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
-  GTlsCertificate *peer_certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
   const char *device_id = NULL;
 
   g_assert (VALENT_IS_MAIN_THREAD ());
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
   g_assert (VALENT_IS_LAN_CHANNEL (channel));
 
-  peer_certificate = valent_channel_get_peer_certificate (channel);
+  peer_certificate = valent_channel_ref_peer_certificate (channel);
   device_id = valent_certificate_get_common_name (peer_certificate);
 
   valent_object_lock (VALENT_OBJECT (service));

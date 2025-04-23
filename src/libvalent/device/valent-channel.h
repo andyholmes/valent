@@ -56,11 +56,11 @@ struct _ValentChannelClass
 VALENT_AVAILABLE_IN_1_0
 GIOStream       * valent_channel_ref_base_stream      (ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0
-GTlsCertificate * valent_channel_get_certificate      (ValentChannel        *channel);
+GTlsCertificate * valent_channel_ref_certificate      (ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0
 JsonNode        * valent_channel_get_identity         (ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0
-GTlsCertificate * valent_channel_get_peer_certificate (ValentChannel        *channel);
+GTlsCertificate * valent_channel_ref_peer_certificate (ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0
 JsonNode        * valent_channel_get_peer_identity    (ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0

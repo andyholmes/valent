@@ -48,8 +48,8 @@ valent_lan_channel_download (ValentChannel  *channel,
   goffset size;
   g_autoptr (GSocketClient) client = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
-  GTlsCertificate *certificate = NULL;
-  GTlsCertificate *peer_certificate = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
   g_autofree char *host = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
 
@@ -95,8 +95,8 @@ valent_lan_channel_download (ValentChannel  *channel,
   /* NOTE: When negotiating an auxiliary connection, a KDE Connect device
    *       acts as the TLS client when opening TCP connections.
    */
-  certificate = valent_channel_get_certificate (channel);
-  peer_certificate = valent_channel_get_peer_certificate (channel);
+  certificate = valent_channel_ref_certificate (channel);
+  peer_certificate = valent_channel_ref_peer_certificate (channel);
   tls_stream = valent_lan_connection_handshake (connection,
                                                 certificate,
                                                 peer_certificate,
@@ -122,8 +122,8 @@ valent_lan_channel_upload (ValentChannel  *channel,
   g_autoptr (GSocketListener) listener = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   uint16_t port = VALENT_LAN_TRANSFER_PORT_MIN;
-  GTlsCertificate *certificate = NULL;
-  GTlsCertificate *peer_certificate = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
 
   g_assert (VALENT_IS_CHANNEL (channel));
@@ -158,8 +158,8 @@ valent_lan_channel_upload (ValentChannel  *channel,
   /* NOTE: When negotiating an auxiliary connection, a KDE Connect device
    *       acts as the TLS server when accepting TCP connections.
    */
-  certificate = valent_channel_get_certificate (channel);
-  peer_certificate = valent_channel_get_peer_certificate (channel);
+  certificate = valent_channel_ref_certificate (channel);
+  peer_certificate = valent_channel_ref_peer_certificate (channel);
   tls_stream = valent_lan_connection_handshake (connection,
                                                 certificate,
                                                 peer_certificate,

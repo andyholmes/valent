@@ -63,7 +63,7 @@ valent_test_fixture_init (ValentTestFixture *fixture,
   JsonNode *identity, *peer_identity;
   g_autoptr (ValentContext) context = NULL;
   g_autoptr (GFile) cert_file = NULL;
-  GTlsCertificate *peer_certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
   const char *common_name = NULL;
   g_autofree char *certificate_pem = NULL;
   g_autoptr (GSettings) settings = NULL;
@@ -84,7 +84,7 @@ valent_test_fixture_init (ValentTestFixture *fixture,
 
   /* Pre-Install the peer certificate
    */
-  peer_certificate = valent_channel_get_peer_certificate (fixture->channel);
+  peer_certificate = valent_channel_ref_peer_certificate (fixture->channel);
   common_name = valent_certificate_get_common_name (peer_certificate);
   g_object_get (peer_certificate, "certificate-pem", &certificate_pem, NULL);
 
