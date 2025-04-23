@@ -1259,6 +1259,7 @@ valent_packet_to_stream (GOutputStream  *stream,
 /**
  * valent_packet_serialize:
  * @packet: a complete KDE Connect packet
+ * @length: (out) (nullable): a location for the length
  *
  * Convenience function that updates the timestamp of a packet before returning
  * a serialized string with newline ending, ready to be written to a stream.
@@ -1268,24 +1269,33 @@ valent_packet_to_stream (GOutputStream  *stream,
  * Since: 1.0
  */
 char *
-valent_packet_serialize (JsonNode *packet)
+valent_packet_serialize (JsonNode *packet,
+                         size_t   *length)
 {
-  g_autoptr (JsonGenerator) generator = NULL;
   JsonObject *root;
-  g_autofree char *packet_str = NULL;
+  g_autoptr (JsonGenerator) generator = NULL;
+  GString *packet_str = NULL;
 
   g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);
 
-  /* Timestamp the packet (UNIX Epoch ms) */
+  /* Timestamp the packet (UNIX Epoch ms)
+   */
   root = json_node_get_object (packet);
   json_object_set_int_member (root, "id", valent_timestamp_ms ());
 
-  /* Stringify the packet and return a newline-terminated string */
+  /* Serialize the packet and append a newline character
+   */
   generator = json_generator_new ();
   json_generator_set_root (generator, packet);
-  packet_str = json_generator_to_data (generator, NULL);
 
-  return g_strconcat (packet_str, "\n", NULL);
+  packet_str = g_string_new ("");
+  json_generator_to_gstring (generator, packet_str);
+  g_string_append_c (packet_str, '\n');
+
+  if (length != NULL)
+    *length = packet_str->len;
+
+  return g_string_free (packet_str, FALSE);
 }
 
 /**

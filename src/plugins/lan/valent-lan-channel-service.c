@@ -844,12 +844,13 @@ valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
       g_autoptr (JsonNode) identity = NULL;
       g_autoptr (GBytes) identity_bytes = NULL;
       char *identity_json = NULL;
+      size_t identity_len;
 
       /* Embed the serialized identity as private data
        */
       identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
-      identity_json = valent_packet_serialize (identity);
-      identity_bytes = g_bytes_new_take (identity_json, strlen (identity_json));
+      identity_json = valent_packet_serialize (identity, &identity_len);
+      identity_bytes = g_bytes_new_take (identity_json, identity_len);
       g_object_set_data_full (G_OBJECT (address),
                               "valent-lan-broadcast",
                               g_bytes_ref (identity_bytes),

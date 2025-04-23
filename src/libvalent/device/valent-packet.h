@@ -185,7 +185,8 @@ gboolean     valent_packet_to_stream          (GOutputStream        *stream,
                                                GCancellable         *cancellable,
                                                GError              **error);
 VALENT_AVAILABLE_IN_1_0
-char       * valent_packet_serialize          (JsonNode             *packet);
+char       * valent_packet_serialize          (JsonNode             *packet,
+                                               size_t               *length);
 VALENT_AVAILABLE_IN_1_0
 JsonNode   * valent_packet_deserialize        (const char           *json,
                                                GError              **error);
