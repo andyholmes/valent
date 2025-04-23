@@ -14,13 +14,10 @@ test_contact_page (void)
 {
   GtkWidget *page;
   GtkWidget *window;
-  g_autoptr (GMainLoop) loop = NULL;
   g_autoptr (ValentContactsAdapter) contacts = NULL;
   g_autoptr (ValentContactsAdapter) contacts_out = NULL;
   g_autofree char *iri = NULL;
   g_autofree char *iri_out = NULL;
-
-  loop = g_main_loop_new (NULL, FALSE);
 
   VALENT_TEST_CHECK ("Widget can be constructed");
   page = g_object_new (VALENT_TYPE_CONTACT_PAGE,

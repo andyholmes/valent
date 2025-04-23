@@ -12,7 +12,6 @@
 
 typedef struct
 {
-  GMainLoop            *loop;
   JsonNode             *packets;
 
   ValentChannelService *service;
@@ -34,7 +33,6 @@ channel_service_fixture_set_up (ChannelServiceFixture *fixture,
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
   context = valent_context_new (NULL, "plugin", "mock");
 
-  fixture->loop = g_main_loop_new (NULL, FALSE);
   fixture->packets = valent_test_load_json ("core.json");
   fixture->service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
                                    "iri",         "urn:valent:network:mock",
@@ -49,9 +47,7 @@ static void
 channel_service_fixture_tear_down (ChannelServiceFixture *fixture,
                                    gconstpointer      user_data)
 {
-  g_clear_pointer (&fixture->loop, g_main_loop_unref);
   g_clear_pointer (&fixture->packets, json_node_unref);
-
   v_await_finalize_object (fixture->service);
 
   if (fixture->channel != NULL)
@@ -95,7 +91,7 @@ close_cb (ValentChannel         *channel,
   g_assert_no_error (error);
   g_assert_true (ret);
 
-  g_main_loop_quit (fixture->loop);
+  valent_test_quit_loop ();
 }
 
 static void
@@ -113,7 +109,7 @@ read_packet_cb (ValentChannel         *channel,
   v_assert_packet_type (packet, "kdeconnect.mock.echo");
   v_assert_packet_cmpstr (packet, "foo", ==, "bar");
 
-  g_main_loop_quit (fixture->loop);
+  valent_test_quit_loop ();
 }
 
 static void
@@ -128,7 +124,7 @@ write_packet_cb (ValentChannel         *channel,
   g_assert_no_error (error);
   g_assert_true (ret);
 
-  g_main_loop_quit (fixture->loop);
+  valent_test_quit_loop ();
 }
 
 /*
@@ -250,7 +246,7 @@ read_upload_cb (ValentChannel         *endpoint,
   valent_test_download (endpoint, packet, &error);
   g_assert_no_error (error);
 
-  g_main_loop_quit (fixture->loop);
+  valent_test_quit_loop ();
 }
 
 
@@ -367,13 +363,13 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
                                NULL,
                                (GAsyncReadyCallback)write_packet_cb,
                                fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 
   valent_channel_read_packet (fixture->endpoint,
                               NULL,
                               (GAsyncReadyCallback)read_packet_cb,
                               fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 
   /* Download */
   valent_channel_read_packet (fixture->endpoint,
@@ -399,14 +395,14 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
                               NULL,
                               (GAsyncReadyCallback)read_upload_cb,
                               fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
 
   /* Closing */
   valent_channel_close_async (fixture->endpoint,
                               NULL,
                               (GAsyncReadyCallback)close_cb,
                               fixture);
-  g_main_loop_run (fixture->loop);
+  valent_test_run_loop ();
   valent_channel_close (fixture->channel, NULL, NULL);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);

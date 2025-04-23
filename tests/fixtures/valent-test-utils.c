@@ -81,6 +81,36 @@ valent_test_init (int    *argcp,
   g_type_ensure (VALENT_TYPE_SESSION_ADAPTER);
 }
 
+static GMainLoop *test_loop = NULL;
+
+/**
+ * valent_test_run_loop:
+ *
+ * Run the default main loop.
+ */
+void
+valent_test_run_loop (void)
+{
+  if (test_loop == NULL)
+    test_loop = g_main_loop_new (NULL, FALSE);
+
+  g_main_loop_run (test_loop);
+}
+
+/**
+ * valent_test_quit_loop:
+ *
+ * Run the default main loop.
+ */
+gboolean
+valent_test_quit_loop (void)
+{
+  g_assert (test_loop != NULL);
+
+  g_main_loop_quit (test_loop);
+  return G_SOURCE_REMOVE;
+}
+
 /**
  * valent_test_mute_fuzzing:
  * @log_domain: the log domain of the message
