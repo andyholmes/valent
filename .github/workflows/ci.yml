@@ -257,6 +257,10 @@ jobs:
       options: --privileged
 
     steps:
+      - name: Install
+        run: |
+          dnf install -y xdg-desktop-portal
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -285,6 +289,10 @@ jobs:
       options: --privileged
 
     steps:
+      - name: Install
+        run: |
+          dnf install -y xdg-desktop-portal
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
