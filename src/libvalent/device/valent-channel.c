@@ -761,25 +761,19 @@ valent_channel_close_finish (ValentChannel  *channel,
 }
 
 static void
-valent_channel_read_packet_task (GTask        *task,
-                                 gpointer      source_object,
-                                 gpointer      task_data,
-                                 GCancellable *cancellable)
+valent_channel_read_packet_cb (GObject      *object,
+                               GAsyncResult *result,
+                               gpointer      user_data)
 {
-  ValentChannel *self = VALENT_CHANNEL (source_object);
-  ValentChannelPrivate *priv = valent_channel_get_instance_private (self);
-  g_autoptr (GDataInputStream) stream = NULL;
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   g_autofree char *line = NULL;
   JsonNode *packet = NULL;
   GError *error = NULL;
 
-  if (valent_channel_return_error_if_closed (self, task))
-      return;
-
-  stream = g_object_ref (priv->input_buffer);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  line = g_data_input_stream_read_line_utf8 (stream, NULL, cancellable, &error);
+  line = g_data_input_stream_read_line_finish_utf8 (G_DATA_INPUT_STREAM (object),
+                                                    result,
+                                                    NULL,
+                                                    &error);
   if (error != NULL)
     {
       g_task_return_error (task, g_steal_pointer (&error));
@@ -825,6 +819,7 @@ valent_channel_read_packet (ValentChannel       *channel,
                             GAsyncReadyCallback  callback,
                             gpointer             user_data)
 {
+  ValentChannelPrivate *priv = valent_channel_get_instance_private (channel);
   g_autoptr (GTask) task = NULL;
 
   VALENT_ENTRY;
@@ -834,7 +829,16 @@ valent_channel_read_packet (ValentChannel       *channel,
 
   task = g_task_new (channel, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_channel_read_packet);
-  g_task_run_in_thread (task, valent_channel_read_packet_task);
+
+  if (!valent_channel_return_error_if_closed (channel, task))
+    {
+      g_data_input_stream_read_line_async (priv->input_buffer,
+                                           G_PRIORITY_DEFAULT,
+                                           cancellable,
+                                           valent_channel_read_packet_cb,
+                                           g_object_ref (task));
+      valent_object_unlock (VALENT_OBJECT (channel));
+    }
 
   VALENT_EXIT;
 }

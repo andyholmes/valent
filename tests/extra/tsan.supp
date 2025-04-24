@@ -8,6 +8,9 @@
 #
 mutex:valent_extension_get_type_once
 
+# /src/libvalent/device/valent-channel.c (valent_channel_download)
+race:valent_mock_channel_class_init
+
 #
 # Uninstrumented libraries (Yes, all of these are really necessary)
 #
