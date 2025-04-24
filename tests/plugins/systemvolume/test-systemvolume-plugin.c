@@ -266,12 +266,15 @@ test_systemvolume_plugin_handle_sinks (ValentTestFixture *fixture,
   v_assert_packet_cmpint (packet, "volume", ==, 65536);
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin handles volume change updates");
+  valent_test_watch_signal (default_output, "notify::level", &stream_watch);
   packet = valent_test_fixture_lookup_packet (fixture, "sinklist-1-volume");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_watch_signal (default_output, "notify::level", &stream_watch);
   valent_test_await_boolean (&stream_watch);
   valent_test_watch_clear (default_output, &stream_watch);
+  g_assert_cmpuint (valent_mixer_stream_get_level (default_output), ==, 100);
+  g_assert_false (valent_mixer_stream_get_muted (default_output));
 
   VALENT_TEST_CHECK ("Plugin forwards muted change requests");
   valent_mixer_stream_set_muted (default_output, TRUE);
@@ -282,12 +285,15 @@ test_systemvolume_plugin_handle_sinks (ValentTestFixture *fixture,
   v_assert_packet_true (packet, "muted");
   json_node_unref (packet);
 
+  VALENT_TEST_CHECK ("Plugin handles muted change updates");
+  valent_test_watch_signal (default_output, "notify::muted", &stream_watch);
   packet = valent_test_fixture_lookup_packet (fixture, "sinklist-1-muted");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_watch_signal (default_output, "notify::muted", &stream_watch);
   valent_test_await_boolean (&stream_watch);
   valent_test_watch_clear (default_output, &stream_watch);
+  g_assert_cmpuint (valent_mixer_stream_get_level (default_output), ==, 100);
+  g_assert_true (valent_mixer_stream_get_muted (default_output));
 
   VALENT_TEST_CHECK ("Plugin handles adding streams");
   packet = valent_test_fixture_lookup_packet (fixture, "sinklist-2");
