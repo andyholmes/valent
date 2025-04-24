@@ -233,15 +233,6 @@ valent_test_mock_settings (const char *domain)
   return g_settings_new_with_path ("ca.andyholmes.Valent.Plugin", path);
 }
 
-static void
-valent_test_await_signal_cb (gpointer data)
-{
-  gboolean *done = data;
-
-  if (done != NULL)
-    *done = TRUE;
-}
-
 /**
  * valent_test_await_adapter:
  * @component: (type Valent.Component): a `ValentComponent`
@@ -377,15 +368,23 @@ void
 valent_test_await_signal (gpointer    object,
                           const char *signal_name)
 {
-  gboolean done = FALSE;
   gulong handler_id = 0;
 
   handler_id = g_signal_connect_swapped (G_OBJECT (object),
                                          signal_name,
-                                         G_CALLBACK (valent_test_await_signal_cb),
-                                         &done);
-  valent_test_await_boolean (&done);
+                                         G_CALLBACK (valent_test_quit_loop),
+                                         NULL);
+  valent_test_run_loop ();
   g_clear_signal_handler (&handler_id, G_OBJECT (object));
+}
+
+static void
+valent_test_watch_signal_cb (gpointer data)
+{
+  gboolean *done = data;
+
+  if (done != NULL)
+    *done = TRUE;
 }
 
 /**
@@ -406,7 +405,7 @@ valent_test_watch_signal (gpointer    object,
 {
   g_signal_connect_swapped (object,
                             signal_name,
-                            G_CALLBACK (valent_test_await_signal_cb),
+                            G_CALLBACK (valent_test_watch_signal_cb),
                             watch);
 }
 
@@ -422,19 +421,8 @@ valent_test_watch_clear (gpointer  object,
                          gboolean *watch)
 {
   g_signal_handlers_disconnect_by_func (object,
-                                        valent_test_await_signal_cb,
+                                        valent_test_watch_signal_cb,
                                         watch);
-}
-
-static gboolean
-valent_test_await_timeout_cb (gpointer data)
-{
-  gboolean *done = data;
-
-  if (done != NULL)
-    *done = TRUE;
-
-  return G_SOURCE_REMOVE;
 }
 
 /**
@@ -446,12 +434,8 @@ valent_test_await_timeout_cb (gpointer data)
 void
 valent_test_await_timeout (unsigned int duration)
 {
-  gboolean done = FALSE;
-
-  g_timeout_add (duration, valent_test_await_timeout_cb, &done);
-
-  while (!done)
-    g_main_context_iteration (NULL, FALSE);
+  g_timeout_add (duration, G_SOURCE_FUNC (valent_test_quit_loop), NULL);
+  valent_test_run_loop ();
 }
 
 /**
