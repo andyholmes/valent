@@ -357,6 +357,7 @@ valent_channel_service_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_channel_service_parent_class)->constructed (object);
 
+  valent_object_lock (VALENT_OBJECT (self));
   if (priv->certificate == NULL)
     {
       g_autoptr (ValentContext) context = NULL;
@@ -376,6 +377,7 @@ valent_channel_service_constructed (GObject *object)
                            self,
                            G_CONNECT_DEFAULT);
   on_device_name_changed (priv->settings, NULL, self);
+  valent_object_unlock (VALENT_OBJECT (self));
 
   valent_channel_service_build_identity (self);
 }
@@ -386,10 +388,12 @@ valent_channel_service_finalize (GObject *object)
   ValentChannelService *self = VALENT_CHANNEL_SERVICE (object);
   ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
 
+  valent_object_lock (VALENT_OBJECT (self));
   g_clear_object (&priv->certificate);
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_pointer (&priv->name, g_free);
   g_clear_object (&priv->settings);
+  valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_channel_service_parent_class)->finalize (object);
 }
@@ -406,15 +410,21 @@ valent_channel_service_get_property (GObject    *object,
   switch ((ValentChannelServiceProperty)prop_id)
     {
     case PROP_CERTIFICATE:
-      g_value_take_object (value, valent_channel_service_ref_certificate (self));
+      valent_object_lock (VALENT_OBJECT (self));
+      g_value_set_object (value, priv->certificate);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_ID:
+      valent_object_lock (VALENT_OBJECT (self));
       g_value_set_string (value, priv->id);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_IDENTITY:
-      g_value_take_boxed (value, valent_channel_service_ref_identity (self));
+      valent_object_lock (VALENT_OBJECT (self));
+      g_value_set_boxed (value, priv->identity);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -434,13 +444,13 @@ valent_channel_service_set_property (GObject      *object,
   switch ((ValentChannelServiceProperty)prop_id)
     {
     case PROP_CERTIFICATE:
+      valent_object_lock (VALENT_OBJECT (self));
       priv->certificate = g_value_dup_object (value);
+      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_ID:
     case PROP_IDENTITY:
-      g_assert_not_reached ();
-
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
