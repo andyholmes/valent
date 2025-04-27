@@ -136,26 +136,6 @@ valent_notification_plugin_watch_notifications (ValentNotificationPlugin *self,
 /*
  * Icon Transfers
  */
-typedef struct
-{
-  GRecMutex     mutex;
-  ValentDevice *device;
-  JsonNode     *packet;
-} IconTransferData;
-
-static void
-icon_transfer_data_free (gpointer data)
-{
-  IconTransferData *transfer = (IconTransferData *)data;
-
-  g_rec_mutex_lock (&transfer->mutex);
-  g_clear_object (&transfer->device);
-  g_clear_pointer (&transfer->packet, json_node_unref);
-  g_rec_mutex_unlock (&transfer->mutex);
-  g_rec_mutex_clear (&transfer->mutex);
-  g_clear_pointer (&transfer, g_free);
-}
-
 static GFile *
 valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
                                           JsonNode                 *packet)
@@ -183,118 +163,58 @@ valent_notification_plugin_get_icon_file (ValentNotificationPlugin *self,
   return g_steal_pointer (&file);
 }
 
+static void download_icon_from_cache_cb (GFile        *file,
+                                         GAsyncResult *result,
+                                         gpointer      user_data);
+
 static void
-download_icon_task (GTask        *task,
-                    gpointer      source_object,
-                    gpointer      task_data,
-                    GCancellable *cancellable)
+download_icon_from_device_cb (ValentTransfer *transfer,
+                              GAsyncResult   *result,
+                              gpointer        user_data)
 {
-  ValentNotificationPlugin *self = VALENT_NOTIFICATION_PLUGIN (source_object);
-  IconTransferData *transfer = (IconTransferData *)task_data;
-  g_autoptr (ValentDevice) device = NULL;
-  g_autoptr (JsonNode) packet = NULL;
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   g_autoptr (GFile) file = NULL;
+  g_autoptr (GBytes) bytes = NULL;
   GError *error = NULL;
 
-  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
-  g_assert (transfer != NULL);
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  g_rec_mutex_lock (&transfer->mutex);
-  device = g_steal_pointer (&transfer->device);
-  packet = g_steal_pointer (&transfer->packet);
-  g_rec_mutex_unlock (&transfer->mutex);
-
-  file = valent_notification_plugin_get_icon_file (self, packet);
-
-  /* Check if we've already downloaded this icon */
-  if (!g_file_query_exists (file, cancellable))
+  if (!valent_transfer_execute_finish (transfer, result, &error))
     {
-      g_autoptr (GIOStream) source = NULL;
-      g_autoptr (GFileOutputStream) target = NULL;
-      g_autoptr (GFile) cache_dir = NULL;
-      g_autoptr (ValentChannel) channel = NULL;
-
-      /* Ensure the cache directory exists */
-      cache_dir = g_file_get_parent (file);
-
-      if (g_mkdir_with_parents (g_file_peek_path (cache_dir), 0700) != 0)
-        {
-          return g_task_return_new_error (task,
-                                          G_IO_ERROR,
-                                          G_IO_ERROR_FAILED,
-                                          "Error: %s",
-                                          g_strerror (errno));
-        }
-
-      /* Get the device channel */
-      if ((channel = valent_device_ref_channel (device)) == NULL)
-        {
-          return g_task_return_new_error (task,
-                                          G_IO_ERROR,
-                                          G_IO_ERROR_NOT_CONNECTED,
-                                          "Device is disconnected");
-        }
-
-      source = valent_channel_download (channel, packet, cancellable, &error);
-
-      if (source == NULL)
-        {
-          g_file_delete (file, NULL, NULL);
-          return g_task_return_error (task, error);
-        }
-
-      /* Get the output stream */
-      target = g_file_replace (file,
-                               NULL,
-                               FALSE,
-                               G_FILE_CREATE_REPLACE_DESTINATION,
-                               cancellable,
-                               &error);
-
-      if (target == NULL)
-        {
-          g_file_delete (file, NULL, NULL);
-          return g_task_return_error (task, error);
-        }
-
-      /* Start download */
-      g_output_stream_splice (G_OUTPUT_STREAM (target),
-                              g_io_stream_get_input_stream (source),
-                              (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                               G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                              cancellable,
-                              &error);
-
-      if (error != NULL)
-        {
-          g_file_delete (file, NULL, NULL);
-          return g_task_return_error (task, error);
-        }
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
-  /* If we're in a sandbox, send the file as a GBytesIcon in case the file path
-   * is not valid for the host system. */
-  if (xdp_portal_running_under_sandbox ())
+  file = valent_device_transfer_ref_file (VALENT_DEVICE_TRANSFER (transfer));
+  g_file_load_bytes_async (file,
+                           g_task_get_cancellable (task),
+                           (GAsyncReadyCallback)download_icon_from_cache_cb,
+                           g_object_ref (task));
+}
+
+static void
+download_icon_from_cache_cb (GFile        *file,
+                             GAsyncResult *result,
+                             gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentNotificationPlugin *self = g_task_get_source_object (task);
+  JsonNode *packet = g_task_get_task_data (task);
+  g_autoptr (GBytes) bytes = NULL;
+  ValentDevice *device = NULL;
+  g_autoptr (ValentTransfer) transfer = NULL;
+
+  bytes = g_file_load_bytes_finish (file, result, NULL, NULL);
+  if (bytes != NULL)
     {
-      g_autoptr (GBytes) bytes = NULL;
-
-      bytes = g_file_load_bytes (file, cancellable, NULL, &error);
-
-      if (bytes == NULL)
-        {
-          g_file_delete (file, NULL, NULL);
-          return g_task_return_error (task, error);
-        }
-
       g_task_return_pointer (task, g_bytes_icon_new (bytes), g_object_unref);
+      return;
     }
-  else
-    {
-      g_task_return_pointer (task, g_file_icon_new (file), g_object_unref);
-    }
+
+  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  transfer = valent_device_transfer_new (device, packet, file);
+  valent_transfer_execute (transfer,
+                           g_task_get_cancellable (task),
+                           (GAsyncReadyCallback)download_icon_from_device_cb,
+                           g_object_ref (task));
 }
 
 static void
@@ -304,25 +224,23 @@ valent_notification_plugin_download_icon (ValentNotificationPlugin *self,
                                           GAsyncReadyCallback       callback,
                                           gpointer                  user_data)
 {
-  ValentResource *source = VALENT_RESOURCE (self);
   g_autoptr (GTask) task = NULL;
-  IconTransferData *transfer = NULL;
+  g_autoptr (GFile) file = NULL;
 
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  transfer = g_new0 (IconTransferData, 1);
-  g_rec_mutex_init (&transfer->mutex);
-  g_rec_mutex_lock (&transfer->mutex);
-  transfer->device = g_object_ref (valent_resource_get_source (source));
-  transfer->packet = json_node_ref (packet);
-  g_rec_mutex_unlock (&transfer->mutex);
-
   task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_notification_plugin_download_icon);
-  g_task_set_task_data (task, transfer, icon_transfer_data_free);
-  g_task_run_in_thread (task, download_icon_task);
+  g_task_set_task_data (task, json_node_ref (packet),
+                        (GDestroyNotify)json_node_unref);
+
+  file = valent_notification_plugin_get_icon_file (self, packet);
+  g_file_load_bytes_async (file,
+                           cancellable,
+                           (GAsyncReadyCallback)download_icon_from_cache_cb,
+                           g_object_ref (task));
 }
 
 static GIcon *
