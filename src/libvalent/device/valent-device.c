@@ -1071,11 +1071,12 @@ valent_device_destroy (ValentObject *object)
 {
   ValentDevice *self = VALENT_DEVICE (object);
 
-  /* State */
+  /* Using the internal methods ensures plugins are notified if destruction
+   * implies a state change
+   */
   valent_device_reset_pair (self);
   valent_device_set_channel (self, NULL);
 
-  /* Plugins */
   g_signal_handlers_disconnect_by_data (self->engine, self);
   g_hash_table_remove_all (self->plugins);
   g_hash_table_remove_all (self->actions);
@@ -1224,7 +1225,6 @@ valent_device_init (ValentDevice *self)
 {
   GSimpleAction *action = NULL;
 
-  /* Plugins */
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
   self->handlers = g_hash_table_new_full (g_str_hash,
                                           g_str_equal,
