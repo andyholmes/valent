@@ -66,6 +66,15 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDeviceManager, valent_device_manager, VALEN
 static ValentDeviceManager *default_manager = NULL;
 
 
+static inline void
+_valent_object_deref (gpointer data)
+{
+  g_assert (VALENT_IS_OBJECT (data));
+
+  valent_object_destroy (VALENT_OBJECT (data));
+  g_object_unref (data);
+}
+
 /*
  * GListModel
  */
@@ -424,7 +433,7 @@ valent_device_manager_add_device (ValentDeviceManager *self,
 
   if (g_ptr_array_find (self->devices, device, NULL))
     {
-      g_warning ("Device \"%s\" not found in \"%s\"",
+      g_warning ("Device \"%s\" already managed by \"%s\"",
                  valent_device_get_name (device),
                  G_OBJECT_TYPE_NAME (self));
       VALENT_EXIT;
@@ -435,11 +444,6 @@ valent_device_manager_add_device (ValentDeviceManager *self,
                            G_CALLBACK (on_device_state),
                            self,
                            G_CONNECT_DEFAULT);
-  g_signal_connect_object (device,
-                           "destroy",
-                           G_CALLBACK (valent_device_manager_remove_device),
-                           self,
-                           G_CONNECT_SWAPPED);
 
   position = self->devices->len;
   g_ptr_array_add (self->devices, g_object_ref (device));
@@ -499,20 +503,11 @@ valent_device_manager_ensure_device (ValentDeviceManager *self,
   return g_ptr_array_index (self->devices, position);
 }
 
-static gboolean
-valent_device_manager_destroy_device (gpointer data)
-{
-  valent_object_destroy (VALENT_OBJECT (data));
-
-  return G_SOURCE_REMOVE;
-}
-
 static void
 valent_device_manager_remove_device (ValentDeviceManager *self,
                                      ValentDevice        *device)
 {
   unsigned int position = 0;
-  g_autoptr (ValentDevice) item = NULL;
 
   VALENT_ENTRY;
 
@@ -521,7 +516,7 @@ valent_device_manager_remove_device (ValentDeviceManager *self,
 
   if (!g_ptr_array_find (self->devices, device, &position))
     {
-      g_warning ("Device \"%s\" not found in \"%s\"",
+      g_warning ("Device \"%s\" not managed by \"%s\"",
                  valent_device_get_name (device),
                  G_OBJECT_TYPE_NAME (self));
       VALENT_EXIT;
@@ -529,19 +524,8 @@ valent_device_manager_remove_device (ValentDeviceManager *self,
 
   g_signal_handlers_disconnect_by_data (device, self);
 
-  /* NOTE: Dropping the last reference in a device's `notify::state` handler
-   *       would result in a use-after-free for subsequent handlers
-   */
-  if (!valent_object_in_destruction (VALENT_OBJECT (device)))
-    {
-      g_idle_add_full (G_PRIORITY_DEFAULT,
-                       valent_device_manager_destroy_device,
-                       g_object_ref (device),
-                       g_object_unref);
-    }
-
   g_hash_table_remove (self->exports, device);
-  item = g_ptr_array_steal_index (self->devices, position);
+  g_ptr_array_remove_index (self->devices, position);
   g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
 
   VALENT_EXIT;
@@ -871,7 +855,7 @@ static void
 valent_device_manager_init (ValentDeviceManager *self)
 {
   self->context = valent_context_new (NULL, NULL, NULL);
-  self->devices = g_ptr_array_new_with_free_func (g_object_unref);
+  self->devices = g_ptr_array_new_with_free_func (_valent_object_deref);
   self->exports = g_hash_table_new_full (NULL, NULL, NULL, device_export_free);
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
   self->plugins_context = valent_context_new (self->context, "network", NULL);
