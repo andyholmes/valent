@@ -257,6 +257,18 @@ valent_test_await_adapter (gpointer component)
   return ret;
 }
 
+static gboolean
+valent_test_await_boolean_cb (gpointer data)
+{
+  gboolean *done = (gboolean *)data;
+
+  if (*done == FALSE)
+    return G_SOURCE_CONTINUE;
+
+  *done = FALSE;
+  return valent_test_quit_loop ();
+}
+
 /**
  * valent_test_await_boolean:
  * @done: a pointer to a `gboolean`
@@ -271,11 +283,16 @@ valent_test_await_adapter (gpointer component)
 void
 (valent_test_await_boolean) (gboolean *done)
 {
-  while (done != NULL && *done != TRUE)
-    g_main_context_iteration (NULL, FALSE);
+  g_assert (done != NULL);
 
-  if (done != NULL)
-    *done = FALSE;
+  if G_UNLIKELY (*done == TRUE)
+    {
+      *done = FALSE;
+      return;
+    }
+
+  g_idle_add_full (INT_MAX, valent_test_await_boolean_cb, done, NULL);
+  valent_test_run_loop ();
 }
 
 /**
@@ -321,7 +338,7 @@ void
   if G_UNLIKELY (*result != NULL)
     return;
 
-  g_idle_add (valent_test_await_pointer_cb, result);
+  g_idle_add_full (INT_MAX, valent_test_await_pointer_cb, result, NULL);
   valent_test_run_loop ();
 }
 
@@ -353,7 +370,7 @@ void
   if G_UNLIKELY (*result == NULL)
     return;
 
-  g_idle_add (valent_test_await_nullptr_cb, result);
+  g_idle_add_full (INT_MAX, valent_test_await_nullptr_cb, result, NULL);
   valent_test_run_loop ();
 }
 

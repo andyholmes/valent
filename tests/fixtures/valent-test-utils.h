@@ -53,13 +53,10 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
                                             GFile            *file,
                                             GError          **error);
 
-#define valent_test_await_boolean(ptr)        \
-  G_STMT_START {                              \
-    while (ptr != NULL && *ptr != TRUE)       \
-      g_main_context_iteration (NULL, FALSE); \
-                                              \
-    if (ptr != NULL)                          \
-      *ptr = FALSE;                           \
+#define valent_test_await_boolean(ptr)                     \
+  G_STMT_START {                                           \
+    G_STATIC_ASSERT (sizeof (ptr) == sizeof (gboolean *)); \
+    valent_test_await_boolean ((gboolean *)ptr);           \
   } G_STMT_END
 
 #define valent_test_await_pending()                \
