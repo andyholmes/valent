@@ -80,131 +80,57 @@ valent_device_transfer_update_packet (JsonNode  *packet,
 /*
  * ValentDeviceTransfer
  */
-static void
-valent_device_transfer_execute_task (GTask        *task,
-                                     gpointer      source_object,
-                                     gpointer      task_data,
-                                     GCancellable *cancellable)
+typedef struct
 {
-  ValentDeviceTransfer *self = VALENT_DEVICE_TRANSFER (source_object);
-  g_autoptr (ValentChannel) channel = NULL;
-  g_autoptr (GFile) file = NULL;
-  g_autoptr (JsonNode) packet = NULL;
-  g_autoptr (GIOStream) stream = NULL;
-  g_autoptr (GInputStream) source = NULL;
-  g_autoptr (GOutputStream) target = NULL;
-  gboolean is_download = FALSE;
+  GIOStream     *connection;
+  GInputStream  *source;
+  GOutputStream *target;
+  gboolean       is_download;
+} TransferOperation;
+
+static void
+transfer_operation_free (gpointer user_data)
+{
+  TransferOperation *op = (TransferOperation *)user_data;
+
+  g_clear_object (&op->connection);
+  g_clear_object (&op->source);
+  g_clear_object (&op->target);
+  g_free (op);
+}
+
+static void
+g_output_stream_splice_cb (GOutputStream *target,
+                           GAsyncResult  *result,
+                           gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentDeviceTransfer *self = g_task_get_source_object (task);
+  TransferOperation *op = g_task_get_task_data (task);
   gssize transferred;
   int64_t last_modified = 0;
   int64_t creation_time = 0;
   goffset payload_size;
   GError *error = NULL;
 
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  valent_object_lock (VALENT_OBJECT (self));
-  channel = valent_device_ref_channel (self->device);
-  file = g_object_ref (self->file);
-  packet = json_node_ref (self->packet);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  if (channel == NULL)
+  transferred = g_output_stream_splice_finish (target, result, &error);
+  if (error != NULL)
     {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_CONNECTED,
-                               "Device is disconnected");
+      g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
 
-  /* Determine if this is a download or an upload. This should be reliable,
-   * given that the channel service must set the `payloadTransferInfo` field in
-   * its valent_channel_upload() implementation. */
-  is_download = valent_packet_has_payload (packet);
-
-  if (is_download)
-    {
-      target = (GOutputStream *)g_file_replace (file,
-                                                NULL,
-                                                FALSE,
-                                                G_FILE_CREATE_REPLACE_DESTINATION,
-                                                cancellable,
-                                                &error);
-
-      if (target == NULL)
-        return g_task_return_error (task, error);
-
-      stream = valent_channel_download (channel, packet, cancellable, &error);
-
-      if (stream == NULL)
-        return g_task_return_error (task, error);
-
-      source = g_object_ref (g_io_stream_get_input_stream (stream));
-    }
-  else
-    {
-      g_autoptr (GFileInfo) info = NULL;
-
-      info = g_file_query_info (file,
-                                G_FILE_ATTRIBUTE_TIME_CREATED","
-                                G_FILE_ATTRIBUTE_TIME_CREATED_USEC","
-                                G_FILE_ATTRIBUTE_TIME_MODIFIED","
-                                G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC","
-                                G_FILE_ATTRIBUTE_STANDARD_SIZE,
-                                G_FILE_QUERY_INFO_NONE,
-                                cancellable,
-                                &error);
-
-      if (info == NULL)
-        return g_task_return_error (task, error);
-
-      source = (GInputStream *)g_file_read (file, cancellable, &error);
-
-      if (source == NULL)
-        return g_task_return_error (task, error);
-
-      valent_device_transfer_update_packet (packet, info);
-      stream = valent_channel_upload (channel, packet, cancellable, &error);
-
-      if (stream == NULL)
-        return g_task_return_error (task, error);
-
-      target = g_object_ref (g_io_stream_get_output_stream (stream));
-    }
-
-  /* Transfer the payload */
-  transferred = g_output_stream_splice (target,
-                                        source,
-                                        (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                                         G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                                        cancellable,
-                                        &error);
-
-  if (error != NULL)
-    {
-      if (is_download)
-        g_file_delete (file, NULL, NULL);
-
-      return g_task_return_error (task, error);
-    }
-
-  /* If possible, confirm the transferred size with the payload size */
-  payload_size = valent_packet_get_payload_size (packet);
-
+  payload_size = valent_packet_get_payload_size (self->packet);
   if G_UNLIKELY (payload_size > G_MAXSSIZE)
     {
-      g_warning ("%s(): Payload size greater than %"G_GSSIZE_FORMAT";"
-                 "unable to confirm transfer completion",
-                 G_STRFUNC, G_MAXSSIZE);
+      g_debug ("%s(): Payload size greater than %"G_GSSIZE_FORMAT";"
+               "unable to confirm transfer completion",
+               G_STRFUNC, G_MAXSSIZE);
     }
   else if (transferred < payload_size)
     {
       g_debug ("%s(): Transfer incomplete (%"G_GSSIZE_FORMAT"/%"G_GOFFSET_FORMAT" bytes)",
                G_STRFUNC, transferred, payload_size);
-
-      if (is_download)
-        g_file_delete (file, NULL, NULL);
 
       g_task_return_new_error (task,
                                G_IO_ERROR,
@@ -213,29 +139,31 @@ valent_device_transfer_execute_task (GTask        *task,
       return;
     }
 
-  /* Attempt to set file attributes for downloaded files. */
-  if (is_download)
+  /* Attempt to set file attributes for downloaded files.
+   */
+  if (op->is_download)
     {
-      /* NOTE: this is not supported by the Linux kernel... */
-      if (valent_packet_get_int (packet, "creationTime", &creation_time))
+      /* NOTE: this is not supported by the Linux kernel...
+       */
+      if (valent_packet_get_int (self->packet, "creationTime", &creation_time))
         {
           gboolean success;
           g_autoptr (GError) warn = NULL;
 
-          success = g_file_set_attribute_uint64 (file,
+          success = g_file_set_attribute_uint64 (self->file,
                                                  G_FILE_ATTRIBUTE_TIME_CREATED,
                                                  (uint64_t)floor (creation_time / 1000),
                                                  G_FILE_QUERY_INFO_NONE,
-                                                 cancellable,
+                                                 NULL,
                                                  &warn);
 
           if (success)
             {
-              g_file_set_attribute_uint32 (file,
+              g_file_set_attribute_uint32 (self->file,
                                            G_FILE_ATTRIBUTE_TIME_CREATED_USEC,
                                            (uint32_t)((creation_time % 1000) * 1000),
                                            G_FILE_QUERY_INFO_NONE,
-                                           cancellable,
+                                           NULL,
                                            &warn);
             }
 
@@ -243,25 +171,25 @@ valent_device_transfer_execute_task (GTask        *task,
             g_debug ("%s: %s", G_OBJECT_TYPE_NAME (self), warn->message);
         }
 
-      if (valent_packet_get_int (packet, "lastModified", &last_modified))
+      if (valent_packet_get_int (self->packet, "lastModified", &last_modified))
         {
           gboolean success;
           g_autoptr (GError) warn = NULL;
 
-          success = g_file_set_attribute_uint64 (file,
+          success = g_file_set_attribute_uint64 (self->file,
                                                  G_FILE_ATTRIBUTE_TIME_MODIFIED,
                                                  (uint64_t)floor (last_modified / 1000),
                                                  G_FILE_QUERY_INFO_NONE,
-                                                 cancellable,
+                                                 NULL,
                                                  &warn);
 
           if (success)
             {
-              g_file_set_attribute_uint32 (file,
+              g_file_set_attribute_uint32 (self->file,
                                            G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC,
                                            (uint32_t)((last_modified % 1000) * 1000),
                                            G_FILE_QUERY_INFO_NONE,
-                                           cancellable,
+                                           NULL,
                                            &warn);
             }
 
@@ -274,21 +202,217 @@ valent_device_transfer_execute_task (GTask        *task,
 }
 
 static void
+valent_device_transfer_execute_splice (GTask *task)
+{
+  TransferOperation *op = g_task_get_task_data (task);
+
+  if (op->source != NULL && op->target != NULL)
+    {
+      g_output_stream_splice_async (op->target,
+                                    op->source,
+                                    (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
+                                     G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
+                                    g_task_get_priority (task),
+                                    g_task_get_cancellable (task),
+                                    (GAsyncReadyCallback)g_output_stream_splice_cb,
+                                    g_object_ref (task));
+    }
+}
+
+static void
+valent_channel_download_cb (ValentChannel *channel,
+                            GAsyncResult  *result,
+                            gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  TransferOperation *op = g_task_get_task_data (task);
+  GError *error = NULL;
+
+  op->connection = valent_channel_download_finish (channel, result, &error);
+  if (op->connection == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  op->source = g_object_ref (g_io_stream_get_input_stream (op->connection));
+  valent_device_transfer_execute_splice (task);
+}
+
+static void
+g_file_replace_cb (GFile        *file,
+                   GAsyncResult *result,
+                   gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  TransferOperation *op = g_task_get_task_data (task);
+  g_autoptr (GFileOutputStream) stream = NULL;
+  GError *error = NULL;
+
+  stream = g_file_replace_finish (file, result, &error);
+  if (stream == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  op->target = G_OUTPUT_STREAM (g_steal_pointer (&stream));
+  valent_device_transfer_execute_splice (task);
+}
+
+static void
+valent_channel_upload_cb (ValentChannel *channel,
+                          GAsyncResult  *result,
+                          gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  TransferOperation *op = g_task_get_task_data (task);
+  GError *error = NULL;
+
+  op->connection = valent_channel_upload_finish (channel, result, &error);
+  if (op->connection == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  op->target = g_object_ref (g_io_stream_get_output_stream (op->connection));
+  valent_device_transfer_execute_splice (task);
+}
+
+static void
+g_file_read_cb (GFile        *file,
+                GAsyncResult *result,
+                gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  TransferOperation *op = g_task_get_task_data (task);
+  g_autoptr (GFileInputStream) stream = NULL;
+  GError *error = NULL;
+
+  stream = g_file_read_finish (file, result, &error);
+  if (stream == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  op->source = G_INPUT_STREAM (g_steal_pointer (&stream));
+  valent_device_transfer_execute_splice (task);
+}
+
+static void
+g_file_query_info_cb (GFile        *file,
+                      GAsyncResult *result,
+                      gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentDeviceTransfer *self = g_task_get_source_object (task);
+  g_autoptr (GFileInfo) info = NULL;
+  g_autoptr (ValentChannel) channel = NULL;
+  GError *error = NULL;
+
+  info = g_file_query_info_finish (file, result, &error);
+  if (info == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  channel = valent_device_ref_channel (self->device);
+  if (channel == NULL)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_CONNECTED,
+                               "Device is disconnected");
+      return;
+    }
+
+  valent_device_transfer_update_packet (self->packet, info);
+  valent_channel_upload_async (channel,
+                               self->packet,
+                               g_task_get_cancellable (task),
+                               (GAsyncReadyCallback)valent_channel_upload_cb,
+                               g_object_ref (task));
+  g_file_read_async (file,
+                     G_PRIORITY_DEFAULT,
+                     g_task_get_cancellable (task),
+                     (GAsyncReadyCallback)g_file_read_cb,
+                     g_object_ref (task));
+}
+
+static void
 valent_device_transfer_execute (ValentTransfer      *transfer,
                                 GCancellable        *cancellable,
                                 GAsyncReadyCallback  callback,
                                 gpointer             user_data)
 {
+  ValentDeviceTransfer *self = VALENT_DEVICE_TRANSFER (transfer);
   g_autoptr (GTask) task = NULL;
+  TransferOperation *op = NULL;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_DEVICE_TRANSFER (transfer));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+  /* Determine now if this is a download or an upload. This should be reliable,
+   * given that the channel service must set the `payloadTransferInfo` field in
+   * its [vfunc@Valent.Channel.upload] implementation.
+   */
+  op = g_new0 (TransferOperation, 1);
+  op->is_download = valent_packet_has_payload (self->packet);
+
   task = g_task_new (transfer, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_device_transfer_execute);
-  g_task_run_in_thread (task, valent_device_transfer_execute_task);
+  g_task_set_task_data (task, op, transfer_operation_free);
+
+  /* If this is a download prepare the connection and file stream in parallel,
+   * otherwise start by reading the file metadata for the upload.
+   */
+  if (op->is_download)
+    {
+      g_autoptr (ValentChannel) channel = NULL;
+
+      channel = valent_device_ref_channel (self->device);
+      if (channel == NULL)
+        {
+          g_task_return_new_error (task,
+                                   G_IO_ERROR,
+                                   G_IO_ERROR_NOT_CONNECTED,
+                                   "Device is disconnected");
+          return;
+        }
+
+      g_file_replace_async (self->file,
+                            NULL,
+                            FALSE,
+                            G_FILE_CREATE_REPLACE_DESTINATION,
+                            g_task_get_priority (task),
+                            g_task_get_cancellable (task),
+                            (GAsyncReadyCallback)g_file_replace_cb,
+                            g_object_ref (task));
+      valent_channel_download_async (channel,
+                                     self->packet,
+                                     g_task_get_cancellable (task),
+                                     (GAsyncReadyCallback)valent_channel_download_cb,
+                                     g_object_ref (task));
+    }
+  else
+    {
+      g_file_query_info_async (self->file,
+                               G_FILE_ATTRIBUTE_TIME_CREATED","
+                               G_FILE_ATTRIBUTE_TIME_CREATED_USEC","
+                               G_FILE_ATTRIBUTE_TIME_MODIFIED","
+                               G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC","
+                               G_FILE_ATTRIBUTE_STANDARD_SIZE,
+                               G_FILE_QUERY_INFO_NONE,
+                               g_task_get_priority (task),
+                               g_task_get_cancellable (task),
+                               (GAsyncReadyCallback)g_file_query_info_cb,
+                               g_object_ref (task));
+    }
 
   VALENT_EXIT;
 }
