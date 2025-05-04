@@ -50,6 +50,7 @@ on_session_started (XdpSession   *session,
                     gpointer      user_data)
 {
   ValentXdpInput *self = VALENT_XDP_INPUT (user_data);
+  g_autofree char *session_token = NULL;
   g_autoptr (GError) error = NULL;
 
   self->started = xdp_session_start_finish (session, res, &error);
@@ -59,9 +60,10 @@ on_session_started (XdpSession   *session,
       g_clear_object (&self->session);
     }
 
+  session_token = xdp_session_get_restore_token (session);
   g_settings_set_string (self->settings,
                          "session-token",
-                         xdp_session_get_restore_token (session));
+                         session_token ? session_token : "");
   self->session_starting = FALSE;
 }
 
