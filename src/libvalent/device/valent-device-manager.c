@@ -762,7 +762,7 @@ valent_device_manager_startup (ValentApplicationPlugin *plugin)
 
   self->settings = g_settings_new ("ca.andyholmes.Valent");
   g_signal_connect_object (self->settings,
-                           "changed::known-hosts",
+                           "changed::device-addresses",
                            G_CALLBACK (valent_device_manager_refresh),
                            self,
                            G_CONNECT_SWAPPED);
