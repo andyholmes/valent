@@ -122,6 +122,7 @@ lan_service_fixture_tear_down (LanTestFixture *fixture,
 {
   g_clear_pointer (&fixture->packets, json_node_unref);
 
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
   v_await_finalize_object (fixture->service);
 
   if (fixture->channel != NULL)
@@ -305,8 +306,7 @@ test_lan_service_incoming_broadcast (LanTestFixture *fixture,
                     &fixture->channel);
   valent_test_await_pointer (&fixture->channel);
 
-  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_object_destroy (VALENT_OBJECT (fixture->service));
+  g_signal_handlers_disconnect_by_data (fixture->service, &fixture->channel);
 }
 
 /*
@@ -458,8 +458,7 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
                     &fixture->channel);
   valent_test_await_pointer (&fixture->channel);
 
-  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_object_destroy (VALENT_OBJECT (fixture->service));
+  g_signal_handlers_disconnect_by_data (fixture->service, &fixture->channel);
 }
 
 /*
@@ -506,45 +505,15 @@ static void
 test_lan_service_channel (LanTestFixture *fixture,
                           gconstpointer   user_data)
 {
-  GError *error = NULL;
-  JsonNode *packet;
-  g_autoptr (GSocketAddress) address = NULL;
-  g_autofree char *identity_str = NULL;
-  size_t identity_len;
-  char *host;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
-  uint16_t port;
+  g_autofree char *host = NULL;
+  unsigned int port;
   g_autoptr (GFile) file = NULL;
-  gboolean watch = FALSE;
+  JsonNode *packet;
+  GError *error = NULL;
 
-  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
-                               G_PRIORITY_DEFAULT,
-                               NULL,
-                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
-                               &watch);
-  valent_test_await_boolean (&watch);
-
-  /* Listen for an incoming TCP connection */
-  await_incoming_connection (fixture);
-
-  /* Identify the mock endpoint to the service */
-  address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
-  identity_str = valent_packet_serialize (fixture->peer_identity, &identity_len);
-
-  g_socket_send_to (fixture->socket,
-                    address,
-                    identity_str,
-                    identity_len,
-                    NULL,
-                    &error);
-  g_assert_no_error (error);
-
-  g_signal_connect (fixture->service,
-                    "channel",
-                    G_CALLBACK (on_channel),
-                    &fixture->channel);
-  valent_test_await_pointer (&fixture->channel);
+  test_lan_service_incoming_broadcast (fixture, user_data);
 
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->channel,
@@ -554,7 +523,6 @@ test_lan_service_channel (LanTestFixture *fixture,
 
   g_assert_cmpstr (host, ==, ENDPOINT_HOST);
   g_assert_cmpuint (port, ==, ENDPOINT_PORT);
-  g_free (host);
 
   certificate = valent_channel_ref_certificate (fixture->endpoint);
   peer_certificate = valent_channel_ref_peer_certificate (fixture->channel);
@@ -579,9 +547,6 @@ test_lan_service_channel (LanTestFixture *fixture,
                               NULL);
   valent_test_upload (fixture->channel, packet, file, &error);
   g_assert_no_error (error);
-
-  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 /*
