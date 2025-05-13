@@ -15,14 +15,4 @@ GListModel * valent_lan_dnssd_new    (JsonNode       *identity);
 void         valent_lan_dnssd_attach (ValentLanDNSSD *self,
                                       GMainContext   *context);
 
-/*
- * GSocketAddress Helpers
- */
-#define _g_socket_address_get_dnssd_name(a)                   \
-  g_object_get_data (G_OBJECT (a), "dnssd-service-name")
-
-#define _g_socket_address_set_dnssd_name(a, n)                \
-  g_object_set_data_full (G_OBJECT (a), "dnssd-service-name", \
-                          g_strdup (n), g_free)
-
 G_END_DECLS

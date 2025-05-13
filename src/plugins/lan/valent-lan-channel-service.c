@@ -951,19 +951,19 @@ on_items_changed (GListModel              *list,
 
   for (unsigned int i = 0; i < added; i++)
     {
-      g_autoptr (GSocketAddress) address = NULL;
-      const char *device_id = NULL;
+      g_autoptr (GSocketConnectable) connectable = NULL;
+      g_autofree char *device_id = NULL;
 
       /* Silently ignore our own broadcasts
        */
-      address = g_list_model_get_item (list, position + i);
-      device_id = _g_socket_address_get_dnssd_name (address);
+      connectable = g_list_model_get_item (list, position + i);
+      device_id = g_socket_connectable_to_string (connectable);
       if (g_strcmp0 (service_id, device_id) == 0)
         continue;
 
       valent_object_lock (VALENT_OBJECT (self));
       if (!g_hash_table_contains (self->channels, device_id))
-        valent_lan_channel_service_socket_queue (self, address);
+        valent_lan_channel_service_socket_queue_resolve (self, connectable);
       valent_object_unlock (VALENT_OBJECT (self));
     }
 }

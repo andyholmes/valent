@@ -19,6 +19,250 @@
 
 #define KDECONNECT_UDP_SERVICE_TYPE "_kdeconnect._udp"
 
+/*< private >
+ * ValentAvahiAddressEnumerator:
+ *
+ * A [class@Gio.SocketAddressEnumerator] implementation that uses Avahi to
+ * resolve candidates.
+ */
+#define VALENT_TYPE_AVAHI_ADDRESS_ENUMERATOR (valent_avahi_address_enumerator_get_type())
+G_DECLARE_FINAL_TYPE (ValentAvahiAddressEnumerator, valent_avahi_address_enumerator, VALENT, AVAHI_ADDRESS_ENUMERATOR, GSocketAddressEnumerator)
+
+struct _ValentAvahiAddressEnumerator
+{
+  GSocketAddressEnumerator  parent_instance;
+
+  GDBusConnection          *connection;
+  GPtrArray                *items;
+  unsigned int              position;
+};
+
+G_DEFINE_FINAL_TYPE (ValentAvahiAddressEnumerator, valent_avahi_address_enumerator, G_TYPE_SOCKET_ADDRESS_ENUMERATOR)
+
+static void
+valent_avahi_address_enumerator_next_cb (GDBusConnection *connection,
+                                         GAsyncResult    *result,
+                                         gpointer         user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  g_autoptr (GVariant) reply = NULL;
+  g_autoptr (GSocketAddress) ret = NULL;
+  int interface = 0;
+  int protocol = 0;
+  const char *name = NULL;
+  const char *type = NULL;
+  const char *domain = NULL;
+  const char *host = NULL;
+  int aprotocol = 0;
+  const char *address = NULL;
+  uint16_t port = 0;
+  g_autoptr (GVariant) txt = NULL;
+  uint32_t flags = 0;
+  GError *error = NULL;
+
+  reply = g_dbus_connection_call_finish (connection, result, &error);
+  if (reply == NULL)
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_variant_get (reply,
+                 "(ii&s&s&s&si&sq@aayu)",
+                 &interface,
+                 &protocol,
+                 &name,
+                 &type,
+                 &domain,
+                 &host,
+                 &aprotocol,
+                 &address,
+                 &port,
+                 &txt,
+                 &flags);
+
+  ret = g_inet_socket_address_new_from_string (address, port);
+  if (ret == NULL)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "Failed to create socket address for %s:%u",
+                               address, port);
+      return;
+    }
+
+  g_task_return_pointer (task, g_steal_pointer (&ret), g_object_unref);
+}
+
+static void
+valent_avahi_address_enumerator_next_async (GSocketAddressEnumerator *enumerator,
+                                            GCancellable             *cancellable,
+                                            GAsyncReadyCallback       callback,
+                                            gpointer                  user_data)
+{
+  ValentAvahiAddressEnumerator *self = VALENT_AVAHI_ADDRESS_ENUMERATOR (enumerator);
+  g_autoptr (GTask) task = NULL;
+  GVariant *parameters = NULL;
+  int interface = 0;
+  int protocol = 0;
+  const char *name = 0;
+  const char *type = 0;
+  const char *domain = 0;
+  uint32_t flags = 0;
+
+  g_assert (VALENT_IS_AVAHI_ADDRESS_ENUMERATOR (self));
+
+  task = g_task_new (self, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_avahi_address_enumerator_next_async);
+
+  if (self->position >= self->items->len)
+    {
+      g_task_return_pointer (task, NULL, NULL);
+      return;
+    }
+
+  /* These are the parameters from an ItemNew emission
+   */
+  parameters = g_ptr_array_index (self->items, self->position++);
+  g_variant_get (parameters,
+                 "(ii&s&s&su)",
+                 &interface,
+                 &protocol,
+                 &name,
+                 &type,
+                 &domain,
+                 &flags);
+
+  g_dbus_connection_call (self->connection,
+                          AVAHI_DBUS_NAME,
+                          AVAHI_SERVER2_PATH,
+                          AVAHI_SERVER2_IFACE,
+                          "ResolveService",
+                          g_variant_new ("(iisssiu)",
+                                         interface,
+                                         protocol,
+                                         name,
+                                         type,
+                                         domain,
+                                         -1, // aprotocol: AVAHI_PROTO_UNSPEC
+                                         0), // flags: AvahiLookupFlags
+                          G_VARIANT_TYPE ("(iissssisqaayu)"),
+                          G_DBUS_CALL_FLAGS_NO_AUTO_START,
+                          -1,
+                          cancellable,
+                          (GAsyncReadyCallback)valent_avahi_address_enumerator_next_cb,
+                          g_object_ref (task));
+}
+
+static void
+valent_avahi_address_enumerator_finalize (GObject *object)
+{
+  ValentAvahiAddressEnumerator *self = VALENT_AVAHI_ADDRESS_ENUMERATOR (object);
+
+  g_clear_object (&self->connection);
+  g_clear_pointer (&self->items, g_ptr_array_unref);
+
+  G_OBJECT_CLASS (valent_avahi_address_enumerator_parent_class)->finalize (object);
+}
+
+static void
+valent_avahi_address_enumerator_class_init (ValentAvahiAddressEnumeratorClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  GSocketAddressEnumeratorClass *enumerator_class = G_SOCKET_ADDRESS_ENUMERATOR_CLASS (klass);
+
+  object_class->finalize = valent_avahi_address_enumerator_finalize;
+
+  enumerator_class->next_async = valent_avahi_address_enumerator_next_async;
+}
+
+static void
+valent_avahi_address_enumerator_init (ValentAvahiAddressEnumerator *self)
+{
+}
+
+/*< private >
+ * ValentAvahiConnectable:
+ *
+ * A [iface@Gio.SocketConnectable] implementation that aggregates the
+ * candidates for a service discovered by Avahi.
+ */
+#define VALENT_TYPE_AVAHI_CONNECTABLE (valent_avahi_connectable_get_type())
+G_DECLARE_FINAL_TYPE (ValentAvahiConnectable, valent_avahi_connectable, VALENT, AVAHI_CONNECTABLE, GObject)
+
+struct _ValentAvahiConnectable
+{
+  GObject          parent_instance;
+
+  GDBusConnection *connection;
+  GPtrArray       *items;
+  char            *service_name;
+};
+
+static void   g_socket_connectable_iface_init (GSocketConnectableIface *iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentAvahiConnectable, valent_avahi_connectable, G_TYPE_OBJECT,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_SOCKET_CONNECTABLE, g_socket_connectable_iface_init))
+
+static GSocketAddressEnumerator *
+valent_avahi_connectable_enumerate (GSocketConnectable *connectable)
+{
+  ValentAvahiConnectable *self = VALENT_AVAHI_CONNECTABLE (connectable);
+  ValentAvahiAddressEnumerator *enumerator = NULL;
+
+  g_assert (VALENT_IS_AVAHI_CONNECTABLE (self));
+
+  enumerator = g_object_new (VALENT_TYPE_AVAHI_ADDRESS_ENUMERATOR, NULL);
+  enumerator->connection = g_object_ref (self->connection);
+  enumerator->items = g_ptr_array_ref (self->items);
+
+  return G_SOCKET_ADDRESS_ENUMERATOR (enumerator);
+}
+
+static char *
+valent_avahi_connectable_to_string (GSocketConnectable *connectable)
+{
+  ValentAvahiConnectable *self = VALENT_AVAHI_CONNECTABLE (connectable);
+
+  g_assert (VALENT_IS_AVAHI_CONNECTABLE (self));
+
+  return g_strdup (self->service_name);
+}
+
+static void
+g_socket_connectable_iface_init (GSocketConnectableIface *iface)
+{
+  iface->enumerate = valent_avahi_connectable_enumerate;
+  iface->to_string = valent_avahi_connectable_to_string;
+}
+
+static void
+valent_avahi_connectable_finalize (GObject *object)
+{
+  ValentAvahiConnectable *self = VALENT_AVAHI_CONNECTABLE (object);
+
+  g_clear_object (&self->connection);
+  g_clear_pointer (&self->items, g_ptr_array_unref);
+  g_clear_pointer (&self->service_name, g_free);
+
+  G_OBJECT_CLASS (valent_avahi_connectable_parent_class)->finalize (object);
+}
+
+static void
+valent_avahi_connectable_class_init (ValentAvahiConnectableClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->finalize = valent_avahi_connectable_finalize;
+}
+
+static void
+valent_avahi_connectable_init (ValentAvahiConnectable *self)
+{
+  self->items = g_ptr_array_new_with_free_func ((GDestroyNotify)g_variant_unref);
+}
 
 /**
  * ValentLanDNSSD:
@@ -26,9 +270,7 @@
  * A simple DNS-SD manager.
  *
  * `ValentLanDNSSD` implements [iface@Gio.ListModel], representing discovered
- * services as [class@Gio.SocketAddress] objects. The [type@GLib.MainContext]
- * passed to [method@Valent.LanDNSSD.attach] is the thread and context where
- * [signal@Gio.ListModel::items-changed] is emitted.
+ * services as [class@Gio.SocketConnectable] objects.
  *
  * If the [property@ValentLanDNSSD:identity] property is set to a KDE Connect
  * identity packet (`kdeconnect.identity`), it will export a service with the
@@ -39,11 +281,10 @@ struct _ValentLanDNSSD
 {
   ValentObject      parent_instance;
 
-  GPtrArray        *items;
   JsonNode         *identity;
+  char             *service_type;
 
   char             *name;
-  char             *service_type;
   uint16_t          port;
   GVariant         *txt;
 
@@ -59,6 +300,11 @@ struct _ValentLanDNSSD
   unsigned int      entry_group_state_id;
   char             *service_browser_path;
   unsigned int      service_browser_event_id;
+
+  /* list model */
+  GPtrArray        *items;
+  GHashTable       *pending;
+  unsigned int      pending_id;
 };
 
 static void   g_list_model_iface_init (GListModelInterface *iface);
@@ -139,7 +385,7 @@ valent_lan_dnssd_get_item (GListModel   *list,
 static GType
 valent_lan_dnssd_get_item_type (GListModel *list)
 {
-  return G_TYPE_SOCKET_ADDRESS;
+  return G_TYPE_SOCKET_CONNECTABLE;
 }
 
 static unsigned int
@@ -198,6 +444,12 @@ static gboolean   _avahi_entry_group_reset       (ValentLanDNSSD *self);
 static void       _avahi_service_browser_prepare (ValentLanDNSSD *self);
 
 
+/*
+ * Entry Group
+ *
+ * These functions export a DNS-SD service based on the content of
+ * [property@ValentLanDNSSD:identity].
+ */
 static void
 _avahi_entry_group_state_changed (GDBusConnection *connection,
                                   const char      *sender_name,
@@ -481,60 +733,61 @@ _avahi_entry_group_reset (ValentLanDNSSD *self)
   return G_SOURCE_REMOVE;
 }
 
-static void
-_avahi_resolve_service_cb (GDBusConnection *connection,
-                           GAsyncResult    *result,
-                           gpointer         user_data)
+/*
+ * Service Browser
+ *
+ * These functions aggregate DNS-SD services into [iface@Gio.SocketConnectable]
+ * objects for the [iface@Gio.ListModel] implementation.
+ */
+static inline gboolean
+find_service_func (gconstpointer a,
+                   gconstpointer b)
 {
-  g_autoptr (ValentLanDNSSD) self = VALENT_LAN_DNSSD (user_data);
-  g_autoptr (GVariant) reply = NULL;
-  g_autoptr (GError) error = NULL;
+  ValentAvahiConnectable *connectable = (ValentAvahiConnectable *)a;
 
-  int interface = 0;
-  int protocol = 0;
-  const char *name = NULL;
-  const char *type = NULL;
-  const char *domain = NULL;
-  const char *host = NULL;
-  int aprotocol = 0;
-  const char *address = NULL;
-  uint16_t port = 0;
-  g_autoptr (GVariant) txt = NULL;
-  uint32_t flags = 0;
+  return g_strcmp0 (connectable->service_name, (const char *)b) == 0;
+}
 
-  g_autoptr (GSocketAddress) saddress = NULL;
+static gboolean
+pending_cb (gpointer data)
+{
+  ValentLanDNSSD *self = VALENT_LAN_DNSSD (data);
+  GHashTableIter iter;
+  const char *name;
+  ValentAvahiConnectable *connectable;
   unsigned int position = 0;
-
-  reply = g_dbus_connection_call_finish (connection, result, &error);
-  if (reply == NULL)
-    {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_debug ("%s(): %s", G_STRFUNC, error->message);
-
-      return;
-    }
-
-  g_variant_get (reply,
-                 "(ii&s&s&s&si&sq@aayu)",
-                 &interface,
-                 &protocol,
-                 &name,
-                 &type,
-                 &domain,
-                 &host,
-                 &aprotocol,
-                 &address,
-                 &port,
-                 &txt,
-                 &flags);
-
-  saddress = g_inet_socket_address_new_from_string (address, port);
-  g_return_if_fail (G_IS_SOCKET_ADDRESS (saddress));
-  _g_socket_address_set_dnssd_name (saddress, name);
+  unsigned int added = 0;
 
   position = self->items->len;
-  g_ptr_array_add (self->items, g_steal_pointer (&saddress));
-  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
+
+  g_hash_table_iter_init (&iter, self->pending);
+  while (g_hash_table_iter_next (&iter, (void **)&name, (void **)&connectable))
+    {
+      unsigned int pos = 0;
+
+      if (g_ptr_array_find_with_equal_func (self->items,
+                                            name,
+                                            find_service_func,
+                                            &pos))
+        {
+          ValentAvahiConnectable *current = g_ptr_array_index (self->items, pos);
+          g_ptr_array_extend_and_steal (current->items,
+                                        g_steal_pointer (&connectable->items));
+        }
+      else
+        {
+          g_ptr_array_add (self->items, g_object_ref (connectable));
+          added += 1;
+        }
+
+      g_hash_table_iter_remove (&iter);
+    }
+
+  if (added > 0)
+    g_list_model_items_changed (G_LIST_MODEL (self), position, 0, added);
+
+  self->pending_id = 0;
+  return G_SOURCE_REMOVE;
 }
 
 static void
@@ -565,6 +818,8 @@ _avahi_service_browser_event (GDBusConnection *connection,
 
   if (g_str_equal (signal_name, "ItemNew"))
     {
+      ValentAvahiConnectable *connectable = NULL;
+
       g_variant_get (parameters,
                      "(ii&s&s&su)",
                      &interface,
@@ -582,28 +837,24 @@ _avahi_service_browser_event (GDBusConnection *connection,
           return;
         }
 
-      g_dbus_connection_call (connection,
-                              AVAHI_DBUS_NAME,
-                              AVAHI_SERVER2_PATH,
-                              AVAHI_SERVER2_IFACE,
-                              "ResolveService",
-                              g_variant_new ("(iisssiu)",
-                                             interface,
-                                             protocol,
-                                             name,
-                                             type,
-                                             domain,
-                                             -1, // aprotocol: AVAHI_PROTO_UNSPEC
-                                             0), // flags: AvahiLookupFlags
-                              G_VARIANT_TYPE ("(iissssisqaayu)"),
-                              G_DBUS_CALL_FLAGS_NO_AUTO_START,
-                              -1,
-                              self->cancellable,
-                              (GAsyncReadyCallback)_avahi_resolve_service_cb,
-                              g_object_ref (self));
+      connectable = g_hash_table_lookup (self->pending, name);
+      if (connectable == NULL)
+        {
+          connectable = g_object_new (VALENT_TYPE_AVAHI_CONNECTABLE, NULL);
+          connectable->connection = g_object_ref (connection);
+          connectable->service_name = g_strdup (name);
+          g_hash_table_replace (self->pending, g_strdup (name), connectable);
+
+          if (self->pending_id == 0)
+            self->pending_id = g_idle_add (pending_cb, self);
+        }
+
+      g_ptr_array_add (connectable->items, g_variant_ref_sink (parameters));
     }
   else if (g_str_equal (signal_name, "ItemRemove"))
     {
+      unsigned int position = 0;
+
       g_variant_get (parameters,
                      "(ii&s&s&su)",
                      &interface,
@@ -613,30 +864,47 @@ _avahi_service_browser_event (GDBusConnection *connection,
                      &domain,
                      &flags);
 
-      for (unsigned int i = 0; i < self->items->len; i++)
+      if (g_ptr_array_find_with_equal_func (self->items,
+                                            name,
+                                            find_service_func,
+                                            &position))
         {
-          GSocketAddress *saddress = NULL;
-          GSocketFamily sprotocol = G_SOCKET_FAMILY_INVALID;
-          const char *device_id = NULL;
+          ValentAvahiConnectable *connectable = NULL;
 
-          saddress = g_ptr_array_index (self->items, i);
-          sprotocol = g_socket_address_get_family (saddress);
-
-          /* NOTE: IPv4 = 0, IPv6 = 1, Any = -1 */
-          if (protocol != -1)
+          connectable = g_ptr_array_index (self->items, position);
+          for (unsigned int i = 0; i < connectable->items->len; i++)
             {
-              if ((protocol == 1 && sprotocol != G_SOCKET_FAMILY_IPV6) ||
-                  (protocol == 0 && sprotocol != G_SOCKET_FAMILY_IPV4))
-                continue;
+              GVariant *params = g_ptr_array_index (connectable->items, i);
+              int32_t interface_ = 0;
+              int32_t protocol_ = 0;
+              const char *name_ = 0;
+              const char *type_ = 0;
+              const char *domain_ = 0;
+              uint32_t flags_ = 0;
+
+              g_variant_get (params,
+                             "(ii&s&s&su)",
+                             &interface_,
+                             &protocol_,
+                             &name_,
+                             &type_,
+                             &domain_,
+                             &flags_);
+
+              if (interface == interface_ &&
+                  protocol == protocol_ &&
+                  g_str_equal (domain, domain_))
+                {
+                  g_ptr_array_remove_index (connectable->items, i);
+                  break;
+                }
             }
 
-          device_id = _g_socket_address_get_dnssd_name (saddress);
-
-          if (!g_str_equal (device_id, name))
-            continue;
-
-          g_ptr_array_remove_index (self->items, i);
-          g_list_model_items_changed (G_LIST_MODEL (self), i, 1, 0);
+          if (connectable->items->len == 0)
+            {
+              g_ptr_array_remove_index (self->items, position);
+              g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
+            }
         }
     }
   else if (g_str_equal (signal_name, "Failure"))
@@ -729,9 +997,6 @@ _avahi_service_browser_prepare (ValentLanDNSSD *self)
   valent_object_lock (VALENT_OBJECT (self));
   if (self->service_browser_path == NULL)
     {
-      g_autoptr (GVariant) reply = NULL;
-      g_autoptr (GError) error = NULL;
-
       g_dbus_connection_call (self->connection,
                               AVAHI_DBUS_NAME,
                               AVAHI_SERVER2_PATH,
@@ -921,6 +1186,7 @@ on_name_vanished (GDBusConnection *connection,
       self->entry_group_state = _AVAHI_ENTRY_GROUP_UNCOMMITTED;
       self->server_state = _AVAHI_SERVER_INVALID;
 
+      g_clear_handle_id (&self->pending_id, g_source_remove);
       g_clear_pointer (&self->service_browser_path, g_free);
       g_clear_pointer (&self->entry_group_path, g_free);
       g_clear_object (&self->connection);
@@ -1100,9 +1366,11 @@ valent_lan_dnssd_finalize (GObject *object)
   g_clear_pointer (&self->context, g_main_context_unref);
   g_clear_pointer (&self->name, g_free);
   g_clear_pointer (&self->txt, g_variant_unref);
-  g_clear_pointer (&self->items, g_ptr_array_unref);
   g_clear_pointer (&self->identity, json_node_unref);
   g_clear_pointer (&self->service_type, g_free);
+  g_clear_pointer (&self->items, g_ptr_array_unref);
+  g_clear_pointer (&self->pending, g_hash_table_unref);
+  g_clear_handle_id (&self->pending_id, g_source_remove);
   valent_object_unlock (VALENT_OBJECT (object));
 
   G_OBJECT_CLASS (valent_lan_dnssd_parent_class)->finalize (object);
@@ -1207,6 +1475,10 @@ valent_lan_dnssd_init (ValentLanDNSSD *self)
 {
   valent_object_lock (VALENT_OBJECT (self));
   self->items = g_ptr_array_new_with_free_func (g_object_unref);
+  self->pending = g_hash_table_new_full (g_str_hash,
+                                         g_str_equal,
+                                         g_free,
+                                         g_object_unref);
   valent_object_unlock (VALENT_OBJECT (self));
 }
 
