@@ -307,6 +307,18 @@ valent_device_manager_enable_plugin (ValentDeviceManager *self,
                                    (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                    NULL);
     }
+  else if (G_IS_INITABLE (plugin->extension))
+    {
+      GInitable *initable = G_INITABLE (plugin->extension);
+      g_autoptr (GError) error = NULL;
+
+      plugin->cancellable = g_cancellable_new ();
+      if (!g_initable_init (initable, plugin->cancellable, &error) &&
+          !g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        {
+          g_warning ("%s: %s", G_OBJECT_TYPE_NAME (initable), error->message);
+        }
+    }
 }
 
 static inline void
