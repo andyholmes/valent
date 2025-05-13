@@ -41,10 +41,10 @@ struct _ValentLanChannelService
   GHashTable           *channels;
 };
 
-static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
+static void   g_initable_iface_init (GInitableIface *iface);
 
 G_DEFINE_FINAL_TYPE_WITH_CODE (ValentLanChannelService, valent_lan_channel_service, VALENT_TYPE_CHANNEL_SERVICE,
-                               G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_iface_init))
 
 typedef enum {
   PROP_BROADCAST_ADDRESS = 1,
@@ -1214,37 +1214,15 @@ valent_lan_channel_service_identify (ValentChannelService *service,
     }
 }
 
-static void
-valent_lan_channel_service_init_task (GTask        *task,
-                                      gpointer      source_object,
-                                      gpointer      task_data,
-                                      GCancellable *cancellable)
-{
-  ValentLanChannelService *self = source_object;
-  g_autoptr (GError) error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  if (!valent_lan_channel_service_tcp_setup (self, cancellable, &error) ||
-      !valent_lan_channel_service_udp_setup (self, cancellable, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
-
-  g_task_return_boolean (task, TRUE);
-}
-
 /*
- * GAsyncInitable
+ * GInitable
  */
-static void
-valent_lan_channel_service_init_async (GAsyncInitable      *initable,
-                                       int                  io_priority,
-                                       GCancellable        *cancellable,
-                                       GAsyncReadyCallback  callback,
-                                       gpointer             user_data)
+static gboolean
+valent_lan_channel_service_init_sync (GInitable     *initable,
+                                      GCancellable  *cancellable,
+                                      GError       **error)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (initable);
-  g_autoptr (GTask) task = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
@@ -1256,16 +1234,19 @@ valent_lan_channel_service_init_async (GAsyncInitable      *initable,
                            self,
                            G_CONNECT_DEFAULT);
 
-  task = g_task_new (initable, cancellable, callback, user_data);
-  g_task_set_priority (task, io_priority);
-  g_task_set_source_tag (task, valent_lan_channel_service_init_async);
-  g_task_run_in_thread (task, valent_lan_channel_service_init_task);
+  if (!valent_lan_channel_service_tcp_setup (self, cancellable, error))
+    return FALSE;
+
+  if (!valent_lan_channel_service_udp_setup (self, cancellable, error))
+    return FALSE;
+
+  return TRUE;
 }
 
 static void
-g_async_initable_iface_init (GAsyncInitableIface *iface)
+g_initable_iface_init (GInitableIface *iface)
 {
-  iface->init_async = valent_lan_channel_service_init_async;
+  iface->init = valent_lan_channel_service_init_sync;
 }
 
 /*
