@@ -35,7 +35,6 @@ struct _ValentLanChannelService
   char                 *broadcast_address;
   GListModel           *dnssd;
   GSocketService       *listener;
-  GMainLoop            *udp_context;
   GSocket              *udp_socket4;
   GSocket              *udp_socket6;
   GHashTable           *channels;
@@ -87,113 +86,9 @@ on_channel_destroyed (ValentLanChannelService *self,
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
   g_assert (VALENT_IS_LAN_CHANNEL (channel));
 
-  valent_object_lock (VALENT_OBJECT (self));
   certificate = valent_channel_ref_certificate (VALENT_CHANNEL (channel));
   device_id = valent_certificate_get_common_name (certificate);
   g_hash_table_remove (self->channels, device_id);
-  valent_object_unlock (VALENT_OBJECT (self));
-}
-
-static void
-timeout_cancellable_cb (GCancellable *cancellable,
-                        gpointer      data)
-{
-  g_assert (G_IS_CANCELLABLE (data));
-
-  g_cancellable_cancel ((GCancellable *)data);
-}
-
-static gboolean
-timeout_source_cb (gpointer data)
-{
-  g_assert (G_IS_CANCELLABLE (data));
-
-  g_cancellable_cancel ((GCancellable *)data);
-
-  return G_SOURCE_REMOVE;
-}
-
-static GCancellable *
-timeout_cancellable_new (GCancellable  *cancellable,
-                         unsigned long *cancellable_id)
-{
-  g_autoptr (GSource) source = NULL;
-  g_autoptr (GMainContext) context = NULL;
-  GCancellable *timeout;
-
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-
-  context = g_main_context_ref_thread_default ();
-  timeout = g_cancellable_new ();
-  source = g_timeout_source_new (HANDSHAKE_TIMEOUT_MS);
-  g_source_set_priority (source, G_PRIORITY_HIGH);
-  g_source_set_callback (source,
-                         timeout_source_cb,
-                         g_object_ref (timeout),
-                         g_object_unref);
-  g_source_attach (source, context);
-
-  if (cancellable != NULL && cancellable_id != NULL)
-    {
-      *cancellable_id = g_cancellable_connect (cancellable,
-                                               G_CALLBACK (timeout_cancellable_cb),
-                                               g_object_ref (timeout),
-                                               g_object_unref);
-    }
-
-  return g_steal_pointer (&timeout);
-}
-
-static JsonNode *
-valent_lan_channel_service_identify_channel (GIOStream     *stream,
-                                             JsonNode      *identity,
-                                             JsonNode      *peer_identity,
-                                             GCancellable  *cancellable,
-                                             GError       **error)
-{
-  int64_t protocol_version;
-
-  g_assert (G_IS_IO_STREAM (stream));
-  g_assert (VALENT_IS_PACKET (identity));
-  g_assert (VALENT_IS_PACKET (peer_identity));
-
-  if (!valent_packet_get_int (peer_identity, "protocolVersion", &protocol_version))
-    {
-      g_set_error_literal (error,
-                           VALENT_PACKET_ERROR,
-                           VALENT_PACKET_ERROR_MISSING_FIELD,
-                           "expected \"protocolVersion\" field holding an integer");
-      return NULL;
-    }
-
-  if (protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
-    {
-      g_autoptr (JsonNode) secure_identity = NULL;
-
-      if (!valent_packet_to_stream (g_io_stream_get_output_stream (stream),
-                                    identity,
-                                    cancellable,
-                                    error))
-        {
-          return NULL;
-        }
-
-      return valent_packet_from_stream (g_io_stream_get_input_stream (stream),
-                                        IDENTITY_BUFFER_MAX,
-                                        cancellable,
-                                        error);
-    }
-  else if (protocol_version >= VALENT_NETWORK_PROTOCOL_MIN)
-    {
-      return json_node_ref (peer_identity);
-    }
-
-  g_set_error (error,
-               G_IO_ERROR,
-               G_IO_ERROR_NOT_SUPPORTED,
-               "Unsupported protocol version \"%u\"",
-               (uint8_t)protocol_version);
-  return NULL;
 }
 
 /**
@@ -267,7 +162,6 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
       return FALSE;
     }
 
-  valent_object_lock (VALENT_OBJECT (self));
   channel = g_hash_table_lookup (self->channels, device_id);
   if (channel != NULL && !valent_object_in_destruction (VALENT_OBJECT (channel)))
     certificate = valent_channel_ref_peer_certificate (VALENT_CHANNEL (channel));
@@ -276,392 +170,486 @@ valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
     {
       g_warning ("%s(): existing channel with different certificate",
                  G_STRFUNC);
-      valent_object_unlock (VALENT_OBJECT (self));
       return FALSE;
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 
   return TRUE;
 }
 
 /*
- * Incoming TCP Connections
+ * Connection Handshake
  *
- * When an incoming connection is opened to the TCP listener, we are operating
- * as the client. The server expects us to:
- *
- * 1) Accept the TCP connection
- * 2) Read the peer identity packet
- * 3) Negotiate TLS encryption (as the TLS Client)
+ * The handshake begins after the discovered device receives an identity packet.
+ * In protocol v7 this simply means negotiating a TLS connection, while
+ * protocol v8 requires re-exchanging identity packets over the encrypted
+ * connection.
  */
-static gboolean
-on_incoming_connection (ValentChannelService   *service,
-                        GSocketConnection      *connection,
-                        GCancellable           *cancellable,
-                        GThreadedSocketService *listener)
+typedef enum
 {
-  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
+  HANDSHAKE_ENCRYPTED =     (1 << 0),
+  HANDSHAKE_IDENTITY_READ = (1 << 1),
+  HANDSHAKE_IDENTITY_SENT = (1 << 2),
+  HANDSHAKE_FAILED =        (1 << 3),
+  HANDSHAKE_COMPLETE =      (HANDSHAKE_ENCRYPTED |
+                             HANDSHAKE_IDENTITY_READ |
+                             HANDSHAKE_IDENTITY_SENT),
+} HandshakeFlags;
+
+typedef struct
+{
+  GIOStream       *connection;
+  JsonNode        *peer_identity;
+  char            *host;
+  uint16_t         port;
+  int64_t          protocol_version;
+  HandshakeFlags  flags;
+  GCancellable    *cancellable;
+  unsigned long    cancellable_id;
+  GCancellable    *task_cancellable;
+  GSource         *timeout;
+} HandshakeData;
+
+static void
+handshake_cancelled_cb (GCancellable *cancellable,
+                        gpointer      data)
+{
+  g_assert (G_IS_CANCELLABLE (data));
+
+  g_cancellable_cancel ((GCancellable *)data);
+}
+
+static gboolean
+handshake_timeout_cb (gpointer data)
+{
+  g_assert (G_IS_CANCELLABLE (data));
+
+  g_cancellable_cancel ((GCancellable *)data);
+
+  return G_SOURCE_REMOVE;
+}
+
+static HandshakeData *
+handshake_data_new (GCancellable *cancellable)
+{
+  HandshakeData *ret = NULL;
   g_autoptr (GMainContext) context = NULL;
-  g_autoptr (GCancellable) timeout = NULL;
-  unsigned long cancellable_id = 0;
-  g_autoptr (GSocketAddress) s_addr = NULL;
-  GInetAddress *i_addr = NULL;
-  g_autofree char *host = NULL;
-  int64_t port = VALENT_LAN_PROTOCOL_PORT;
-  g_autoptr (JsonNode) identity = NULL;
-  g_autoptr (JsonNode) peer_identity = NULL;
-  g_autoptr (JsonNode) secure_identity = NULL;
-  const char *device_id;
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  GTlsCertificate *peer_certificate = NULL;
-  g_autoptr (GIOStream) tls_stream = NULL;
-  g_autoptr (ValentChannel) channel = NULL;
-  g_autoptr (GError) warning = NULL;
 
-  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
-  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
+  g_assert (G_IS_CANCELLABLE (cancellable));
 
-  /* A timeout (1000ms) and maximum identity packet size (8192b) are set to
-   * prevent a DoS attack from an unauthenticated peer.
-   */
-  context = g_main_context_new ();
-  g_main_context_push_thread_default (context);
-  timeout = timeout_cancellable_new (cancellable, &cancellable_id);
+  context = g_main_context_ref_thread_default ();
 
-  /* An incoming TCP connection is in response to an outgoing UDP packet, so
-   * the peer must now write its identity packet.
-   */
-  peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
-                                             IDENTITY_BUFFER_MAX,
-                                             timeout,
-                                             &warning);
-  if (peer_identity == NULL)
+  ret = g_new0 (HandshakeData, 1);
+  ret->task_cancellable = g_cancellable_new ();
+
+  ret->timeout = g_timeout_source_new (HANDSHAKE_TIMEOUT_MS);
+  g_source_set_priority (ret->timeout, G_PRIORITY_HIGH);
+  g_source_set_static_name (ret->timeout, "[valent-lan-plugin] handshake timeout");
+  g_source_set_callback (ret->timeout,
+                         handshake_timeout_cb,
+                         g_object_ref (ret->task_cancellable),
+                         g_object_unref);
+  g_source_attach (ret->timeout, context);
+
+  if (cancellable != NULL)
     {
-      if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, warning->message);
-      else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
-
-      VALENT_GOTO (out);
+      ret->cancellable = g_object_ref (cancellable);
+      ret->cancellable_id = g_cancellable_connect (ret->cancellable,
+                                                   G_CALLBACK (handshake_cancelled_cb),
+                                                   g_object_ref (ret->task_cancellable),
+                                                   g_object_unref);
     }
 
-  /* Ignore broadcasts without a deviceId or with an invalid deviceId
-   *
-   * NOTE: this is an opportunity for an early-exit; we will check this again
-   *       when comparing the certificate common name with the device ID
-   */
-  if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
+  return ret;
+}
+
+static void
+handshake_data_free (gpointer user_data)
+{
+  HandshakeData *data = (HandshakeData *)user_data;
+
+  if (data->cancellable != NULL)
     {
-      g_debug ("%s(): expected \"deviceId\" field holding a string",
-               G_STRFUNC);
-      VALENT_GOTO (out);
+      g_cancellable_disconnect (data->cancellable, data->cancellable_id);
+      g_clear_object (&data->cancellable);
+    }
+
+  if (data->timeout != NULL)
+    {
+      g_source_destroy (data->timeout);
+      g_clear_pointer (&data->timeout, g_source_unref);
+    }
+
+  g_clear_object (&data->connection);
+  g_clear_pointer (&data->peer_identity, json_node_unref);
+  g_clear_pointer (&data->host, g_free);
+  g_clear_object (&data->task_cancellable);
+  g_free (data);
+}
+
+static void
+handshake_data_cb (GObject      *object,
+                   GAsyncResult *result,
+                   gpointer      user_data)
+{
+  HandshakeData *data = g_task_get_task_data (G_TASK (result));
+  g_autoptr (GError) error = NULL;
+
+  if (!g_task_propagate_boolean (G_TASK (result), &error))
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+      else if (!g_cancellable_is_cancelled (data->cancellable))
+        g_warning ("%s(): timed out waiting for peer", G_STRFUNC);
+    }
+}
+
+static void
+handshake_task_complete (GTask *task)
+{
+  ValentLanChannelService *self = g_task_get_source_object (task);
+  ValentChannelService *service = g_task_get_source_object (task);
+  HandshakeData *data = g_task_get_task_data (task);
+  g_autoptr (ValentChannel) channel = NULL;
+  g_autoptr (JsonNode) identity = NULL;
+  GTlsCertificate *certificate = NULL;
+  GTlsCertificate *peer_certificate = NULL;
+
+  if (!valent_lan_channel_service_verify_channel (self,
+                                                  data->peer_identity,
+                                                  data->connection))
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "%s: failed to verify channel",
+                               G_STRFUNC);
+      return;
+    }
+
+  identity = valent_channel_service_ref_identity (service);
+  certificate = g_tls_connection_get_certificate (G_TLS_CONNECTION (data->connection));
+  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (data->connection));
+  channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
+                          "base-stream",      data->connection,
+                          "certificate",      certificate,
+                          "identity",         identity,
+                          "peer-certificate", peer_certificate,
+                          "peer-identity",    data->peer_identity,
+                          "host",             data->host,
+                          "port",             data->port,
+                          NULL);
+
+  valent_channel_service_channel (service, channel);
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static void
+handshake_read_identity_cb (GInputStream *stream,
+                            GAsyncResult *result,
+                            gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  HandshakeData *data = g_task_get_task_data (task);
+  g_autoptr (JsonNode) secure_identity = NULL;
+  int64_t protocol_version;
+  GError *error = NULL;
+
+  secure_identity = valent_packet_from_stream_finish (stream, result, &error);
+  if (secure_identity == NULL)
+    {
+      if ((data->flags & HANDSHAKE_FAILED) == 0)
+        {
+          data->flags |= HANDSHAKE_FAILED;
+          g_task_return_error (task, g_steal_pointer (&error));
+        }
+
+      return;
+    }
+
+  if (!valent_packet_get_int (secure_identity, "protocolVersion", &protocol_version))
+    {
+      g_task_return_new_error (task,
+                               VALENT_PACKET_ERROR,
+                               VALENT_PACKET_ERROR_MISSING_FIELD,
+                               "expected \"protocolVersion\" field holding an integer");
+      return;
+    }
+
+  if (data->protocol_version != protocol_version)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "Unexpected protocol version \"%u\"; "
+                               "handshake began with version \"%u\"",
+                               (uint8_t)protocol_version,
+                               (uint8_t)data->protocol_version);
+      return;
+    }
+
+  g_clear_pointer (&data->peer_identity, json_node_unref);
+  data->peer_identity = g_steal_pointer (&secure_identity);
+
+  data->flags |= HANDSHAKE_IDENTITY_READ;
+  if (data->flags == HANDSHAKE_COMPLETE)
+    handshake_task_complete (task);
+}
+
+static void
+handshake_write_identity_cb (GOutputStream *stream,
+                             GAsyncResult  *result,
+                             gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  HandshakeData *data = g_task_get_task_data (task);
+  GError *error = NULL;
+
+  if (!valent_packet_to_stream_finish (stream, result, &error))
+    {
+      if ((data->flags & HANDSHAKE_FAILED) == 0)
+        {
+          data->flags |= HANDSHAKE_FAILED;
+          g_task_return_error (task, g_steal_pointer (&error));
+        }
+
+      return;
+    }
+
+  data->flags |= HANDSHAKE_IDENTITY_SENT;
+  if (data->flags == HANDSHAKE_COMPLETE)
+    handshake_task_complete (task);
+}
+
+static void
+valent_lan_connection_handshake_cb (GSocketConnection *connection,
+                                    GAsyncResult      *result,
+                                    gpointer           user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentChannelService *service = g_task_get_source_object (task);
+  HandshakeData *data = g_task_get_task_data (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (GIOStream) ret = NULL;
+  g_autoptr (JsonNode) identity = NULL;
+  GError *error = NULL;
+
+  ret = valent_lan_connection_handshake_finish (connection, result, &error);
+  if (ret == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_clear_object (&data->connection);
+  data->connection = g_steal_pointer (&ret);
+  data->flags |= HANDSHAKE_ENCRYPTED;
+
+  if (!valent_packet_get_int (data->peer_identity,
+                              "protocolVersion",
+                              &data->protocol_version))
+    {
+      g_task_return_new_error (task,
+                               VALENT_PACKET_ERROR,
+                               VALENT_PACKET_ERROR_MISSING_FIELD,
+                               "expected \"protocolVersion\" field holding an integer");
+      return;
+    }
+
+  if (data->protocol_version > VALENT_NETWORK_PROTOCOL_MAX ||
+      data->protocol_version < VALENT_NETWORK_PROTOCOL_MIN)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "Unsupported protocol version \"%u\"",
+                               (uint8_t)data->protocol_version);
+      return;
+    }
+
+  if (data->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
+    {
+      identity = valent_channel_service_ref_identity (service);
+      valent_packet_to_stream_async (g_io_stream_get_output_stream (data->connection),
+                                     identity,
+                                     cancellable,
+                                     (GAsyncReadyCallback)handshake_write_identity_cb,
+                                     g_object_ref (task));
+      valent_packet_from_stream_async (g_io_stream_get_input_stream (data->connection),
+                                       IDENTITY_BUFFER_MAX,
+                                       cancellable,
+                                       (GAsyncReadyCallback)handshake_read_identity_cb,
+                                       g_object_ref (task));
+    }
+  else
+    {
+      data->flags = HANDSHAKE_COMPLETE;
+      handshake_task_complete (task);
+    }
+}
+
+static void
+valent_packet_from_stream_cb (GInputStream *stream,
+                              GAsyncResult *result,
+                              gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentChannelService *service = g_task_get_source_object (task);
+  HandshakeData *data = g_task_get_task_data (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  const char *device_id = NULL;
+  g_autoptr (GIOStream) ret = NULL;
+  GError *error = NULL;
+
+  data->peer_identity = valent_packet_from_stream_finish (stream, result, &error);
+  if (data->peer_identity == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  if (!valent_packet_get_string (data->peer_identity, "deviceId", &device_id))
+    {
+      g_task_return_new_error (task,
+                               VALENT_PACKET_ERROR,
+                               VALENT_PACKET_ERROR_MISSING_FIELD,
+                               "expected \"deviceId\" field holding a string");
+      return;
     }
 
   if (!valent_device_validate_id (device_id))
     {
-      g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
-      VALENT_GOTO (out);
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "Invalid device ID \"%s\"",
+                               device_id);
+      return;
     }
 
-  VALENT_JSON (peer_identity, host);
+  VALENT_JSON (data->peer_identity, data->host);
 
   /* NOTE: When negotiating the primary connection, a KDE Connect device
    *       acts as the TLS client when accepting TCP connections
    */
   certificate = valent_channel_service_ref_certificate (service);
-  tls_stream = valent_lan_connection_handshake (connection,
-                                                certificate,
-                                                NULL, /* trusted certificate */
-                                                TRUE, /* is_client */
-                                                timeout,
-                                                &warning);
-  if (tls_stream == NULL)
-    {
-      if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, warning->message);
-      else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for TLS negotiation", G_STRFUNC);
-
-      VALENT_GOTO (out);
-    }
-
-  identity = valent_channel_service_ref_identity (service);
-  secure_identity = valent_lan_channel_service_identify_channel (tls_stream,
-                                                                 identity,
-                                                                 peer_identity,
-                                                                 timeout,
-                                                                 &warning);
-  if (secure_identity == NULL)
-    {
-      if (!g_error_matches (warning, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_debug ("%s(): authenticating (%s:%u): %s",
-                 G_STRFUNC, host, (uint16_t)port, warning->message);
-      else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
-
-      VALENT_GOTO (out);
-    }
-
-  if (!valent_lan_channel_service_verify_channel (self, secure_identity, tls_stream))
-    VALENT_GOTO (out);
-
-  /* Get the host from the connection. The tcpPort field is usually absent for
-   * incoming connections, but if not then it must be within the allowed range.
-   */
-  s_addr = g_socket_connection_get_remote_address (connection, NULL);
-  i_addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (s_addr));
-  host = g_inet_address_to_string (i_addr);
-  if (valent_packet_get_int (peer_identity, "tcpPort", &port) &&
-      (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
-    {
-      g_warning ("%s(): expected \"port\" field holding a uint16 between %u-%u",
-                 G_STRFUNC,
-                 VALENT_LAN_PROTOCOL_PORT_MIN,
-                 VALENT_LAN_PROTOCOL_PORT_MAX);
-      VALENT_GOTO (out);
-    }
-
-  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
-  channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                          "base-stream",      tls_stream,
-                          "certificate",      certificate,
-                          "identity",         identity,
-                          "peer-certificate", peer_certificate,
-                          "peer-identity",    secure_identity,
-                          "host",             host,
-                          "port",             (uint16_t)port,
-                          NULL);
-
-  valent_channel_service_channel (service, channel);
-
-out:
-  g_cancellable_disconnect (cancellable, cancellable_id);
-  g_main_context_pop_thread_default (context);
-
-  return TRUE;
+  valent_lan_connection_handshake_async (G_SOCKET_CONNECTION (data->connection),
+                                         certificate,
+                                         NULL,  /* trusted */
+                                         TRUE, /* is_client */
+                                         cancellable,
+                                         (GAsyncReadyCallback)valent_lan_connection_handshake_cb,
+                                         g_object_ref (task));
 }
 
-/**
- * valent_lan_channel_service_tcp_setup:
- * @self: a `ValentLanChannelService`
- * @error: (nullable): a `GError`
- *
- * A wrapper around g_socket_listener_add_inet_port() that can be called
- * multiple times.
- *
- * Returns: %TRUE if successful, or %FALSE with @error set
- */
-static gboolean
-valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
-                                      GCancellable             *cancellable,
-                                      GError                  **error)
-{
-  g_autoptr (GCancellable) destroy = NULL;
-  g_autoptr (GSocketService) listener = NULL;
-  uint16_t tcp_port = VALENT_LAN_PROTOCOL_PORT;
-
-  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return FALSE;
-
-  /* Pass the service as the callback data for the "run" signal, while the
-   * listener holds a reference to the object cancellable.
-   */
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-  listener = g_threaded_socket_service_new (MIN (g_get_num_processors (), 8));
-  g_signal_connect_object (listener,
-                           "run",
-                           G_CALLBACK (on_incoming_connection),
-                           self,
-                           G_CONNECT_SWAPPED);
-
-  /* Find an open TCP port for receiving incoming connections, within the
-   * protocol defined range (1716-1764).
-   */
-  valent_object_lock (VALENT_OBJECT (self));
-  tcp_port = self->port;
-  valent_object_unlock (VALENT_OBJECT (self));
-  while (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (listener),
-                                           tcp_port,
-                                           G_OBJECT (destroy),
-                                           error))
-    {
-      if (tcp_port >= VALENT_LAN_PROTOCOL_PORT_MAX)
-        {
-          g_socket_service_stop (listener);
-          g_socket_listener_close (G_SOCKET_LISTENER (listener));
-
-          return FALSE;
-        }
-
-      g_clear_error (error);
-      tcp_port++;
-    }
-
-  valent_object_lock (VALENT_OBJECT (self));
-  self->tcp_port = tcp_port;
-  self->listener = g_object_ref (listener);
-  valent_channel_service_build_identity (VALENT_CHANNEL_SERVICE (self));
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return TRUE;
-}
-
-/*
- * Incoming UDP Broadcasts
- *
- * When an identity packet is received over a UDP port (usually a broadcast), we
- * are operating as the server. The client expects us to:
- *
- * 1) Open a TCP connection
- * 2) Write our identity packet
- * 3) Negotiate TLS encryption (as the TLS Server)
- */
 static void
-incoming_broadcast_task (GTask        *task,
-                         gpointer      source_object,
-                         gpointer      task_data,
-                         GCancellable *cancellable)
+valent_packet_to_stream_cb (GOutputStream *stream,
+                            GAsyncResult  *result,
+                            gpointer       user_data)
 {
-  ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (source_object);
-  ValentChannelService *service = VALENT_CHANNEL_SERVICE (source_object);
-  GSocketAddress *address = G_SOCKET_ADDRESS (task_data);
-  g_autoptr (GMainContext) context = NULL;
-  g_autoptr (GCancellable) timeout = NULL;
-  unsigned long cancellable_id = 0;
-  JsonNode *peer_identity = NULL;
-  g_autoptr (GSocketClient) client = NULL;
-  g_autoptr (GSocketConnection) connection = NULL;
-  GInetAddress *addr = NULL;
-  g_autoptr (JsonNode) identity = NULL;
-  g_autoptr (JsonNode) secure_identity = NULL;
-  g_autoptr (ValentChannel) channel = NULL;
-  g_autofree char *host = NULL;
-  int64_t port = VALENT_LAN_PROTOCOL_PORT;
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentChannelService *service = g_task_get_source_object (task);
+  HandshakeData *data = g_task_get_task_data (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
   g_autoptr (GTlsCertificate) certificate = NULL;
-  GTlsCertificate *peer_certificate = NULL;
-  g_autoptr (GIOStream) tls_stream = NULL;
-  g_autoptr (GError) error = NULL;
+  GError *error = NULL;
 
-  g_assert (VALENT_IS_CHANNEL_SERVICE (self));
-  g_assert (G_IS_SOCKET_ADDRESS (address));
-
-  /* A timeout (1000ms) is set to prevent a DoS attack from an
-   * unauthenticated peer.
-   */
-  context = g_main_context_new ();
-  g_main_context_push_thread_default (context);
-  timeout = timeout_cancellable_new (cancellable, &cancellable_id);
-
-  /* Open a TCP connection to the UDP sender and defined port.
-   *
-   * Disable the system proxy:
-   *   - https://bugs.kde.org/show_bug.cgi?id=376187
-   *   - https://github.com/andyholmes/gnome-shell-extension-gsconnect/issues/125
-   */
-  addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (address));
-  host = g_inet_address_to_string (addr);
-  peer_identity = g_object_get_data (G_OBJECT (address), "peer-identity");
-  valent_packet_get_int (peer_identity, "tcpPort", &port);
-
-  client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                         "enable-proxy", FALSE,
-                         NULL);
-  connection = g_socket_client_connect (client,
-                                        G_SOCKET_CONNECTABLE (address),
-                                        timeout,
-                                        &error);
-  if (connection == NULL)
+  if (!valent_packet_to_stream_finish (stream, result, &error))
     {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_debug ("%s(): connecting (%s:%u): %s",
-                 G_STRFUNC, host, (uint16_t)port, error->message);
-      else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for peer to connect", G_STRFUNC);
-
-      VALENT_GOTO (out);
-    }
-
-  /* Write the local identity. Once we do this, both peers will have the ability
-   * to authenticate or reject TLS certificates.
-   */
-  identity = valent_channel_service_ref_identity (service);
-  if (!valent_packet_to_stream (g_io_stream_get_output_stream (G_IO_STREAM (connection)),
-                                identity,
-                                timeout,
-                                &error))
-    {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_debug ("%s(): sending identity to (%s:%u): %s",
-                 G_STRFUNC, host, (uint16_t)port, error->message);
-      else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
-
-      VALENT_GOTO (out);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   /* NOTE: When negotiating the primary connection, a KDE Connect device
    *       acts as the TLS server when opening TCP connections
    */
   certificate = valent_channel_service_ref_certificate (service);
-  tls_stream = valent_lan_connection_handshake (connection,
-                                                certificate,
-                                                NULL,  /* trusted certificate */
-                                                FALSE, /* is_client */
-                                                timeout,
-                                                &error);
-  if (tls_stream == NULL)
-    {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_debug ("%s(): authenticating (%s:%u): %s",
-                 G_STRFUNC, host, (uint16_t)port, error->message);
-      else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for TLS negotiation", G_STRFUNC);
-
-      VALENT_GOTO (out);
-    }
-
-  secure_identity = valent_lan_channel_service_identify_channel (tls_stream,
-                                                                 identity,
-                                                                 peer_identity,
-                                                                 timeout,
-                                                                 &error);
-  if (secure_identity == NULL)
-    {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_debug ("%s(): authenticating (%s:%u): %s",
-                 G_STRFUNC, host, (uint16_t)port, error->message);
-      else if (!g_cancellable_is_cancelled (cancellable))
-        g_warning ("%s(): timed out waiting for peer identity", G_STRFUNC);
-
-      VALENT_GOTO (out);
-    }
-
-  if (!valent_lan_channel_service_verify_channel (self, secure_identity, tls_stream))
-    VALENT_GOTO (out);
-
-  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
-  channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                          "base-stream",      tls_stream,
-                          "certificate",      certificate,
-                          "identity",         identity,
-                          "peer-certificate", peer_certificate,
-                          "peer-identity",    secure_identity,
-                          "host",             host,
-                          "port",             (uint16_t)port,
-                          NULL);
-
-  valent_channel_service_channel (service, channel);
-
-out:
-  g_task_return_boolean (task, TRUE);
-  g_cancellable_disconnect (cancellable, cancellable_id);
-  g_main_context_pop_thread_default (context);
+  valent_lan_connection_handshake_async (G_SOCKET_CONNECTION (data->connection),
+                                         certificate,
+                                         NULL,  /* trusted */
+                                         FALSE, /* is_client */
+                                         cancellable,
+                                         (GAsyncReadyCallback)valent_lan_connection_handshake_cb,
+                                         g_object_ref (task));
 }
 
+static void
+g_socket_client_connect_to_host_cb (GSocketClient *client,
+                                    GAsyncResult  *result,
+                                    gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentChannelService *service = g_task_get_source_object (task);
+  HandshakeData *data = g_task_get_task_data (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (GSocketConnection) connection = NULL;
+  g_autoptr (JsonNode) identity = NULL;
+  GError *error = NULL;
+
+  connection = g_socket_client_connect_to_host_finish (client, result, &error);
+  if (connection == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_set_object (&data->connection, G_IO_STREAM (connection));
+
+  /* The outgoing connection is in response to the remote device's broadcast,
+   * so the local device must send its identity before TLS negotiation.
+   */
+  identity = valent_channel_service_ref_identity (service);
+  valent_packet_to_stream_async (g_io_stream_get_output_stream (data->connection),
+                                 identity,
+                                 cancellable,
+                                 (GAsyncReadyCallback)valent_packet_to_stream_cb,
+                                 g_object_ref (task));
+}
+
+/*
+ * Incoming Connections
+ */
+static gboolean
+on_incoming_connection (ValentChannelService *service,
+                        GSocketConnection    *connection,
+                        GCancellable         *cancellable,
+                        GSocketService       *listener)
+{
+  g_autoptr (GTask) task = NULL;
+  HandshakeData *data = NULL;
+  g_autoptr (GSocketAddress) s_addr = NULL;
+  GInetAddress *i_addr = NULL;
+
+  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
+
+  s_addr = g_socket_connection_get_remote_address (connection, NULL);
+  i_addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (s_addr));
+
+  data = handshake_data_new (cancellable);
+  data->connection = g_object_ref (G_IO_STREAM (connection));
+  data->host = g_inet_address_to_string (i_addr);
+  data->port = VALENT_LAN_PROTOCOL_PORT;
+
+  task = g_task_new (service, data->task_cancellable, handshake_data_cb, NULL);
+  g_task_set_source_tag (task, on_incoming_connection);
+  g_task_set_task_data (task, data, handshake_data_free);
+
+  /* The incoming connection is in response to the local device's broadcast,
+   * so the remote device must send its identity before TLS negotiation.
+   */
+  valent_packet_from_stream_async (g_io_stream_get_input_stream (data->connection),
+                                   IDENTITY_BUFFER_MAX,
+                                   data->task_cancellable,
+                                   (GAsyncReadyCallback)valent_packet_from_stream_cb,
+                                   g_object_ref (task));
+
+  return TRUE;
+}
+
+/*
+ * Outgoing Connections
+ */
 static gboolean
 valent_lan_channel_service_socket_recv (GSocket      *socket,
                                         GIOCondition  condition,
@@ -673,24 +661,27 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
   gssize read = 0;
   char buffer[IDENTITY_BUFFER_MAX + 1] = { 0, };
   g_autoptr (GSocketAddress) incoming = NULL;
-  g_autoptr (GSocketAddress) outgoing = NULL;
+  g_autoptr (GSocketClient) client = NULL;
   GInetAddress *addr = NULL;
-  int64_t port = VALENT_LAN_PROTOCOL_PORT;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
   g_autofree char *local_id = NULL;
   g_autoptr (GTask) task = NULL;
+  HandshakeData *data = NULL;
   g_autoptr (GError) warning = NULL;
+  int64_t port = VALENT_LAN_PROTOCOL_PORT;
+
+  VALENT_ENTRY;
 
   g_assert (G_IS_SOCKET (socket));
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (user_data));
 
   if (condition != G_IO_IN)
-    return G_SOURCE_REMOVE;
+    VALENT_RETURN (G_SOURCE_REMOVE);
 
+  /* Read the message data and extract the remote address
+   */
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (service));
-
-  /* Read the message data and extract the remote address */
   read = g_socket_receive_from (socket,
                                 &incoming,
                                 buffer,
@@ -703,22 +694,24 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
 
-      return G_SOURCE_REMOVE;
+      VALENT_RETURN (G_SOURCE_REMOVE);
     }
 
   if (read == 0)
     {
       g_warning ("%s(): Socket is closed", G_STRFUNC);
-      return G_SOURCE_REMOVE;
+      VALENT_RETURN (G_SOURCE_REMOVE);
     }
 
-  /* Validate the message as a KDE Connect packet */
-  if ((peer_identity = valent_packet_deserialize (buffer, &warning)) == NULL)
+  /* Validate the message as a KDE Connect packet
+   */
+  peer_identity = valent_packet_deserialize (buffer, &warning);
+  if (peer_identity == NULL)
     {
       g_warning ("%s(): failed to parse peer-identity: %s",
                  G_STRFUNC,
                  warning->message);
-      return G_SOURCE_CONTINUE;
+      VALENT_RETURN (G_SOURCE_CONTINUE);
     }
 
   /* Ignore broadcasts without a deviceId or with an invalid deviceId
@@ -727,24 +720,25 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
     {
       g_debug ("%s(): expected \"deviceId\" field holding a string",
                G_STRFUNC);
-      return G_SOURCE_CONTINUE;
+      VALENT_RETURN (G_SOURCE_CONTINUE);
     }
 
   if (!valent_device_validate_id (device_id))
     {
       g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
-      return G_SOURCE_CONTINUE;
+      VALENT_RETURN (G_SOURCE_CONTINUE);
     }
 
   /* Silently ignore our own broadcasts
    */
   local_id = valent_channel_service_dup_id (service);
   if (g_strcmp0 (device_id, local_id) == 0)
-    return G_SOURCE_CONTINUE;
+    VALENT_RETURN (G_SOURCE_CONTINUE);
 
   VALENT_JSON (peer_identity, device_id);
 
-  /* Get the remote address and port */
+  /* Get the remote address and port
+   */
   addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (incoming));
   if (!valent_packet_get_int (peer_identity, "tcpPort", &port) ||
       (port < VALENT_LAN_PROTOCOL_PORT_MIN || port > VALENT_LAN_PROTOCOL_PORT_MAX))
@@ -753,22 +747,31 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
                  G_STRFUNC,
                  VALENT_LAN_PROTOCOL_PORT_MIN,
                  VALENT_LAN_PROTOCOL_PORT_MAX);
-      return G_SOURCE_CONTINUE;
+      VALENT_RETURN (G_SOURCE_CONTINUE);
     }
 
-  /* Defer the remaining work to another thread */
-  outgoing = g_inet_socket_address_new (addr, port);
-  g_object_set_data_full (G_OBJECT (outgoing),
-                          "peer-identity",
-                          json_node_ref (peer_identity),
-                          (GDestroyNotify)json_node_unref);
+  data = handshake_data_new (cancellable);
+  data->peer_identity = json_node_ref (peer_identity);
+  data->host = g_inet_address_to_string (addr);
+  data->port = (uint16_t)port;
 
-  task = g_task_new (service, cancellable, NULL, NULL);
+  task = g_task_new (service, data->task_cancellable, handshake_data_cb, NULL);
   g_task_set_source_tag (task, valent_lan_channel_service_socket_recv);
-  g_task_set_task_data (task, g_steal_pointer (&outgoing), g_object_unref);
-  g_task_run_in_thread (task, incoming_broadcast_task);
+  g_task_set_task_data (task, data, handshake_data_free);
 
-  return G_SOURCE_CONTINUE;
+  /* Open a connection to the host at the expected port
+   */
+  client = g_object_new (G_TYPE_SOCKET_CLIENT,
+                         "enable-proxy", FALSE,
+                         NULL);
+  g_socket_client_connect_to_host_async (client,
+                                         data->host,
+                                         data->port,
+                                         data->task_cancellable,
+                                         (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
+                                         g_object_ref (task));
+
+  VALENT_RETURN (G_SOURCE_CONTINUE);
 }
 
 static gboolean
@@ -781,11 +784,10 @@ valent_lan_channel_service_socket_send (GSocket      *socket,
   gssize written;
   g_autoptr (GError) error = NULL;
 
+  VALENT_ENTRY;
+
   g_assert (G_IS_SOCKET (socket));
   g_assert (G_IS_SOCKET_ADDRESS (address));
-
-  if (condition != G_IO_OUT)
-    return G_SOURCE_REMOVE;
 
   bytes = g_object_get_data (G_OBJECT (address), "valent-lan-broadcast");
   written = g_socket_send_to (socket,
@@ -802,14 +804,14 @@ valent_lan_channel_service_socket_send (GSocket      *socket,
       g_autofree char *host = NULL;
 
       if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
-        return G_SOURCE_CONTINUE;
+        VALENT_RETURN (G_SOURCE_CONTINUE);
 
       host = g_socket_connectable_to_string (G_SOCKET_CONNECTABLE (address));
       g_warning ("%s(): failed to announce to \"%s\": %s",
                  G_STRFUNC, host, error->message);
     }
 
-  return G_SOURCE_REMOVE;
+  VALENT_RETURN (G_SOURCE_REMOVE);
 }
 
 static gboolean
@@ -826,7 +828,6 @@ valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
   g_return_val_if_fail (family == G_SOCKET_FAMILY_IPV4 ||
                         family == G_SOCKET_FAMILY_IPV6, FALSE);
 
-  valent_object_lock (VALENT_OBJECT (self));
   if ((self->udp_socket6 != NULL && family == G_SOCKET_FAMILY_IPV6) ||
       (self->udp_socket6 != NULL && g_socket_speaks_ipv4 (self->udp_socket6)))
     {
@@ -836,13 +837,13 @@ valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
     {
       socket = g_object_ref (self->udp_socket4);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 
   if (socket != NULL)
     {
       g_autoptr (GSource) source = NULL;
       g_autoptr (JsonNode) identity = NULL;
       g_autoptr (GBytes) identity_bytes = NULL;
+      g_autoptr (GCancellable) cancellable = NULL;
       char *identity_json = NULL;
       size_t identity_len;
 
@@ -856,12 +857,13 @@ valent_lan_channel_service_socket_queue (ValentLanChannelService *self,
                               g_bytes_ref (identity_bytes),
                               (GDestroyNotify)g_bytes_unref);
 
-      source = g_socket_create_source (socket, G_IO_OUT, NULL);
+      cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
+      source = g_socket_create_source (socket, G_IO_OUT, cancellable);
       g_source_set_callback (source,
                              G_SOURCE_FUNC (valent_lan_channel_service_socket_send),
                              g_object_ref (address),
                              g_object_unref);
-      g_source_attach (source, g_main_loop_get_context (self->udp_context));
+      g_source_attach (source, NULL);
 
       return TRUE;
     }
@@ -915,24 +917,66 @@ valent_lan_channel_service_socket_queue_resolve (ValentLanChannelService *self,
                                           g_object_ref (self));
 }
 
-static gpointer
-valent_lan_channel_service_socket_worker (gpointer data)
+/**
+ * valent_lan_channel_service_tcp_setup:
+ * @self: a `ValentLanChannelService`
+ * @error: (nullable): a `GError`
+ *
+ * A wrapper around g_socket_listener_add_inet_port() that can be called
+ * multiple times.
+ *
+ * Returns: %TRUE if successful, or %FALSE with @error set
+ */
+static gboolean
+valent_lan_channel_service_tcp_setup (ValentLanChannelService  *self,
+                                      GCancellable             *cancellable,
+                                      GError                  **error)
 {
-  g_autoptr (GMainLoop) loop = (GMainLoop *)data;
-  GMainContext *context = g_main_loop_get_context (loop);
+  g_autoptr (GCancellable) destroy = NULL;
 
-  /* The loop quits when the channel is closed, then the context is drained to
-   * ensure all tasks return. */
-  g_main_context_push_thread_default (context);
+  g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
 
-  g_main_loop_run (loop);
+  if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    return FALSE;
 
-  while (g_main_context_pending (context))
-    g_main_context_iteration (NULL, FALSE);
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
 
-  g_main_context_pop_thread_default (context);
+  /* Pass the service as the callback data for the "incoming" signal, while
+   * the listener passes the object cancellable as the source object.
+   */
+  self->listener = g_socket_service_new ();
+  g_signal_connect_object (self->listener,
+                           "incoming",
+                           G_CALLBACK (on_incoming_connection),
+                           self,
+                           G_CONNECT_SWAPPED);
 
-  return NULL;
+  self->tcp_port = self->port;
+  while (!g_socket_listener_add_inet_port (G_SOCKET_LISTENER (self->listener),
+                                           self->tcp_port,
+                                           G_OBJECT (destroy),
+                                           error))
+    {
+      if (self->tcp_port >= VALENT_LAN_PROTOCOL_PORT_MAX)
+        {
+          g_socket_service_stop (self->listener);
+          g_socket_listener_close (G_SOCKET_LISTENER (self->listener));
+          g_clear_object (&self->listener);
+
+          return FALSE;
+        }
+
+      g_clear_error (error);
+      self->tcp_port++;
+    }
+
+  /* Rebuild the identity packet to populate the `tcpPort` field
+   */
+  valent_channel_service_build_identity (VALENT_CHANNEL_SERVICE (self));
+
+  return TRUE;
 }
 
 /**
@@ -951,13 +995,7 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
                                       GCancellable             *cancellable,
                                       GError                  **error)
 {
-  g_autoptr (GMainContext) context = NULL;
-  g_autoptr (GMainLoop) loop = NULL;
-  g_autoptr (GThread) thread = NULL;
-  g_autoptr (GSocket) socket4 = NULL;
-  g_autoptr (GSocket) socket6 = NULL;
   g_autoptr (GCancellable) destroy = NULL;
-  uint16_t port = VALENT_LAN_PROTOCOL_PORT;
 
   VALENT_ENTRY;
 
@@ -965,114 +1003,78 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   g_assert (cancellable == NULL || G_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* Prepare socket(s) for UDP-based discovery */
-  valent_object_lock (VALENT_OBJECT (self));
-  port = self->port;
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  socket6 = g_socket_new (G_SOCKET_FAMILY_IPV6,
-                          G_SOCKET_TYPE_DATAGRAM,
-                          G_SOCKET_PROTOCOL_UDP,
-                          NULL);
-
-  if (socket6 != NULL)
+  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+  self->udp_socket6 = g_socket_new (G_SOCKET_FAMILY_IPV6,
+                                    G_SOCKET_TYPE_DATAGRAM,
+                                    G_SOCKET_PROTOCOL_UDP,
+                                    NULL);
+  if (self->udp_socket6 != NULL)
     {
       g_autoptr (GInetAddress) inet_address = NULL;
       g_autoptr (GSocketAddress) address = NULL;
+      g_autoptr (GSource) source = NULL;
 
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV6);
-      address = g_inet_socket_address_new (inet_address, port);
+      address = g_inet_socket_address_new (inet_address, self->port);
 
-      if (!g_socket_bind (socket6, address, TRUE, NULL))
+      if (!g_socket_bind (self->udp_socket6, address, TRUE, NULL))
         {
-          g_clear_object (&socket6);
+          g_clear_object (&self->udp_socket6);
           VALENT_GOTO (ipv4);
         }
 
-      g_socket_set_broadcast (socket6, TRUE);
+      g_socket_set_blocking (self->udp_socket6, FALSE);
+      g_socket_set_broadcast (self->udp_socket6, TRUE);
 
-      /* If this socket also speaks IPv4, move on to DNS-SD */
-      if (g_socket_speaks_ipv4 (socket6))
-        VALENT_GOTO (check);
+      source = g_socket_create_source (self->udp_socket6, G_IO_IN, destroy);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_recv),
+                             g_object_ref (self),
+                             g_object_unref);
+      g_source_attach (source, NULL);
+
+      /* If this socket also speaks IPv4, we're done
+       */
+      if (g_socket_speaks_ipv4 (self->udp_socket6))
+        VALENT_RETURN (TRUE);
     }
 
 ipv4:
-  socket4 = g_socket_new (G_SOCKET_FAMILY_IPV4,
-                          G_SOCKET_TYPE_DATAGRAM,
-                          G_SOCKET_PROTOCOL_UDP,
-                          error);
-
-  if (socket4 != NULL)
+  self->udp_socket4 = g_socket_new (G_SOCKET_FAMILY_IPV4,
+                                    G_SOCKET_TYPE_DATAGRAM,
+                                    G_SOCKET_PROTOCOL_UDP,
+                                    error);
+  if (self->udp_socket4 != NULL)
     {
       g_autoptr (GInetAddress) inet_address = NULL;
       g_autoptr (GSocketAddress) address = NULL;
+      g_autoptr (GSource) source = NULL;
 
       inet_address = g_inet_address_new_any (G_SOCKET_FAMILY_IPV4);
-      address = g_inet_socket_address_new (inet_address, port);
+      address = g_inet_socket_address_new (inet_address, self->port);
 
-      if (!g_socket_bind (socket4, address, TRUE, error))
+      if (!g_socket_bind (self->udp_socket4, address, TRUE, error))
         {
-          g_clear_object (&socket4);
+          g_clear_object (&self->udp_socket4);
           VALENT_GOTO (check);
         }
 
-      g_socket_set_broadcast (socket4, TRUE);
+      g_socket_set_blocking (self->udp_socket4, FALSE);
+      g_socket_set_broadcast (self->udp_socket4, TRUE);
+
+      source = g_socket_create_source (self->udp_socket4, G_IO_IN, destroy);
+      g_source_set_callback (source,
+                             G_SOURCE_FUNC (valent_lan_channel_service_socket_recv),
+                             g_object_ref (self),
+                             g_object_unref);
+      g_source_attach (source, NULL);
     }
 
 check:
-  if (socket6 != NULL || socket4 != NULL)
-    g_clear_error (error);
-  else
+  if (self->udp_socket6 == NULL && self->udp_socket4 == NULL)
     VALENT_RETURN (FALSE);
 
-  /* Create a thread-context for the UDP socket(s)
-   */
-  context = g_main_context_new ();
-  loop = g_main_loop_new (context, FALSE);
-  thread = g_thread_try_new ("valent-lan-channel-service",
-                             valent_lan_channel_service_socket_worker,
-                             g_main_loop_ref (loop),
-                             error);
-
-  if (thread == NULL)
-    {
-      g_main_loop_unref (loop);
-      VALENT_RETURN (FALSE);
-    }
-
-  /* Set the thread-context variables before attaching to the context */
-  valent_object_lock (VALENT_OBJECT (self));
-  self->udp_context = g_main_loop_ref (loop);
-  self->udp_socket4 = socket4 ? g_object_ref (socket4) : NULL;
-  self->udp_socket6 = socket6 ? g_object_ref (socket6) : NULL;
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
-
-  if (socket6 != NULL)
-    {
-      g_autoptr (GSource) source = NULL;
-
-      source = g_socket_create_source (socket6, G_IO_IN, destroy);
-      g_source_set_callback (source,
-                             G_SOURCE_FUNC (valent_lan_channel_service_socket_recv),
-                             g_object_ref (self),
-                             g_object_unref);
-      g_source_attach (source, context);
-    }
-
-  if (socket4 != NULL)
-    {
-      g_autoptr (GSource) source = NULL;
-
-      source = g_socket_create_source (socket4, G_IO_IN, destroy);
-      g_source_set_callback (source,
-                             G_SOURCE_FUNC (valent_lan_channel_service_socket_recv),
-                             g_object_ref (self),
-                             g_object_unref);
-      g_source_attach (source, context);
-    }
-
+  g_clear_error (error);
   VALENT_RETURN (TRUE);
 }
 
@@ -1102,10 +1104,8 @@ on_items_changed (GListModel              *list,
       if (g_strcmp0 (service_id, device_id) == 0)
         continue;
 
-      valent_object_lock (VALENT_OBJECT (self));
       if (!g_hash_table_contains (self->channels, device_id))
         valent_lan_channel_service_socket_queue_resolve (self, connectable);
-      valent_object_unlock (VALENT_OBJECT (self));
     }
 }
 
@@ -1152,7 +1152,6 @@ valent_lan_channel_service_channel (ValentChannelService *service,
   peer_certificate = valent_channel_ref_peer_certificate (channel);
   device_id = valent_certificate_get_common_name (peer_certificate);
 
-  valent_object_lock (VALENT_OBJECT (service));
   g_hash_table_replace (self->channels,
                         g_strdup (device_id),
                         g_object_ref (channel));
@@ -1161,7 +1160,6 @@ valent_lan_channel_service_channel (ValentChannelService *service,
                            G_CALLBACK (on_channel_destroyed),
                            self,
                            G_CONNECT_SWAPPED);
-  valent_object_unlock (VALENT_OBJECT (service));
 }
 
 static void
@@ -1192,11 +1190,9 @@ valent_lan_channel_service_identify (ValentChannelService *service,
     {
       g_autoptr (GSocketAddress) address = NULL;
 
-      valent_object_lock (VALENT_OBJECT (self));
       address = g_inet_socket_address_new_from_string (self->broadcast_address,
                                                        self->port);
       valent_lan_channel_service_socket_queue (self, address);
-      valent_object_unlock (VALENT_OBJECT (self));
     }
 }
 
@@ -1235,7 +1231,7 @@ valent_lan_channel_service_init_sync (GInitable     *initable,
                            G_CALLBACK (on_items_changed),
                            self,
                            G_CONNECT_DEFAULT);
-  valent_lan_dnssd_start (VALENT_LAN_DNSSD (self->dnssd));
+  /* valent_lan_dnssd_start (VALENT_LAN_DNSSD (self->dnssd)); */
 
   return TRUE;
 }
@@ -1256,19 +1252,14 @@ valent_lan_channel_service_destroy (ValentObject *object)
 
   g_signal_handlers_disconnect_by_data (self->monitor, self);
 
-  if (self->udp_context != NULL)
+  if (self->dnssd != NULL)
     {
-      if (self->dnssd != NULL)
-        {
-          g_signal_handlers_disconnect_by_data (self->dnssd, self);
-          g_clear_object (&self->dnssd);
-        }
-
-      g_clear_object (&self->udp_socket4);
-      g_clear_object (&self->udp_socket6);
-      g_main_loop_quit (self->udp_context);
-      g_clear_pointer (&self->udp_context, g_main_loop_unref);
+      g_signal_handlers_disconnect_by_data (self->dnssd, self);
+      g_clear_object (&self->dnssd);
     }
+
+  g_clear_object (&self->udp_socket4);
+  g_clear_object (&self->udp_socket6);
 
   if (self->listener != NULL)
     {
