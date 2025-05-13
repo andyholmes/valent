@@ -29,10 +29,6 @@ leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:279
 leakNoVarFunctionCall:src/plugins/connectivity_report/valent-connectivity_report-plugin.c:281
 
-# tests/plugins/lan/
-memleak:src/plugins/lan/valent-lan-dnssd.c:84
-memleak:src/plugins/lan/valent-lan-dnssd.c:94
-
 # src/plugins/pipewire/
 memleak:src/plugins/pipewire/valent-pipewire-mixer.c:698
 
