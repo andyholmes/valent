@@ -138,17 +138,6 @@ lan_service_fixture_tear_down (LanTestFixture *fixture,
  * Test Service Callbacks
  */
 static void
-g_async_initable_init_async_cb (GAsyncInitable *initable,
-                                GAsyncResult   *result,
-                                gboolean       *done)
-{
-  GError *error = NULL;
-
-  *done = g_async_initable_init_finish (initable, result, &error);
-  g_assert_no_error (error);
-}
-
-static void
 on_channel (ValentChannelService  *service,
             ValentChannel         *channel,
             ValentChannel        **channel_out)
@@ -226,16 +215,11 @@ test_lan_service_incoming_broadcast (LanTestFixture *fixture,
   const char *device_id = NULL;
   g_autoptr (GIOStream) tls_stream = NULL;
   int64_t protocol_version = VALENT_NETWORK_PROTOCOL_MAX;
-  gboolean done = FALSE;
   GError *error = NULL;
 
   VALENT_TEST_CHECK ("The service can be initialized");
-  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
-                               G_PRIORITY_DEFAULT,
-                               NULL,
-                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
-                               &done);
-  valent_test_await_boolean (&done);
+  g_initable_init (G_INITABLE (fixture->service), NULL, &error);
+  g_assert_no_error (error);
 
   /* Listen for an incoming TCP connection
    */
@@ -386,12 +370,8 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
   GError *error = NULL;
 
   VALENT_TEST_CHECK ("The service can be initialized");
-  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
-                               G_PRIORITY_DEFAULT,
-                               NULL,
-                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
-                               &watch);
-  valent_test_await_boolean (&watch);
+  g_initable_init (G_INITABLE (fixture->service), NULL, &error);
+  g_assert_no_error (error);
 
   VALENT_TEST_CHECK ("The service announces itself to the network");
   valent_channel_service_identify (fixture->service, ENDPOINT_ADDR);
