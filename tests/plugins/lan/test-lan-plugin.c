@@ -576,12 +576,12 @@ static LanTestCase compliance_tests[] = {
 #if !(VALENT_SANITIZE_ADDRESS)
   {
     .name = TEST_OUTGOING_IDENTITY_TIMEOUT,
-    .errmsg = "*timed out waiting for peer identity*",
+    .errmsg = "*timed out waiting for peer*",
     .func = (LanFixtureFunc)test_lan_service_incoming_broadcast,
   },
   {
     .name = TEST_INCOMING_IDENTITY_TIMEOUT,
-    .errmsg = "*timed out waiting for peer identity*",
+    .errmsg = "*timed out waiting for peer*",
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
 #endif /* !VALENT_SANITIZE_ADDRESS */
@@ -592,7 +592,7 @@ static LanTestCase compliance_tests[] = {
   },
   {
     .name = TEST_OUTGOING_INVALID_ID,
-    .errmsg = "*invalid device ID*",
+    .errmsg = "*Invalid device ID*",
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
   {
