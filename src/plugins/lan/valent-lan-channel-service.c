@@ -1183,7 +1183,6 @@ valent_lan_channel_service_identify (ValentChannelService *service,
                                      const char           *target)
 {
   ValentLanChannelService *self = VALENT_LAN_CHANNEL_SERVICE (service);
-  g_autoptr (GSocketAddress) address = NULL;
 
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (self));
 
@@ -1193,8 +1192,6 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   if (target != NULL)
     {
       g_autoptr (GSocketConnectable) net = NULL;
-      const char *hostname = NULL;
-      uint16_t port = 0;
 
       net = g_network_address_parse (target, VALENT_LAN_PROTOCOL_PORT, NULL);
       if (net == NULL)
@@ -1203,18 +1200,12 @@ valent_lan_channel_service_identify (ValentChannelService *service,
           return;
         }
 
-      /* If a socket address can't be created, try resolving the network address
-       */
-      hostname = g_network_address_get_hostname (G_NETWORK_ADDRESS (net));
-      port = g_network_address_get_port (G_NETWORK_ADDRESS (net));
-      address = g_inet_socket_address_new_from_string (hostname, port);
-      if (address != NULL)
-        valent_lan_channel_service_socket_queue (self, address);
-      else
-        valent_lan_channel_service_socket_queue_resolve (self, net);
+      valent_lan_channel_service_socket_queue_resolve (self, net);
     }
   else
     {
+      g_autoptr (GSocketAddress) address = NULL;
+
       valent_object_lock (VALENT_OBJECT (self));
       address = g_inet_socket_address_new_from_string (self->broadcast_address,
                                                        self->port);
