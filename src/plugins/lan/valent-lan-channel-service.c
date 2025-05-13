@@ -935,39 +935,6 @@ valent_lan_channel_service_socket_worker (gpointer data)
   return NULL;
 }
 
-static void
-on_items_changed (GListModel              *list,
-                  unsigned int             position,
-                  unsigned int             removed,
-                  unsigned int             added,
-                  ValentLanChannelService *self)
-{
-  g_autofree char *service_id = NULL;
-
-  if (added == 0)
-    return;
-
-  service_id = valent_channel_service_dup_id (VALENT_CHANNEL_SERVICE (self));
-
-  for (unsigned int i = 0; i < added; i++)
-    {
-      g_autoptr (GSocketConnectable) connectable = NULL;
-      g_autofree char *device_id = NULL;
-
-      /* Silently ignore our own broadcasts
-       */
-      connectable = g_list_model_get_item (list, position + i);
-      device_id = g_socket_connectable_to_string (connectable);
-      if (g_strcmp0 (service_id, device_id) == 0)
-        continue;
-
-      valent_object_lock (VALENT_OBJECT (self));
-      if (!g_hash_table_contains (self->channels, device_id))
-        valent_lan_channel_service_socket_queue_resolve (self, connectable);
-      valent_object_unlock (VALENT_OBJECT (self));
-    }
-}
-
 /**
  * valent_lan_channel_service_udp_setup:
  * @self: a `ValentLanChannelService`
@@ -989,7 +956,6 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
   g_autoptr (GThread) thread = NULL;
   g_autoptr (GSocket) socket4 = NULL;
   g_autoptr (GSocket) socket6 = NULL;
-  g_autoptr (GListModel) services = NULL;
   g_autoptr (GCancellable) destroy = NULL;
   uint16_t port = VALENT_LAN_PROTOCOL_PORT;
 
@@ -1027,7 +993,7 @@ valent_lan_channel_service_udp_setup (ValentLanChannelService  *self,
 
       /* If this socket also speaks IPv4, move on to DNS-SD */
       if (g_socket_speaks_ipv4 (socket6))
-        VALENT_GOTO (dnssd);
+        VALENT_GOTO (check);
     }
 
 ipv4:
@@ -1059,17 +1025,8 @@ check:
   else
     VALENT_RETURN (FALSE);
 
-dnssd:
-  services = valent_lan_dnssd_new (NULL);
-  g_object_bind_property (self,     "identity",
-                          services, "identity",
-                          G_BINDING_SYNC_CREATE);
-  g_signal_connect_object (services,
-                           "items-changed",
-                           G_CALLBACK (on_items_changed),
-                           self, 0);
-
-  /* Create a thread-context for UDP broadcasts, and the DNS-SD service */
+  /* Create a thread-context for the UDP socket(s)
+   */
   context = g_main_context_new ();
   loop = g_main_loop_new (context, FALSE);
   thread = g_thread_try_new ("valent-lan-channel-service",
@@ -1085,7 +1042,6 @@ dnssd:
 
   /* Set the thread-context variables before attaching to the context */
   valent_object_lock (VALENT_OBJECT (self));
-  self->dnssd = g_object_ref (services);
   self->udp_context = g_main_loop_ref (loop);
   self->udp_socket4 = socket4 ? g_object_ref (socket4) : NULL;
   self->udp_socket6 = socket6 ? g_object_ref (socket6) : NULL;
@@ -1117,11 +1073,41 @@ dnssd:
       g_source_attach (source, context);
     }
 
-  valent_lan_dnssd_attach (VALENT_LAN_DNSSD (services), context);
-
   VALENT_RETURN (TRUE);
 }
 
+static void
+on_items_changed (GListModel              *list,
+                  unsigned int             position,
+                  unsigned int             removed,
+                  unsigned int             added,
+                  ValentLanChannelService *self)
+{
+  g_autofree char *service_id = NULL;
+
+  if (added == 0)
+    return;
+
+  service_id = valent_channel_service_dup_id (VALENT_CHANNEL_SERVICE (self));
+
+  for (unsigned int i = 0; i < added; i++)
+    {
+      g_autoptr (GSocketConnectable) connectable = NULL;
+      g_autofree char *device_id = NULL;
+
+      /* Silently ignore our own broadcasts
+       */
+      connectable = g_list_model_get_item (list, position + i);
+      device_id = g_socket_connectable_to_string (connectable);
+      if (g_strcmp0 (service_id, device_id) == 0)
+        continue;
+
+      valent_object_lock (VALENT_OBJECT (self));
+      if (!g_hash_table_contains (self->channels, device_id))
+        valent_lan_channel_service_socket_queue_resolve (self, connectable);
+      valent_object_unlock (VALENT_OBJECT (self));
+    }
+}
 
 /*
  * ValentChannelService
@@ -1239,6 +1225,17 @@ valent_lan_channel_service_init_sync (GInitable     *initable,
 
   if (!valent_lan_channel_service_udp_setup (self, cancellable, error))
     return FALSE;
+
+  self->dnssd = valent_lan_dnssd_new (NULL);
+  g_object_bind_property (self,        "identity",
+                          self->dnssd, "identity",
+                          G_BINDING_SYNC_CREATE);
+  g_signal_connect_object (self->dnssd,
+                           "items-changed",
+                           G_CALLBACK (on_items_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
+  valent_lan_dnssd_attach (VALENT_LAN_DNSSD (self->dnssd), NULL);
 
   return TRUE;
 }
