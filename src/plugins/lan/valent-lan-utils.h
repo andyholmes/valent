@@ -53,12 +53,22 @@ G_BEGIN_DECLS
 #define VALENT_LAN_TRANSFER_PORT_MAX (1764)
 
 
-GIOStream * valent_lan_connection_handshake (GSocketConnection  *connection,
-                                             GTlsCertificate    *certificate,
-                                             GTlsCertificate    *trusted,
-                                             gboolean            is_client,
-                                             GCancellable       *cancellable,
-                                             GError            **error);
+GIOStream * valent_lan_connection_handshake        (GSocketConnection    *connection,
+                                                    GTlsCertificate      *certificate,
+                                                    GTlsCertificate      *trusted,
+                                                    gboolean              is_client,
+                                                    GCancellable         *cancellable,
+                                                    GError              **error);
+void        valent_lan_connection_handshake_async  (GSocketConnection    *connection,
+                                                    GTlsCertificate      *certificate,
+                                                    GTlsCertificate      *trusted,
+                                                    gboolean              is_client,
+                                                    GCancellable         *cancellable,
+                                                    GAsyncReadyCallback   callback,
+                                                    gpointer              user_data);
+GIOStream * valent_lan_connection_handshake_finish (GSocketConnection    *connection,
+                                                    GAsyncResult         *result,
+                                                    GError              **error);
 
 G_END_DECLS
 
