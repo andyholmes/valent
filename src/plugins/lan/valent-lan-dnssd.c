@@ -288,7 +288,6 @@ struct _ValentLanDNSSD
   uint16_t          port;
   GVariant         *txt;
 
-  GMainContext     *context;
   GDBusConnection  *connection;
   GCancellable     *cancellable;
   unsigned int      watcher_id;
@@ -374,10 +373,8 @@ valent_lan_dnssd_get_item (GListModel   *list,
 
   g_assert (VALENT_IS_LAN_DNSSD (self));
 
-  valent_object_lock (VALENT_OBJECT (self));
   if G_LIKELY (position < self->items->len)
     ret = g_object_ref (g_ptr_array_index (self->items, position));
-  valent_object_unlock (VALENT_OBJECT (self));
 
   return g_steal_pointer (&ret);
 }
@@ -396,9 +393,7 @@ valent_lan_dnssd_get_n_items (GListModel *list)
 
   g_assert (VALENT_IS_LAN_DNSSD (self));
 
-  valent_object_lock (VALENT_OBJECT (self));
   ret = self->items->len;
-  valent_object_unlock (VALENT_OBJECT (self));
 
   return ret;
 }
@@ -435,13 +430,13 @@ enum {
   _AVAHI_ENTRY_GROUP_FAILURE,
 };
 
-static gboolean   _avahi_client_connect          (ValentLanDNSSD *self);
-static gboolean   _avahi_client_disconnect       (ValentLanDNSSD *self);
-static void       _avahi_entry_group_new         (ValentLanDNSSD *self);
-static gboolean   _avahi_entry_group_add_service (ValentLanDNSSD *self);
-static gboolean   _avahi_entry_group_commit      (ValentLanDNSSD *self);
-static gboolean   _avahi_entry_group_reset       (ValentLanDNSSD *self);
-static void       _avahi_service_browser_prepare (ValentLanDNSSD *self);
+static void   _avahi_client_connect          (ValentLanDNSSD *self);
+static void   _avahi_client_disconnect       (ValentLanDNSSD *self);
+static void   _avahi_entry_group_new         (ValentLanDNSSD *self);
+static void   _avahi_entry_group_add_service (ValentLanDNSSD *self);
+static void   _avahi_entry_group_commit      (ValentLanDNSSD *self);
+static void   _avahi_entry_group_reset       (ValentLanDNSSD *self);
+static void   _avahi_service_browser_prepare (ValentLanDNSSD *self);
 
 
 /*
@@ -468,7 +463,6 @@ _avahi_entry_group_state_changed (GDBusConnection *connection,
   if (self == NULL || valent_object_in_destruction (VALENT_OBJECT (self)))
     return;
 
-  valent_object_lock (VALENT_OBJECT (self));
   g_variant_get (parameters, "(i&s)", &self->entry_group_state, &error);
 
   VALENT_NOTE ("[%i] %s", self->entry_group_state, error);
@@ -492,7 +486,6 @@ _avahi_entry_group_state_changed (GDBusConnection *connection,
       g_warning ("%s(): DNS-SD failure: %s", G_STRFUNC, error);
       break;
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -512,7 +505,6 @@ _avahi_entry_group_get_state_cb (GDBusConnection *connection,
       return;
     }
 
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->entry_group_path != NULL)
     {
       g_variant_get (reply, "(i)", &self->entry_group_state);
@@ -536,7 +528,6 @@ _avahi_entry_group_get_state_cb (GDBusConnection *connection,
           _avahi_entry_group_add_service (self);
         }
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -556,7 +547,6 @@ _avahi_entry_group_new_cb (GDBusConnection *connection,
       return;
     }
 
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->entry_group_path == NULL)
     {
       g_variant_get (reply, "(o)", &self->entry_group_path);
@@ -573,7 +563,6 @@ _avahi_entry_group_new_cb (GDBusConnection *connection,
                               (GAsyncReadyCallback)_avahi_entry_group_get_state_cb,
                               self);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -581,7 +570,6 @@ _avahi_entry_group_new (ValentLanDNSSD *self)
 {
   g_assert (VALENT_IS_LAN_DNSSD (self));
 
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->entry_group_path == NULL)
     {
       g_dbus_connection_call (self->connection,
@@ -597,7 +585,6 @@ _avahi_entry_group_new (ValentLanDNSSD *self)
                               (GAsyncReadyCallback)_avahi_entry_group_new_cb,
                               self);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -621,12 +608,11 @@ _avahi_entry_group_add_service_cb (GDBusConnection *connection,
   _avahi_entry_group_commit (self);
 }
 
-static gboolean
+static void
 _avahi_entry_group_add_service (ValentLanDNSSD *self)
 {
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->identity == NULL || self->entry_group_path == NULL)
-    goto unlock_exit;
+    return;
 
   if (self->entry_group_state == _AVAHI_ENTRY_GROUP_UNCOMMITTED)
     {
@@ -640,7 +626,7 @@ _avahi_entry_group_add_service (ValentLanDNSSD *self)
                                              -1, // protocol:  AVAHI_PROTO_UNSPEC
                                              64, // flags:     AVAHI_PUBLISH_UPDATE
                                              self->name,
-                                             self->service_type,
+                                             "_kdeconnect_no._udp", //self->service_type,
                                              "", // domain
                                              "", // host
                                              self->port,
@@ -665,7 +651,7 @@ _avahi_entry_group_add_service (ValentLanDNSSD *self)
                                              -1, // protocol:  AVAHI_PROTO_UNSPEC
                                               0, // flags:     AvahiPublishFlags
                                              self->name,
-                                             self->service_type,
+                                             "_kdeconnect_no._udp", //self->service_type,
                                              "", // domain
                                              self->txt),
                               NULL,
@@ -675,17 +661,11 @@ _avahi_entry_group_add_service (ValentLanDNSSD *self)
                               NULL,
                               NULL);
     }
-
-unlock_exit:
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return G_SOURCE_REMOVE;
 }
 
-static gboolean
+static void
 _avahi_entry_group_commit (ValentLanDNSSD *self)
 {
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->entry_group_path != NULL &&
       self->entry_group_state == _AVAHI_ENTRY_GROUP_UNCOMMITTED)
     {
@@ -702,15 +682,11 @@ _avahi_entry_group_commit (ValentLanDNSSD *self)
                               NULL,
                               NULL);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return G_SOURCE_REMOVE;
 }
 
-static gboolean
+static void
 _avahi_entry_group_reset (ValentLanDNSSD *self)
 {
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->entry_group_path != NULL &&
       (self->entry_group_state == _AVAHI_ENTRY_GROUP_REGISTERING ||
        self->entry_group_state == _AVAHI_ENTRY_GROUP_ESTABLISHED))
@@ -728,9 +704,6 @@ _avahi_entry_group_reset (ValentLanDNSSD *self)
                               NULL,
                               NULL);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return G_SOURCE_REMOVE;
 }
 
 /*
@@ -930,7 +903,6 @@ _avahi_service_browser_start_cb (GDBusConnection *connection,
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("%s(): %s", G_STRFUNC, error->message);
 
-      valent_object_lock (VALENT_OBJECT (self));
       if (self->service_browser_event_id != 0)
         {
           g_dbus_connection_signal_unsubscribe (connection,
@@ -939,7 +911,6 @@ _avahi_service_browser_start_cb (GDBusConnection *connection,
         }
 
       g_clear_pointer (&self->service_browser_path, g_free);
-      valent_object_unlock (VALENT_OBJECT (self));
     }
 }
 
@@ -960,7 +931,6 @@ _avahi_service_browser_prepare_cb (GDBusConnection *connection,
       return;
     }
 
-  valent_object_lock (VALENT_OBJECT (self));
   g_variant_get (reply, "(o)", &self->service_browser_path);
   self->service_browser_event_id =
     g_dbus_connection_signal_subscribe (self->connection,
@@ -986,7 +956,6 @@ _avahi_service_browser_prepare_cb (GDBusConnection *connection,
                           self->cancellable,
                           (GAsyncReadyCallback)_avahi_service_browser_start_cb,
                           self);
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -994,7 +963,6 @@ _avahi_service_browser_prepare (ValentLanDNSSD *self)
 {
   g_assert (VALENT_IS_LAN_DNSSD (self));
 
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->service_browser_path == NULL)
     {
       g_dbus_connection_call (self->connection,
@@ -1015,7 +983,6 @@ _avahi_service_browser_prepare (ValentLanDNSSD *self)
                               (GAsyncReadyCallback)_avahi_service_browser_prepare_cb,
                               self);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -1036,7 +1003,6 @@ _avahi_server_state_changed (GDBusConnection *connection,
   if (self == NULL || valent_object_in_destruction (VALENT_OBJECT (self)))
     return;
 
-  valent_object_lock (VALENT_OBJECT (self));
   g_variant_get (parameters, "(i&s)", &self->server_state, &error);
 
   VALENT_NOTE ("[%i] %s", self->server_state, error);
@@ -1060,7 +1026,6 @@ _avahi_server_state_changed (GDBusConnection *connection,
       g_warning ("%s(): DNS-SD server failure: %s", G_STRFUNC, error);
       break;
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -1081,7 +1046,6 @@ _avahi_server_get_state_cb (GDBusConnection *connection,
       return;
     }
 
-  valent_object_lock (VALENT_OBJECT (self));
   g_variant_get (reply, "(i)", &self->server_state);
   self->server_state_id =
     g_dbus_connection_signal_subscribe (self->connection,
@@ -1103,7 +1067,6 @@ _avahi_server_get_state_cb (GDBusConnection *connection,
       _avahi_entry_group_new (self);
       _avahi_service_browser_prepare (self);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -1118,7 +1081,6 @@ on_name_appeared (GDBusConnection *connection,
 
   g_assert (VALENT_IS_LAN_DNSSD (self));
 
-  valent_object_lock (VALENT_OBJECT (self));
   /* Create a new cancellable, chained to the object's cancellable, so that
    * any operations will be cancelled if the object is destroyed.
    */
@@ -1142,7 +1104,6 @@ on_name_appeared (GDBusConnection *connection,
                           self->cancellable,
                           (GAsyncReadyCallback)_avahi_server_get_state_cb,
                           self);
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -1152,7 +1113,6 @@ on_name_vanished (GDBusConnection *connection,
 {
   g_assert (VALENT_IS_LAN_DNSSD (self));
 
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->cancellable != NULL)
     {
       g_signal_handlers_disconnect_by_data (self, self->cancellable);
@@ -1191,13 +1151,11 @@ on_name_vanished (GDBusConnection *connection,
       g_clear_pointer (&self->entry_group_path, g_free);
       g_clear_object (&self->connection);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
-static gboolean
+static void
 _avahi_client_connect (ValentLanDNSSD *self)
 {
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->watcher_id == 0)
     {
       self->watcher_id = g_bus_watch_name (G_BUS_TYPE_SYSTEM,
@@ -1207,15 +1165,11 @@ _avahi_client_connect (ValentLanDNSSD *self)
                                            (GBusNameVanishedCallback)on_name_vanished,
                                            self, NULL);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return G_SOURCE_REMOVE;
 }
 
-static gboolean
+static void
 _avahi_client_disconnect (ValentLanDNSSD *self)
 {
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->cancellable != NULL)
     {
       g_signal_handlers_disconnect_by_data (self, self->cancellable);
@@ -1260,9 +1214,6 @@ _avahi_client_disconnect (ValentLanDNSSD *self)
       g_clear_handle_id (&self->watcher_id, g_bus_unwatch_name);
       on_name_vanished (self->connection, AVAHI_DBUS_NAME, self);
     }
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return G_SOURCE_REMOVE;
 }
 
 /*
@@ -1285,15 +1236,7 @@ valent_lan_dnssd_set_identity (ValentLanDNSSD *self,
   if (identity == NULL)
     {
       g_clear_pointer (&self->identity, json_node_unref);
-
-      if (self->entry_group_path != NULL)
-        {
-          g_main_context_invoke_full (self->context,
-                                      G_PRIORITY_DEFAULT,
-                                      G_SOURCE_FUNC (_avahi_entry_group_reset),
-                                      g_object_ref (self),
-                                      g_object_unref);
-        }
+      _avahi_entry_group_reset (self);
       return;
     }
 
@@ -1325,20 +1268,14 @@ valent_lan_dnssd_set_identity (ValentLanDNSSD *self,
                                    txt->len);
   g_variant_ref_sink (self->txt);
 
-  /* Service Name and Port */
+  /* Service Name and Port
+   */
   g_set_str (&self->name, id);
 
   if (valent_packet_get_int (identity, "tcpPort", &port))
     self->port = (uint16_t)port;
 
-  if (self->entry_group_path != NULL)
-    {
-      g_main_context_invoke_full (self->context,
-                                  G_PRIORITY_DEFAULT,
-                                  G_SOURCE_FUNC (_avahi_entry_group_add_service),
-                                  g_object_ref (self),
-                                  g_object_unref);
-    }
+  _avahi_entry_group_add_service (self);
 }
 
 /*
@@ -1349,7 +1286,7 @@ valent_lan_dnssd_destroy (ValentObject *object)
 {
   ValentLanDNSSD *self = VALENT_LAN_DNSSD (object);
 
-  _avahi_client_disconnect (self);
+  valent_lan_dnssd_stop (self);
 
   VALENT_OBJECT_CLASS (valent_lan_dnssd_parent_class)->destroy (object);
 }
@@ -1362,8 +1299,6 @@ valent_lan_dnssd_finalize (GObject *object)
 {
   ValentLanDNSSD *self = VALENT_LAN_DNSSD (object);
 
-  valent_object_lock (VALENT_OBJECT (object));
-  g_clear_pointer (&self->context, g_main_context_unref);
   g_clear_pointer (&self->name, g_free);
   g_clear_pointer (&self->txt, g_variant_unref);
   g_clear_pointer (&self->identity, json_node_unref);
@@ -1371,7 +1306,6 @@ valent_lan_dnssd_finalize (GObject *object)
   g_clear_pointer (&self->items, g_ptr_array_unref);
   g_clear_pointer (&self->pending, g_hash_table_unref);
   g_clear_handle_id (&self->pending_id, g_source_remove);
-  valent_object_unlock (VALENT_OBJECT (object));
 
   G_OBJECT_CLASS (valent_lan_dnssd_parent_class)->finalize (object);
 }
@@ -1387,15 +1321,11 @@ valent_lan_dnssd_get_property (GObject    *object,
   switch ((ValentLanDNSSDProperty)prop_id)
     {
     case PROP_IDENTITY:
-      valent_object_lock (VALENT_OBJECT (self));
       g_value_set_boxed (value, self->identity);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_SERVICE_TYPE:
-      valent_object_lock (VALENT_OBJECT (self));
       g_value_set_string (value, self->service_type);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -1414,15 +1344,11 @@ valent_lan_dnssd_set_property (GObject      *object,
   switch ((ValentLanDNSSDProperty)prop_id)
     {
     case PROP_IDENTITY:
-      valent_object_lock (VALENT_OBJECT (self));
       valent_lan_dnssd_set_identity (self, g_value_get_boxed (value));
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_SERVICE_TYPE:
-      valent_object_lock (VALENT_OBJECT (self));
       self->service_type = g_value_dup_string (value);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -1473,13 +1399,11 @@ valent_lan_dnssd_class_init (ValentLanDNSSDClass *klass)
 static void
 valent_lan_dnssd_init (ValentLanDNSSD *self)
 {
-  valent_object_lock (VALENT_OBJECT (self));
   self->items = g_ptr_array_new_with_free_func (g_object_unref);
   self->pending = g_hash_table_new_full (g_str_hash,
                                          g_str_equal,
                                          g_free,
                                          g_object_unref);
-  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 /**
@@ -1501,37 +1425,29 @@ valent_lan_dnssd_new (JsonNode *identity)
 }
 
 /**
- * valent_lan_dnssd_attach:
+ * valent_lan_dnssd_start:
  * @self: an `ValentLanDNSSD`
- * @context: (nullable): a `GMainContext`
  *
- * Start the DNS-SD adapter in @context.
- *
- * If @context is %NULL, the service will run in the thread-default main
- * context, as returned by [type@GLib.MainContext.ref_thread_default].
+ * Start the DNS-SD adapter.
  */
 void
-valent_lan_dnssd_attach (ValentLanDNSSD  *self,
-                         GMainContext    *context)
+valent_lan_dnssd_start (ValentLanDNSSD *self)
 {
   g_return_if_fail (VALENT_IS_LAN_DNSSD (self));
 
-  valent_object_lock (VALENT_OBJECT (self));
-  if (context == NULL)
-    {
-      g_clear_pointer (&self->context, g_main_context_unref);
-      self->context = g_main_context_ref_thread_default ();
-    }
-  else if (self->context != context)
-    {
-      g_clear_pointer (&self->context, g_main_context_unref);
-      self->context = g_main_context_ref (context);
-    }
+  _avahi_client_connect (self);
+}
 
-  g_main_context_invoke_full (self->context,
-                              G_PRIORITY_DEFAULT,
-                              G_SOURCE_FUNC (_avahi_client_connect),
-                              g_object_ref (self),
-                              g_object_unref);
-  valent_object_unlock (VALENT_OBJECT (self));
+/**
+ * valent_lan_dnssd_stop:
+ * @self: an `ValentLanDNSSD`
+ *
+ * Stop the DNS-SD adapter.
+ */
+void
+valent_lan_dnssd_stop (ValentLanDNSSD *self)
+{
+  g_return_if_fail (VALENT_IS_LAN_DNSSD (self));
+
+  _avahi_client_disconnect (self);
 }

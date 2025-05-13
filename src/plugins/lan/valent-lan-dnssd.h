@@ -12,7 +12,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (ValentLanDNSSD, valent_lan_dnssd, VALENT, LAN_DNSSD, ValentObject)
 
 GListModel * valent_lan_dnssd_new    (JsonNode       *identity);
-void         valent_lan_dnssd_attach (ValentLanDNSSD *self,
-                                      GMainContext   *context);
+void         valent_lan_dnssd_start  (ValentLanDNSSD *self);
+void         valent_lan_dnssd_stop   (ValentLanDNSSD *self);
 
 G_END_DECLS
