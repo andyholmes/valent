@@ -94,7 +94,7 @@ test_lan_dnssd_basic (LanDNSSDFixture *fixture,
                     "items-changed",
                     G_CALLBACK (on_items_changed),
                     fixture);
-  valent_lan_dnssd_attach (VALENT_LAN_DNSSD (fixture->dnssd), NULL);
+  valent_lan_dnssd_start (VALENT_LAN_DNSSD (fixture->dnssd));
   valent_test_await_boolean (&fixture->state);
 
   VALENT_TEST_CHECK ("DNS-SD adapter updates the service TXT record");
