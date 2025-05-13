@@ -323,20 +323,18 @@ static inline GVariant *
 txt_new_str (const char *name,
              const char *value)
 {
-  char *key = g_strdup_printf ("%s=%s", name, value);
-  g_autoptr (GBytes) bytes = g_bytes_new_take (key, strlen (key));
+  g_autofree char *key = g_strdup_printf ("%s=%s", name, value);
 
-  return g_variant_new_from_bytes (G_VARIANT_TYPE_BYTESTRING, bytes, TRUE);
+  return g_variant_new_bytestring (key);
 }
 
 static inline GVariant *
 txt_new_uint (const char *name,
               uint32_t    value)
 {
-  char *key = g_strdup_printf ("%s=%u", name, value);
-  g_autoptr (GBytes) bytes = g_bytes_new_take (key, strlen (key));
+  g_autofree char *key = g_strdup_printf ("%s=%u", name, value);
 
-  return g_variant_new_from_bytes (G_VARIANT_TYPE_BYTESTRING, bytes, TRUE);
+  return g_variant_new_bytestring (key);
 }
 
 static inline GWeakRef *
