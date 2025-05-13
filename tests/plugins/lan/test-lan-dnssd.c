@@ -63,7 +63,7 @@ on_items_changed (GListModel      *list,
     {
       GSocketAddress *item = g_list_model_get_item (list, position);
 
-      g_assert_true (G_IS_SOCKET_ADDRESS (item));
+      g_assert_true (G_IS_SOCKET_CONNECTABLE (item));
       g_ptr_array_insert (fixture->data, position, item);
     }
 
