@@ -1231,7 +1231,7 @@ valent_lan_channel_service_init_sync (GInitable     *initable,
                            G_CALLBACK (on_items_changed),
                            self,
                            G_CONNECT_DEFAULT);
-  /* valent_lan_dnssd_start (VALENT_LAN_DNSSD (self->dnssd)); */
+  valent_lan_dnssd_start (VALENT_LAN_DNSSD (self->dnssd));
 
   return TRUE;
 }
