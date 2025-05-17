@@ -1189,7 +1189,21 @@ valent_lan_channel_service_identify (ValentChannelService *service,
   else
     {
       g_autoptr (GSocketAddress) address = NULL;
+      unsigned int n_items;
 
+      /* Identify to each DNS-SD service
+       */
+      n_items = g_list_model_get_n_items (self->dnssd);
+      for (unsigned int i = 0; i < n_items; i++)
+        {
+          g_autoptr (GSocketConnectable) item = NULL;
+
+          service = g_list_model_get_item (self->dnssd, i);
+          valent_lan_channel_service_socket_queue_resolve (self, item);
+        }
+
+      /* Broadcast to the network
+       */
       address = g_inet_socket_address_new_from_string (self->broadcast_address,
                                                        self->port);
       valent_lan_channel_service_socket_queue (self, address);
