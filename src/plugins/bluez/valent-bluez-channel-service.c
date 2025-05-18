@@ -400,9 +400,6 @@ g_dbus_proxy_new_for_bus_cb (GObject      *object,
 {
   g_autoptr (GTask) task = G_TASK (user_data);
   ValentBluezChannelService *self = g_task_get_source_object (task);
-  GCancellable *cancellable = g_task_get_cancellable (task);
-  g_autofree char *name_owner = NULL;
-  GDBusConnection *connection = NULL;
   GError *error = NULL;
 
   if ((self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error)) == NULL)
@@ -411,33 +408,16 @@ g_dbus_proxy_new_for_bus_cb (GObject      *object,
   g_signal_connect_object (self->proxy,
                            "g-signal",
                            G_CALLBACK (on_g_signal),
-                           self, 0);
-
-  /* Watch for bluez, but return if it's down currently */
+                           self,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (self->proxy,
                            "notify::g-name-owner",
                            G_CALLBACK (on_name_owner_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
+  on_name_owner_changed (self->proxy, NULL, self);
 
-  if ((name_owner = g_dbus_proxy_get_name_owner (self->proxy)) == NULL)
-    return g_task_return_boolean (task, TRUE);
-
-  /* Make sure we're ready when the profile begins accepting connections */
-  g_signal_connect_object (self->profile,
-                           "connection-opened",
-                           G_CALLBACK (on_connection_opened),
-                           self, 0);
-  g_signal_connect_object (self->profile,
-                           "connection-closed",
-                           G_CALLBACK (on_connection_closed),
-                           self, 0);
-
-  connection = g_dbus_proxy_get_connection (self->proxy);
-  valent_bluez_profile_register (self->profile,
-                                 connection,
-                                 cancellable,
-                                 (GAsyncReadyCallback)register_profile_cb,
-                                 g_steal_pointer (&task));
+  g_task_return_boolean (task, TRUE);
 }
 
 /*
@@ -534,6 +514,16 @@ static void
 valent_bluez_channel_service_init (ValentBluezChannelService *self)
 {
   self->profile = g_object_new (VALENT_TYPE_BLUEZ_PROFILE, NULL);
+  g_signal_connect_object (self->profile,
+                           "connection-opened",
+                           G_CALLBACK (on_connection_opened),
+                           self,
+                           G_CONNECT_DEFAULT);
+  g_signal_connect_object (self->profile,
+                           "connection-closed",
+                           G_CALLBACK (on_connection_closed),
+                           self,
+                           G_CONNECT_DEFAULT);
 
   /* Bluez Devices */
   self->devices = g_hash_table_new_full (g_str_hash,
