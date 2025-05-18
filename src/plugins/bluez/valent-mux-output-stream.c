@@ -28,7 +28,6 @@ typedef enum {
 
 static GParamSpec *properties[PROP_UUID + 1] = { NULL, };
 
-
 /*
  * GOutputStream
  */
@@ -123,11 +122,6 @@ valent_mux_output_stream_class_init (ValentMuxOutputStreamClass *klass)
 
   stream_class->write_fn = valent_mux_output_stream_write;
 
-  /**
-   * ValentMuxOutputStream:muxer:
-   *
-   * The multiplexer handling data for this stream.
-   */
   properties [PROP_MUXER] =
     g_param_spec_object ("muxer", NULL, NULL,
                          VALENT_TYPE_MUX_CONNECTION,
@@ -136,11 +130,6 @@ valent_mux_output_stream_class_init (ValentMuxOutputStreamClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  /**
-   * ValentMuxOutputStream:uuid:
-   *
-   * UUID of the channel that owns this stream.
-   */
   properties [PROP_UUID] =
     g_param_spec_string ("uuid", NULL, NULL,
                          NULL,
