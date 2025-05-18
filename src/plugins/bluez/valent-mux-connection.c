@@ -346,7 +346,7 @@ recv_open_channel (ValentMuxConnection  *self,
                    GError              **error)
 {
   g_autoptr (ChannelState) state = NULL;
-  gboolean ret = FALSE;
+  gboolean ret = TRUE;
 
   valent_object_lock (VALENT_OBJECT (self));
   if (g_hash_table_contains (self->states, uuid))
@@ -356,6 +356,7 @@ recv_open_channel (ValentMuxConnection  *self,
                    G_IO_ERROR_ADDRESS_IN_USE,
                    "Channel already open (%s)",
                    uuid);
+      ret = FALSE;
     }
   else
     {
