@@ -15,7 +15,6 @@ G_DECLARE_FINAL_TYPE (ValentMuxIOStream, valent_mux_io_stream, VALENT, MUX_IO_ST
 
 GIOStream  * valent_mux_io_stream_new      (ValentMuxConnection *muxer,
                                             const char          *uuid);
-const char * valent_mux_io_stream_get_uuid (ValentMuxIOStream   *stream);
 
 G_END_DECLS
 

@@ -77,7 +77,8 @@ valent_bluez_profile_new_connection (ValentBluezProfile *profile,
   g_assert (VALENT_IS_BLUEZ_PROFILE (profile));
   g_assert (g_variant_is_object_path (object_path));
 
-  if ((socket = g_socket_new_from_fd (fd, &error)) == NULL)
+  socket = g_socket_new_from_fd (fd, &error);
+  if (socket == NULL)
     {
       g_warning ("Failed to create socket: %s", error->message);
       return;

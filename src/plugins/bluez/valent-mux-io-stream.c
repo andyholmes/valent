@@ -33,7 +33,6 @@ typedef enum {
 
 static GParamSpec *properties[PROP_UUID + 1] = { NULL, };
 
-
 /*
  * GIOStream
  */
@@ -75,10 +74,10 @@ valent_mux_io_stream_close_fn (GIOStream     *stream,
 
   if (self->muxer != NULL && self->uuid != NULL)
     {
-      ret = valent_mux_connection_close_channel (self->muxer,
-                                                 self->uuid,
-                                                 cancellable,
-                                                 error);
+      ret &= valent_mux_connection_close_channel (self->muxer,
+                                                  self->uuid,
+                                                  cancellable,
+                                                  error);
     }
 
   return ret;
@@ -181,11 +180,6 @@ valent_mux_io_stream_class_init (ValentMuxIOStreamClass *klass)
   stream_class->get_input_stream = valent_mux_io_stream_get_input_stream;
   stream_class->get_output_stream = valent_mux_io_stream_get_output_stream;
 
-  /**
-   * ValentMuxIOStream:muxer:
-   *
-   * Multiplexer that muxes and demuxes data for this stream.
-   */
   properties [PROP_MUXER] =
     g_param_spec_object ("muxer",
                          "Muxer",
@@ -196,11 +190,6 @@ valent_mux_io_stream_class_init (ValentMuxIOStreamClass *klass)
                           G_PARAM_EXPLICIT_NOTIFY |
                           G_PARAM_STATIC_STRINGS));
 
-  /**
-   * ValentMuxIOStream:uuid:
-   *
-   * UUID of the channel this stream represents.
-   */
   properties [PROP_UUID] =
     g_param_spec_string ("uuid",
                          "UUID",
@@ -217,43 +206,5 @@ valent_mux_io_stream_class_init (ValentMuxIOStreamClass *klass)
 static void
 valent_mux_io_stream_init (ValentMuxIOStream *self)
 {
-}
-
-/**
- * valent_mux_io_stream_new:
- * @muxer: a `ValentMuxConnection`
- * @uuid: a UUID
- *
- * Creates a new `ValentMuxIOStream` for @uuid, muxed by @muxer.
- *
- * Returns: (transfer full): a new `ValentMuxIOStream`
- */
-GIOStream *
-valent_mux_io_stream_new (ValentMuxConnection *muxer,
-                          const char          *uuid)
-{
-  g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (muxer), NULL);
-  g_return_val_if_fail (uuid != NULL && *uuid != '\0', NULL);
-
-  return g_object_new (G_TYPE_SIMPLE_IO_STREAM,
-                       "muxer",        muxer,
-                       "uuid",         uuid,
-                       NULL);
-}
-
-/**
- * valent_mux_io_stream_get_uuid:
- * @stream: a `ValentMuxIOStream`
- *
- * Get the UUID for @stream.
- *
- * Returns: (transfer none): a UUID
- */
-const char *
-valent_mux_io_stream_get_uuid (ValentMuxIOStream *stream)
-{
-  g_return_val_if_fail (VALENT_IS_MUX_IO_STREAM (stream), NULL);
-
-  return stream->uuid;
 }
 
