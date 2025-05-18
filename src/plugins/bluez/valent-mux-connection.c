@@ -345,7 +345,6 @@ recv_open_channel (ValentMuxConnection  *self,
                    GCancellable         *cancellable,
                    GError              **error)
 {
-  g_autoptr (ChannelState) state = NULL;
   gboolean ret = TRUE;
 
   valent_object_lock (VALENT_OBJECT (self));
@@ -360,6 +359,8 @@ recv_open_channel (ValentMuxConnection  *self,
     }
   else
     {
+      g_autoptr (ChannelState) state = NULL;
+
       /* NOTE: the initial MESSAGE_READ request will be sent by
        *       valent_mux_connection_accept_channel()
        */
@@ -384,7 +385,7 @@ recv_close_channel (ValentMuxConnection  *self,
 
   valent_object_lock (VALENT_OBJECT (self));
   if (g_hash_table_steal_extended (self->states, uuid, (void **)&key, (void **)&state))
-    g_io_stream_close (state->stream, NULL, NULL);
+    channel_state_close (state);
   valent_object_unlock (VALENT_OBJECT (self));
 
   return TRUE;
