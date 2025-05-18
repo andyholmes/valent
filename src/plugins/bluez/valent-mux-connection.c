@@ -12,6 +12,9 @@
 #include "valent-mux-connection.h"
 #include "valent-mux-io-stream.h"
 
+#define CERTIFICATE_HEADER "-----BEGIN CERTIFICATE-----\n"
+#define CERTIFICATE_FOOTER "-----END CERTIFICATE-----\n"
+
 #define BUFFER_SIZE  4096
 #define HEADER_SIZE  19
 #define PRIMARY_UUID "a0d0aaf4-1072-4d81-aa35-902a954b1266"
@@ -922,6 +925,11 @@ valent_mux_connection_handshake_task (GTask        *task,
   g_autoptr (GIOStream) base_stream = NULL;
   g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (GError) error = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  const char *certificate_pem = NULL;
+  const char *peer_certificate_pem = NULL;
+  GError *error = NULL;
 
   g_assert (VALENT_IS_MUX_CONNECTION (self));
   g_assert (VALENT_IS_PACKET (identity));
@@ -992,11 +1000,57 @@ valent_mux_connection_handshake_task (GTask        *task,
       return;
     }
 
+  if (valent_packet_get_string (identity, "certificate", &certificate_pem))
+    {
+      certificate = g_tls_certificate_new_from_pem (certificate_pem, -1, &error);
+      if (certificate == NULL)
+        {
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
+        }
+    }
+
+  if (valent_packet_get_string (peer_identity, "certificate", &peer_certificate_pem))
+    {
+      g_autofree char *pem = NULL;
+
+      /* Some implementations might not include the header/footer
+       */
+      if (!g_str_has_prefix (peer_certificate_pem, CERTIFICATE_HEADER))
+        {
+          pem = g_strconcat (CERTIFICATE_HEADER,
+                             peer_certificate_pem,
+                             CERTIFICATE_FOOTER,
+                             NULL);
+        }
+      else
+        {
+          pem = g_strdup (peer_certificate_pem);
+        }
+
+      peer_certificate = g_tls_certificate_new_from_pem (pem, -1, &error);
+      if (peer_certificate == NULL)
+        {
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
+        }
+    }
+  else
+    {
+      g_task_return_new_error (task,
+                               G_TLS_ERROR,
+                               G_TLS_ERROR_CERTIFICATE_REQUIRED,
+                               "Peer failed to send TLS certificate");
+      return;
+    }
+
   channel = g_object_new (VALENT_TYPE_BLUEZ_CHANNEL,
-                          "base-stream",   base_stream,
-                          "identity",      identity,
-                          "peer-identity", peer_identity,
-                          "muxer",         self,
+                          "base-stream",      base_stream,
+                          "certificate",      certificate,
+                          "identity",         identity,
+                          "peer-identity",    peer_identity,
+                          "peer-certificate", peer_certificate,
+                          "muxer",            self,
                           NULL);
   g_task_return_pointer (task, g_steal_pointer (&channel), g_object_unref);
 }
