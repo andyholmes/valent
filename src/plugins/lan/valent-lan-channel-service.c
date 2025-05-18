@@ -1198,7 +1198,7 @@ valent_lan_channel_service_identify (ValentChannelService *service,
         {
           g_autoptr (GSocketConnectable) item = NULL;
 
-          service = g_list_model_get_item (self->dnssd, i);
+          item = g_list_model_get_item (self->dnssd, i);
           valent_lan_channel_service_socket_queue_resolve (self, item);
         }
 
