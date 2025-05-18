@@ -1225,8 +1225,7 @@ valent_packet_to_stream (GOutputStream  *stream,
 {
   g_autoptr (JsonGenerator) generator = NULL;
   JsonObject *root;
-  g_autofree char *packet_str = NULL;
-  size_t packet_len;
+  g_autoptr (GString) packet_str = NULL;
 
   g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), FALSE);
   g_return_val_if_fail (packet != NULL, FALSE);
@@ -1245,12 +1244,14 @@ valent_packet_to_stream (GOutputStream  *stream,
    */
   generator = json_generator_new ();
   json_generator_set_root (generator, packet);
-  packet_str = json_generator_to_data (generator, &packet_len);
-  packet_str[packet_len++] = '\n';
+
+  packet_str = g_string_new (NULL);
+  json_generator_to_gstring (generator, packet_str);
+  g_string_append_c (packet_str, '\n');
 
   return g_output_stream_write_all (stream,
-                                    packet_str,
-                                    packet_len,
+                                    packet_str->str,
+                                    packet_str->len,
                                     NULL,
                                     cancellable,
                                     error);
