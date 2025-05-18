@@ -367,14 +367,13 @@ valent_lan_dnssd_get_item (GListModel   *list,
                            unsigned int  position)
 {
   ValentLanDNSSD *self = VALENT_LAN_DNSSD (list);
-  gpointer ret = NULL;
 
   g_assert (VALENT_IS_LAN_DNSSD (self));
 
-  if G_LIKELY (position < self->items->len)
-    ret = g_object_ref (g_ptr_array_index (self->items, position));
+  if G_UNLIKELY (position >= self->items->len)
+    return NULL;
 
-  return g_steal_pointer (&ret);
+  return g_object_ref (g_ptr_array_index (self->items, position));
 }
 
 static GType
