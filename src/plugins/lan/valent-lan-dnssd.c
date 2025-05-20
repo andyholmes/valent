@@ -623,7 +623,7 @@ _avahi_entry_group_add_service (ValentLanDNSSD *self)
                                              -1, // protocol:  AVAHI_PROTO_UNSPEC
                                              64, // flags:     AVAHI_PUBLISH_UPDATE
                                              self->name,
-                                             "_kdeconnect_no._udp", //self->service_type,
+                                             self->service_type,
                                              "", // domain
                                              "", // host
                                              self->port,
@@ -648,7 +648,7 @@ _avahi_entry_group_add_service (ValentLanDNSSD *self)
                                              -1, // protocol:  AVAHI_PROTO_UNSPEC
                                               0, // flags:     AvahiPublishFlags
                                              self->name,
-                                             "_kdeconnect_no._udp", //self->service_type,
+                                             self->service_type,
                                              "", // domain
                                              self->txt),
                               NULL,
