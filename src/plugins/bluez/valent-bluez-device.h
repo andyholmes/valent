@@ -11,11 +11,10 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentBluezDevice, valent_bluez_device, VALENT, BLUEZ_DEVICE, GObject)
 
-ValentBluezDevice * valent_bluez_device_new          (GDBusConnection   *connection,
-                                                      const char        *object_path,
-                                                      GVariant          *props);
-void                valent_bluez_device_connect      (ValentBluezDevice *device);
-gboolean            valent_bluez_device_is_supported (ValentBluezDevice *device);
+ValentBluezDevice * valent_bluez_device_new     (GDBusConnection   *connection,
+                                                 const char        *object_path,
+                                                 GVariant          *props);
+void                valent_bluez_device_connect (ValentBluezDevice *device);
 
 G_END_DECLS
 

@@ -133,9 +133,7 @@ valent_bluez_device_dispose (GObject *object)
 {
   ValentBluezDevice *self = VALENT_BLUEZ_DEVICE (object);
 
-  if (!g_cancellable_is_cancelled (self->cancellable))
-    g_cancellable_cancel (self->cancellable);
-
+  g_cancellable_cancel (self->cancellable);
   if (self->properties_changed_id > 0)
     {
       g_dbus_connection_signal_unsubscribe (self->connection,
@@ -283,7 +281,6 @@ valent_bluez_device_new (GDBusConnection  *connection,
   g_variant_lookup (props, "Paired", "b", &ret->paired);
 
   uuids = g_variant_lookup_value (props, "UUIDs", G_VARIANT_TYPE ("as"));
-
   if (uuids != NULL)
     ret->uuids = g_variant_dup_strv (uuids, NULL);
 
@@ -299,7 +296,6 @@ valent_bluez_device_connect_cb (GDBusConnection   *connection,
   g_autoptr (GError) error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-
   if (reply != NULL)
     return;
 
@@ -308,17 +304,18 @@ valent_bluez_device_connect_cb (GDBusConnection   *connection,
       g_autofree char *remote_error = NULL;
 
       remote_error = g_dbus_error_get_remote_error (error);
-
-      VALENT_NOTE ("%s(): %s", G_STRFUNC, remote_error);
-
       if (g_strcmp0 (remote_error, "org.bluez.Error.AlreadyConnected") == 0 ||
           g_strcmp0 (remote_error, "org.bluez.Error.InProgress") == 0)
         return;
     }
 
-  g_dbus_error_strip_remote_error (error);
-
-  g_warning ("Failed to connect to %s: %s", self->object_path, error->message);
+  if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("Failed to connect to %s: %s",
+                 self->object_path,
+                 error->message);
+    }
 }
 
 /**
@@ -332,6 +329,13 @@ valent_bluez_device_connect (ValentBluezDevice *device)
 {
   g_return_if_fail (VALENT_IS_BLUEZ_DEVICE (device));
 
+  if (!device->paired || device->uuids == NULL)
+    return;
+
+  if (!g_strv_contains ((const char * const *)device->uuids,
+                        VALENT_BLUEZ_PROFILE_UUID))
+    return;
+
   g_dbus_connection_call (device->connection,
                           BLUEZ_NAME,
                           device->object_path,
@@ -344,26 +348,5 @@ valent_bluez_device_connect (ValentBluezDevice *device)
                           device->cancellable,
                           (GAsyncReadyCallback)valent_bluez_device_connect_cb,
                           device);
-}
-
-/**
- * valent_bluez_device_is_supported:
- * @device: a `ValentBluezDevice`
- *
- * Returns %TRUE if @device is paired and the list of service UUIDs includes the
- * KDE Connect bluetooth UUID.
- *
- * Returns: %TRUE if supported
- */
-gboolean
-valent_bluez_device_is_supported (ValentBluezDevice *device)
-{
-  g_return_val_if_fail (VALENT_IS_BLUEZ_DEVICE (device), FALSE);
-
-  if (!device->paired || device->uuids == NULL)
-    return FALSE;
-
-  return g_strv_contains ((const char * const *)device->uuids,
-                          VALENT_BLUEZ_PROFILE_UUID);
 }
 
