@@ -33,12 +33,6 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentBluezChannelService, valent_bluez_channel_s
 /*
  * ValentMuxConnection Callbacks
  */
-typedef struct
-{
-  ValentBluezChannelService *service;
-  char                      *object_path;
-} HandshakeData;
-
 static void
 valent_mux_connection_handshake_cb (ValentMuxConnection *muxer,
                                     GAsyncResult        *result,
@@ -369,6 +363,7 @@ valent_bluez_channel_service_identify (ValentChannelService *service,
 {
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (service);
   g_autofree char *name_owner = NULL;
+  ValentBluezDevice *device;
 
   g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (self));
 
@@ -378,23 +373,17 @@ valent_bluez_channel_service_identify (ValentChannelService *service,
 
   if (target != NULL)
     {
-      ValentBluezDevice *device;
-
       device = g_hash_table_lookup (self->devices, target);
-      if (device != NULL && valent_bluez_device_is_supported (device))
+      if (device != NULL)
         valent_bluez_device_connect (device);
     }
   else
     {
       GHashTableIter iter;
-      gpointer device;
 
       g_hash_table_iter_init (&iter, self->devices);
-      while (g_hash_table_iter_next (&iter, NULL, &device))
-        {
-          if (valent_bluez_device_is_supported (device))
-            valent_bluez_device_connect (device);
-        }
+      while (g_hash_table_iter_next (&iter, NULL, (void **)&device))
+        valent_bluez_device_connect (device);
     }
 }
 

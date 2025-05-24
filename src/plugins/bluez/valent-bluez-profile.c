@@ -20,10 +20,7 @@ struct _ValentBluezProfile
   GDBusInterfaceVTable    vtable;
   GDBusNodeInfo          *node_info;
   GDBusInterfaceInfo     *iface_info;
-
   GVariant               *options;
-  unsigned int            exported : 1;
-  unsigned int            registered : 1;
 };
 
 G_DEFINE_FINAL_TYPE (ValentBluezProfile, valent_bluez_profile, G_TYPE_DBUS_INTERFACE_SKELETON)
@@ -135,8 +132,6 @@ valent_bluez_profile_release (ValentBluezProfile *profile)
 {
   g_assert (VALENT_IS_BLUEZ_PROFILE (profile));
 
-  profile->registered = FALSE;
-  valent_bluez_profile_unregister (profile);
 }
 
 
@@ -336,16 +331,17 @@ profile_manager_register_profile_cb (GDBusConnection *connection,
                                      GAsyncResult    *result,
                                      gpointer         user_data)
 {
-  g_autoptr (GTask) task = G_TASK (user_data);
-  ValentBluezProfile *self = g_task_get_source_object (task);
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   g_autoptr (GVariant) reply = NULL;
   GError *error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-  self->registered = (error == NULL);
-
-  if (!self->registered)
-    return g_task_return_error (task, error);
+  if (reply == NULL)
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_task_return_boolean (task, TRUE);
 }
@@ -379,23 +375,18 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
   task = g_task_new (profile, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_bluez_profile_register);
 
-  if (profile->registered)
-    return g_task_return_boolean (task, TRUE);
-
-  /* Export the org.bluez.Profile1 Interface */
-  if (!profile->exported)
+  if (g_dbus_interface_skeleton_get_object_path (iface) == NULL)
     {
-      profile->exported = g_dbus_interface_skeleton_export (iface,
-                                                            connection,
-                                                            VALENT_BLUEZ_PROFILE_PATH,
-                                                            &error);
-
-      if (!profile->exported)
-        return g_task_return_error (task, error);
+      if (!g_dbus_interface_skeleton_export (iface,
+                                             connection,
+                                             object_path,
+                                             &error))
+        {
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
+        }
     }
 
-  /* Register the profile with bluez */
-  profile->registered = TRUE;
   g_dbus_connection_call (connection,
                           "org.bluez",
                           "/org/bluez",
@@ -410,7 +401,7 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
                           -1,
                           cancellable,
                           (GAsyncReadyCallback)profile_manager_register_profile_cb,
-                          g_steal_pointer (&task));
+                          g_object_ref (task));
 }
 
 /**
@@ -446,30 +437,26 @@ void
 valent_bluez_profile_unregister (ValentBluezProfile *profile)
 {
   GDBusInterfaceSkeleton *iface = G_DBUS_INTERFACE_SKELETON (profile);
+  const char *object_path = NULL;
 
   g_return_if_fail (VALENT_IS_BLUEZ_PROFILE (profile));
 
-  if (profile->registered)
+  object_path = g_dbus_interface_skeleton_get_object_path (iface);
+  if (object_path != NULL)
     {
-      profile->registered = FALSE;
       g_dbus_connection_call (g_dbus_interface_skeleton_get_connection (iface),
                               "org.bluez",
                               "/org/bluez",
                               "org.bluez.ProfileManager1",
                               "UnregisterProfile",
-                              g_variant_new ("(o)", VALENT_BLUEZ_PROFILE_PATH),
+                              g_variant_new ("(o)", object_path),
                               NULL,
                               G_DBUS_CALL_FLAGS_NO_AUTO_START,
                               -1,
                               NULL,
                               NULL,
                               NULL);
-    }
-
-  if (profile->exported)
-    {
-      profile->exported = FALSE;
-      g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (profile));
+      g_dbus_interface_skeleton_unexport (iface);
     }
 }
 
