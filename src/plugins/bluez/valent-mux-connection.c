@@ -240,8 +240,7 @@ pack_header (uint8_t     *hdr,
       hdr[3 + i] = (hi << 4) | lo;
     }
 
-  VALENT_NOTE ("%s(): UUID: %s, TYPE: %u, SIZE: %u",
-               G_STRFUNC, uuid, type, size);
+  VALENT_NOTE ("UUID: %s, TYPE: %u, SIZE: %u", uuid, type, size);
 }
 
 /**
@@ -272,8 +271,7 @@ unpack_header (const uint8_t *hdr,
               hdr[7], hdr[8], hdr[9], hdr[10], hdr[11], hdr[12],
               hdr[13], hdr[14], hdr[15], hdr[16], hdr[17], hdr[18]);
 
-  VALENT_NOTE ("%s(): UUID: %s, TYPE: %u, SIZE: %u",
-               G_STRFUNC, uuid, *type, *size);
+  VALENT_NOTE ("UUID: %s, TYPE: %u, SIZE: %u", uuid, *type, *size);
 }
 
 /*
@@ -415,7 +413,7 @@ recv_read (ValentMuxConnection  *self,
     {
       g_mutex_lock (&state->mutex);
       state->write_free += GUINT16_FROM_BE (size_request);
-      VALENT_NOTE ("write_free: %u", state->write_free);
+      VALENT_NOTE ("UUID: %s, write_free: %u", state->uuid, state->write_free);
       g_cond_broadcast (&state->cond);
       g_mutex_unlock (&state->mutex);
     }
@@ -471,7 +469,7 @@ recv_write (ValentMuxConnection  *self,
     {
       state->end += n_read;
       state->read_free -= n_read;
-      VALENT_NOTE ("read_free: %u (-%zu)", state->read_free, n_read);
+      VALENT_NOTE ("UUID: %s, read_free: %u", state->uuid, state->read_free);
       g_cond_broadcast (&state->cond);
     }
   g_mutex_unlock (&state->mutex);
@@ -1270,7 +1268,7 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
         {
           g_mutex_lock (&state->mutex);
           state->read_free += size_request;
-          VALENT_NOTE ("read_free: %u", state->read_free);
+          VALENT_NOTE ("UUID: %s, read_free: %u", state->uuid, state->read_free);
           g_mutex_unlock (&state->mutex);
         }
       else
@@ -1334,7 +1332,7 @@ valent_mux_connection_write (ValentMuxConnection  *connection,
   if (send_write (connection, uuid, written, buffer, cancellable, error))
     {
       state->write_free -= written;
-      VALENT_NOTE ("write_free: %u", state->write_free);
+      VALENT_NOTE ("UUID: %s, write_free: %u", state->uuid, state->write_free);
     }
   else
     {
