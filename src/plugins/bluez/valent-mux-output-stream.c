@@ -39,15 +39,20 @@ valent_mux_output_stream_write (GOutputStream  *stream,
                                 GError        **error)
 {
   ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (stream);
+  gssize ret;
+
+  VALENT_ENTRY;
 
   g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
 
-  return valent_mux_connection_write (self->muxer,
-                                      self->uuid,
-                                      buffer,
-                                      count,
-                                      cancellable,
-                                      error);
+  ret = valent_mux_connection_write (self->muxer,
+                                     self->uuid,
+                                     buffer,
+                                     count,
+                                     cancellable,
+                                     error);
+
+  VALENT_RETURN (ret);
 }
 
 /*
