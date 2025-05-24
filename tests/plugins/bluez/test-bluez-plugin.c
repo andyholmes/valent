@@ -215,7 +215,7 @@ dbusmock_new_connection (BluezBackendFixture *fixture)
 
   g_dbus_connection_call_with_unix_fd_list (fixture->connection,
                                             unique_name,
-                                            VALENT_BLUEZ_PROFILE_PATH,
+                                            VALENT_BLUEZ_PROFILE_SERVER_PATH,
                                             "org.bluez.Profile1",
                                             "NewConnection",
                                             g_variant_new ("(oh@a{sv})",

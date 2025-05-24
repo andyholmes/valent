@@ -20,7 +20,7 @@ struct _ValentBluezProfile
   GDBusInterfaceVTable    vtable;
   GDBusNodeInfo          *node_info;
   GDBusInterfaceInfo     *iface_info;
-  GVariant               *options;
+  unsigned int            is_client : 1;
 };
 
 G_DEFINE_FINAL_TYPE (ValentBluezProfile, valent_bluez_profile, G_TYPE_DBUS_INTERFACE_SKELETON)
@@ -130,8 +130,14 @@ valent_bluez_profile_request_disconnection (ValentBluezProfile *profile,
 static void
 valent_bluez_profile_release (ValentBluezProfile *profile)
 {
+  GDBusInterfaceSkeleton *iface = G_DBUS_INTERFACE_SKELETON (profile);
+  const char *object_path = NULL;
+
   g_assert (VALENT_IS_BLUEZ_PROFILE (profile));
 
+  object_path = g_dbus_interface_skeleton_get_object_path (iface);
+  if (object_path != NULL)
+    g_dbus_interface_skeleton_unexport (iface);
 }
 
 
@@ -240,7 +246,6 @@ valent_bluez_profile_finalize (GObject *object)
   ValentBluezProfile *self = VALENT_BLUEZ_PROFILE (object);
 
   g_clear_pointer (&self->node_info, g_dbus_node_info_unref);
-  g_clear_pointer (&self->options, g_variant_unref);
 
   G_OBJECT_CLASS (valent_bluez_profile_parent_class)->finalize (object);
 }
@@ -300,10 +305,6 @@ valent_bluez_profile_class_init (ValentBluezProfileClass *klass) {
 static void
 valent_bluez_profile_init (ValentBluezProfile *self)
 {
-  g_autoptr (GBytes) bytes = NULL;
-  const char *sdp_xml;
-  GVariantDict dict;
-
   self->node_info = g_dbus_node_info_new_for_xml (interface_xml, NULL);
   self->iface_info = g_dbus_node_info_lookup_interface (self->node_info,
                                                         "org.bluez.Profile1");
@@ -311,19 +312,25 @@ valent_bluez_profile_init (ValentBluezProfile *self)
   self->vtable.method_call = valent_bluez_profile_method_call;
   self->vtable.get_property = NULL;
   self->vtable.set_property = NULL;
+}
 
-  /* Lookup the SDP Record */
-  bytes = g_resources_lookup_data ("/plugins/bluez/ca.andyholmes.Valent.sdp.xml",
-                                   G_RESOURCE_LOOKUP_FLAGS_NONE,
-                                   NULL);
-  sdp_xml = g_bytes_get_data (bytes, NULL);
+/**
+ * valent_bluez_profile_new:
+ * @is_client: whether to create a client or server profile
+ *
+ * Create a service profile for client or server connections.
+ *
+ * Returns: (transfer full): a new `ValentBluezProfile`
+ */
+ValentBluezProfile *
+valent_bluez_profile_new (gboolean is_client)
+{
+  g_autoptr (ValentBluezProfile) ret = NULL;
 
-  /* Create a reffed options variant */
-  g_variant_dict_init (&dict, NULL);
-  g_variant_dict_insert (&dict, "RequireAuthorization", "b", FALSE);
-  g_variant_dict_insert (&dict, "RequireAuthentication", "b", FALSE);
-  g_variant_dict_insert (&dict, "ServiceRecord", "s", sdp_xml);
-  self->options = g_variant_ref_sink (g_variant_dict_end (&dict));
+  ret = g_object_new (VALENT_TYPE_BLUEZ_PROFILE, NULL);
+  ret->is_client = is_client;
+
+  return g_steal_pointer (&ret);
 }
 
 static void
@@ -366,6 +373,9 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
 {
   GDBusInterfaceSkeleton *iface = G_DBUS_INTERFACE_SKELETON (profile);
   g_autoptr (GTask) task = NULL;
+  GVariantDict dict;
+  GVariant *options;
+  const char *object_path = NULL;
   GError *error = NULL;
 
   g_return_if_fail (VALENT_IS_BLUEZ_PROFILE (profile));
@@ -374,6 +384,28 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
 
   task = g_task_new (profile, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_bluez_profile_register);
+
+  if (profile->is_client)
+    {
+      g_variant_dict_init (&dict, NULL);
+      g_variant_dict_insert (&dict, "RequireAuthentication", "b", TRUE);
+      g_variant_dict_insert (&dict, "RequireAuthorization", "b", FALSE);
+      g_variant_dict_insert (&dict, "Service", "s", VALENT_BLUEZ_PROFILE_UUID);
+      g_variant_dict_insert (&dict, "Role", "s", "client");
+      options = g_variant_dict_end (&dict);
+      object_path = VALENT_BLUEZ_PROFILE_CLIENT_PATH;
+    }
+  else
+    {
+      g_variant_dict_init (&dict, NULL);
+      g_variant_dict_insert (&dict, "RequireAuthentication", "b", TRUE);
+      g_variant_dict_insert (&dict, "RequireAuthorization", "b", FALSE);
+      g_variant_dict_insert (&dict, "Service", "s", VALENT_BLUEZ_PROFILE_UUID);
+      g_variant_dict_insert (&dict, "Role", "s", "server");
+      g_variant_dict_insert (&dict, "Channel", "q", 0x06);
+      options = g_variant_dict_end (&dict);
+      object_path = VALENT_BLUEZ_PROFILE_SERVER_PATH;
+    }
 
   if (g_dbus_interface_skeleton_get_object_path (iface) == NULL)
     {
@@ -393,9 +425,9 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
                           "org.bluez.ProfileManager1",
                           "RegisterProfile",
                           g_variant_new ("(os@a{sv})",
-                                         VALENT_BLUEZ_PROFILE_PATH,
+                                         object_path,
                                          VALENT_BLUEZ_PROFILE_UUID,
-                                         profile->options),
+                                         options),
                           NULL,
                           G_DBUS_CALL_FLAGS_NO_AUTO_START,
                           -1,
