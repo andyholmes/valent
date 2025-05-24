@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <fcntl.h>
+
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
@@ -178,16 +180,18 @@ valent_bluez_profile_method_call (GDBusConnection       *connection,
       GDBusMessage *message;
       GUnixFDList *fd_list;
       int fd;
+      int fd_flags;
       g_autoptr (GVariant) fd_props = NULL;
 
       g_assert (g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(oha{sv})")));
 
-      g_variant_get (parameters, "(&oh@a{sv})", &device, &fd_idx, &fd_props);
-
-      /* Get the file descriptor */
       message = g_dbus_method_invocation_get_message (invocation);
       fd_list = g_dbus_message_get_unix_fd_list (message);
+
+      g_variant_get (parameters, "(&oh@a{sv})", &device, &fd_idx, &fd_props);
       fd = g_unix_fd_list_get (fd_list, fd_idx, NULL);
+      fd_flags = fcntl (fd, F_GETFD);
+      fcntl (fd, F_SETFD, fd_flags &~ FD_CLOEXEC);
 
       valent_bluez_profile_new_connection (profile, device, fd, fd_props);
     }
