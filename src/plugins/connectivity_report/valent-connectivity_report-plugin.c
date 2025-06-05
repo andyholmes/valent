@@ -162,7 +162,7 @@ get_status_labels (double   signal_strength,
       *status_title = g_strdup (_("Mobile Network"));
       /* TRANSLATORS: The mobile network signal strength (e.g. "Signal Strength (25%)") */
       *status_body = g_strdup_printf (_("Signal Strength %f%%"),
-                                      floor (signal_strength * 20.0));
+                                      floor (signal_strength * 25.0));
     }
   else if (signal_strength >= 0.0)
     {
