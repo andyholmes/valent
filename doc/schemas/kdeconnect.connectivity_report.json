@@ -14,7 +14,7 @@
                     },
                     "17": {
                         "networkType": "HSPA",
-                        "signalStrength": -1
+                        "signalStrength": 0
                     }
                 }
             }
@@ -46,7 +46,7 @@
                     "patternProperties": {
                         "^\\w+$": {
                             "title": "Signal",
-                            "description": "The ID of the attachment.",
+                            "description": "The ID of the connection.",
                             "type": "object",
                             "required": [
                                 "networkType",
@@ -60,9 +60,9 @@
                                 },
                                 "signalStrength": {
                                     "type": "number",
-                                    "description": "The signal strength. As with the battery plugin, `-1` means the device is not available. Values `0` through `5` describe the coarse strength of the signal.",
-                                    "minimum": -1,
-                                    "maximum": 5
+                                    "description": "The signal strength. Values `0` through `4` describe the coarse strength of the signal.",
+                                    "minimum": 0,
+                                    "maximum": 4
                                 }
                             }
                         }
