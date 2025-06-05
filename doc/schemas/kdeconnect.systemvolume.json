@@ -46,9 +46,6 @@
         },
         "body": {
             "type": "object",
-            "required": [
-                "isLocked"
-            ],
             "properties": {
                 "sinkList": {
                     "description": "The list of audio streams.",
