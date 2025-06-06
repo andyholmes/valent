@@ -5,6 +5,8 @@
 
 #include "config.h"
 
+#include <math.h>
+
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
@@ -382,7 +384,7 @@ valent_telephony_serialize_modem (GDBusProxy *proxy)
   gboolean signal_recent;
   int32_t state;
   const char *telephony_type;
-  int64_t signal_strength = -1;
+  int64_t signal_strength = 0;
 
   g_assert (G_IS_DBUS_PROXY (proxy));
 
@@ -403,7 +405,12 @@ valent_telephony_serialize_modem (GDBusProxy *proxy)
   telephony_type = get_telephony_type_string (access_technologies);
 
   if (state >= MM_MODEM_STATE_ENABLED)
-    signal_strength = (int64_t)(signal_quality / 20);
+    {
+      if (signal_quality >= 100)
+        signal_strength = 4;
+      else
+        signal_strength = (int64_t)floor (signal_quality / 20);
+    }
 
   /* Serialize to a JsonNode */
   builder = json_builder_new ();

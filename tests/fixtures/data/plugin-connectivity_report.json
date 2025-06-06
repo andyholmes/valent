@@ -46,7 +46,7 @@
       "signalStrengths": {
         "1": {
           "networkType": "Unknown",
-          "signalStrength": -1
+          "signalStrength": 0
         }
       }
     }
@@ -118,7 +118,7 @@
       "signalStrengths": {
         "1": {
           "networkType": "HSPA",
-          "signalStrength": 5
+          "signalStrength": 4
         }
       }
     }
@@ -130,7 +130,7 @@
       "signalStrengths": {
         "1": {
           "networkType": "5G",
-          "signalStrength": 5
+          "signalStrength": 4
         }
       }
     }
