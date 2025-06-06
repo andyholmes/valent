@@ -165,7 +165,7 @@ plugin_row_add_extensions (AdwExpanderRow *plugin_row,
   PeasEngine *engine = valent_get_plugin_engine ();
   GtkWidget *row;
 
-  for (unsigned int i = 0; i < N_EXTENSIONS; i++)
+  for (size_t i = 0; i < N_EXTENSIONS; i++)
     {
       ExtensionDescription extension = extensions[i];
       g_autoptr (ValentContext) domain = NULL;
@@ -174,6 +174,15 @@ plugin_row_add_extensions (AdwExpanderRow *plugin_row,
 
       if (!peas_engine_provides_extension (engine, info, extension.gtype))
         continue;
+
+      /* Skip this plugin's application extension, so can not be disabled
+       * from its own user interface.
+       */
+      if (extension.gtype == VALENT_TYPE_APPLICATION_PLUGIN &&
+          g_str_equal (peas_plugin_info_get_module_name (info), "gnome"))
+        {
+          continue;
+        }
 
       row = g_object_new (ADW_TYPE_SWITCH_ROW,
                           "title",      _(extension.title),
