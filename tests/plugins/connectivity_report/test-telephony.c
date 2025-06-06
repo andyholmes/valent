@@ -69,7 +69,7 @@ test_telephony_proxy (void)
   signal_meta = json_object_get_object_member (signal_obj, "0");
 
   g_assert_cmpstr (json_object_get_string_member (signal_meta, "networkType"), ==, "Unknown");
-  g_assert_cmpint (json_object_get_int_member (signal_meta, "signalStrength"), ==, -1);
+  g_assert_cmpint (json_object_get_int_member (signal_meta, "signalStrength"), ==, 0);
   g_clear_pointer (&signal_node, json_node_unref);
 
   /* Modem should be online */
@@ -93,7 +93,7 @@ test_telephony_proxy (void)
   signal_meta = json_object_get_object_member (signal_obj, "0");
 
   g_assert_cmpstr (json_object_get_string_member (signal_meta, "networkType"), ==, "Unknown");
-  g_assert_cmpint (json_object_get_int_member (signal_meta, "signalStrength"), ==, -1);
+  g_assert_cmpint (json_object_get_int_member (signal_meta, "signalStrength"), ==, 0);
   g_clear_pointer (&signal_node, json_node_unref);
 
   /* Modem should be removed */

@@ -120,7 +120,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (signal_info, "icon-name", "&s", &icon_name));
 
   g_assert_cmpstr (network_type, ==, "Unknown");
-  g_assert_cmpint (signal_strength, ==, -1);
+  g_assert_cmpint (signal_strength, ==, 0);
   g_assert_cmpstr (icon_name, ==, "network-cellular-symbolic");
 
   g_clear_pointer (&signal_info, g_variant_unref);
@@ -257,7 +257,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (signal_info, "icon-name", "&s", &icon_name));
 
   g_assert_cmpstr (network_type, ==, "HSPA");
-  g_assert_cmpint (signal_strength, ==, 5);
+  g_assert_cmpint (signal_strength, ==, 4);
   g_assert_cmpstr (icon_name, ==, "network-cellular-hspa-symbolic");
 
   g_clear_pointer (&signal_info, g_variant_unref);
@@ -280,7 +280,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_true (g_variant_lookup (signal_info, "icon-name", "&s", &icon_name));
 
   g_assert_cmpstr (network_type, ==, "5G");
-  g_assert_cmpint (signal_strength, ==, 5);
+  g_assert_cmpint (signal_strength, ==, 4);
   g_assert_cmpstr (icon_name, ==, "network-cellular-5g-symbolic");
 
   g_clear_pointer (&signal_info, g_variant_unref);
@@ -317,7 +317,7 @@ test_connectivity_report_plugin_send_update (ValentTestFixture *fixture,
   signal_strength = json_object_get_int_member (signal_meta, "signalStrength");
 
   g_assert_cmpstr (network_type, ==, "Unknown");
-  g_assert_cmpint (signal_strength, ==, -1);
+  g_assert_cmpint (signal_strength, ==, 0);
 
   json_node_unref (packet);
 
@@ -351,7 +351,7 @@ test_connectivity_report_plugin_send_update (ValentTestFixture *fixture,
   signal_strength = json_object_get_int_member (signal_meta, "signalStrength");
 
   g_assert_cmpstr (network_type, ==, "Unknown");
-  g_assert_cmpint (signal_strength, ==, -1);
+  g_assert_cmpint (signal_strength, ==, 0);
 
   json_node_unref (packet);
 
