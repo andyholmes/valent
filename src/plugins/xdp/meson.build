@@ -12,6 +12,7 @@ plugin_xdp_deps = [
 plugin_xdp_sources = files([
   'xdp-plugin.c',
   'valent-xdp-background.c',
+  'valent-xdp-clipboard.c',
   'valent-xdp-input.c',
   'valent-xdp-session.c',
   'valent-xdp-utils.c',
