@@ -11,6 +11,7 @@
 #include <valent.h>
 
 #include "valent-xdp-background.h"
+#include "valent-xdp-clipboard.h"
 #include "valent-xdp-input.h"
 #include "valent-xdp-session.h"
 
@@ -18,6 +19,9 @@
 _VALENT_EXTERN void
 valent_xdp_plugin_register_types (PeasObjectModule *module)
 {
+  peas_object_module_register_extension_type (module,
+                                              VALENT_TYPE_CLIPBOARD_ADAPTER,
+                                              VALENT_TYPE_XDP_CLIPBOARD);
   peas_object_module_register_extension_type (module,
                                               VALENT_TYPE_INPUT_ADAPTER,
                                               VALENT_TYPE_XDP_INPUT);
