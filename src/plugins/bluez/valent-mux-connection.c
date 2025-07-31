@@ -71,15 +71,14 @@ typedef enum
  * ChannelState:
  * @uuid: the channel UUID
  * @mutex: a lock for changes to the state
+ * @cond: a `GCond` triggered when data can be read/written
  * @stream: a `GIOStream`
  * @buf: an input buffer
  * @len: size of the input buffer
  * @pos: data start
  * @end: data end
  * @read_free: free space in the input buffer
- * @read_cond: a `GCond` triggered when data can be read
  * @write_free: amount of bytes that can be written
- * @write_cond: a `GCond` triggered when data can be written
  *
  * A thread-safe info struct to track the state of a multiplex channel.
  *
@@ -174,10 +173,7 @@ channel_state_set_error (ChannelState  *state,
       return TRUE;
     }
 
-  if (g_cancellable_set_error_if_cancelled (cancellable, error))
-    return TRUE;
-
-  return FALSE;
+  return g_cancellable_set_error_if_cancelled (cancellable, error);
 }
 
 static inline ChannelState *
@@ -199,7 +195,7 @@ channel_state_lookup (ValentMuxConnection  *self,
       g_set_error (error,
                    G_IO_ERROR,
                    G_IO_ERROR_CLOSED,
-                   "Channel is closed");
+                   g_strerror (EPIPE));
     }
   valent_object_unlock (VALENT_OBJECT (self));
 
