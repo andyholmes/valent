@@ -233,7 +233,10 @@ on_device_name_changed (GSettings            *settings,
   name = g_settings_get_string (settings, "name");
   if (name == NULL || *name == '\0')
     {
-      g_settings_set_string (settings, "name", g_get_host_name ());
+      g_auto (GStrv) hostname = NULL;
+
+      hostname = g_strsplit (g_get_host_name (), ".", 2);
+      g_settings_set_string (settings, "name", hostname[0]);
       return;
     }
 
