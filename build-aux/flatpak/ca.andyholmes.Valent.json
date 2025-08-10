@@ -291,8 +291,8 @@
                 {
                     "type": "git",
                     "url": "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "commit": "3373ce30256cf40f0e72186816cbe411203adb21",
-                    "tag": "2.0.7",
+                    "commit": "deff82648b1228b9f3d5329f184ea3b54f4dc40d",
+                    "tag": "2.1.0",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 6871,
