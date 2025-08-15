@@ -199,7 +199,7 @@
                 },
                 {
                     "name": "protobuf",
-                    "buildsystem": "autotools",
+                    "buildsystem": "cmake-ninja",
                     "cleanup": [
                         "/bin",
                         "/include",
@@ -208,6 +208,10 @@
                         "/lib/libprotoc*",
                         "/lib/libprotobuf-lite*",
                         "/lib/pkgconfig"
+                    ],
+                    "config-opts": [
+                        "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+                        "-Dprotobuf_BUILD_TESTS=OFF"
                     ],
                     "sources": [
                         {
