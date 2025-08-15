@@ -157,9 +157,16 @@
                     ],
                     "sources": [
                         {
-                            "type": "archive",
-                            "url": "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.1.tar.gz",
-                            "sha256": "81311c17599b3712069ded20cca09a62ab0bf2a89dfa16993786c8782b7ed145"
+                            "type": "git",
+                            "url": "https://github.com/abseil/abseil-cpp.git",
+                            "commit": "76bb24329e8bf5f39704eb10d21b9a80befa7c81",
+                            "tag": "20250512.1",
+                            "x-checker-data": {
+                                "type": "anitya",
+                                "project-id": 115295,
+                                "stable-only": true,
+                                "tag-template": "$version"
+                            }
                         }
                     ]
                 },
