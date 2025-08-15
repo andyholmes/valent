@@ -104,19 +104,22 @@
                 "/lib/cmake"
             ],
             "config-opts": [
+                "-DCMAKE_CXX_STANDARD=17",
                 "-DCMAKE_INSTALL_LIBDIR:PATH=/app/lib",
                 "-DUSE_BOOST=OFF",
                 "-DBUILD_TESTING=OFF",
                 "-DREGENERATE_METADATA=OFF",
                 "-DBUILD_STATIC_LIB=OFF",
                 "-DBUILD_GEOCODER=OFF",
-                "-DFETCHCONTENT_FULLY_DISCONNECTED=ON"
+                "-DFETCHCONTENT_FULLY_DISCONNECTED=ON",
+                "-DCMAKE_CXX_FLAGS=-Wno-error=cpp"
             ],
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://github.com/google/libphonenumber/archive/refs/tags/v8.13.18.tar.gz",
-                    "sha256": "54578d748ce38eea8c3530e49c1adf09272ef4535ed32db2555ab39b0b8851c0"
+                    "type": "git",
+                    "url": "https://github.com/google/libphonenumber.git",
+                    "commit": "a38d516a21c67304513f1cc15f947509bc9bc9a8",
+                    "tag": "v8.13.55"
                 }
             ],
             "modules": [
