@@ -163,8 +163,8 @@
                     "sources": [
                         {
                             "type": "archive",
-                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-b2-nodocs.tar.xz",
-                            "sha256": "09f0628bded81d20b0145b30925d7d7492fd99583671586525d5d66d4c28266a"
+                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.88.0/boost-1.88.0-b2-nodocs.tar.xz",
+                            "sha256": "ad9ce2c91bc0977a7adc92d51558f3b9c53596bb88246a280175ebb475da1762"
                         }
                     ]
                 },
