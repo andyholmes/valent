@@ -129,8 +129,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/google/libphonenumber.git",
-                    "commit": "a38d516a21c67304513f1cc15f947509bc9bc9a8",
-                    "tag": "v8.13.55",
+                    "commit": "045191508052aaafe4f2ab1e27874f6c75cabbf9",
+                    "tag": "v9.0.13",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 89344,
@@ -159,8 +159,8 @@
                         {
                             "type": "git",
                             "url": "https://github.com/abseil/abseil-cpp.git",
-                            "commit": "76bb24329e8bf5f39704eb10d21b9a80befa7c81",
-                            "tag": "20250512.1",
+                            "commit": "987c57f325f7fa8472fa84e1f885f7534d391b0d",
+                            "tag": "20250814.0",
                             "x-checker-data": {
                                 "type": "anitya",
                                 "project-id": 115295,
@@ -291,8 +291,8 @@
                 {
                     "type": "git",
                     "url": "https://gitlab.gnome.org/GNOME/libpeas.git",
-                    "commit": "3373ce30256cf40f0e72186816cbe411203adb21",
-                    "tag": "2.0.7",
+                    "commit": "deff82648b1228b9f3d5329f184ea3b54f4dc40d",
+                    "tag": "2.1.0",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 6871,
