@@ -186,16 +186,16 @@ channel_state_lookup (ValentMuxConnection  *self,
 
   valent_object_lock (VALENT_OBJECT (self));
   state = g_hash_table_lookup (self->states, uuid);
-  if (state != NULL)
+  if (state == NULL || g_io_stream_is_closed (state->stream))
     {
-      ret = g_atomic_rc_box_acquire (state);
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_CLOSED,
+                           g_strerror (EPIPE));
     }
   else
     {
-      g_set_error (error,
-                   G_IO_ERROR,
-                   G_IO_ERROR_CLOSED,
-                   g_strerror (EPIPE));
+      ret = g_atomic_rc_box_acquire (state);
     }
   valent_object_unlock (VALENT_OBJECT (self));
 
