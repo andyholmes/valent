@@ -35,6 +35,22 @@
   </description>
 
   <releases>
+    <release version="1.0.0.alpha.48" date="2025-09-14" type="development">
+      <url>https://github.com/andyholmes/valent/releases/tag/v1.0.0.alpha.48</url>
+      <description>
+        <ul>
+          <li>Support connecting to devices by IP address</li>
+          <li>Support compose mode and grab release for input remote</li>
+          <li>Support mounting specific SFTP volumes</li>
+          <li>Improve async operations for device connections, file transfers and mDNS</li>
+          <li>Improve cross-platform support for launching URIs</li>
+          <li>Various protocol updates</li>
+          <li>Fixes for certificates and devices IDs</li>
+          <li>Fixes for modemmanager and signal strengths</li>
+          <li>Translation updates</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.0.alpha.47" date="2025-03-04" type="development">
       <url>https://github.com/andyholmes/valent/releases/tag/v1.0.0.alpha.47</url>
       <description>

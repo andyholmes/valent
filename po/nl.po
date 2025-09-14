@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
-"POT-Creation-Date: 2025-04-22 13:16-0700\n"
+"POT-Creation-Date: 2025-09-14 11:11-0700\n"
 "PO-Revision-Date: 2025-03-05 11:14+0100\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -114,71 +114,105 @@ msgstr ""
 "platformbibliotheken."
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:42
+msgid "Support connecting to devices by IP address"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:43
+msgid "Support compose mode and grab release for input remote"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:44
+msgid "Support mounting specific SFTP volumes"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:45
+msgid ""
+"Improve async operations for device connections, file transfers and mDNS"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:46
+msgid "Improve cross-platform support for launching URIs"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:47
+msgid "Various protocol updates"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:48
+msgid "Fixes for certificates and devices IDs"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:49
+msgid "Fixes for modemmanager and signal strengths"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:50
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:61
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:76
+msgid "Translation updates"
+msgstr "Bijgewerkt: vertalingen"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:58
 msgid "Support v8 of the KDE Connect protocol"
 msgstr "Nieuw: ondersteuning voor KDE Connect V8"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:43
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:59
 msgid "The Contacts plugin has been rewritten with TinySPARQL"
 msgstr "Nieuw: de contactpersonenplug-in is opnieuw gemaakt met TinySPARQL"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:44
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:60
 msgid "Drop the Mutter input adapter in favour of the XDG portal"
 msgstr ""
 "Nieuw: voortaan wordt gebruikgemaakt van het XDG-portaal in plaats van Mutter"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:45
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:60
-msgid "Translation updates"
-msgstr "Bijgewerkt: vertalingen"
-
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:53
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:69
 msgid "PipeWire support added"
 msgstr "Nieuw: PipeWire-ondersteuning"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:54
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:70
 msgid "The user interface has been absorbed by the `gnome` plugin"
 msgstr "Nieuw: de vormgeving maakt voortaan gebruik van de GNOME-plug-in"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:55
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:71
 msgid "The SMS plugin has been rewritten with TinySPARQL"
 msgstr "Nieuw: de sms-plug-in is opnieuw gemaakt met TinySPARQL"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:56
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:72
 msgid "The share dialog has been redesigned"
 msgstr "Verbeterd: het deelvenster is opnieuw ontworpen"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:57
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:73
 msgid "The media dialog has been refactored, with some UI improvements"
 msgstr "Verbeterd: het mediavenster is aangepast en bevat verbeteringen"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:58
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:74
 msgid "Port to libawaita-1.5"
 msgstr "Nieuw: overgezet naar libadwaita-1.5"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:59
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:75
 msgid ""
 "Updates to protocol implementation; certificates, device metadata, security"
 msgstr ""
 "Bijgewerkt: protocolimplementatie, certificaten, apparaatmetagegevens en "
 "beveiliging"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:67
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:83
 msgid "Initial release."
 msgstr "Eerste versie."
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:74
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:90
 msgid "Connect to devices on your network"
 msgstr "Maak verbinding met apparaten op uw netwerk"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:78
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:94
 msgid "Securely pair devices"
 msgstr "Koppel uw apparaten op een veilige manier"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:82
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:98
 msgid "Monitor and control remote devices"
 msgstr "Bekijk en bedien externe apparaten"
 
-#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:100
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:116
 msgid "Andy Holmes"
 msgstr "Andy Holmes"
 
@@ -244,7 +278,7 @@ msgid "Connect devices over Bluetooth"
 msgstr "Maak verbinding met apparaten via bluetooth"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:6
-#: src/plugins/gnome/valent-preferences-dialog.c:600
+#: src/plugins/gnome/valent-preferences-dialog.c:609
 #: src/plugins/gnome/valent-preferences-sync-page.ui:15
 msgid "Clipboard"
 msgstr "Klembord"
@@ -303,7 +337,7 @@ msgstr "%s: %s"
 #: src/plugins/gnome/valent-conversation-page.ui:181
 #: src/plugins/gnome/valent-conversation-page.ui:205
 #: src/plugins/gnome/valent-messages-window.c:241
-#: src/plugins/gnome/valent-preferences-dialog.c:607
+#: src/plugins/gnome/valent-preferences-dialog.c:616
 #: src/plugins/gnome/valent-preferences-sync-page.ui:36
 msgid "Contacts"
 msgstr "Contactpersonen"
@@ -848,43 +882,43 @@ msgid "Command Line"
 msgstr "Opdrachtregel"
 
 #: src/plugins/gnome/valent-preferences-command-editor.ui:72
-#: src/plugins/gnome/valent-preferences-dialog.c:357
+#: src/plugins/gnome/valent-preferences-dialog.c:366
 msgid "Remove"
 msgstr "Verwijderen"
 
 #. TRANSLATORS: %s is a list of forbidden characters
-#: src/plugins/gnome/valent-preferences-dialog.c:485
+#: src/plugins/gnome/valent-preferences-dialog.c:494
 #, c-format
 msgid "The device name must not contain punctuation or brackets, including %s"
 msgstr ""
 
-#: src/plugins/gnome/valent-preferences-dialog.c:586
+#: src/plugins/gnome/valent-preferences-dialog.c:595
 msgid "Application"
 msgstr "Toepassing"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:593
+#: src/plugins/gnome/valent-preferences-dialog.c:602
 msgid "Device Connections"
 msgstr "Verbonden apparaten"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:614
+#: src/plugins/gnome/valent-preferences-dialog.c:623
 msgid "Mouse and Keyboard"
 msgstr "Muis en toetsenbord"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:621
+#: src/plugins/gnome/valent-preferences-dialog.c:630
 msgid "Media Players"
 msgstr "Mediaspelers"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:628
+#: src/plugins/gnome/valent-preferences-dialog.c:637
 msgid "Volume Control"
 msgstr "Volumeregeling"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:635
+#: src/plugins/gnome/valent-preferences-dialog.c:644
 #: src/plugins/gnome/valent-preferences-sync-page.ui:58
 #: src/plugins/notification/notification.plugin.desktop.in:6
 msgid "Notifications"
 msgstr "Meldingen"
 
-#: src/plugins/gnome/valent-preferences-dialog.c:642
+#: src/plugins/gnome/valent-preferences-dialog.c:651
 msgid "Session Manager"
 msgstr "Sessiebeheer"
 
