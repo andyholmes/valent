@@ -23,11 +23,11 @@ RUN dnf install -y \
         libphonenumber-devel          libphonenumber-debuginfo \
         libportal-devel               libportal-debuginfo \
         libportal-gtk4-devel          libportal-gtk4-debuginfo \
-        libtracker-sparql             libtracker-sparql-debuginfo \
+        libtinysparql                 libtinysparql-debuginfo \
         pipewire-devel                pipewire-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \
         sqlite-devel                  sqlite-debuginfo \
-        tracker-devel                 tracker-debuginfo && \
+        tinysparql-devel              tinysparql-debuginfo && \
     dnf clean all && rm -rf /var/cache/dnf
 
 # Build libwalbottle from source, since it's not available in most repositories
