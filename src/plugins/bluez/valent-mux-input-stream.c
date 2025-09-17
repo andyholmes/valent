@@ -19,7 +19,10 @@ struct _ValentMuxInputStream
   char                *uuid;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMuxInputStream, valent_mux_input_stream, G_TYPE_INPUT_STREAM)
+static void   g_pollable_input_stream_iface_init (GPollableInputStreamInterface *iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMuxInputStream, valent_mux_input_stream, G_TYPE_INPUT_STREAM,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_INPUT_STREAM, g_pollable_input_stream_iface_init))
 
 typedef enum {
   PROP_MUXER = 1,
@@ -27,6 +30,66 @@ typedef enum {
 } ValentMuxInputStreamProperty;
 
 static GParamSpec *properties[PROP_UUID + 1] = { NULL, };
+
+/*
+ * GPollableInputStream
+ */
+static gboolean
+valent_mux_input_stream_is_readable (GPollableInputStream *pollable)
+{
+  ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (pollable);
+  GIOCondition condition;
+
+  condition = valent_mux_connection_condition_check (self->muxer,
+                                                     self->uuid,
+                                                     G_IO_IN);
+
+  return (condition & G_IO_IN) != 0;
+}
+
+static GSource *
+valent_mux_input_stream_create_source (GPollableInputStream *pollable,
+                                       GCancellable         *cancellable)
+{
+  ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (pollable);
+  g_autoptr (GSource) muxer_source = NULL;
+
+  muxer_source = valent_mux_connection_create_source (self->muxer,
+                                                      self->uuid,
+                                                      G_IO_IN);
+
+  return g_pollable_source_new_full (pollable, muxer_source, cancellable);
+}
+
+static gssize
+valent_mux_input_stream_read_nonblocking (GPollableInputStream  *pollable,
+                                          void                  *buffer,
+                                          gsize                  count,
+                                          GError               **error)
+{
+  ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (pollable);
+  gssize ret;
+
+  VALENT_ENTRY;
+
+  ret = valent_mux_connection_read (self->muxer,
+                                    self->uuid,
+                                    buffer,
+                                    count,
+                                    FALSE,
+                                    NULL,
+                                    error);
+
+  VALENT_RETURN (ret);
+}
+
+static void
+g_pollable_input_stream_iface_init (GPollableInputStreamInterface *iface)
+{
+  iface->is_readable = valent_mux_input_stream_is_readable;
+  iface->create_source = valent_mux_input_stream_create_source;
+  iface->read_nonblocking = valent_mux_input_stream_read_nonblocking;
+}
 
 /*
  * GInputStream
@@ -49,6 +112,7 @@ valent_mux_input_stream_read (GInputStream  *stream,
                                     self->uuid,
                                     buffer,
                                     count,
+                                    TRUE,
                                     cancellable,
                                     error);
 

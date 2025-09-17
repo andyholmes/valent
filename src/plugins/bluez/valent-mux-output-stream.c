@@ -19,7 +19,10 @@ struct _ValentMuxOutputStream
   char                *uuid;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMuxOutputStream, valent_mux_output_stream, G_TYPE_OUTPUT_STREAM)
+static void   g_pollable_output_stream_iface_init (GPollableOutputStreamInterface *iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMuxOutputStream, valent_mux_output_stream, G_TYPE_OUTPUT_STREAM,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_POLLABLE_OUTPUT_STREAM, g_pollable_output_stream_iface_init))
 
 typedef enum {
   PROP_MUXER = 1,
@@ -27,6 +30,66 @@ typedef enum {
 } ValentMuxOutputStreamProperty;
 
 static GParamSpec *properties[PROP_UUID + 1] = { NULL, };
+
+/*
+ * GPollableOutputStream
+ */
+static gboolean
+valent_mux_output_stream_is_writable (GPollableOutputStream *pollable)
+{
+  ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (pollable);
+  GIOCondition condition;
+
+  condition = valent_mux_connection_condition_check (self->muxer,
+                                                     self->uuid,
+                                                     G_IO_OUT);
+
+  return (condition & G_IO_OUT) != 0;
+}
+
+static gssize
+valent_mux_output_stream_write_nonblocking (GPollableOutputStream  *pollable,
+                                            const void             *buffer,
+                                            gsize                   count,
+                                            GError                **error)
+{
+  ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (pollable);
+  gssize ret;
+
+  VALENT_ENTRY;
+
+  ret = valent_mux_connection_write (self->muxer,
+                                     self->uuid,
+                                     buffer,
+                                     count,
+                                     FALSE,
+                                     NULL,
+                                     error);
+
+  VALENT_RETURN (ret);
+}
+
+static GSource *
+valent_mux_output_stream_create_source (GPollableOutputStream *pollable,
+                                        GCancellable          *cancellable)
+{
+  ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (pollable);
+  g_autoptr (GSource) muxer_source = NULL;
+
+  muxer_source = valent_mux_connection_create_source (self->muxer,
+                                                      self->uuid,
+                                                      G_IO_OUT);
+
+  return g_pollable_source_new_full (pollable, muxer_source, cancellable);
+}
+
+static void
+g_pollable_output_stream_iface_init (GPollableOutputStreamInterface *iface)
+{
+  iface->is_writable = valent_mux_output_stream_is_writable;
+  iface->create_source = valent_mux_output_stream_create_source;
+  iface->write_nonblocking = valent_mux_output_stream_write_nonblocking;
+}
 
 /*
  * GOutputStream
@@ -49,6 +112,7 @@ valent_mux_output_stream_write (GOutputStream  *stream,
                                      self->uuid,
                                      buffer,
                                      count,
+                                     TRUE,
                                      cancellable,
                                      error);
 
