@@ -5,7 +5,15 @@
 
 #include "config.h"
 
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE
+#endif /* _GNU_SOURCE */
+
+#include <unistd.h>
+#include <sys/eventfd.h>
+
 #include <glib/gprintf.h>
+#include <glib-unix.h>
 #include <gio/gio.h>
 #include <valent.h>
 
@@ -79,11 +87,12 @@ typedef enum
  * @end: data end
  * @read_free: free space in the input buffer
  * @write_free: amount of bytes that can be written
+ * @eventfd: a file descriptor for notifying IO state
  *
  * A thread-safe info struct to track the state of a multiplex channel.
  *
- * Each virtual multiplex channel is tracked by the real `ValentMuxConnection` as
- * a `ChannelState`.
+ * Each virtual multiplex channel is tracked by the real
+ * `ValentMuxConnection` as a `ChannelState`.
  */
 typedef struct
 {
@@ -101,6 +110,7 @@ typedef struct
   /* I/O State */
   uint16_t   read_free;
   uint16_t   write_free;
+  int        eventfd;
 } ChannelState;
 
 static ChannelState *
@@ -120,6 +130,9 @@ channel_state_new (ValentMuxConnection *muxer,
                                 "muxer", muxer,
                                 "uuid",  uuid,
                                 NULL);
+  state->eventfd = eventfd (0, EFD_NONBLOCK | EFD_CLOEXEC);
+  if (state->eventfd == -1)
+    g_critical ("%s(): %s", G_STRFUNC, g_strerror (errno));
   g_mutex_unlock (&state->mutex);
 
   return state;
@@ -132,6 +145,7 @@ channel_state_close (ChannelState *state)
   if (!g_io_stream_is_closed (state->stream))
     {
       g_io_stream_close (state->stream, NULL, NULL);
+      g_clear_fd (&state->eventfd, NULL);
       g_cond_broadcast (&state->cond);
     }
   g_mutex_unlock (&state->mutex);
@@ -203,7 +217,6 @@ channel_state_lookup (ValentMuxConnection  *self,
 }
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (ChannelState, channel_state_unref)
-
 
 /**
  * pack_header:
@@ -407,9 +420,20 @@ recv_read (ValentMuxConnection  *self,
                                  error);
   if (ret)
     {
+      uint64_t byte = 1;
+
       g_mutex_lock (&state->mutex);
       state->write_free += GUINT16_FROM_BE (size_request);
       VALENT_NOTE ("UUID: %s, write_free: %u", state->uuid, state->write_free);
+
+      if (write (state->eventfd, &byte, sizeof (uint64_t)) == -1)
+        {
+          g_set_error_literal (error,
+                               G_IO_ERROR,
+                               g_io_error_from_errno (errno),
+                               g_strerror (errno));
+          ret = FALSE;
+        }
       g_cond_broadcast (&state->cond);
       g_mutex_unlock (&state->mutex);
     }
@@ -463,9 +487,20 @@ recv_write (ValentMuxConnection  *self,
                                  error);
   if (ret)
     {
+      uint64_t byte = 1;
+
       state->end += n_read;
       state->read_free -= n_read;
       VALENT_NOTE ("UUID: %s, read_free: %u", state->uuid, state->read_free);
+
+      if (write (state->eventfd, &byte, sizeof (uint64_t)) == -1)
+        {
+          g_set_error_literal (error,
+                               G_IO_ERROR,
+                               g_io_error_from_errno (errno),
+                               g_strerror (errno));
+          ret = FALSE;
+        }
       g_cond_broadcast (&state->cond);
     }
   g_mutex_unlock (&state->mutex);
@@ -1192,11 +1227,15 @@ valent_mux_connection_open_channel (ValentMuxConnection  *muxer,
  * @uuid: a channel UUID
  * @buffer: a buffer to read data into
  * @count: the number of bytes that will be read from the stream
+ * @blocking: whether to do blocking or non-blocking I/O
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
  *
  * Tries to read count bytes from the channel @uuid into the buffer starting at
- * @buffer. Will block during this read.
+ * @buffer.
+ *
+ * If @blocking is %TRUE, this function will block during the operation,
+ * otherwise it may return `G_IO_ERROR_WOULD_BLOCK`.
  *
  * This is used by `ValentMuxInputStream` to implement g_input_stream_read().
  *
@@ -1207,6 +1246,7 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
                             const char           *uuid,
                             void                 *buffer,
                             size_t                count,
+                            gboolean              blocking,
                             GCancellable         *cancellable,
                             GError              **error)
 {
@@ -1224,11 +1264,21 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
   if (state == NULL)
     return -1;
 
-  /* Block for available data
-   */
   g_mutex_lock (&state->mutex);
-  while (!g_io_stream_is_closed (state->stream) && state->end - state->pos < 1)
-    g_cond_wait (&state->cond, &state->mutex);
+  if (blocking)
+    {
+      while (!g_io_stream_is_closed (state->stream) && state->end <= state->pos)
+        g_cond_wait (&state->cond, &state->mutex);
+    }
+  else if (state->end <= state->pos)
+    {
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_WOULD_BLOCK,
+                           g_strerror (EAGAIN));
+      g_mutex_unlock (&state->mutex);
+      return -1;
+    }
 
   if (channel_state_set_error (state, cancellable, error))
     {
@@ -1267,10 +1317,6 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
           VALENT_NOTE ("UUID: %s, read_free: %u", state->uuid, state->read_free);
           g_mutex_unlock (&state->mutex);
         }
-      else
-        {
-          valent_mux_connection_close (connection, NULL, NULL);
-        }
     }
 
   return read;
@@ -1282,11 +1328,14 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
  * @uuid: a channel UUID
  * @buffer: data to write
  * @count: size of the write
+ * @blocking: whether to do blocking or non-blocking I/O
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
  *
- * Tries to write @count bytes from @buffer into the stream for @uuid. Will
- * block during the operation.
+ * Tries to write @count bytes from @buffer into the stream for @uuid.
+ *
+ * If @blocking is %TRUE, this function will block during the operation,
+ * otherwise it may return `G_IO_ERROR_WOULD_BLOCK`.
  *
  * This is used by `ValentMuxOutputStream` to implement g_output_stream_write().
  *
@@ -1297,6 +1346,7 @@ valent_mux_connection_write (ValentMuxConnection  *connection,
                              const char           *uuid,
                              const void           *buffer,
                              size_t                count,
+                             gboolean              blocking,
                              GCancellable         *cancellable,
                              GError              **error)
 {
@@ -1312,11 +1362,21 @@ valent_mux_connection_write (ValentMuxConnection  *connection,
   if (state == NULL)
     return -1;
 
-  /* Block for available space
-   */
   g_mutex_lock (&state->mutex);
-  while (!g_io_stream_is_closed (state->stream) && state->write_free == 0)
-    g_cond_wait (&state->cond, &state->mutex);
+  if (blocking)
+    {
+      while (!g_io_stream_is_closed (state->stream) && state->write_free == 0)
+        g_cond_wait (&state->cond, &state->mutex);
+    }
+  else if (state->write_free == 0)
+    {
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_WOULD_BLOCK,
+                           g_strerror (EAGAIN));
+      g_mutex_unlock (&state->mutex);
+      return -1;
+    }
 
   if (channel_state_set_error (state, cancellable, error))
     {
@@ -1332,7 +1392,6 @@ valent_mux_connection_write (ValentMuxConnection  *connection,
     }
   else
     {
-      valent_mux_connection_close (connection, NULL, NULL);
       written = -1;
     }
   g_mutex_unlock (&state->mutex);
@@ -1340,3 +1399,213 @@ valent_mux_connection_write (ValentMuxConnection  *connection,
   return written;
 }
 
+static gboolean
+broken_dispatch (GSource     *source,
+                 GSourceFunc  callback,
+                 gpointer     user_data)
+{
+  return TRUE;
+}
+
+static GSourceFuncs broken_funcs =
+{
+  .dispatch = broken_dispatch,
+};
+
+typedef struct
+{
+  GSource       source;
+  ChannelState *state;
+  GIOCondition  condition;
+  gpointer      eventfd_tag;
+} ValentMuxerSource;
+
+static gboolean
+muxer_stream_source_prepare (GSource *source,
+                             int     *timeout)
+{
+  ValentMuxerSource *stream_source = (ValentMuxerSource *)source;
+  ChannelState *state = stream_source->state;
+  gboolean ret = FALSE;
+
+  g_mutex_lock (&state->mutex);
+  if (!g_io_stream_is_closed (state->stream))
+    {
+      if ((stream_source->condition & G_IO_OUT) != 0)
+        ret = (state->write_free > 0);
+      else if ((stream_source->condition & G_IO_IN) != 0)
+        ret = (state->end > state->pos);
+    }
+  g_mutex_unlock (&state->mutex);
+
+  if (ret)
+    *timeout = 0;
+
+  return ret;
+}
+
+static gboolean
+muxer_stream_source_check (GSource *source)
+{
+  ValentMuxerSource *stream_source = (ValentMuxerSource *)source;
+  ChannelState *state = stream_source->state;
+  gboolean ret = FALSE;
+  uint64_t buf;
+
+  g_mutex_lock (&state->mutex);
+  if (!g_io_stream_is_closed (state->stream))
+    {
+      if ((stream_source->condition & G_IO_OUT) != 0)
+        ret = (state->write_free > 0);
+
+      if ((stream_source->condition & G_IO_IN) != 0)
+        ret = (state->end > state->pos);
+    }
+  g_mutex_unlock (&state->mutex);
+
+  if (read (state->eventfd, &buf, sizeof (uint64_t)) == -1)
+    {
+      if (errno != EAGAIN && errno != EWOULDBLOCK)
+        {
+          g_critical ("%s(): %s", G_STRFUNC, g_strerror (errno));
+          return FALSE;
+        }
+    }
+
+  return ret;
+}
+
+static gboolean
+muxer_stream_source_dispatch (GSource     *source,
+                              GSourceFunc  callback,
+                              gpointer     user_data)
+{
+  if (callback != NULL)
+    return callback (user_data);
+
+  return G_SOURCE_REMOVE;
+}
+
+static void
+muxer_stream_source_finalize (GSource *source)
+{
+  ValentMuxerSource *stream_source = (ValentMuxerSource *)source;
+
+  g_clear_pointer (&stream_source->state, channel_state_unref);
+}
+
+static gboolean
+muxer_stream_source_closure_callback (gpointer data)
+{
+  GClosure *closure = (GClosure *)data;
+  GValue result_value = G_VALUE_INIT;
+  gboolean result;
+
+  g_value_init (&result_value, G_TYPE_BOOLEAN);
+
+  g_closure_invoke (closure, &result_value, 0, NULL, NULL);
+
+  result = g_value_get_boolean (&result_value);
+  g_value_unset (&result_value);
+
+  return result;
+}
+
+static GSourceFuncs muxer_stream_source_funcs =
+{
+  .prepare = muxer_stream_source_prepare,
+  .check = muxer_stream_source_check,
+  .dispatch = muxer_stream_source_dispatch,
+  .finalize = muxer_stream_source_finalize,
+  .closure_callback = muxer_stream_source_closure_callback,
+  NULL,
+};
+
+/**
+ * valent_mux_connection_create_source:
+ * @connection: a `ValentMuxConnection`
+ * @uuid: a channel UUID
+ * @condition: a `GIOCondition`
+ *
+ * Create a [type@GLib.Source].
+ *
+ * Returns: (transfer full) (nullable): a new `GSource`
+ */
+GSource *
+valent_mux_connection_create_source (ValentMuxConnection *connection,
+                                     const char          *uuid,
+                                     GIOCondition         condition)
+{
+  g_autoptr (ChannelState) state = NULL;
+  GSource *source = NULL;
+  ValentMuxerSource *stream_source;
+
+  g_assert (VALENT_IS_MUX_CONNECTION (connection));
+  g_assert (g_uuid_string_is_valid (uuid));
+
+  state = channel_state_lookup (connection, uuid, NULL);
+  if (state == NULL)
+    return g_source_new (&broken_funcs, sizeof (GSource));
+
+  source = g_source_new (&muxer_stream_source_funcs, sizeof (ValentMuxerSource));
+  g_source_set_static_name (source, "ValentMuxerSource");
+
+  stream_source = (ValentMuxerSource *) source;
+  stream_source->state = g_atomic_rc_box_acquire (state);
+  stream_source->condition = condition;
+  stream_source->eventfd_tag = g_source_add_unix_fd (source,
+                                                     state->eventfd,
+                                                     G_IO_IN);
+
+  return g_steal_pointer (&source);
+}
+
+/**
+ * valent_mux_connection_condition_check:
+ * @connection: a `ValentMuxConnection`
+ * @uuid: a channel UUID
+ * @condition: a `GIOCondition` mask to check
+ *
+ * Checks on the readiness of the channel for @uuid to perform operations. The
+ * operations specified in @condition are checked for and masked against the
+ * currently-satisfied conditions.
+ *
+ * It is meaningless to specify %G_IO_ERR or %G_IO_HUP in condition;
+ * these conditions will always be set in the output if they are true.
+ *
+ * This call never blocks.
+ *
+ * Returns: the @GIOCondition mask of the current state
+ */
+GIOCondition
+valent_mux_connection_condition_check (ValentMuxConnection *connection,
+                                       const char          *uuid,
+                                       GIOCondition         condition)
+{
+  g_autoptr (ChannelState) state = NULL;
+  GIOCondition ret = 0;
+
+  g_assert (VALENT_IS_MUX_CONNECTION (connection));
+  g_assert (g_uuid_string_is_valid (uuid));
+
+  state = channel_state_lookup (connection, uuid, NULL);
+  if (state == NULL)
+    return G_IO_ERR;
+
+  g_mutex_lock (&state->mutex);
+  if (g_io_stream_is_closed (state->stream))
+    {
+      ret = G_IO_ERR;
+    }
+  else
+    {
+      if ((condition & G_IO_OUT) != 0 && state->write_free > 0)
+        ret |= G_IO_OUT;
+
+      if ((condition & G_IO_IN) != 0 && state->end > state->pos)
+        ret |= G_IO_IN;
+    }
+  g_mutex_unlock (&state->mutex);
+
+  return ret;
+}

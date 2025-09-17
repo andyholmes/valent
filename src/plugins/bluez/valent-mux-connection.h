@@ -27,12 +27,14 @@ gssize                valent_mux_connection_read             (ValentMuxConnectio
                                                               const char           *uuid,
                                                               void                 *buffer,
                                                               size_t                count,
+                                                              gboolean              blocking,
                                                               GCancellable         *cancellable,
                                                               GError              **error);
 gssize                valent_mux_connection_write            (ValentMuxConnection  *connection,
                                                               const char           *uuid,
                                                               const void           *buffer,
                                                               size_t                count,
+                                                              gboolean              blocking,
                                                               GCancellable         *cancellable,
                                                               GError              **error);
 gboolean              valent_mux_connection_close_channel    (ValentMuxConnection  *connection,
@@ -47,5 +49,11 @@ GIOStream           * valent_mux_connection_accept_channel   (ValentMuxConnectio
                                                               const char           *uuid,
                                                               GCancellable         *cancellable,
                                                               GError              **error);
+GSource             * valent_mux_connection_create_source    (ValentMuxConnection  *connection,
+                                                              const char           *uuid,
+                                                              GIOCondition          condition);
+GIOCondition          valent_mux_connection_condition_check  (ValentMuxConnection  *connection,
+                                                              const char           *uuid,
+                                                              GIOCondition          condition);
 
 G_END_DECLS
