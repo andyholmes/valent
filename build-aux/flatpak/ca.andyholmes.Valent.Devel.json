@@ -240,7 +240,6 @@
         {
             "name": "libpeas",
             "buildsystem": "meson",
-            "builddir": true,
             "cleanup": [
                 "/bin/*"
             ],
@@ -262,7 +261,6 @@
         {
             "name": "libportal",
             "buildsystem": "meson",
-            "builddir": true,
             "config-opts": [
                 "-Ddocs=false",
                 "-Dintrospection=false",
