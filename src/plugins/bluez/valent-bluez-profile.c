@@ -20,7 +20,6 @@ struct _ValentBluezProfile
   GDBusInterfaceVTable    vtable;
   GDBusNodeInfo          *node_info;
   GDBusInterfaceInfo     *iface_info;
-  unsigned int            is_client : 1;
 };
 
 G_DEFINE_FINAL_TYPE (ValentBluezProfile, valent_bluez_profile, G_TYPE_DBUS_INTERFACE_SKELETON)
@@ -316,21 +315,15 @@ valent_bluez_profile_init (ValentBluezProfile *self)
 
 /**
  * valent_bluez_profile_new:
- * @is_client: whether to create a client or server profile
  *
  * Create a service profile for client or server connections.
  *
  * Returns: (transfer full): a new `ValentBluezProfile`
  */
 ValentBluezProfile *
-valent_bluez_profile_new (gboolean is_client)
+valent_bluez_profile_new (void)
 {
-  g_autoptr (ValentBluezProfile) ret = NULL;
-
-  ret = g_object_new (VALENT_TYPE_BLUEZ_PROFILE, NULL);
-  ret->is_client = is_client;
-
-  return g_steal_pointer (&ret);
+  return g_object_new (VALENT_TYPE_BLUEZ_PROFILE, NULL);
 }
 
 static void
@@ -374,8 +367,6 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
   GDBusInterfaceSkeleton *iface = G_DBUS_INTERFACE_SKELETON (profile);
   g_autoptr (GTask) task = NULL;
   GVariantDict dict;
-  GVariant *options;
-  const char *object_path = NULL;
   GError *error = NULL;
 
   g_return_if_fail (VALENT_IS_BLUEZ_PROFILE (profile));
@@ -385,33 +376,11 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
   task = g_task_new (profile, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_bluez_profile_register);
 
-  if (profile->is_client)
-    {
-      g_variant_dict_init (&dict, NULL);
-      g_variant_dict_insert (&dict, "RequireAuthentication", "b", TRUE);
-      g_variant_dict_insert (&dict, "RequireAuthorization", "b", FALSE);
-      g_variant_dict_insert (&dict, "Service", "s", VALENT_BLUEZ_PROFILE_UUID);
-      g_variant_dict_insert (&dict, "Role", "s", "client");
-      options = g_variant_dict_end (&dict);
-      object_path = VALENT_BLUEZ_PROFILE_CLIENT_PATH;
-    }
-  else
-    {
-      g_variant_dict_init (&dict, NULL);
-      g_variant_dict_insert (&dict, "RequireAuthentication", "b", TRUE);
-      g_variant_dict_insert (&dict, "RequireAuthorization", "b", FALSE);
-      g_variant_dict_insert (&dict, "Service", "s", VALENT_BLUEZ_PROFILE_UUID);
-      g_variant_dict_insert (&dict, "Role", "s", "server");
-      g_variant_dict_insert (&dict, "Channel", "q", 0x06);
-      options = g_variant_dict_end (&dict);
-      object_path = VALENT_BLUEZ_PROFILE_SERVER_PATH;
-    }
-
   if (g_dbus_interface_skeleton_get_object_path (iface) == NULL)
     {
       if (!g_dbus_interface_skeleton_export (iface,
                                              connection,
-                                             object_path,
+                                             VALENT_BLUEZ_PROFILE_PATH,
                                              &error))
         {
           g_task_return_error (task, g_steal_pointer (&error));
@@ -419,15 +388,22 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
         }
     }
 
+  g_variant_dict_init (&dict, NULL);
+  g_variant_dict_insert (&dict, "RequireAuthentication", "b", TRUE);
+  g_variant_dict_insert (&dict, "RequireAuthorization", "b", FALSE);
+  g_variant_dict_insert (&dict, "Service", "s", VALENT_BLUEZ_PROFILE_UUID);
+  g_variant_dict_insert (&dict, "Role", "s", "server");
+  g_variant_dict_insert (&dict, "Channel", "q", 0x06);
+
   g_dbus_connection_call (connection,
                           "org.bluez",
                           "/org/bluez",
                           "org.bluez.ProfileManager1",
                           "RegisterProfile",
                           g_variant_new ("(os@a{sv})",
-                                         object_path,
+                                         VALENT_BLUEZ_PROFILE_PATH,
                                          VALENT_BLUEZ_PROFILE_UUID,
-                                         options),
+                                         g_variant_dict_end (&dict)),
                           NULL,
                           G_DBUS_CALL_FLAGS_NO_AUTO_START,
                           -1,

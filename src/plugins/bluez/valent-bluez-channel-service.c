@@ -20,8 +20,7 @@ struct _ValentBluezChannelService
   ValentChannelService  parent_instance;
 
   GDBusProxy           *proxy;
-  ValentBluezProfile   *client_profile;
-  ValentBluezProfile   *server_profile;
+  ValentBluezProfile   *profile;
   GHashTable           *devices;
   GHashTable           *muxers;
 };
@@ -257,10 +256,10 @@ get_managed_objects_cb (GDBusProxy   *proxy,
   g_task_return_boolean (task, TRUE);
 }
 
-static void
-register_client_profile_cb (ValentBluezProfile *profile,
-                            GAsyncResult       *result,
-                            gpointer            user_data)
+static inline void
+valent_bluez_profile_register_cb (ValentBluezProfile *profile,
+                                  GAsyncResult       *result,
+                                  gpointer            user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   ValentBluezChannelService *self = g_task_get_source_object (task);
@@ -269,7 +268,6 @@ register_client_profile_cb (ValentBluezProfile *profile,
 
   if (!valent_bluez_profile_register_finish (profile, result, &error))
     {
-      valent_bluez_profile_unregister (self->server_profile);
       g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
@@ -282,30 +280,6 @@ register_client_profile_cb (ValentBluezProfile *profile,
                      cancellable,
                      (GAsyncReadyCallback)get_managed_objects_cb,
                      g_object_ref (task));
-}
-
-static inline void
-register_server_profile_cb (ValentBluezProfile *profile,
-                            GAsyncResult       *result,
-                            gpointer            user_data)
-{
-  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  ValentBluezChannelService *self = g_task_get_source_object (task);
-  GDBusConnection *connection = g_task_get_task_data (task);
-  GCancellable *cancellable = g_task_get_cancellable (task);
-  GError *error = NULL;
-
-  if (!valent_bluez_profile_register_finish (profile, result, &error))
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  valent_bluez_profile_register (self->client_profile,
-                                 connection,
-                                 cancellable,
-                                 (GAsyncReadyCallback)register_client_profile_cb,
-                                 g_object_ref (task));
 }
 
 static void
@@ -327,10 +301,10 @@ on_name_owner_changed (GDBusProxy                *proxy,
       task = g_task_new (self, NULL, activate_cb, self);
       g_task_set_source_tag (task, on_name_owner_changed);
       g_task_set_task_data (task, g_object_ref (connection), g_object_unref);
-      valent_bluez_profile_register (self->server_profile,
+      valent_bluez_profile_register (self->profile,
                                      connection,
                                      NULL,
-                                     (GAsyncReadyCallback)register_server_profile_cb,
+                                     (GAsyncReadyCallback)valent_bluez_profile_register_cb,
                                      g_object_ref (task));
     }
   else
@@ -496,16 +470,10 @@ valent_bluez_channel_service_destroy (ValentObject *object)
       g_clear_object (&self->proxy);
     }
 
-  if (self->client_profile != NULL)
+  if (self->profile != NULL)
     {
-      g_signal_handlers_disconnect_by_data (self->client_profile, self);
-      valent_bluez_profile_unregister (self->client_profile);
-    }
-
-  if (self->server_profile != NULL)
-    {
-      g_signal_handlers_disconnect_by_data (self->server_profile, self);
-      valent_bluez_profile_unregister (self->server_profile);
+      g_signal_handlers_disconnect_by_data (self->profile, self);
+      valent_bluez_profile_unregister (self->profile);
     }
 
   VALENT_OBJECT_CLASS (valent_bluez_channel_service_parent_class)->destroy (object);
@@ -520,8 +488,7 @@ valent_bluez_channel_service_finalize (GObject *object)
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (object);
 
   g_clear_object (&self->proxy);
-  g_clear_object (&self->client_profile);
-  g_clear_object (&self->server_profile);
+  g_clear_object (&self->profile);
   g_clear_pointer (&self->devices, g_hash_table_unref);
   g_clear_pointer (&self->muxers, g_hash_table_unref);
 
@@ -546,25 +513,13 @@ valent_bluez_channel_service_class_init (ValentBluezChannelServiceClass *klass)
 static void
 valent_bluez_channel_service_init (ValentBluezChannelService *self)
 {
-  self->server_profile = valent_bluez_profile_new (FALSE);
-  g_signal_connect_object (self->server_profile,
+  self->profile = valent_bluez_profile_new ();
+  g_signal_connect_object (self->profile,
                            "connection-opened",
                            G_CALLBACK (on_connection_opened),
                            self,
                            G_CONNECT_DEFAULT);
-  g_signal_connect_object (self->server_profile,
-                           "connection-closed",
-                           G_CALLBACK (on_connection_closed),
-                           self,
-                           G_CONNECT_DEFAULT);
-
-  self->client_profile = valent_bluez_profile_new (TRUE);
-  g_signal_connect_object (self->client_profile,
-                           "connection-opened",
-                           G_CALLBACK (on_connection_opened),
-                           self,
-                           G_CONNECT_DEFAULT);
-  g_signal_connect_object (self->client_profile,
+  g_signal_connect_object (self->profile,
                            "connection-closed",
                            G_CALLBACK (on_connection_closed),
                            self,
