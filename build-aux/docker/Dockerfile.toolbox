@@ -12,6 +12,7 @@ RUN dnf install -y \
         evolution-data-server-devel   evolution-data-server-debuginfo \
         glib2-devel                   glib2-debuginfo \
         glib-networking               glib-networking-debuginfo \
+        glycin-loaders                glycin-loaders-debuginfo \
         gnutls-devel                  gnutls-debuginfo \
         gstreamer1-devel              gstreamer1-debuginfo \
         gstreamer1-plugins-base-devel gstreamer1-plugins-base-debuginfo \
