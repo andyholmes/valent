@@ -153,8 +153,8 @@ add_project_link_arguments(cc.get_supported_link_arguments(project_link_args),
 # Dependencies
 #
 glib_version = '>= 2.80.0'
-gdk_pixbuf_version = '>= 2.0'
 gtk_version = '>= 4.15.2'
+glycin_version = '>= 2.0.1'
 gnutls_version = '>= 3.1.3'
 json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 2.0.0'
@@ -166,7 +166,6 @@ tinysparql_version = '>= 3.0'
 libm_dep = cc.find_library('m', required: true)
 gio_dep = dependency('gio-2.0', version: glib_version)
 gio_unix_dep = dependency('gio-unix-2.0', version: glib_version)
-gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_version)
 gnutls_dep = dependency('gnutls', version: gnutls_version)
 json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
 libpeas_dep = dependency('libpeas-2', version: libpeas_version)
@@ -202,6 +201,10 @@ gtk_dep = dependency('gtk4',
 )
 libadwaita_dep = dependency('libadwaita-1',
    version: libadwaita_version,
+  required: false,
+)
+glycin_dep = dependency('glycin-2',
+   version: glycin_version,
   required: false,
 )
 
@@ -246,6 +249,7 @@ endforeach
 config_h_dependencies = {
   'HAVE_GTK4':           gtk_dep,
   'HAVE_ADWAITA':        libadwaita_dep,
+  'HAVE_GLYCIN':         glycin_dep,
   'HAVE_LIBPORTAL_GTK4': libportal_gtk4_dep,
   'HAVE_SYSPROF':        libsysprof_capture_dep,
   'HAVE_WALBOTTLE':      libwalbottle_dep,

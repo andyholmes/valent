@@ -66,6 +66,13 @@ installed_tests_tmpl = join_paths(meson.current_source_dir(), 'extra',
   'template.test.in')
 
 
+# Optional dependencies
+if glycin_dep.found()
+  # https://gitlab.gnome.org/GNOME/glycin/-/blob/main/CONTRIBUTING.md
+  tests_env += 'GLYCIN_DATA_DIR=@0@/share'.format(glycin_dep.get_variable('prefix'))
+  installed_tests_env += 'GLYCIN_DATA_DIR=@0@/share'.format(glycin_dep.get_variable('prefix'))
+endif
+
 # Compile GSettings schemas for in-tree testing
 gsettings_test_init = find_program('extra/gsettings-test-init.sh')
 
