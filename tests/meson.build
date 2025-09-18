@@ -22,6 +22,8 @@ tests_env = [
   'GVFS_DISABLE_FUSE=true',
   # https://gnome.pages.gitlab.gnome.org/gobject-introspection/girepository/GIRepository.html
   'GI_TYPELIB_PATH=@0@:$(GI_TYPELIB_PATH)'.format(':'.join(typelib_dirs)),
+  # https://gitlab.gnome.org/GNOME/glycin/-/blob/main/CONTRIBUTING.md
+  'GLYCIN_DATA_DIR=@0@/share'.format(glycin_dep.get_variable('prefix')),
   # https://docs.gtk.org/gtk4/running.html
   'GDK_BACKEND=wayland,x11',
   'GDK_DEBUG=default-settings',
@@ -58,6 +60,8 @@ installed_tests_env = [
   'GSETTINGS_BACKEND=memory',
   'GSETTINGS_SCHEMA_DIR=@0@'.format(join_paths(datadir, 'glib-2.0', 'schemas')),
   'GVFS_DISABLE_FUSE=true',
+  # https://gitlab.gnome.org/GNOME/glycin/-/blob/main/CONTRIBUTING.md
+  'GLYCIN_DATA_DIR=@0@/share'.format(glycin_dep.get_variable('prefix')),
   # https://docs.gtk.org/gtk4/running.html
   'GDK_DEBUG=default-settings',
   'GTK_A11Y=test',
