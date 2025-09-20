@@ -5,7 +5,6 @@
 
 #include "config.h"
 
-#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
@@ -296,24 +295,24 @@ valent_telephony_plugin_get_event_icon (JsonNode   *packet,
 
   if (valent_packet_get_string (packet, "phoneThumbnail", &phone_thumbnail))
     {
-      g_autoptr (GdkPixbufLoader) loader = NULL;
-      GdkPixbuf *pixbuf = NULL;
-      g_autoptr (GError) error = NULL;
       g_autofree unsigned char *data = NULL;
-      size_t dlen;
+      size_t data_len = 0;
 
-      data = g_base64_decode (phone_thumbnail, &dlen);
-      loader = gdk_pixbuf_loader_new();
+      data = g_base64_decode (phone_thumbnail, &data_len);
+      if (data_len > 0)
+        {
+          g_autoptr (GBytes) bytes = NULL;
 
-      if (gdk_pixbuf_loader_write (loader, data, dlen, &error) &&
-          gdk_pixbuf_loader_close (loader, &error))
-        pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
+          bytes = g_bytes_new_take (g_steal_pointer (&data), data_len);
 
-      if (error != NULL)
-        g_debug ("%s(): %s", G_STRFUNC, error->message);
-
-      if (pixbuf != NULL)
-        return G_ICON (g_object_ref (pixbuf));
+          return g_bytes_icon_new (bytes);
+        }
+      else
+        {
+          g_warning ("%s(): Failed to decode thumbnail for \"%s\" event",
+                     G_STRFUNC,
+                     event);
+        }
     }
 
   if (g_str_equal (event, "ringing"))
