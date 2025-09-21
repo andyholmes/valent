@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gio/gio.h>
 #include <valent.h>
 #include <libvalent-test.h>
 
+#ifdef HAVE_GLYCIN
+#include <glycin.h>
+#endif /* HAVE_GLYCIN */
 
 typedef struct
 {
@@ -110,47 +112,44 @@ send_notification (FdoNotificationsFixture *fixture,
   g_variant_builder_init (&hints_builder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add (&hints_builder, "{sv}", "urgency", g_variant_new_byte (2));
 
+#ifdef HAVE_GLYCIN
   if (with_pixbuf)
     {
-      g_autoptr (GdkPixbuf) pixbuf = NULL;
-      int width, height, rowstride, bits_per_sample, n_channels;
-      unsigned char *pixels;
-      size_t pixels_len;
-      gboolean has_alpha;
+      g_autoptr (GFile) file = NULL;
+      g_autoptr (GlyLoader) loader = NULL;
+      g_autoptr (GlyImage) image = NULL;
+      g_autoptr (GlyFrame) frame = NULL;
+      GBytes *bytes;
+      GlyMemoryFormat memory_format;
       GVariant *value;
       GError *error = NULL;
 
-      pixbuf = gdk_pixbuf_new_from_resource ("/tests/image.png", &error);
+      file = g_file_new_for_uri ("resource://tests/image.png");
+      loader = gly_loader_new (file);
+      image = gly_loader_load (loader, &error);
+      g_assert_no_error (error);
+      frame = gly_image_next_frame (image, &error);
       g_assert_no_error (error);
 
-      g_object_get (pixbuf,
-                    "width",           &width,
-                    "height",          &height,
-                    "rowstride",       &rowstride,
-                    "n-channels",      &n_channels,
-                    "bits-per-sample", &bits_per_sample,
-                    "pixels",          &pixels,
-                    "has-alpha",       &has_alpha,
-                    NULL);
-      pixels_len = (height - 1) * rowstride + width *
-        ((n_channels * bits_per_sample + 7) / 8);
-
+      bytes = gly_frame_get_buf_bytes (frame);
+      memory_format = gly_frame_get_memory_format (frame);
       value = g_variant_new ("(iiibii@ay)",
-                             width,
-                             height,
-                             rowstride,
-                             has_alpha,
-                             bits_per_sample,
-                             n_channels,
+                             gly_frame_get_width (frame),
+                             gly_frame_get_height (frame),
+                             gly_frame_get_stride (frame),
+                             gly_memory_format_has_alpha (memory_format),
+                             8, /* bits_per_sample */
+                             gly_memory_format_has_alpha (memory_format) ? 4 : 3,
                              g_variant_new_from_data (G_VARIANT_TYPE ("ay"),
-                                                      pixels,
-                                                      pixels_len,
+                                                      g_bytes_get_data (bytes, NULL),
+                                                      g_bytes_get_size (bytes),
                                                       TRUE,
-                                                      (GDestroyNotify)g_object_unref,
-                                                      g_object_ref (pixbuf)));
+                                                      (GDestroyNotify)g_bytes_unref,
+                                                      g_bytes_ref (bytes)));
 
       g_variant_builder_add (&hints_builder, "{sv}", "image-data", value);
     }
+#endif /* HAVE_GLYCIN */
 
   notification = g_variant_new ("(susssasa{sv}i)",
                                 "Test Application",
@@ -235,10 +234,12 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_assert_cmpstr (id, ==, notification_id);
   g_clear_pointer (&notification_id, g_free);
 
+#ifdef HAVE_GLYCIN
   VALENT_TEST_CHECK ("Adapter adds notifications with pixbuf icons");
   send_notification (fixture, TRUE);
   valent_test_await_pointer (&notification);
   g_clear_object (&notification);
+#endif /* HAVE_GLYCIN */
 
   g_signal_handlers_disconnect_by_data (fixture->notifications, notification);
   g_signal_handlers_disconnect_by_data (fixture->notifications, notification_id);

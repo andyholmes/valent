@@ -4,9 +4,11 @@
 # Dependencies
 plugin_fdo_deps = [
   libvalent_dep,
-
-  gdk_pixbuf_dep,
 ]
+
+if glycin_dep.found()
+  plugin_fdo_deps += glycin_dep
+endif
 
 # Sources
 plugin_fdo_sources = files([
