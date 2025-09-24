@@ -99,39 +99,55 @@ _gtk_icon_theme_get_largest_icon (GtkIconTheme *theme,
 }
 
 static GFile *
-get_largest_icon_file (GIcon *icon)
+get_largest_icon_file (GIcon   *icon,
+                       GError **error)
 {
   GtkIconTheme *icon_theme = NULL;
   const char * const *names;
-  g_autoptr (GtkIconPaintable) info = NULL;
 
   g_assert (G_IS_THEMED_ICON (icon));
 
   icon_theme = _gtk_icon_theme_get_default ();
   if (icon_theme == NULL)
-    return NULL;
+    {
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_NOT_SUPPORTED,
+                           "Failed to load icon theme");
+      return NULL;
+    }
 
   names = g_themed_icon_get_names (G_THEMED_ICON (icon));
   for (size_t i = 0; names[i]; i++)
     {
+      g_autoptr (GtkIconPaintable) paintable = NULL;
       int size;
 
       size = _gtk_icon_theme_get_largest_icon (icon_theme, names[i]);
       if (size == 0)
         continue;
 
-      info = gtk_icon_theme_lookup_icon (icon_theme,
-                                         names[i],
-                                         NULL,
-                                         size,
-                                         1,
-                                         GTK_TEXT_DIR_NONE,
-                                         0);
+      paintable = gtk_icon_theme_lookup_icon (icon_theme,
+                                              names[i],
+                                              NULL,
+                                              size,
+                                              1,
+                                              GTK_TEXT_DIR_NONE,
+                                              0);
+      if (paintable != NULL)
+        {
+          g_autoptr (GFile) ret = NULL;
 
-      if (info != NULL)
-        return gtk_icon_paintable_get_file (info);
+          ret = gtk_icon_paintable_get_file (paintable);
+          if (ret != NULL)
+            return g_steal_pointer (&ret);
+        }
     }
 
+  g_set_error_literal (error,
+                       G_IO_ERROR,
+                       G_IO_ERROR_NOT_FOUND,
+                       "Failed to find icon");
   return NULL;
 }
 #endif /* HAVE_GTK4 */
@@ -172,10 +188,10 @@ valent_notification_upload_get_icon_bytes (GIcon         *icon,
   /* First try to get the bytes of the GIcon */
   if (G_IS_THEMED_ICON (icon))
     {
+#ifdef HAVE_GTK4
       g_autoptr (GFile) file = NULL;
 
-#ifdef HAVE_GTK4
-      file = get_largest_icon_file (icon);
+      file = get_largest_icon_file (icon, error);
       if (file == NULL)
         {
           g_set_error (error,
@@ -183,15 +199,10 @@ valent_notification_upload_get_icon_bytes (GIcon         *icon,
                        G_IO_ERROR_FAILED,
                        "Failed to load themed icon");
         }
-#else
-      g_set_error (error,
-                   G_IO_ERROR,
-                   G_IO_ERROR_NOT_SUPPORTED,
-                   "GTK is not initialized");
-#endif /* HAVE_GTK4 */
 
       if (file != NULL)
         bytes = g_file_load_bytes (file, cancellable, NULL, error);
+#endif /* HAVE_GTK4 */
     }
   else if (G_IS_FILE_ICON (icon))
     {
