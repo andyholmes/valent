@@ -6,10 +6,12 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <json-glib/json-glib.h>
 #include <valent.h>
 
+#ifdef HAVE_GLYCIN
+#include <glycin.h>
+#endif /* HAVE_GLYCIN */
 #ifdef HAVE_GTK4
 #include <gtk/gtk.h>
 #endif /* HAVE_GTK4 */
@@ -152,22 +154,98 @@ get_largest_icon_file (GIcon   *icon,
 }
 #endif /* HAVE_GTK4 */
 
-static void
-on_size_prepared (GdkPixbufLoader *loader,
-                  int              width,
-                  int              height,
-                  gpointer         user_data)
+#ifdef HAVE_GLYCIN
+static GBytes *
+_glycin_get_encoded_bytes (GBytes        *bytes,
+                           GCancellable  *cancellable,
+                           GError       **error)
 {
-  GdkPixbufFormat *format = gdk_pixbuf_loader_get_format (loader);
+  g_autoptr (GlyLoader) loader = NULL;
+  g_autoptr (GlyImage) image = NULL;
+  const char *mime_type = NULL;
+  g_autoptr (GError) warn = NULL;
 
-  if (!gdk_pixbuf_format_is_scalable (format))
-    return;
+  g_assert (bytes != NULL);
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
 
-  if (width >= DEFAULT_ICON_SIZE || height >= DEFAULT_ICON_SIZE)
-    return;
+  /* Attempt to load the image data
+   */
+  loader = gly_loader_new_for_bytes (bytes);
+  image = gly_loader_load (loader, &warn);
+  if (image == NULL)
+    {
+      g_debug ("%s(): Loading image: %s", G_STRFUNC, warn->message);
+      return g_bytes_ref (bytes);
+    }
 
-  gdk_pixbuf_loader_set_size (loader, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE);
+  /* Attempt to convert the image data
+   *
+   * NOTE: kdeconnect-android only seems to accept PNG/JPEG
+   */
+  mime_type = gly_image_get_mime_type (image);
+  if (g_strcmp0 (mime_type, "image/jpeg") != 0 &&
+      g_strcmp0 (mime_type, "image/png") != 0)
+    {
+      g_autoptr (GlyFrame) frame = NULL;
+      g_autoptr (GlyCreator) creator = NULL;
+      g_autoptr (GlyNewFrame) new_frame = NULL;
+      g_autoptr (GlyEncodedImage) encoded_image = NULL;
+
+      /* Attempt to resize scalable icons
+       */
+      if (g_strcmp0 (mime_type, "image/svg+xml") == 0)
+        {
+          g_autoptr (GlyFrameRequest) request = NULL;
+
+          request = gly_frame_request_new ();
+          gly_frame_request_set_scale (request, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE);
+          frame = gly_image_get_specific_frame (image, request, &warn);
+        }
+      else
+        {
+          frame = gly_image_next_frame (image, &warn);
+        }
+
+      if (frame == NULL)
+        {
+          g_debug ("%s(): Requesting frame: %s", G_STRFUNC, warn->message);
+          return g_bytes_ref (bytes);
+        }
+
+      creator = gly_creator_new ("image/png", &warn);
+      if (creator == NULL)
+        {
+          g_debug ("%s(): Creating image: %s", G_STRFUNC, warn->message);
+          return g_bytes_ref (bytes);
+        }
+
+      new_frame = gly_creator_add_frame_with_stride (creator,
+                                                     gly_frame_get_width (frame),
+                                                     gly_frame_get_height (frame),
+                                                     gly_frame_get_stride (frame),
+                                                     gly_frame_get_memory_format (frame),
+                                                     gly_frame_get_buf_bytes (frame),
+                                                     &warn);
+      if (new_frame == NULL)
+        {
+          g_debug ("%s(): Adding frame: %s", G_STRFUNC, warn->message);
+          return g_bytes_ref (bytes);
+        }
+
+      encoded_image = gly_creator_create (creator, &warn);
+      if (encoded_image == NULL)
+        {
+          g_debug ("%s(): Encoding image: %s", G_STRFUNC, warn->message);
+          return g_bytes_ref (bytes);
+        }
+
+      return gly_encoded_image_get_data (encoded_image);
+    }
+
+  return g_bytes_ref (bytes);
 }
+#endif /* HAVE_GLYCIN */
 
 static GBytes *
 valent_notification_upload_get_icon_bytes (GIcon         *icon,
@@ -175,34 +253,20 @@ valent_notification_upload_get_icon_bytes (GIcon         *icon,
                                            GError       **error)
 {
   g_autoptr (GBytes) bytes = NULL;
-  g_autoptr (GdkPixbufLoader) loader = NULL;
-  GdkPixbuf *pixbuf = NULL;
   g_autoptr (GError) warn = NULL;
-  char *data;
-  size_t size;
 
   g_assert (G_IS_ICON (icon));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  /* First try to get the bytes of the GIcon */
-  if (G_IS_THEMED_ICON (icon))
+  /* Attempt to read the image data
+   */
+  if (G_IS_BYTES_ICON (icon))
     {
-#ifdef HAVE_GTK4
-      g_autoptr (GFile) file = NULL;
+      GBytes *bytes_;
 
-      file = get_largest_icon_file (icon, error);
-      if (file == NULL)
-        {
-          g_set_error (error,
-                       G_IO_ERROR,
-                       G_IO_ERROR_FAILED,
-                       "Failed to load themed icon");
-        }
-
-      if (file != NULL)
-        bytes = g_file_load_bytes (file, cancellable, NULL, error);
-#endif /* HAVE_GTK4 */
+      bytes_ = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
+      bytes = g_bytes_ref (bytes_);
     }
   else if (G_IS_FILE_ICON (icon))
     {
@@ -211,59 +275,33 @@ valent_notification_upload_get_icon_bytes (GIcon         *icon,
       file = g_file_icon_get_file (G_FILE_ICON (icon));
       bytes = g_file_load_bytes (file, cancellable, NULL, error);
     }
-  else if (G_IS_BYTES_ICON (icon))
+#ifdef HAVE_GTK4
+  else if (G_IS_THEMED_ICON (icon))
     {
-      GBytes *buffer;
+      g_autoptr (GFile) file = NULL;
 
-      buffer = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
-
-      if (buffer == NULL)
-        {
-          g_set_error (error,
-                       G_IO_ERROR,
-                       G_IO_ERROR_FAILED,
-                       "Failed to load icon bytes");
-          return NULL;
-        }
-
-      bytes = g_bytes_ref (buffer);
+      file = get_largest_icon_file (icon, error);
+      if (file != NULL)
+        bytes = g_file_load_bytes (file, cancellable, NULL, error);
     }
-  else if (GDK_IS_PIXBUF (icon))
+#endif /* HAVE_GTK4 */
+  else
     {
-      bytes = gdk_pixbuf_read_pixel_bytes (GDK_PIXBUF (icon));
+      g_set_error (error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_NOT_SUPPORTED,
+                   "Unsupported icon type \"%s\"",
+                   G_OBJECT_TYPE_NAME (icon));
     }
 
-  if (bytes == NULL)
-    return NULL;
+  /* If Glycin is available, attempt to resize and re-encode as 512px PNG
+   */
+#ifdef HAVE_GLYCIN
+  if (bytes != NULL)
+    return _glycin_get_encoded_bytes (bytes, cancellable, error);
+#endif /* HAVE_GLYCIN */
 
-  /* Now attempt to load the bytes as a pixbuf */
-  loader = gdk_pixbuf_loader_new ();
-
-  g_signal_connect_object (loader,
-                           "size-prepared",
-                           G_CALLBACK (on_size_prepared),
-                           NULL, 0);
-
-  if (!gdk_pixbuf_loader_write_bytes (loader, bytes, &warn) ||
-      !gdk_pixbuf_loader_close (loader, &warn))
-    {
-      g_debug ("%s(): %s", G_STRFUNC, warn->message);
-      return g_steal_pointer (&bytes);
-    }
-
-  if ((pixbuf = gdk_pixbuf_loader_get_pixbuf (loader)) == NULL)
-    {
-      g_debug ("%s(): Failed to create pixbuf from bytes", G_STRFUNC);
-      return g_steal_pointer (&bytes);
-    }
-
-  if (!gdk_pixbuf_save_to_buffer (pixbuf, &data, &size, "png", &warn, NULL))
-    {
-      g_debug ("%s(): %s", G_STRFUNC, warn->message);
-      return g_steal_pointer (&bytes);
-    }
-
-  return g_bytes_new_take (data, size);
+  return g_steal_pointer (&bytes);
 }
 
 /*
