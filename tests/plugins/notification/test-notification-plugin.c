@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
+#include "config.h"
+
 #include <gio/gio.h>
 #ifdef HAVE_GTK4
 #include <gtk/gtk.h>
@@ -155,11 +157,11 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "body", ==, "Test Body");
   v_assert_packet_cmpstr (packet, "ticker", ==, "Test Title: Test Body");
 
-  if (valent_packet_has_payload (packet))
-    {
-      valent_test_fixture_download (fixture, packet, &error);
-      g_assert_no_error (error);
-    }
+#ifdef HAVE_GTK4
+  g_assert_true (valent_packet_has_payload (packet));
+  valent_test_fixture_download (fixture, packet, &error);
+  g_assert_no_error (error);
+#endif /* HAVE_GTK4 */
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin forwards notifications with file icons");
@@ -249,11 +251,11 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "body", ==, "Test Body");
   v_assert_packet_cmpstr (packet, "ticker", ==, "Test Title: Test Body");
 
-  if (valent_packet_has_payload (packet))
-    {
-      valent_test_fixture_download (fixture, packet, &error);
-      g_assert_no_error (error);
-    }
+#ifdef HAVE_GTK4
+  g_assert_true (valent_packet_has_payload (packet));
+  valent_test_fixture_download (fixture, packet, &error);
+  g_assert_no_error (error);
+#endif /* HAVE_GTK4 */
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin action `notification.action` forwards activations");
@@ -334,8 +336,8 @@ main (int   argc,
 
 #ifdef HAVE_GTK4
   if (!gtk_init_check ())
-    g_test_message ("Skipping themed icon transfers");
 #endif /* HAVE_GTK4 */
+    g_test_message ("Skipping themed icon transfers");
 
   g_test_add ("/plugins/notification/basic",
               ValentTestFixture, path,

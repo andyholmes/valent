@@ -4,9 +4,11 @@
 # Dependencies
 plugin_notification_deps = [
   libvalent_dep,
-  gdk_pixbuf_dep,
 ]
 
+if glycin_dep.found()
+  plugin_notification_deps += glycin_dep
+endif
 # Sources
 plugin_notification_sources = files([
   'notification-plugin.c',
