@@ -160,8 +160,8 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
 #ifdef HAVE_GTK4
   g_assert_true (valent_packet_has_payload (packet));
   valent_test_fixture_download (fixture, packet, &error);
-  g_assert_no_error (error);
 #endif /* HAVE_GTK4 */
+  g_assert_no_error (error);
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin forwards notifications with file icons");
@@ -181,7 +181,8 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "ticker", ==, "Test Title: Test Body");
   g_assert_true (valent_packet_has_payload (packet));
 
-  valent_test_fixture_download (fixture, packet, NULL);
+  valent_test_fixture_download (fixture, packet, &error);
+  g_assert_no_error (error);
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin forwards notifications with bytes icons");
@@ -200,7 +201,8 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   v_assert_packet_cmpstr (packet, "ticker", ==, "Test Title: Test Body");
   g_assert_true (valent_packet_has_payload (packet));
 
-  valent_test_fixture_download (fixture, packet, NULL);
+  valent_test_fixture_download (fixture, packet, &error);
+  g_assert_no_error (error);
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin forwards notification removals");
@@ -254,8 +256,8 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
 #ifdef HAVE_GTK4
   g_assert_true (valent_packet_has_payload (packet));
   valent_test_fixture_download (fixture, packet, &error);
-  g_assert_no_error (error);
 #endif /* HAVE_GTK4 */
+  g_assert_no_error (error);
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin action `notification.action` forwards activations");
