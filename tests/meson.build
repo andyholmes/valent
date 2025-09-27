@@ -2,10 +2,8 @@
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Test Environment
-libpeas_libdir = libpeas_dep.get_variable('libdir')
-
 typelib_dirs = [
-  join_paths(libpeas_libdir, 'girepository-1.0'),
+  join_paths(libpeas_dep.get_variable('libdir'), 'girepository-1.0'),
   join_paths(meson.project_build_root(), 'src', 'libvalent'),
 ]
 
