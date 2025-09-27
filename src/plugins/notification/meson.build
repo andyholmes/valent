@@ -9,6 +9,10 @@ plugin_notification_deps = [
 if glycin_dep.found()
   plugin_notification_deps += glycin_dep
 endif
+if gtk_dep.found()
+  plugin_notification_deps += gtk_dep
+endif
+
 # Sources
 plugin_notification_sources = files([
   'notification-plugin.c',

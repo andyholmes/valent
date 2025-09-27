@@ -61,9 +61,11 @@ libvalent_test_generated_headers = [libvalent_test_resources[1]]
 # Dependencies
 libvalent_test_deps = [
   libvalent_dep,
-  libwalbottle_dep,
 ]
 
+if libwalbottle_dep.found()
+  libvalent_test_deps += libwalbottle_dep
+endif
 
 # Library Definitions
 libvalent_test = static_library('valent-test-@0@'.format(libvalent_api_version),

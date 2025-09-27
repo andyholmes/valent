@@ -5,8 +5,14 @@
 plugin_xdp_deps = [
   libvalent_dep,
   libportal_dep,
-  gtk_dep,
 ]
+
+if gtk_dep.found()
+  plugin_xdp_deps += gtk_dep
+endif
+if libportal_gtk4_dep.found()
+  plugin_xdp_deps += libportal_gtk4_dep
+endif
 
 # Sources
 plugin_xdp_sources = files([

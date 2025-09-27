@@ -10,6 +10,15 @@ subdir('libvalent')
 subdir('plugins')
 
 
+# Dependencies
+valent_deps = [
+  libvalent_dep,
+]
+
+if gtk_dep.found()
+  valent_deps += gtk_dep
+endif
+
 # Application
 valent = executable('valent', 'main.c',
                  c_args: valent_c_args + release_args,
@@ -17,7 +26,7 @@ valent = executable('valent', 'main.c',
              link_whole: plugins_static,
          export_dynamic: true,
   gnu_symbol_visibility: 'hidden',
-           dependencies: libvalent_dep,
+           dependencies: valent_deps,
                 install: true,
                     pie: true,
 )

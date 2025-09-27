@@ -124,8 +124,11 @@ libvalent_deps += [
   gio_unix_dep,
   libpeas_dep,
   libportal_dep,
-  libsysprof_capture_dep,
 ]
+
+if libsysprof_capture_dep.found()
+  libvalent_deps += libsysprof_capture_dep
+endif
 
 
 libvalent_include_directories += [include_directories('.')]
