@@ -169,26 +169,8 @@ gio_unix_dep = dependency('gio-unix-2.0', version: glib_version)
 gnutls_dep = dependency('gnutls', version: gnutls_version)
 json_glib_dep = dependency('json-glib-1.0', version: json_glib_version)
 libpeas_dep = dependency('libpeas-2', version: libpeas_version)
+libportal_dep = dependency('libportal', version: libportal_version)
 tinysparql_dep = dependency('tracker-sparql-3.0', version: tinysparql_version)
-
-libportal_gtk4_dep = dependency('libportal-gtk4',
-   version: libportal_version,
-  required: false,
-)
-libportal_dep = libportal_gtk4_dep
-
-if not libportal_dep.found()
-  libportal_dep = dependency('libportal',
-            version: libportal_version,
-           fallback: ['libportal', 'libportal_dep'],
-    default_options: [
-      'docs=false',
-      'introspection=false',
-      'vapi=false',
-      'werror=false',
-    ],
-  )
-endif
 
 # libvalent-contacts
 libebook_dep = dependency('libebook-1.2', version: eds_version)
@@ -205,6 +187,10 @@ libadwaita_dep = dependency('libadwaita-1',
 )
 glycin_dep = dependency('glycin-2',
    version: glycin_version,
+  required: false,
+)
+libportal_gtk4_dep = dependency('libportal-gtk4',
+   version: libportal_version,
   required: false,
 )
 
