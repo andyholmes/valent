@@ -2,6 +2,10 @@
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
 # Dependencies
+if not gtk_dep.found()
+  error('"@0@" plugin requires gtk4 @1@'.format(plugin_name, gtk_version))
+endif
+
 plugin_gtk_deps = [
   libvalent_dep,
   gtk_dep,

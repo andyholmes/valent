@@ -49,9 +49,9 @@ plugins = [
 ]
 
 if get_option('plugins')
-  foreach plugin : plugins
-    if get_option('plugin_@0@'.format(plugin))
-      subdir(plugin)
+  foreach plugin_name : plugins
+    if get_option('plugin_@0@'.format(plugin_name))
+      subdir(plugin_name)
     endif
   endforeach
 endif
