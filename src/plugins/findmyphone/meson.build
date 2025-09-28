@@ -1,17 +1,20 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-# Require GStreamer for ringing
-gstreamer_dep = dependency('gstreamer-1.0', version: '>= 1.16', required: false)
+# Dependencies
+gstreamer_version = '>= 1.16'
+gstreamer_dep = dependency('gstreamer-1.0',
+   version: gstreamer_version,
+  required: false,
+)
 
 if not gstreamer_dep.found()
-  error('GStreamer required for FindMyPhone plugin')
+  error('"@0@" plugin requires gstreamer-1.0 @1@'.format(
+        plugin_name, gstreamer_version))
 endif
 
-# Dependencies
 plugin_findmyphone_deps = [
   libvalent_dep,
-
   gstreamer_dep
 ]
 

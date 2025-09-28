@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-# libgnome-volume-control (PulseAudio)
+# Dependencies
 libgvc = subproject('gvc',
   default_options: [
     'warning_level=0',
@@ -12,13 +12,11 @@ libgvc = subproject('gvc',
 libgvc_dep = libgvc.get_variable('libgvc_dep')
 
 if not libgvc_dep.found()
-  error('libgnome-volume-control required for PulseAudio plugin')
+  error('"@0@" plugin requires libgnome-volume-control'.format(plugin_name))
 endif
 
-# Dependencies
 plugin_pulseaudio_deps = [
   libvalent_dep,
-
   libgvc_dep,
 ]
 
