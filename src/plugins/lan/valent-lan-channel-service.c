@@ -91,91 +91,6 @@ on_channel_destroyed (ValentLanChannelService *self,
   g_hash_table_remove (self->channels, device_id);
 }
 
-/**
- * valent_lan_channel_service_verify_channel:
- * @self: a `ValentLanChannelService`
- * @peer_identity: a KDE Connect identity packet
- * @connection: a `GTlsConnection`
- *
- * Verify an encrypted TLS connection.
- *
- * @peer_identity should be a valid KDE Connect identity packet. If the
- * `deviceId` field is missing, invalid or does not match the common name for
- * the peer certificate, %FALSE will be returned.
- *
- * @connection should be an encrypted TLS connection. If there is an existing
- * channel for the device ID with a different certificate, %FALSE will be
- * returned.
- *
- * Returns: %TRUE if successful, or %FALSE on failure
- */
-static gboolean
-valent_lan_channel_service_verify_channel (ValentLanChannelService *self,
-                                           JsonNode                *peer_identity,
-                                           GIOStream               *connection)
-{
-  ValentLanChannel *channel = NULL;
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  g_autoptr (GTlsCertificate) peer_certificate = NULL;
-  const char *peer_certificate_cn = NULL;
-  const char *device_id = NULL;
-  const char *device_name = NULL;
-
-  g_assert (VALENT_IS_CHANNEL_SERVICE (self));
-  g_assert (VALENT_IS_PACKET (peer_identity));;
-  g_assert (G_IS_TLS_CONNECTION (connection));
-
-  /* Ignore broadcasts without a deviceId or with an invalid deviceId
-   */
-  if (!valent_packet_get_string (peer_identity, "deviceId", &device_id))
-    {
-      g_debug ("%s(): expected \"deviceId\" field holding a string",
-               G_STRFUNC);
-      return FALSE;
-    }
-
-  if (!valent_device_validate_id (device_id))
-    {
-      g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
-      return FALSE;
-    }
-
-  if (!valent_packet_get_string (peer_identity, "deviceName", &device_name))
-    {
-      g_debug ("%s(): expected \"deviceName\" field holding a string",
-               G_STRFUNC);
-      return FALSE;
-    }
-
-  if (!valent_device_validate_name (device_name))
-    {
-      g_warning ("%s(): invalid device name \"%s\"", G_STRFUNC, device_name);
-      return FALSE;
-    }
-
-  g_object_get (connection, "peer-certificate", &peer_certificate, NULL);
-  peer_certificate_cn = valent_certificate_get_common_name (peer_certificate);
-  if (g_strcmp0 (device_id, peer_certificate_cn) != 0)
-    {
-      g_warning ("%s(): device ID does not match certificate common name",
-                 G_STRFUNC);
-      return FALSE;
-    }
-
-  channel = g_hash_table_lookup (self->channels, device_id);
-  if (channel != NULL && !valent_object_in_destruction (VALENT_OBJECT (channel)))
-    certificate = valent_channel_ref_peer_certificate (VALENT_CHANNEL (channel));
-
-  if (certificate && !g_tls_certificate_is_same (certificate, peer_certificate))
-    {
-      g_warning ("%s(): existing channel with different certificate",
-                 G_STRFUNC);
-      return FALSE;
-    }
-
-  return TRUE;
-}
-
 /*
  * Connection Handshake
  *
@@ -306,25 +221,12 @@ handshake_data_cb (GObject      *object,
 static void
 handshake_task_complete (GTask *task)
 {
-  ValentLanChannelService *self = g_task_get_source_object (task);
   ValentChannelService *service = g_task_get_source_object (task);
   HandshakeData *data = g_task_get_task_data (task);
   g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (JsonNode) identity = NULL;
   GTlsCertificate *certificate = NULL;
   GTlsCertificate *peer_certificate = NULL;
-
-  if (!valent_lan_channel_service_verify_channel (self,
-                                                  data->peer_identity,
-                                                  data->connection))
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_FAILED,
-                               "%s: failed to verify channel",
-                               G_STRFUNC);
-      return;
-    }
 
   identity = valent_channel_service_ref_identity (service);
   certificate = g_tls_connection_get_certificate (G_TLS_CONNECTION (data->connection));
