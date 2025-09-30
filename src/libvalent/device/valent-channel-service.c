@@ -342,6 +342,14 @@ valent_channel_service_real_build_identity (ValentChannelService *service)
 }
 
 static void
+valent_channel_service_real_channel (ValentChannelService *service,
+                                     ValentChannel        *channel)
+{
+  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
+  g_assert (VALENT_IS_CHANNEL (channel));
+}
+
+static void
 valent_channel_service_real_identify (ValentChannelService *service,
                                       const char           *target)
 {
@@ -471,6 +479,7 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
   object_class->set_property = valent_channel_service_set_property;
 
   service_class->build_identity = valent_channel_service_real_build_identity;
+  service_class->channel = valent_channel_service_real_channel;
   service_class->identify = valent_channel_service_real_identify;
 
   /**
