@@ -12,6 +12,7 @@
 
 #include "valent-certificate.h"
 #include "valent-channel.h"
+#include "valent-device.h"
 #include "valent-device-common.h"
 #include "valent-packet.h"
 
@@ -44,6 +45,7 @@ typedef struct
   JsonNode        *identity;
   char            *name;
   GSettings       *settings;
+  GHashTable      *channels;
 } ValentChannelServicePrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentChannelService, valent_channel_service, VALENT_TYPE_EXTENSION);
@@ -89,6 +91,95 @@ valent_channel_service_channel_main (gpointer data)
   g_clear_pointer (&emission, g_free);
 
   return G_SOURCE_REMOVE;
+}
+
+static void
+on_channel_destroyed (ValentChannelService *self,
+                      ValentChannel        *channel)
+{
+  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  const char *device_id = NULL;
+
+  g_assert (VALENT_IS_CHANNEL_SERVICE (self));
+  g_assert (VALENT_IS_CHANNEL (channel));
+
+  certificate = valent_channel_ref_certificate (VALENT_CHANNEL (channel));
+  device_id = valent_certificate_get_common_name (certificate);
+  g_hash_table_remove (priv->channels, device_id);
+}
+
+static gboolean
+valent_channel_service_verify_channel (ValentChannelService *self,
+                                       ValentChannel        *channel)
+{
+  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
+  ValentChannel *current = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  const char *peer_certificate_cn = NULL;
+  JsonNode *peer_identity = NULL;
+  const char *device_id = NULL;
+  const char *device_name = NULL;
+
+  g_assert (VALENT_IS_CHANNEL_SERVICE (self));
+  g_assert (VALENT_IS_CHANNEL (channel));
+
+  /* Ignore channels with an invalid deviceId or deviceName
+   */
+  peer_identity = valent_channel_get_peer_identity (channel);
+  if (!valent_packet_get_string (peer_identity, "deviceId", &device_id) ||
+      !valent_device_validate_id (device_id))
+    {
+      g_warning ("%s(): invalid device ID \"%s\"", G_STRFUNC, device_id);
+      return FALSE;
+    }
+
+  if (!valent_packet_get_string (peer_identity, "deviceName", &device_name) ||
+      !valent_device_validate_name (device_name))
+    {
+      g_warning ("%s(): invalid device name \"%s\"", G_STRFUNC, device_name);
+      return FALSE;
+    }
+
+  /* Ensure the deviceId field matches the certificate common name
+   */
+  peer_certificate = valent_channel_ref_peer_certificate (channel);
+  peer_certificate_cn = valent_certificate_get_common_name (peer_certificate);
+  if (g_strcmp0 (device_id, peer_certificate_cn) != 0)
+    {
+      g_warning ("%s(): device ID does not match certificate common name",
+                 G_STRFUNC);
+      return FALSE;
+    }
+
+  /* Ensure the certificate matches that of any existing channel
+   */
+  current = g_hash_table_lookup (priv->channels, device_id);
+  if (current != NULL)
+    {
+      g_autoptr (GTlsCertificate) certificate = NULL;
+
+      certificate = valent_channel_ref_peer_certificate (VALENT_CHANNEL (current));
+      if (!g_tls_certificate_is_same (certificate, peer_certificate))
+        {
+          g_warning ("%s(): existing channel with different certificate",
+                     G_STRFUNC);
+          return FALSE;
+        }
+    }
+
+  /* Track the channel until destruction
+   */
+  g_hash_table_replace (priv->channels,
+                        g_strdup (device_id),
+                        g_object_ref (channel));
+  g_signal_connect_object (channel,
+                           "destroy",
+                           G_CALLBACK (on_channel_destroyed),
+                           self,
+                           G_CONNECT_SWAPPED);
+
+  return TRUE;
 }
 
 /*
@@ -404,6 +495,7 @@ valent_channel_service_finalize (GObject *object)
   g_clear_pointer (&priv->identity, json_node_unref);
   g_clear_pointer (&priv->name, g_free);
   g_clear_object (&priv->settings);
+  g_clear_pointer (&priv->channels, g_hash_table_unref);
   valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_channel_service_parent_class)->finalize (object);
@@ -565,6 +657,12 @@ valent_channel_service_class_init (ValentChannelServiceClass *klass)
 static void
 valent_channel_service_init (ValentChannelService *self)
 {
+  ValentChannelServicePrivate *priv = valent_channel_service_get_instance_private (self);
+
+  priv->channels = g_hash_table_new_full (g_str_hash,
+                                          g_str_equal,
+                                          g_free,
+                                          g_object_unref);
 }
 
 /**
@@ -720,7 +818,8 @@ valent_channel_service_channel (ValentChannelService *service,
 
   if G_LIKELY (VALENT_IS_MAIN_THREAD ())
     {
-      g_signal_emit (G_OBJECT (service), signals [CHANNEL], 0, channel);
+      if (valent_channel_service_verify_channel (service, channel))
+        g_signal_emit (G_OBJECT (service), signals [CHANNEL], 0, channel);
       return;
     }
 
