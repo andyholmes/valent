@@ -49,7 +49,9 @@ typedef enum {
 
 static GParamSpec *properties[PROP_PACKET + 1] = { NULL, };
 
-
+/*
+ * GtkIconTheme Helpers
+ */
 #ifdef HAVE_GTK4
 static GtkIconTheme *
 _gtk_icon_theme_get_default (void)
@@ -63,7 +65,8 @@ _gtk_icon_theme_get_default (void)
         {
           GdkDisplay *display = NULL;
 
-          if ((display = gdk_display_get_default ()) != NULL)
+          display = gdk_display_get_default ();
+          if (display != NULL)
             icon_theme = gtk_icon_theme_get_for_display (display);
         }
 
@@ -74,7 +77,7 @@ _gtk_icon_theme_get_default (void)
 }
 
 static int
-_gtk_icon_theme_get_largest_icon (GtkIconTheme *theme,
+_gtk_icon_theme_get_largest_size (GtkIconTheme *theme,
                                   const char   *name)
 {
   g_autofree int *sizes = NULL;
@@ -87,7 +90,6 @@ _gtk_icon_theme_get_largest_icon (GtkIconTheme *theme,
     return ret;
 
   sizes = gtk_icon_theme_get_icon_sizes (theme, name);
-
   for (unsigned int i = 0; sizes[i] != 0; i++)
     {
       if (sizes[i] == -1)
@@ -101,8 +103,8 @@ _gtk_icon_theme_get_largest_icon (GtkIconTheme *theme,
 }
 
 static GFile *
-get_largest_icon_file (GIcon   *icon,
-                       GError **error)
+_gtk_icon_theme_get_largest_file (GIcon   *icon,
+                                  GError **error)
 {
   GtkIconTheme *icon_theme = NULL;
   const char * const *names;
@@ -125,7 +127,7 @@ get_largest_icon_file (GIcon   *icon,
       g_autoptr (GtkIconPaintable) paintable = NULL;
       int size;
 
-      size = _gtk_icon_theme_get_largest_icon (icon_theme, names[i]);
+      size = _gtk_icon_theme_get_largest_size (icon_theme, names[i]);
       if (size == 0)
         continue;
 
@@ -154,29 +156,30 @@ get_largest_icon_file (GIcon   *icon,
 }
 #endif /* HAVE_GTK4 */
 
+/*
+ * Glycin Helpers
+ */
 #ifdef HAVE_GLYCIN
-static GBytes *
-_glycin_get_encoded_bytes (GBytes        *bytes,
-                           GCancellable  *cancellable,
-                           GError       **error)
+static void
+_glycin_encode_icon_bytes_task (GTask        *task,
+                                gpointer      source_object,
+                                gpointer      task_data,
+                                GCancellable *cancellable)
 {
+  GBytes *bytes = (GBytes *)task_data;
   g_autoptr (GlyLoader) loader = NULL;
   g_autoptr (GlyImage) image = NULL;
   const char *mime_type = NULL;
-  g_autoptr (GError) warn = NULL;
-
-  g_assert (bytes != NULL);
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
+  GError *error = NULL;
 
   /* Attempt to load the image data
    */
   loader = gly_loader_new_for_bytes (bytes);
-  image = gly_loader_load (loader, &warn);
+  image = gly_loader_load (loader, &error);
   if (image == NULL)
     {
-      g_debug ("%s(): Loading image: %s", G_STRFUNC, warn->message);
-      return g_bytes_ref (bytes);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   /* Attempt to convert the image data
@@ -187,37 +190,28 @@ _glycin_get_encoded_bytes (GBytes        *bytes,
   if (g_strcmp0 (mime_type, "image/jpeg") != 0 &&
       g_strcmp0 (mime_type, "image/png") != 0)
     {
+      g_autoptr (GlyFrameRequest) request = NULL;
       g_autoptr (GlyFrame) frame = NULL;
       g_autoptr (GlyCreator) creator = NULL;
       g_autoptr (GlyNewFrame) new_frame = NULL;
       g_autoptr (GlyEncodedImage) encoded_image = NULL;
 
-      /* Attempt to resize scalable icons
+      /* Attempt to resize the icon
        */
-      if (g_strcmp0 (mime_type, "image/svg+xml") == 0)
-        {
-          g_autoptr (GlyFrameRequest) request = NULL;
-
-          request = gly_frame_request_new ();
-          gly_frame_request_set_scale (request, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE);
-          frame = gly_image_get_specific_frame (image, request, &warn);
-        }
-      else
-        {
-          frame = gly_image_next_frame (image, &warn);
-        }
-
+      request = gly_frame_request_new ();
+      gly_frame_request_set_scale (request, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE);
+      frame = gly_image_get_specific_frame (image, request, &error);
       if (frame == NULL)
         {
-          g_debug ("%s(): Requesting frame: %s", G_STRFUNC, warn->message);
-          return g_bytes_ref (bytes);
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
         }
 
-      creator = gly_creator_new ("image/png", &warn);
+      creator = gly_creator_new ("image/png", &error);
       if (creator == NULL)
         {
-          g_debug ("%s(): Creating image: %s", G_STRFUNC, warn->message);
-          return g_bytes_ref (bytes);
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
         }
 
       new_frame = gly_creator_add_frame_with_stride (creator,
@@ -226,116 +220,139 @@ _glycin_get_encoded_bytes (GBytes        *bytes,
                                                      gly_frame_get_stride (frame),
                                                      gly_frame_get_memory_format (frame),
                                                      gly_frame_get_buf_bytes (frame),
-                                                     &warn);
+                                                     &error);
       if (new_frame == NULL)
         {
-          g_debug ("%s(): Adding frame: %s", G_STRFUNC, warn->message);
-          return g_bytes_ref (bytes);
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
         }
 
-      encoded_image = gly_creator_create (creator, &warn);
+      encoded_image = gly_creator_create (creator, &error);
       if (encoded_image == NULL)
         {
-          g_debug ("%s(): Encoding image: %s", G_STRFUNC, warn->message);
-          return g_bytes_ref (bytes);
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
         }
 
-      return gly_encoded_image_get_data (encoded_image);
+      g_task_return_pointer (task,
+                             gly_encoded_image_get_data (encoded_image),
+                             (GDestroyNotify)g_bytes_unref);
     }
-
-  return g_bytes_ref (bytes);
+  else
+    {
+      g_task_return_pointer (task,
+                             g_bytes_ref (bytes),
+                             (GDestroyNotify)g_bytes_unref);
+    }
 }
 #endif /* HAVE_GLYCIN */
 
-static GBytes *
-valent_notification_upload_get_icon_bytes (GIcon         *icon,
-                                           GCancellable  *cancellable,
-                                           GError       **error)
+static void
+_glycin_encode_icon_bytes (GBytes              *bytes,
+                           GCancellable        *cancellable,
+                           GAsyncReadyCallback  callback,
+                           gpointer             user_data)
 {
-  g_autoptr (GBytes) bytes = NULL;
-  g_autoptr (GError) warn = NULL;
+  g_autoptr (GTask) task = NULL;
 
-  g_assert (G_IS_ICON (icon));
+  g_assert (bytes != NULL);
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (NULL, cancellable, callback, user_data);
+  g_task_set_source_tag (task, _glycin_encode_icon_bytes);
+#ifdef HAVE_GLYCIN
+  g_task_set_task_data (task, g_bytes_ref (bytes), (GDestroyNotify)g_bytes_unref);
+  g_task_run_in_thread (task, _glycin_encode_icon_bytes_task);
+#else
+  g_task_return_pointer (task, g_bytes_ref (bytes), (GDestroyNotify)g_bytes_unref);
+#endif /* HAVE_GLYCIN */
+}
+
+static GBytes *
+_glycin_encode_icon_bytes_finish (GAsyncResult  *result,
+                                  GError       **error)
+{
+  g_assert (G_IS_TASK (result));
   g_assert (error == NULL || *error == NULL);
 
-  /* Attempt to read the image data
-   */
-  if (G_IS_BYTES_ICON (icon))
-    {
-      GBytes *bytes_;
-
-      bytes_ = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
-      bytes = g_bytes_ref (bytes_);
-    }
-  else if (G_IS_FILE_ICON (icon))
-    {
-      GFile *file;
-
-      file = g_file_icon_get_file (G_FILE_ICON (icon));
-      bytes = g_file_load_bytes (file, cancellable, NULL, error);
-    }
-#ifdef HAVE_GTK4
-  else if (G_IS_THEMED_ICON (icon))
-    {
-      g_autoptr (GFile) file = NULL;
-
-      file = get_largest_icon_file (icon, error);
-      if (file != NULL)
-        bytes = g_file_load_bytes (file, cancellable, NULL, error);
-    }
-#endif /* HAVE_GTK4 */
-  else
-    {
-      g_set_error (error,
-                   G_IO_ERROR,
-                   G_IO_ERROR_NOT_SUPPORTED,
-                   "Unsupported icon type \"%s\"",
-                   G_OBJECT_TYPE_NAME (icon));
-    }
-
-  /* If Glycin is available, attempt to resize and re-encode as 512px PNG
-   */
-#ifdef HAVE_GLYCIN
-  if (bytes != NULL)
-    return _glycin_get_encoded_bytes (bytes, cancellable, error);
-#endif /* HAVE_GLYCIN */
-
-  return g_steal_pointer (&bytes);
+  return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 /*
- * ValentTransfer
+ * ValentTransfer Helpers
  */
 static void
-valent_notification_upload_execute_task (GTask        *task,
-                                         gpointer      source_object,
-                                         gpointer      task_data,
-                                         GCancellable *cancellable)
+g_output_stream_write_all_cb (GOutputStream *stream,
+                              GAsyncResult  *result,
+                              gpointer       user_data)
 {
-  ValentNotificationUpload *self = VALENT_NOTIFICATION_UPLOAD (source_object);
-  g_autoptr (ValentChannel) channel = NULL;
-  g_autoptr (GIcon) icon = NULL;
-  g_autoptr (JsonNode) packet = NULL;
-  g_autoptr (GBytes) bytes = NULL;
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  GError *error = NULL;
+
+  if (!g_output_stream_write_all_finish (stream, result, NULL, &error))
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static void
+valent_channel_upload_cb (ValentChannel *channel,
+                          GAsyncResult  *result,
+                          gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  GCancellable *cancellable = g_task_get_cancellable (task);
   g_autoptr (GIOStream) target = NULL;
+  GBytes *bytes = NULL;
+  const uint8_t *payload_data = NULL;
+  size_t payload_size = 0;
+  GError *error = NULL;
+
+  target = valent_channel_upload_finish (channel, result, &error);
+  if (target == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  bytes = g_task_get_task_data (task);
+  payload_data = g_bytes_get_data (bytes, &payload_size);
+  g_output_stream_write_all_async (g_io_stream_get_output_stream (target),
+                                   payload_data,
+                                   payload_size,
+                                   G_PRIORITY_DEFAULT,
+                                   cancellable,
+                                   (GAsyncReadyCallback)g_output_stream_write_all_cb,
+                                   g_object_ref (task));
+}
+
+static void
+valent_notification_upload_transfer_bytes (GTask  *task,
+                                           GBytes *bytes)
+{
+  ValentNotificationUpload *self = g_task_get_source_object (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (ValentChannel) channel = NULL;
   g_autofree char *payload_hash = NULL;
   const uint8_t *payload_data = NULL;
   size_t payload_size = 0;
-  gboolean ret = FALSE;
-  GError *error = NULL;
 
-  g_assert (VALENT_IS_NOTIFICATION_UPLOAD (self));
+  /* A payload hash is included, allowing the remote device to ignore icon
+   * transfers that it already has cached.
+   */
+  payload_data = g_bytes_get_data (bytes, &payload_size);
+  payload_hash = g_compute_checksum_for_data (G_CHECKSUM_MD5,
+                                              payload_data,
+                                              payload_size);
+  json_object_set_string_member (valent_packet_get_body (self->packet),
+                                 "payloadHash",
+                                 payload_hash);
+  valent_packet_set_payload_size (self->packet, payload_size);
 
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  valent_object_lock (VALENT_OBJECT (self));
   channel = valent_device_ref_channel (self->device);
-  icon = g_object_ref (self->icon);
-  packet = json_node_ref (self->packet);
-  valent_object_unlock (VALENT_OBJECT (self));
-
   if (channel == NULL)
     {
       g_task_return_new_error (task,
@@ -345,56 +362,134 @@ valent_notification_upload_execute_task (GTask        *task,
       return;
     }
 
-  /* Try to get the icon bytes */
-  bytes = valent_notification_upload_get_icon_bytes (icon, cancellable, &error);
-
-  if (bytes == NULL)
-    return g_task_return_error (task, error);
-
-  /* A payload hash is included, allowing the remote device to ignore icon
-   * transfers that it already has cached. */
-  payload_data = g_bytes_get_data (bytes, &payload_size);
-  payload_hash = g_compute_checksum_for_data (G_CHECKSUM_MD5,
-                                              payload_data,
-                                              payload_size);
-  json_object_set_string_member (valent_packet_get_body (packet),
-                                 "payloadHash",
-                                 payload_hash);
-  valent_packet_set_payload_size (packet, payload_size);
-
-  target = valent_channel_upload (channel, packet, cancellable, &error);
-
-  if (target == NULL)
-    return g_task_return_error (task, error);
-
-  /* Upload the icon */
-  ret = g_output_stream_write_all (g_io_stream_get_output_stream (target),
-                                   payload_data,
-                                   payload_size,
-                                   NULL,
-                                   cancellable,
-                                   &error);
-
-  if (!ret)
-    return g_task_return_error (task, error);
-
-  g_task_return_boolean (task, TRUE);
+  g_task_set_task_data (task, g_bytes_ref (bytes), (GDestroyNotify)g_bytes_unref);
+  valent_channel_upload_async (channel,
+                               self->packet,
+                               cancellable,
+                               (GAsyncReadyCallback)valent_channel_upload_cb,
+                               g_object_ref (task));
 }
 
+static void
+_glycin_encode_icon_bytes_cb (GObject      *object,
+                              GAsyncResult *result,
+                              gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  g_autoptr (GBytes) bytes = NULL;
+  GError *error = NULL;
+
+  bytes = _glycin_encode_icon_bytes_finish (result, &error);
+  if (bytes == NULL)
+    {
+      g_debug ("%s(): %s", G_STRFUNC, error->message);
+      bytes = g_bytes_ref (g_task_get_task_data (task));
+    }
+
+  valent_notification_upload_transfer_bytes (task, bytes);
+}
+
+static void
+g_file_load_bytes_cb (GFile        *file,
+                      GAsyncResult *result,
+                      gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (GBytes) bytes = NULL;
+  GError *error = NULL;
+
+  bytes = g_file_load_bytes_finish (file, result, NULL, &error);
+  if (bytes == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_task_set_task_data (task, g_bytes_ref (bytes), (GDestroyNotify)g_bytes_unref);
+  _glycin_encode_icon_bytes (bytes,
+                             cancellable,
+                             (GAsyncReadyCallback)_glycin_encode_icon_bytes_cb,
+                             g_object_ref (task));
+}
+
+static void
+valent_notification_upload_transfer_icon (GTask *task,
+                                          GIcon *icon)
+{
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  GError *error = NULL;
+
+  g_assert (G_IS_TASK (task));
+  g_assert (G_IS_ICON (icon));
+
+  if (G_IS_BYTES_ICON (icon))
+    {
+      GBytes *bytes;
+
+      bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
+      g_task_set_task_data (task, g_bytes_ref (bytes), (GDestroyNotify)g_bytes_unref);
+      _glycin_encode_icon_bytes (bytes,
+                                 cancellable,
+                                 (GAsyncReadyCallback)_glycin_encode_icon_bytes_cb,
+                                 g_object_ref (task));
+    }
+  else if (G_IS_FILE_ICON (icon))
+    {
+      GFile *file;
+
+      file = g_file_icon_get_file (G_FILE_ICON (icon));
+      g_file_load_bytes_async (file,
+                               cancellable,
+                               (GAsyncReadyCallback)g_file_load_bytes_cb,
+                               g_object_ref (task));
+    }
+#ifdef HAVE_GTK4
+  else if (G_IS_THEMED_ICON (icon))
+    {
+      g_autoptr (GFile) file = NULL;
+
+      file = _gtk_icon_theme_get_largest_file (icon, &error);
+      if (file == NULL)
+        {
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
+        }
+
+      g_file_load_bytes_async (file,
+                               cancellable,
+                               (GAsyncReadyCallback)g_file_load_bytes_cb,
+                               g_object_ref (task));
+    }
+#endif /* HAVE_GTK4 */
+  else
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "Unsupported icon type \"%s\"",
+                               G_OBJECT_TYPE_NAME (icon));
+    }
+}
+
+/*
+ * ValentTransfer
+ */
 static void
 valent_notification_upload_execute (ValentTransfer      *transfer,
                                     GCancellable        *cancellable,
                                     GAsyncReadyCallback  callback,
                                     gpointer             user_data)
 {
+  ValentNotificationUpload *self = VALENT_NOTIFICATION_UPLOAD (transfer);
   g_autoptr (GTask) task = NULL;
 
-  g_assert (VALENT_IS_NOTIFICATION_UPLOAD (transfer));
+  g_assert (VALENT_IS_NOTIFICATION_UPLOAD (self));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (transfer, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_notification_upload_execute);
-  g_task_run_in_thread (task, valent_notification_upload_execute_task);
+  valent_notification_upload_transfer_icon (task, self->icon);
 }
 
 /*

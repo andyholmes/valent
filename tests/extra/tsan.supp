@@ -15,6 +15,9 @@ race:valent_mock_channel_class_init
 # Uninstrumented libraries (Yes, all of these are really necessary)
 #
 
+# src/plugins/notification/valent-notification-upload.c
+called_from_lib:libglycin-2
+
 # src/libvalent/device/valent-certificate.c
 # src/plugins/lan/valent-lan-channel.c
 called_from_lib:libp11-kit
