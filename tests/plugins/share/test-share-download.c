@@ -19,7 +19,7 @@ test_share_download_single (ValentTestFixture *fixture,
   JsonNode *packet = NULL;
   GError *error = NULL;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   /* Ensure the download directory is at it's default */
   g_settings_reset (fixture->settings, "download-folder");
@@ -48,7 +48,7 @@ test_share_download_multiple (ValentTestFixture *fixture,
   JsonNode *packet = NULL;
   GError *error = NULL;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   /* Ensure the download directory is at it's default */
   g_settings_reset (fixture->settings, "download-folder");

@@ -64,10 +64,8 @@ test_contacts_plugin_basic (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "contacts.fetch"));
 
-  valent_test_fixture_connect (fixture, TRUE);
-
   VALENT_TEST_CHECK ("Plugin requests a list of UIDs on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
@@ -94,7 +92,7 @@ test_contacts_plugin_request_contacts (ValentTestFixture *fixture,
   JsonNode *packet;
 
   VALENT_TEST_CHECK ("Plugin requests a list of UIDs on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
@@ -140,7 +138,7 @@ test_contacts_plugin_provide_contacts (ValentTestFixture *fixture,
   unsigned int n_uids;
 
   VALENT_TEST_CHECK ("Plugin requests a list of UIDs on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.contacts.request_all_uids_timestamps");
@@ -182,7 +180,7 @@ test_contacts_plugin_fuzz (ValentTestFixture *fixture,
                            gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

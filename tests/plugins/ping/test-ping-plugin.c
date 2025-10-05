@@ -16,7 +16,7 @@ test_ping_plugin_basic (ValentTestFixture *fixture,
   g_assert_true (g_action_group_has_action (actions, "ping.ping"));
   g_assert_true (g_action_group_has_action (actions, "ping.message"));
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin action `ping.ping` is enabled when connected");
   g_assert_true (g_action_group_get_action_enabled (actions, "ping.ping"));
@@ -31,7 +31,7 @@ test_ping_plugin_handle_request (ValentTestFixture *fixture,
 {
   JsonNode *packet;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin handles a ping");
   packet = valent_test_fixture_lookup_packet (fixture, "ping");
@@ -49,7 +49,7 @@ test_ping_plugin_send_request (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "ping.ping"));
   g_assert_true (g_action_group_get_action_enabled (actions, "ping.message"));
@@ -80,7 +80,7 @@ test_ping_plugin_fuzz (ValentTestFixture *fixture,
                        gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

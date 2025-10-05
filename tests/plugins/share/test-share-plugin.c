@@ -42,7 +42,7 @@ test_share_plugin_basic (ValentTestFixture *fixture,
   g_assert_true (g_action_group_has_action (actions, "share.uris"));
   g_assert_true (g_action_group_has_action (actions, "share.view"));
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin actions are enabled when connected");
   g_assert_true (g_action_group_get_action_enabled (actions, "share.cancel"));
@@ -61,7 +61,7 @@ test_share_plugin_handle_request (ValentTestFixture *fixture,
   g_autoptr (GFile) file = NULL;
   JsonNode *packet;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   file = g_file_new_for_uri ("resource:///tests/image.png");
 
   VALENT_TEST_CHECK ("Plugin handles receiving a file");
@@ -106,7 +106,7 @@ test_share_plugin_open (ValentTestFixture *fixture,
   JsonNode *packet;
   GError *error = NULL;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "share.open"));
 
@@ -167,7 +167,7 @@ test_share_plugin_text (ValentTestFixture *fixture,
   g_autofree char *text = NULL;
   JsonNode *packet;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "share.text"));
 
@@ -194,7 +194,7 @@ test_share_plugin_uri (ValentTestFixture *fixture,
   JsonNode *packet;
   GError *error = NULL;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "share.uri"));
 
@@ -260,7 +260,7 @@ test_share_plugin_uris (ValentTestFixture *fixture,
   JsonNode *packet;
   GError *error = NULL;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "share.uris"));
 
@@ -324,7 +324,7 @@ test_share_plugin_fuzz (ValentTestFixture *fixture,
                         gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

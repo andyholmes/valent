@@ -15,7 +15,7 @@ test_sms_plugin_basic (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "sms.sync"));
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin requests the threads on connect");
   packet = valent_test_fixture_expect_packet (fixture);
@@ -45,7 +45,7 @@ test_sms_plugin_handle_request (ValentTestFixture *fixture,
   adapter = g_list_model_get_item (G_LIST_MODEL (messages), 1);
   g_assert_true (VALENT_IS_MESSAGES_ADAPTER (adapter));
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin requests the threads on connect");
   packet = valent_test_fixture_expect_packet (fixture);
@@ -120,7 +120,7 @@ test_sms_plugin_handle_attachment (ValentTestFixture *fixture,
   adapter = g_list_model_get_item (G_LIST_MODEL (messages), 1);
   g_assert_true (VALENT_IS_MESSAGES_ADAPTER (adapter));
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin requests the threads on connect");
   packet = valent_test_fixture_expect_packet (fixture);
@@ -183,7 +183,7 @@ test_sms_plugin_fuzz (ValentTestFixture *fixture,
                       gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

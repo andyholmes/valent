@@ -352,7 +352,7 @@ valent_notification_upload_transfer_bytes (GTask  *task,
                                  payload_hash);
   valent_packet_set_payload_size (self->packet, payload_size);
 
-  channel = valent_device_ref_channel (self->device);
+  channel = g_list_model_get_item (valent_device_get_channels (self->device), 0);
   if (channel == NULL)
     {
       g_task_return_new_error (task,

@@ -88,7 +88,7 @@ test_connectivity_report_plugin_handle_update (ValentTestFixture *fixture,
 
   VALENT_TEST_CHECK ("Plugin doesn't send connectivity status at connect "
                      "without a modem");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin handles the \"modemless\" state");
   packet = valent_test_fixture_lookup_packet (fixture, "modemless-report");
@@ -301,7 +301,7 @@ test_connectivity_report_plugin_send_update (ValentTestFixture *fixture,
   const char *network_type;
   int64_t signal_strength;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
   VALENT_TEST_CHECK ("Plugin sends an update when a modem is added");
@@ -378,7 +378,7 @@ test_connectivity_report_plugin_fuzz (ValentTestFixture *fixture,
                                       gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

@@ -22,7 +22,7 @@ test_mousepad_plugin_handle_echo (ValentTestFixture *fixture,
   JsonNode *packet;
 
   VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
@@ -41,7 +41,7 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
   JsonNode *packet;
 
   VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
@@ -159,7 +159,7 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
                             &watch);
 
   VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
@@ -259,7 +259,7 @@ test_mousepad_plugin_send_pointer_request (ValentTestFixture *fixture,
                             &watch);
 
   VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mousepad.keyboardstate");
@@ -321,7 +321,7 @@ test_mousepad_plugin_fuzz (ValentTestFixture *fixture,
 {
   JsonNode *packet;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");

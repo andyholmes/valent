@@ -52,7 +52,7 @@ test_battery_plugin_actions (ValentTestFixture *fixture,
   g_assert_true (g_action_group_has_action (actions, "battery.state"));
 
   VALENT_TEST_CHECK ("Plugin sends battery status at connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
@@ -108,7 +108,7 @@ test_battery_plugin_handle_update (ValentTestFixture *fixture,
   g_assert_false (g_action_group_get_action_enabled (actions, "battery.state"));
 
   VALENT_TEST_CHECK ("Plugin sends battery status at connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
@@ -300,7 +300,7 @@ test_battery_plugin_send_update (ValentTestFixture *fixture,
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
 
   VALENT_TEST_CHECK ("Plugin sends battery status at connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.battery");
@@ -350,7 +350,7 @@ test_battery_plugin_fuzz (ValentTestFixture *fixture,
                           gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

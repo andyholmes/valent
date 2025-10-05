@@ -44,7 +44,10 @@ G_DECLARE_FINAL_TYPE (ValentDevice, valent_device, VALENT, DEVICE, ValentResourc
 VALENT_AVAILABLE_IN_1_0
 ValentDevice      * valent_device_new                  (const char           *id);
 VALENT_AVAILABLE_IN_1_0
-ValentChannel     * valent_device_ref_channel          (ValentDevice         *device);
+void                valent_device_add_channel          (ValentDevice         *device,
+                                                        ValentChannel        *channel);
+VALENT_AVAILABLE_IN_1_0
+GListModel        * valent_device_get_channels         (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0
 ValentContext     * valent_device_get_context          (ValentDevice         *device);
 VALENT_AVAILABLE_IN_1_0

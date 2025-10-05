@@ -64,6 +64,7 @@ test_window_device_management (TestWindowFixture *fixture,
                                gconstpointer      user_data)
 {
   g_autoptr (ValentDevice) device = NULL;
+  g_autoptr (ValentChannel) channel = NULL;
   GtkWindow *window;
 
   VALENT_TEST_CHECK ("Window can be constructed");
@@ -82,7 +83,8 @@ test_window_device_management (TestWindowFixture *fixture,
 
   VALENT_TEST_CHECK ("Window updates when the device state changes");
   device = g_list_model_get_item (G_LIST_MODEL (fixture->manager), 0);
-  valent_device_set_channel (device, NULL);
+  channel = g_list_model_get_item (valent_device_get_channels (device), 0);
+  valent_object_destroy (VALENT_OBJECT (channel));
   valent_test_await_pending ();
 
   VALENT_TEST_CHECK ("Window can be destroyed with an active device");
@@ -99,6 +101,7 @@ test_window_navigation (TestWindowFixture *fixture,
 #if 0
   GtkWindow *window;
   g_autoptr (ValentDevice) device = NULL;
+  g_autoptr (ValentChannel) channel = NULL;
 
   VALENT_TEST_CHECK ("Window can be constructed");
   window = g_object_new (VALENT_TYPE_TEST_SUBJECT,
@@ -128,7 +131,8 @@ test_window_navigation (TestWindowFixture *fixture,
 
   VALENT_TEST_CHECK ("Window updates when a device is removed");
   device = g_list_model_get_item (G_LIST_MODEL (fixture->manager), 0);
-  valent_device_set_channel (device, NULL);
+  channel = g_list_model_get_item (valent_device_get_channels (device), 0);
+  valent_object_destroy (VALENT_OBJECT (channel));
   valent_test_await_pending ();
 
   VALENT_TEST_CHECK ("Window can be destroyed without an active device");

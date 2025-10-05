@@ -65,7 +65,7 @@ test_share_upload_single (ValentTestFixture *fixture,
   JsonNode *packet = NULL;
   GError *error = NULL;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   file = g_file_new_for_uri (test_files[0]);
   info = g_file_query_info (file,
@@ -134,7 +134,7 @@ test_share_upload_multiple (ValentTestFixture *fixture,
   JsonNode *packet = NULL;
   GError *error = NULL;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   /* Prepare a list of files */
   files = g_list_store_new (G_TYPE_FILE);
