@@ -1405,19 +1405,35 @@ valent_device_send_packet_cb (ValentChannel *channel,
                               GAsyncResult  *result,
                               gpointer       user_data)
 {
-  g_autoptr (GTask) task = G_TASK (user_data);
-  GError *error = NULL;
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentDevice *self = g_task_get_source_object (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  JsonNode *packet = g_task_get_task_data (task);
+  g_autoptr (GError) error = NULL;
 
   if (valent_channel_write_packet_finish (channel, result, &error))
     {
+      VALENT_JSON (packet, self->name);
       g_task_return_boolean (task, TRUE);
       return;
     }
 
-  /* Ignore cancellation by the caller
+  /* Unless the operation was cancelled, destroy the defunct
+   * channel and retry if possible
    */
   if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    valent_object_destroy (VALENT_OBJECT (channel));
+    {
+      valent_object_destroy (VALENT_OBJECT (channel));
+      if (self->channel != NULL)
+        {
+          valent_channel_write_packet (self->channel,
+                                       packet,
+                                       cancellable,
+                                       (GAsyncReadyCallback)valent_device_send_packet_cb,
+                                       g_object_ref (task));
+          return;
+        }
+    }
 
   g_task_return_error (task, g_steal_pointer (&error));
 }
@@ -1478,12 +1494,14 @@ valent_device_send_packet (ValentDevice        *device,
 
   task = g_task_new (device, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_device_send_packet);
+  g_task_set_task_data (task,
+                        json_node_ref (packet),
+                        (GDestroyNotify)json_node_unref);
   valent_channel_write_packet (device->channel,
                                packet,
                                cancellable,
                                (GAsyncReadyCallback)valent_device_send_packet_cb,
                                g_steal_pointer (&task));
-  VALENT_JSON (packet, device->name);
 }
 
 /**
