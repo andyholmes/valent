@@ -29,7 +29,7 @@ test_clipboard_plugin_connect (ValentTestFixture *fixture,
   g_settings_set_boolean (fixture->settings, "auto-push", TRUE);
 
   VALENT_TEST_CHECK ("Plugin sends clipboard content at connect time");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.clipboard.connect");
@@ -50,7 +50,7 @@ test_clipboard_plugin_handle_content (ValentTestFixture *fixture,
   g_settings_set_boolean (fixture->settings, "auto-push", TRUE);
 
   VALENT_TEST_CHECK ("Plugin sends clipboard content at connect time");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.clipboard.connect");
@@ -113,7 +113,7 @@ test_clipboard_plugin_send_content (ValentTestFixture *fixture,
   g_settings_set_boolean (fixture->settings, "auto-push", TRUE);
 
   VALENT_TEST_CHECK ("Plugin sends clipboard content at connect time");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.clipboard.connect");
@@ -152,7 +152,7 @@ test_clipboard_plugin_actions (ValentTestFixture *fixture,
   g_assert_false (g_action_group_get_action_enabled (actions, "clipboard.push"));
 
   VALENT_TEST_CHECK ("Plugin has expected actions enabled when connected");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_assert_true (g_action_group_get_action_enabled (actions, "clipboard.pull"));
   g_assert_true (g_action_group_get_action_enabled (actions, "clipboard.push"));
 
@@ -198,7 +198,7 @@ test_clipboard_plugin_fuzz (ValentTestFixture *fixture,
                             gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

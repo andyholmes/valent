@@ -319,7 +319,7 @@ g_file_query_info_cb (GFile        *file,
       return;
     }
 
-  channel = valent_device_ref_channel (self->device);
+  channel = g_list_model_get_item (valent_device_get_channels (self->device), 0);
   if (channel == NULL)
     {
       g_task_return_new_error (task,
@@ -375,7 +375,7 @@ valent_device_transfer_execute (ValentTransfer      *transfer,
     {
       g_autoptr (ValentChannel) channel = NULL;
 
-      channel = valent_device_ref_channel (self->device);
+      channel = g_list_model_get_item (valent_device_get_channels (self->device), 0);
       if (channel == NULL)
         {
           g_task_return_new_error (task,

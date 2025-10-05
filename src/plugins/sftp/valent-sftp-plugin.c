@@ -43,7 +43,7 @@ get_device_host (ValentSftpPlugin *self)
   /* The plugin doesn't know ValentChannel derivations, so we have to check for
    * a "host" property to ensure it's IP-based */
   device = valent_resource_get_source (VALENT_RESOURCE (self));
-  channel = valent_device_ref_channel (device);
+  channel = g_list_model_get_item (valent_device_get_channels (device), 0);
 
   if G_LIKELY (channel != NULL)
     pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (channel), "host");

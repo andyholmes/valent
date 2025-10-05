@@ -24,7 +24,7 @@ test_device_transfer (ValentTestFixture *fixture,
   goffset src_size, dest_size;
   GError *error = NULL;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   file = g_file_new_for_uri ("resource:///tests/image.png");
   src_info = g_file_query_info (file,

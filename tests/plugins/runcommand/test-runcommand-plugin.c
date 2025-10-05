@@ -15,7 +15,7 @@ test_runcommand_plugin_basic (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "runcommand.execute"));
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin action `runcommand.execute` is enabled when connected");
   g_assert_true (g_action_group_get_action_enabled (actions, "runcommand.execute"));
@@ -28,7 +28,7 @@ test_runcommand_plugin_handle_request (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   g_assert_true (g_action_group_get_action_enabled (actions, "runcommand.execute"));
 
@@ -62,7 +62,7 @@ test_runcommand_plugin_send_request (ValentTestFixture *fixture,
   JsonNode *packet;
 
   VALENT_TEST_CHECK ("Plugin sends the command list on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.runcommand");

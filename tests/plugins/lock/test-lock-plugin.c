@@ -22,7 +22,7 @@ test_lock_plugin_handle_request (ValentTestFixture *fixture,
 {
   JsonNode *packet;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin requests locked state on connect");
   packet = valent_test_fixture_expect_packet (fixture);
@@ -74,7 +74,7 @@ test_lock_plugin_send_request (ValentTestFixture *fixture,
                             &watch);
 
   VALENT_TEST_CHECK ("Plugin requests locked state on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.lock.request");
@@ -121,7 +121,7 @@ test_lock_plugin_fuzz (ValentTestFixture *fixture,
                        gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

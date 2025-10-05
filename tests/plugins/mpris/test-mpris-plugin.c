@@ -79,7 +79,7 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   valent_test_await_signal (valent_test_await_adapter (media), "items-changed");
 
   VALENT_TEST_CHECK ("Plugin requests the list of players on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
@@ -395,7 +395,7 @@ test_mpris_plugin_handle_player (ValentTestFixture *fixture,
                                                  fixture, NULL);
 
   VALENT_TEST_CHECK ("Plugin requests the list of players on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.mpris.request");
@@ -566,7 +566,7 @@ test_mpris_plugin_fuzz (ValentTestFixture *fixture,
                         gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

@@ -254,7 +254,7 @@ on_channel (ValentChannelService *service,
   if (!valent_device_manager_check_device (self, device))
     VALENT_EXIT;
 
-  valent_device_set_channel (device, channel);
+  valent_device_add_channel (device, channel);
 
   VALENT_EXIT;
 }
@@ -414,9 +414,7 @@ on_device_state (ValentDevice        *device,
       g_autoptr (ValentChannel) channel = NULL;
       JsonNode *identity = NULL;
 
-      if ((channel = valent_device_ref_channel (device)) == NULL)
-        return;
-
+      channel = g_list_model_get_item (valent_device_get_channels (device), 0);
       identity = valent_channel_get_peer_identity (channel);
       json_object_set_object_member (json_node_get_object (self->state),
                                      valent_device_get_id (device),

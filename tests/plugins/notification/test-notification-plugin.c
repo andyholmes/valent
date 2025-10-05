@@ -35,7 +35,7 @@ test_notification_plugin_basic (ValentTestFixture *fixture,
   g_assert_true (g_action_group_has_action (actions, "notification.reply"));
   g_assert_true (g_action_group_has_action (actions, "notification.send"));
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin action `notification.action` is enabled when connected");
   g_assert_true (g_action_group_get_action_enabled (actions, "notification.action"));
@@ -62,7 +62,7 @@ test_notification_plugin_handle_notification (ValentTestFixture *fixture,
   g_autoptr (GFile) file = NULL;
 
   VALENT_TEST_CHECK ("Plugin requests the existing notifications on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");
@@ -107,7 +107,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   g_settings_set_boolean (fixture->settings, "forward-when-active", TRUE);
 
   VALENT_TEST_CHECK ("Plugin requests the existing notifications on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");
@@ -225,7 +225,7 @@ test_notification_plugin_actions (ValentTestFixture *fixture,
   GError *error = NULL;
 
   VALENT_TEST_CHECK ("Plugin requests the existing notifications on connect");
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");
@@ -321,7 +321,7 @@ test_notification_plugin_fuzz (ValentTestFixture *fixture,
                                gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)

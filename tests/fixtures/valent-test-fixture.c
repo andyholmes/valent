@@ -260,17 +260,15 @@ valent_test_fixture_get_device (ValentTestFixture *fixture)
 /**
  * valent_test_fixture_connect:
  * @fixture: a `ValentTestFixture`
- * @connected: whether to connect the device
  *
- * Get the connected state of the `ValentDevice`.
+ * Connect the fixture `ValentDevice`.
  */
 void
-valent_test_fixture_connect (ValentTestFixture *fixture,
-                             gboolean           connect)
+valent_test_fixture_connect (ValentTestFixture *fixture)
 {
   g_assert (fixture != NULL);
 
-  valent_device_set_channel (fixture->device, connect ? fixture->channel : NULL);
+  valent_device_add_channel (fixture->device, fixture->channel);
 }
 
 /**

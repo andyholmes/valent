@@ -35,8 +35,7 @@ void                valent_test_fixture_init          (ValentTestFixture  *fixtu
                                                        gconstpointer       user_data);
 void                valent_test_fixture_clear         (ValentTestFixture  *fixture,
                                                        gconstpointer      user_data);
-void                valent_test_fixture_connect       (ValentTestFixture  *fixture,
-                                                       gboolean            connected);
+void                valent_test_fixture_connect       (ValentTestFixture  *fixture);
 gpointer            valent_test_fixture_get_data      (ValentTestFixture  *fixture);
 void                valent_test_fixture_set_data      (ValentTestFixture  *fixture,
                                                        gpointer            data,

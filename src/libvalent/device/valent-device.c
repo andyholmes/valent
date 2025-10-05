@@ -67,6 +67,7 @@ struct _ValentDevice
   int64_t          protocol_version;
 
   /* State */
+  GListModel      *channels;
   ValentChannel   *channel;
   gboolean         paired;
   unsigned int     incoming_pair;
@@ -600,11 +601,7 @@ send_pair_cb (ValentChannel *channel,
       VALENT_NOTE ("%s: %s", device->name, error->message);
 
       valent_device_reset_pair (device);
-
-      valent_object_lock (VALENT_OBJECT (device));
-      if (device->channel == channel)
-        valent_device_set_channel (device, NULL);
-      valent_object_unlock (VALENT_OBJECT (device));
+      valent_object_destroy (VALENT_OBJECT (channel));
     }
 
   g_object_unref (device);
@@ -620,13 +617,8 @@ valent_device_send_pair (ValentDevice *device,
 
   g_assert (VALENT_IS_DEVICE (device));
 
-  valent_object_lock (VALENT_OBJECT (device));
-
   if (device->channel == NULL)
-    {
-      valent_object_unlock (VALENT_OBJECT (device));
-      return;
-    }
+    return;
 
   valent_packet_init (&builder, "kdeconnect.pair");
   json_builder_set_member_name (builder, "pair");
@@ -646,8 +638,6 @@ valent_device_send_pair (ValentDevice *device,
                                cancellable,
                                (GAsyncReadyCallback)send_pair_cb,
                                g_object_ref (device));
-
-  valent_object_unlock (VALENT_OBJECT (device));
 }
 
 static void
@@ -659,11 +649,9 @@ valent_device_set_paired (ValentDevice *self,
 
   g_assert (VALENT_IS_DEVICE (self));
 
-  valent_object_lock (VALENT_OBJECT (self));
   if (self->paired == paired)
     {
       valent_device_cancel_pair (self);
-      valent_object_unlock (VALENT_OBJECT (self));
       return;
     }
 
@@ -723,7 +711,6 @@ valent_device_set_paired (ValentDevice *self,
 
   self->paired = paired;
   g_settings_set_boolean (self->settings, "paired", self->paired);
-  valent_object_unlock (VALENT_OBJECT (self));
 
   valent_device_reset_pair (self);
   valent_device_update_plugins (self);
@@ -890,8 +877,6 @@ valent_device_handle_identity (ValentDevice *device,
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_PACKET (packet));
 
-  valent_object_lock (VALENT_OBJECT (device));
-
   /* The ID must match the construct-time value, while the device name is
    * assumed to be validated already.
    */
@@ -901,7 +886,6 @@ valent_device_handle_identity (ValentDevice *device,
       g_critical ("%s(): expected \"deviceId\" field holding \"%s\"",
                   G_STRFUNC,
                   device->id);
-      valent_object_unlock (VALENT_OBJECT (device));
       VALENT_EXIT;
     }
 
@@ -909,7 +893,6 @@ valent_device_handle_identity (ValentDevice *device,
     {
       g_critical ("%s(): expected \"deviceName\" field holding a string",
                   G_STRFUNC);
-      valent_object_unlock (VALENT_OBJECT (device));
       VALENT_EXIT;
     }
 
@@ -960,8 +943,6 @@ valent_device_handle_identity (ValentDevice *device,
    */
   if (!valent_packet_get_int (packet, "protocolVersion", &device->protocol_version))
     device->protocol_version = VALENT_NETWORK_PROTOCOL_V8;
-
-  valent_object_unlock (VALENT_OBJECT (device));
 
   /* Recheck plugins against current capabilities
    */
@@ -1070,12 +1051,21 @@ static void
 valent_device_destroy (ValentObject *object)
 {
   ValentDevice *self = VALENT_DEVICE (object);
+  unsigned int n_items = 0;
 
-  /* Using the internal methods ensures plugins are notified if destruction
-   * implies a state change
-   */
   valent_device_reset_pair (self);
-  valent_device_set_channel (self, NULL);
+
+  /* Destroy all connections associated with this device,
+   * ensuring a state change is propagated to plugins
+   */
+  n_items = g_list_model_get_n_items (self->channels);
+  for (unsigned int i = n_items; i--;)
+    {
+      g_autoptr (ValentObject) item = NULL;
+
+      item = g_list_model_get_item (self->channels, i);
+      valent_object_destroy (item);
+    }
 
   g_signal_handlers_disconnect_by_data (self->engine, self);
   g_hash_table_remove_all (self->plugins);
@@ -1148,6 +1138,7 @@ valent_device_finalize (GObject *object)
   g_clear_pointer (&self->outgoing_capabilities, g_strfreev);
 
   /* State */
+  g_clear_object (&self->channels);
   g_clear_object (&self->channel);
 
   /* Plugins */
@@ -1225,6 +1216,7 @@ valent_device_init (ValentDevice *self)
 {
   GSimpleAction *action = NULL;
 
+  self->channels = G_LIST_MODEL (g_list_store_new (VALENT_TYPE_CHANNEL));
   self->plugins = g_hash_table_new_full (NULL, NULL, NULL, valent_plugin_free);
   self->handlers = g_hash_table_new_full (g_str_hash,
                                           g_str_equal,
@@ -1414,10 +1406,7 @@ valent_device_send_packet_cb (ValentChannel *channel,
                               gpointer       user_data)
 {
   g_autoptr (GTask) task = G_TASK (user_data);
-  ValentDevice *device = g_task_get_source_object (task);
-  g_autoptr (GError) error = NULL;
-
-  g_assert (VALENT_IS_DEVICE (device));
+  GError *error = NULL;
 
   if (valent_channel_write_packet_finish (channel, result, &error))
     {
@@ -1428,12 +1417,7 @@ valent_device_send_packet_cb (ValentChannel *channel,
   /* Ignore cancellation by the caller
    */
   if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    {
-      valent_object_lock (VALENT_OBJECT (device));
-      if (device->channel == channel)
-        valent_device_set_channel (device, NULL);
-      valent_object_unlock (VALENT_OBJECT (device));
-    }
+    valent_object_destroy (VALENT_OBJECT (channel));
 
   g_task_return_error (task, g_steal_pointer (&error));
 }
@@ -1468,11 +1452,8 @@ valent_device_send_packet (ValentDevice        *device,
   g_return_if_fail (VALENT_IS_DEVICE (device));
   g_return_if_fail (VALENT_IS_PACKET (packet));
 
-  valent_object_lock (VALENT_OBJECT (device));
-
   if G_UNLIKELY (device->channel == NULL)
     {
-      valent_object_unlock (VALENT_OBJECT (device));
       g_task_report_new_error (device,
                                callback,
                                user_data,
@@ -1485,7 +1466,6 @@ valent_device_send_packet (ValentDevice        *device,
 
   if G_UNLIKELY (!device->paired)
     {
-      valent_object_unlock (VALENT_OBJECT (device));
       g_task_report_new_error (device,
                                callback,
                                user_data,
@@ -1504,8 +1484,6 @@ valent_device_send_packet (ValentDevice        *device,
                                (GAsyncReadyCallback)valent_device_send_packet_cb,
                                g_steal_pointer (&task));
   VALENT_JSON (packet, device->name);
-
-  valent_object_unlock (VALENT_OBJECT (device));
 }
 
 /**
@@ -1530,31 +1508,6 @@ valent_device_send_packet_finish (ValentDevice  *device,
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
   return g_task_propagate_boolean (G_TASK (result), error);
-}
-
-/**
- * valent_device_ref_channel:
- * @device: a `ValentDevice`
- *
- * Get the active channel.
- *
- * Returns: (transfer full) (nullable): a `ValentChannel`, or %NULL if disconnected
- *
- * Since: 1.0
- */
-ValentChannel *
-valent_device_ref_channel (ValentDevice *device)
-{
-  ValentChannel *ret = NULL;
-
-  g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
-
-  valent_object_lock (VALENT_OBJECT (device));
-  if (device->channel != NULL)
-    ret = g_object_ref (device->channel);
-  valent_object_unlock (VALENT_OBJECT (device));
-
-  return ret;
 }
 
 static void
@@ -1583,79 +1536,126 @@ read_packet_cb (ValentChannel *channel,
   else
     {
       VALENT_NOTE ("%s: %s", device->name, error->message);
-
-      valent_object_lock (VALENT_OBJECT (device));
-      if (device->channel == channel)
-        valent_device_set_channel (device, NULL);
-      valent_object_unlock (VALENT_OBJECT (device));
+      valent_object_destroy (VALENT_OBJECT (channel));
     }
 
   g_object_unref (device);
 }
 
 /**
- * valent_device_set_channel:
- * @device: A `ValentDevice`
- * @channel: (nullable): A `ValentChannel`
+ * valent_device_get_channels: (get-property channels)
+ * @device: a `ValentDevice`
  *
- * Sets the active channel.
+ * Get the active channels.
+ *
+ * Returns: (transfer none): a `GListModel`
+ *
+ * Since: 1.0
+ */
+GListModel *
+valent_device_get_channels (ValentDevice *device)
+{
+  g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
+
+  return device->channels;
+}
+
+static void
+on_channel_destroy (ValentObject *object,
+                    ValentDevice *self)
+{
+  ValentChannel *channel = VALENT_CHANNEL (object);
+  unsigned int position = 0;
+
+  if (g_list_store_find (G_LIST_STORE (self->channels), object, &position))
+    {
+      g_list_store_remove (G_LIST_STORE (self->channels), position);
+
+      /* Drop the extra reference if this was the highest priority channel
+       */
+      if (self->channel == channel)
+        {
+          g_warn_if_fail (position == 0);
+          g_clear_object (&self->channel);
+        }
+
+      /* Notify of the state change if this was the last channel,
+       * or ensure a reference to the channel with the highest priority.
+       */
+      if (g_list_model_get_n_items (self->channels) == 0)
+        g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_STATE]);
+      else if (self->channel == NULL)
+        self->channel = g_list_model_get_item (self->channels, 0);
+    }
+}
+
+static inline int
+channel_sort_func (gconstpointer a,
+                  gconstpointer b,
+                  gpointer      user_data)
+{
+  if (g_str_equal (G_OBJECT_TYPE_NAME (a), G_OBJECT_TYPE_NAME (b)))
+    return 0;
+
+  return g_str_equal (G_OBJECT_TYPE_NAME (a), "ValentLanChannel") ? -1 : 1;
+}
+
+/**
+ * valent_device_add_channel:
+ * @device: a `ValentDevice`
+ * @channel: a `ValentChannel`
+ *
+ * Add @channel to the list of active channels.
  *
  * Since: 1.0
  */
 void
-valent_device_set_channel (ValentDevice  *device,
+valent_device_add_channel (ValentDevice  *device,
                            ValentChannel *channel)
 {
-  gboolean was_connected;
-  gboolean is_connected;
+  JsonNode *peer_identity;
+  g_autoptr (GCancellable) cancellable = NULL;
+  unsigned int n_channels = 0;
+  unsigned int position = 0;
 
   g_return_if_fail (VALENT_IS_DEVICE (device));
-  g_return_if_fail (channel == NULL || VALENT_IS_CHANNEL (channel));
+  g_return_if_fail (VALENT_IS_CHANNEL (channel));
 
-  valent_object_lock (VALENT_OBJECT (device));
+  g_signal_connect_object (channel,
+                           "destroy",
+                           G_CALLBACK (on_channel_destroy),
+                           device,
+                           G_CONNECT_DEFAULT);
 
-  if (device->channel == channel)
+  n_channels = g_list_model_get_n_items (device->channels);
+  position = g_list_store_insert_sorted (G_LIST_STORE (device->channels),
+                                         channel,
+                                         channel_sort_func,
+                                         NULL);
+
+  /* Handle the peer identity and start reading the first packet
+   * before notifying of the state change
+   */
+  peer_identity = valent_channel_get_peer_identity (channel);
+  valent_device_handle_identity (device, peer_identity);
+
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (device));
+  valent_channel_read_packet (channel,
+                              cancellable,
+                              (GAsyncReadyCallback)read_packet_cb,
+                              g_object_ref (device));
+
+  /* Hold a reference to the channel if it has the highest priority,
+   * and notify of the state change if it's the first channel
+   */
+  if (position == 0)
+    g_set_object (&device->channel, channel);
+
+  if (n_channels == 0)
     {
-      valent_object_unlock (VALENT_OBJECT (device));
-      return;
+      valent_device_update_plugins (device);
+      g_object_notify_by_pspec (G_OBJECT (device), properties[PROP_STATE]);
     }
-
-  /* If there's an active channel, close it asynchronously and drop our
-   * reference so the task holds the final reference. */
-  if ((was_connected = (device->channel != NULL)))
-    {
-      valent_channel_close_async (device->channel, NULL, NULL, NULL);
-      g_clear_object (&device->channel);
-    }
-
-  /* If there's a new channel, handle the peer identity and queue the first
-   * read operation before notifying of the state change. */
-  if ((is_connected = g_set_object (&device->channel, channel)))
-    {
-      g_autoptr (GCancellable) cancellable = NULL;
-      JsonNode *peer_identity;
-
-      /* Handle the peer identity packet */
-      peer_identity = valent_channel_get_peer_identity (channel);
-      valent_device_handle_identity (device, peer_identity);
-
-      /* Start receiving packets */
-      cancellable = valent_object_ref_cancellable (VALENT_OBJECT (device));
-      valent_channel_read_packet (channel,
-                                  cancellable,
-                                  (GAsyncReadyCallback)read_packet_cb,
-                                  g_object_ref (device));
-      is_connected = TRUE;
-    }
-
-  valent_object_unlock (VALENT_OBJECT (device));
-
-  /* If the state changed, update the plugins and notify */
-  if (is_connected == was_connected)
-    return;
-
-  valent_device_update_plugins (device);
-  g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_STATE]);
 }
 
 /**
@@ -1769,8 +1769,6 @@ valent_device_get_state (ValentDevice *device)
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), state);
 
-  valent_object_lock (VALENT_OBJECT (device));
-
   if (device->channel != NULL)
     state |= VALENT_DEVICE_STATE_CONNECTED;
 
@@ -1782,8 +1780,6 @@ valent_device_get_state (ValentDevice *device)
 
   if (device->outgoing_pair > 0)
     state |= VALENT_DEVICE_STATE_PAIR_OUTGOING;
-
-  valent_object_unlock (VALENT_OBJECT (device));
 
   return state;
 }
@@ -1807,7 +1803,6 @@ valent_device_get_verification_key (ValentDevice *device)
 
   g_return_val_if_fail (VALENT_IS_DEVICE (device), NULL);
 
-  valent_object_lock (VALENT_OBJECT (device));
   if (device->channel != NULL)
     {
       g_autoptr (GChecksum) checksum = NULL;
@@ -1848,7 +1843,6 @@ valent_device_get_verification_key (ValentDevice *device)
 
       verification_key = g_ascii_strup (g_checksum_get_string (checksum), 8);
     }
-  valent_object_unlock (VALENT_OBJECT (device));
 
   VALENT_RETURN (verification_key);
 }

@@ -85,7 +85,7 @@ test_telephony_plugin_basic (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin has expected actions");
   g_assert_true (g_action_group_has_action (actions, "telephony.mute-call"));
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin action `telephony.mute-call` is enabled when connected");
   g_assert_true (g_action_group_get_action_enabled (actions, "telephony.mute-call"));
@@ -102,7 +102,7 @@ test_telephony_plugin_handle_event (ValentTestFixture *fixture,
   valent_media_player_play (info->player1);
   valent_test_watch_signal (info->speakers, "notify", &watch);
   valent_test_watch_signal (info->microphone, "notify", &watch);
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   /* Receive an unanswered call event-chain. What we expect is:
    *
@@ -209,7 +209,7 @@ test_telephony_plugin_handle_mixer (ValentTestFixture *fixture,
   valent_media_player_play (info->player1);
   valent_test_watch_signal (info->speakers, "notify", &watch);
   valent_test_watch_signal (info->microphone, "notify", &watch);
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   /* Receive an answered call event-chain. In this case, emulate inserting
    * headphones after the phone started ringing. Thus what we expect is:
@@ -285,7 +285,7 @@ test_telephony_plugin_handle_media (ValentTestFixture *fixture,
   valent_media_player_play (info->player1);
   valent_test_watch_signal (info->speakers, "notify", &watch);
   valent_test_watch_signal (info->microphone, "notify", &watch);
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   /* Receive an answered call event-chain. In this case, emulate stopping a
    * paused player after the phone is answered. Thus what we expect is:
@@ -357,7 +357,7 @@ test_telephony_plugin_mute_call (ValentTestFixture *fixture,
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
 
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
 
   VALENT_TEST_CHECK ("Plugin handles a `ringing` event");
   packet = valent_test_fixture_lookup_packet (fixture, "ringing");
@@ -384,7 +384,7 @@ test_telephony_plugin_fuzz (ValentTestFixture *fixture,
                             gconstpointer      user_data)
 
 {
-  valent_test_fixture_connect (fixture, TRUE);
+  valent_test_fixture_connect (fixture);
   g_test_log_set_fatal_handler (valent_test_mute_fuzzing, NULL);
 
   for (size_t s = 0; s < G_N_ELEMENTS (schemas); s++)
