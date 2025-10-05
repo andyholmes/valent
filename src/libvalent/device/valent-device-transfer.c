@@ -51,6 +51,26 @@ typedef enum {
 
 static GParamSpec *properties[PROP_PACKET + 1] = { NULL, };
 
+static ValentChannel *
+_valent_device_next_channel (ValentDevice  *device,
+                             ValentChannel *channel)
+{
+  GListModel *channels = NULL;
+  unsigned int n_items = 0;
+
+  channels = valent_device_get_channels (device);
+  n_items = g_list_model_get_n_items (channels);
+  for (unsigned int i = 0; i < n_items; i++)
+    {
+      g_autoptr (ValentChannel) next = NULL;
+
+      next = g_list_model_get_item (channels, i);
+      if (next != channel)
+        return g_steal_pointer (&next);
+    }
+
+  return NULL;
+}
 
 static void
 valent_device_transfer_update_packet (JsonNode  *packet,
@@ -225,12 +245,29 @@ valent_channel_download_cb (ValentChannel *channel,
                             gpointer       user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentDeviceTransfer *self = g_task_get_source_object (task);
   TransferOperation *op = g_task_get_task_data (task);
   GError *error = NULL;
 
   op->connection = valent_channel_download_finish (channel, result, &error);
   if (op->connection == NULL)
     {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        {
+          g_autoptr (ValentChannel) next = NULL;
+
+          next = _valent_device_next_channel (self->device, channel);
+          if (next != NULL)
+            {
+              valent_channel_download_async (next,
+                                             self->packet,
+                                             g_task_get_cancellable (task),
+                                             (GAsyncReadyCallback)valent_channel_download_cb,
+                                             g_object_ref (task));
+              return;
+            }
+        }
+
       g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
@@ -266,12 +303,29 @@ valent_channel_upload_cb (ValentChannel *channel,
                           gpointer       user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentDeviceTransfer *self = g_task_get_source_object (task);
   TransferOperation *op = g_task_get_task_data (task);
   GError *error = NULL;
 
   op->connection = valent_channel_upload_finish (channel, result, &error);
   if (op->connection == NULL)
     {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        {
+          g_autoptr (ValentChannel) next = NULL;
+
+          next = _valent_device_next_channel (self->device, channel);
+          if (next != NULL)
+            {
+              valent_channel_upload_async (next,
+                                           self->packet,
+                                           g_task_get_cancellable (task),
+                                           (GAsyncReadyCallback)valent_channel_upload_cb,
+                                           g_object_ref (task));
+              return;
+            }
+        }
+
       g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
