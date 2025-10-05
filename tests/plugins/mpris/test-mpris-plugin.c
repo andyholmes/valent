@@ -322,6 +322,16 @@ test_mpris_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_no_error (error);
 
   json_node_unref (packet);
+
+  VALENT_TEST_CHECK ("Plugin sends the list of players when changed");
+  valent_mpris_impl_unexport (impl);
+
+  packet = valent_test_fixture_expect_packet (fixture);
+  v_assert_packet_type (packet, "kdeconnect.mpris");
+  player_list = json_object_get_array_member (valent_packet_get_body (packet),
+                                              "playerList");
+  g_assert_cmpuint (json_array_get_length (player_list), ==, 0);
+  json_node_unref (packet);
 }
 
 static void
