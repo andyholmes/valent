@@ -17,8 +17,6 @@
 struct _ValentMockChannelService
 {
   ValentChannelService  parent_instance;
-
-  ValentChannel        *channel;
 };
 
 G_DEFINE_FINAL_TYPE (ValentMockChannelService, valent_mock_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
@@ -61,6 +59,7 @@ valent_mock_channel_service_identify (ValentChannelService *service,
   g_autoptr (GSocket) peer_socket = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   g_autoptr (GSocketConnection) peer_connection = NULL;
+  g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (ValentChannel) endpoint = NULL;
   g_autofree char *peer_path = NULL;
 
@@ -87,15 +86,13 @@ valent_mock_channel_service_identify (ValentChannelService *service,
   connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
                              "socket", socket,
                              NULL);
-  self->channel = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
-                                "base-stream",      connection,
-                                "certificate",      certificate,
-                                "identity",         identity,
-                                "peer-certificate", peer_certificate,
-                                "peer-identity",    peer_identity,
-                                NULL);
-  g_object_add_weak_pointer (G_OBJECT (self->channel),
-                             (gpointer)&self->channel);
+  channel = g_object_new (VALENT_TYPE_MOCK_CHANNEL,
+                          "base-stream",      connection,
+                          "certificate",      certificate,
+                          "identity",         identity,
+                          "peer-certificate", peer_certificate,
+                          "peer-identity",    peer_identity,
+                          NULL);
 
   /* This is the channel associated with the mock endpoint
    */
@@ -115,23 +112,7 @@ valent_mock_channel_service_identify (ValentChannelService *service,
                           g_object_ref (endpoint),
                           g_object_unref);
 
-  valent_channel_service_channel (service, self->channel);
-}
-
-
-/*
- * ValentObject
- */
-static void
-valent_mock_channel_service_destroy (ValentObject *object)
-{
-  ValentMockChannelService *self = VALENT_MOCK_CHANNEL_SERVICE (object);
-
-  g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
-
-  g_clear_object (&self->channel);
-
-  VALENT_OBJECT_CLASS (valent_mock_channel_service_parent_class)->destroy (object);
+  valent_channel_service_channel (service, channel);
 }
 
 /*
@@ -140,10 +121,7 @@ valent_mock_channel_service_destroy (ValentObject *object)
 static void
 valent_mock_channel_service_class_init (ValentMockChannelServiceClass *klass)
 {
-  ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
   ValentChannelServiceClass *service_class = VALENT_CHANNEL_SERVICE_CLASS (klass);
-
-  vobject_class->destroy = valent_mock_channel_service_destroy;
 
   service_class->identify = valent_mock_channel_service_identify;
 }
