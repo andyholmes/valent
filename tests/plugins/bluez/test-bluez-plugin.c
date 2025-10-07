@@ -337,64 +337,35 @@ test_bluez_service_new_connection (BluezTestFixture *fixture,
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
 }
 
-#if 0
 static void
 test_bluez_service_channel (BluezTestFixture *fixture,
                             gconstpointer     user_data)
 {
-  GError *error = NULL;
-  JsonNode *packet;
-  g_autoptr (GSocketAddress) address = NULL;
-  g_autofree char *identity_str = NULL;
-  size_t identity_len;
-  g_autoptr (GFile) file = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  g_autoptr (ValentMuxConnection) muxer = NULL;
 
-  g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
-                               G_PRIORITY_DEFAULT,
-                               NULL,
-                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
-                               fixture);
-  valent_test_run_loop ();
+  test_bluez_service_new_connection (fixture, user_data);
+  valent_test_await_pending ();
 
-  /* Listen for an incoming TCP connection */
-  await_incoming_connection (fixture);
+  VALENT_TEST_CHECK ("GObject properties function correctly");
+  g_object_get (fixture->channel,
+                "muxer", &muxer,
+                NULL);
+  g_assert_true (VALENT_IS_MUX_CONNECTION (muxer));
 
-  /* Identify the mock endpoint to the service */
-  address = g_inet_socket_address_new_from_string (SERVICE_HOST, SERVICE_PORT);
-  packet = json_object_get_member (json_node_get_object (fixture->packets),
-                                   "identity");
-  identity_str = valent_packet_serialize (packet, &identity_len);
+  certificate = valent_channel_ref_certificate (fixture->endpoint);
+  peer_certificate = valent_channel_ref_peer_certificate (fixture->channel);
+  g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
+  g_clear_object (&certificate);
+  g_clear_object (&peer_certificate);
 
-  g_socket_send_to (fixture->socket,
-                    address,
-                    identity_str,
-                    identity_len,
-                    NULL,
-                    &error);
-  g_assert_no_error (error);
-
-  g_signal_connect (fixture->service,
-                    "channel",
-                    G_CALLBACK (on_channel),
-                    fixture);
-  valent_test_run_loop ();
-
-  /* Transfers */
-  file = g_file_new_for_uri ("resource:///tests/image.png");
-  packet = json_object_get_member (json_node_get_object (fixture->packets),
-                                   "transfer");
-
-  valent_channel_read_packet (fixture->endpoint,
-                              NULL,
-                              (GAsyncReadyCallback)on_incoming_transfer,
-                              NULL);
-  valent_test_upload (fixture->channel, packet, file, &error);
-  g_assert_no_error (error);
-
-  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_object_destroy (VALENT_OBJECT (fixture->service));
+  certificate = valent_channel_ref_certificate (fixture->channel);
+  peer_certificate = valent_channel_ref_peer_certificate (fixture->endpoint);
+  g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
+  g_clear_object (&certificate);
+  g_clear_object (&peer_certificate);
 }
-#endif
 
 int
 main (int   argc,
@@ -411,13 +382,11 @@ main (int   argc,
               test_bluez_service_new_connection,
               bluez_service_fixture_tear_down);
 
-#if 0
   g_test_add ("/plugins/bluez/channel",
               BluezTestFixture, NULL,
               bluez_service_fixture_set_up,
               test_bluez_service_channel,
               bluez_service_fixture_tear_down);
-#endif
 
   return g_test_run ();
 }
