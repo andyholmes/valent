@@ -252,7 +252,10 @@ on_channel (ValentChannelService *service,
     VALENT_EXIT;
 
   if (!valent_device_manager_check_device (self, device))
-    VALENT_EXIT;
+    {
+      valent_object_destroy (VALENT_OBJECT (channel));
+      VALENT_EXIT;
+    }
 
   valent_device_add_channel (device, channel);
 
