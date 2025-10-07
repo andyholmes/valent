@@ -820,6 +820,9 @@ valent_channel_service_channel (ValentChannelService *service,
     {
       if (valent_channel_service_verify_channel (service, channel))
         g_signal_emit (G_OBJECT (service), signals [CHANNEL], 0, channel);
+      else if (!valent_object_in_destruction (VALENT_OBJECT (channel)))
+        valent_object_destroy (VALENT_OBJECT (channel));
+
       return;
     }
 
