@@ -20,15 +20,18 @@
 
 typedef struct
 {
+  ValentChannelService *service;
+  ValentChannel        *channel;
   JsonNode             *packets;
+
+  /* D-Bus */
   GDBusConnection      *connection;
   int                  *fds;
 
-  ValentChannelService *service;
-  ValentChannel        *channel;
-
   /* Endpoint */
   ValentChannel        *endpoint;
+  GTlsCertificate      *peer_certificate;
+  JsonNode             *peer_identity;
 
   gpointer              data;
 } BluezBackendFixture;
@@ -37,18 +40,44 @@ static void
 bluez_service_fixture_set_up (BluezBackendFixture *fixture,
                               gconstpointer        user_data)
 {
+  PeasEngine *engine;
   PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
+  g_autofree char *peer_certificate_pem = NULL;
+  const char *peer_id = NULL;
+  GError *error = NULL;
+
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "bluez");
+  context = valent_context_new (NULL, "plugin", "bluez");
 
   fixture->packets = valent_test_load_json ("plugin-bluez.json");
+  fixture->peer_identity = json_object_get_member (json_node_get_object (fixture->packets),
+                                                   "peer-identity");
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
-
-  plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (), "bluez");
-  fixture->service = g_object_new (VALENT_TYPE_BLUEZ_CHANNEL_SERVICE,
-                                   "plugin-info", plugin_info,
-                                   NULL);
-
   fixture->fds = g_new0 (int, 2);
   g_assert_no_errno (socketpair (AF_UNIX, SOCK_STREAM, 0, fixture->fds));
+
+  /* Generate peer certificate and update the identity packet.
+   */
+  fixture->peer_certificate = valent_certificate_new_sync (NULL, &error);
+  g_assert_no_error (error);
+
+  peer_id = valent_certificate_get_common_name (fixture->peer_certificate);
+  json_object_set_string_member (valent_packet_get_body (fixture->peer_identity),
+                                 "deviceId", peer_id);
+
+  g_object_get (fixture->peer_certificate,
+                "certificate-pem", &peer_certificate_pem,
+                NULL);
+  json_object_set_string_member (valent_packet_get_body (fixture->peer_identity),
+                                 "certificate", peer_certificate_pem);
+
+  /* Prepare the local test service */
+  fixture->service = g_object_new (VALENT_TYPE_BLUEZ_CHANNEL_SERVICE,
+                                   "context",     context,
+                                   "plugin-info", plugin_info,
+                                   NULL);
 }
 
 static void
@@ -58,8 +87,7 @@ bluez_service_fixture_tear_down (BluezBackendFixture *fixture,
   g_clear_pointer (&fixture->packets, json_node_unref);
   g_clear_object (&fixture->connection);
 
-  g_clear_pointer (&fixture->fds, g_free);
-
+  valent_object_destroy (VALENT_OBJECT (fixture->service));
   v_await_finalize_object (fixture->service);
 
   if (fixture->channel)
@@ -73,6 +101,9 @@ bluez_service_fixture_tear_down (BluezBackendFixture *fixture,
       valent_channel_close_async (fixture->endpoint, NULL, NULL, NULL);
       v_await_finalize_object (fixture->endpoint);
     }
+
+  v_await_finalize_object (fixture->peer_certificate);
+  g_clear_pointer (&fixture->fds, g_free);
 }
 
 /*
@@ -252,7 +283,6 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
   g_autoptr (GSocket) socket = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   g_autoptr (ValentMuxConnection) muxer = NULL;
-  JsonNode *identity;
   GError *error = NULL;
 
   g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
@@ -285,10 +315,8 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
   muxer = valent_mux_connection_new (G_IO_STREAM (connection));
 
   dbusmock_new_connection (fixture);
-  identity = json_object_get_member (json_node_get_object (fixture->packets),
-                                     "identity");
   valent_mux_connection_handshake (muxer,
-                                   identity,
+                                   fixture->peer_identity,
                                    NULL,
                                    (GAsyncReadyCallback)handshake_cb,
                                    fixture);
