@@ -26,7 +26,7 @@ typedef struct
 
   /* D-Bus */
   GDBusConnection      *connection;
-  int                  *fds;
+  int                  fds[2];
 
   /* Endpoint */
   ValentChannel        *endpoint;
@@ -34,11 +34,11 @@ typedef struct
   JsonNode             *peer_identity;
 
   gpointer              data;
-} BluezBackendFixture;
+} BluezTestFixture;
 
 static void
-bluez_service_fixture_set_up (BluezBackendFixture *fixture,
-                              gconstpointer        user_data)
+bluez_service_fixture_set_up (BluezTestFixture *fixture,
+                              gconstpointer     user_data)
 {
   PeasEngine *engine;
   PeasPluginInfo *plugin_info;
@@ -55,7 +55,6 @@ bluez_service_fixture_set_up (BluezBackendFixture *fixture,
   fixture->peer_identity = json_object_get_member (json_node_get_object (fixture->packets),
                                                    "peer-identity");
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
-  fixture->fds = g_new0 (int, 2);
   g_assert_no_errno (socketpair (AF_UNIX, SOCK_STREAM, 0, fixture->fds));
 
   /* Generate peer certificate and update the identity packet.
@@ -81,8 +80,8 @@ bluez_service_fixture_set_up (BluezBackendFixture *fixture,
 }
 
 static void
-bluez_service_fixture_tear_down (BluezBackendFixture *fixture,
-                                 gconstpointer        user_data)
+bluez_service_fixture_tear_down (BluezTestFixture *fixture,
+                                 gconstpointer     user_data)
 {
   g_clear_pointer (&fixture->packets, json_node_unref);
   g_clear_object (&fixture->connection);
@@ -103,16 +102,15 @@ bluez_service_fixture_tear_down (BluezBackendFixture *fixture,
     }
 
   v_await_finalize_object (fixture->peer_certificate);
-  g_clear_pointer (&fixture->fds, g_free);
 }
 
 /*
  * Test Service Callbacks
  */
 static void
-g_async_initable_init_async_cb (GAsyncInitable      *initable,
-                                GAsyncResult        *result,
-                                BluezBackendFixture *fixture)
+g_async_initable_init_async_cb (GAsyncInitable   *initable,
+                                GAsyncResult     *result,
+                                BluezTestFixture *fixture)
 {
   gboolean ret;
   GError *error = NULL;
@@ -125,18 +123,18 @@ g_async_initable_init_async_cb (GAsyncInitable      *initable,
 }
 
 static void
-on_channel (ValentChannelService *service,
-            ValentChannel        *channel,
-            BluezBackendFixture  *fixture)
+on_channel (ValentChannelService  *service,
+            ValentChannel         *channel,
+            ValentChannel        **channel_out)
 {
-  fixture->channel = g_object_ref (channel);
-  valent_test_quit_loop ();
+  if (channel_out)
+    *channel_out = g_object_ref (channel);
 }
 
 static void
-dbusmock_call_wait_cb (GDBusConnection     *connection,
-                       GAsyncResult        *result,
-                       BluezBackendFixture *fixture)
+dbusmock_update_uuids_cb (GDBusConnection  *connection,
+                          GAsyncResult     *result,
+                          BluezTestFixture *fixture)
 {
   g_autoptr (GVariant) reply = NULL;
   GError *error = NULL;
@@ -147,35 +145,27 @@ dbusmock_call_wait_cb (GDBusConnection     *connection,
   valent_test_quit_loop ();
 }
 
-
 static void
-dbusmock_pair_device (BluezBackendFixture *fixture)
+dbusmock_pair_device_cb (GDBusConnection  *connection,
+                         GAsyncResult     *result,
+                         BluezTestFixture *fixture)
 {
-  g_dbus_connection_call (fixture->connection,
-                          "org.bluez",
-                          "/org/bluez",
-                          "org.bluez.Mock",
-                          "PairDevice",
-                          g_variant_new ("(ss)",
-                                         BLUEZ_ADAPTER_NAME,
-                                         BLUEZ_DEVICE_ADDR),
-                          NULL,
-                          G_DBUS_CALL_FLAGS_NONE,
-                          -1,
-                          NULL,
-                          (GAsyncReadyCallback)dbusmock_call_wait_cb,
-                          fixture);
-  valent_test_run_loop ();
-}
-
-static void
-dbusmock_update_uuids (BluezBackendFixture *fixture)
-{
+  g_autoptr (GVariant) reply = NULL;
   GVariantBuilder props_builder;
   GVariant *props = NULL;
   GVariantBuilder uuids_builder;
   GVariant *uuids = NULL;
+  GError *error = NULL;
 
+  reply = g_dbus_connection_call_finish (connection, result, &error);
+  g_assert_no_error (error);
+
+  /* Allow PropertiesChanged to be emitted
+   */
+  valent_test_await_pending ();
+
+  /* Update the UUIDs to include KDE Connect's profile
+   */
   g_variant_builder_init (&uuids_builder, G_VARIANT_TYPE_STRING_ARRAY);
   g_variant_builder_add (&uuids_builder, "s", "00001105-0000-1000-8000-00805f9b34fb");
   g_variant_builder_add (&uuids_builder, "s", "0000110a-0000-1000-8000-00805f9b34fb");
@@ -203,15 +193,36 @@ dbusmock_update_uuids (BluezBackendFixture *fixture)
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
                           NULL,
-                          (GAsyncReadyCallback)dbusmock_call_wait_cb,
+                          (GAsyncReadyCallback)dbusmock_update_uuids_cb,
+                          fixture);
+}
+
+static void
+dbusmock_setup_device (BluezTestFixture *fixture)
+{
+  /* Pair the device
+   */
+  g_dbus_connection_call (fixture->connection,
+                          "org.bluez",
+                          "/org/bluez",
+                          "org.bluez.Mock",
+                          "PairDevice",
+                          g_variant_new ("(ss)",
+                                         BLUEZ_ADAPTER_NAME,
+                                         BLUEZ_DEVICE_ADDR),
+                          NULL,
+                          G_DBUS_CALL_FLAGS_NONE,
+                          -1,
+                          NULL,
+                          (GAsyncReadyCallback)dbusmock_pair_device_cb,
                           fixture);
   valent_test_run_loop ();
 }
 
 static void
-dbusmock_new_connection_cb (GDBusConnection     *connection,
-                            GAsyncResult        *result,
-                            BluezBackendFixture *fixture)
+dbusmock_new_connection_cb (GDBusConnection  *connection,
+                            GAsyncResult     *result,
+                            BluezTestFixture *fixture)
 {
   g_autoptr (GVariant) reply = NULL;
   GError *error = NULL;
@@ -225,7 +236,7 @@ dbusmock_new_connection_cb (GDBusConnection     *connection,
 }
 
 static void
-dbusmock_new_connection (BluezBackendFixture *fixture)
+dbusmock_new_connection (BluezTestFixture *fixture)
 {
   const char *unique_name;
   GVariantBuilder fd_props_builder;
@@ -266,7 +277,7 @@ dbusmock_new_connection (BluezBackendFixture *fixture)
 static void
 handshake_cb (ValentMuxConnection *connection,
               GAsyncResult        *result,
-              BluezBackendFixture *fixture)
+              BluezTestFixture    *fixture)
 {
   GError *error = NULL;
 
@@ -277,14 +288,15 @@ handshake_cb (ValentMuxConnection *connection,
 }
 
 static void
-test_bluez_service_new_connection (BluezBackendFixture *fixture,
-                                   gconstpointer        user_data)
+test_bluez_service_new_connection (BluezTestFixture *fixture,
+                                   gconstpointer     user_data)
 {
   g_autoptr (GSocket) socket = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
   g_autoptr (ValentMuxConnection) muxer = NULL;
   GError *error = NULL;
 
+  VALENT_TEST_CHECK ("The service can be initialized");
   g_async_initable_init_async (G_ASYNC_INITABLE (fixture->service),
                                G_PRIORITY_DEFAULT,
                                NULL,
@@ -292,21 +304,14 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
                                fixture);
   valent_test_run_loop ();
 
-  g_signal_connect (fixture->service,
-                    "channel",
-                    G_CALLBACK (on_channel),
-                    fixture);
+  /* Setup a new bluez device
+   */
+  dbusmock_setup_device (fixture);
 
-  /* Pair and wait for PropertiesChanged to resolve */
-  dbusmock_pair_device (fixture);
-  valent_test_await_pending ();
-
-  /* Update UUIDs and identify */
-  dbusmock_update_uuids (fixture);
+  VALENT_TEST_CHECK ("The service announces itself to the network");
   valent_channel_service_identify (fixture->service, NULL);
-  valent_test_await_pending ();
 
-  /* Open connection */
+  VALENT_TEST_CHECK ("The service accepts incoming connections");
   socket = g_socket_new_from_fd (fixture->fds[0], &error);
   g_assert_no_error (error);
   connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
@@ -320,16 +325,22 @@ test_bluez_service_new_connection (BluezBackendFixture *fixture,
                                    NULL,
                                    (GAsyncReadyCallback)handshake_cb,
                                    fixture);
-  valent_test_run_loop ();
+
+  VALENT_TEST_CHECK ("The service creates channels for successful connections");
+  g_signal_connect (fixture->service,
+                    "channel",
+                    G_CALLBACK (on_channel),
+                    &fixture->channel);
+  valent_test_await_pointer (&fixture->channel);
+  valent_test_await_pointer (&fixture->endpoint);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 #if 0
 static void
-test_bluez_service_channel (BluezBackendFixture *fixture,
-                            gconstpointer        user_data)
+test_bluez_service_channel (BluezTestFixture *fixture,
+                            gconstpointer     user_data)
 {
   GError *error = NULL;
   JsonNode *packet;
@@ -395,14 +406,14 @@ main (int   argc,
   g_type_ensure (VALENT_TYPE_BLUEZ_CHANNEL_SERVICE);
 
   g_test_add ("/plugins/bluez/new-connection",
-              BluezBackendFixture, NULL,
+              BluezTestFixture, NULL,
               bluez_service_fixture_set_up,
               test_bluez_service_new_connection,
               bluez_service_fixture_tear_down);
 
 #if 0
   g_test_add ("/plugins/bluez/channel",
-              BluezBackendFixture, NULL,
+              BluezTestFixture, NULL,
               bluez_service_fixture_set_up,
               test_bluez_service_channel,
               bluez_service_fixture_tear_down);
