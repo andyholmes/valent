@@ -21,6 +21,7 @@ called_from_lib:libglycin-2
 # src/libvalent/device/valent-certificate.c
 # src/plugins/lan/valent-lan-channel.c
 called_from_lib:libp11-kit
+called_from_lib:p11-kit-client
 called_from_lib:p11-kit-trust
 called_from_lib:libtasn1
 
