@@ -337,6 +337,46 @@ test_bluez_service_new_connection (BluezTestFixture *fixture,
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
 }
 
+/*
+ * Channel
+ */
+static void
+on_incoming_transfer (ValentChannel *endpoint,
+                      GAsyncResult  *result,
+                      gpointer       user_data)
+{
+  g_autoptr (JsonNode) packet = NULL;
+  g_autoptr (GIOStream) stream = NULL;
+  g_autoptr (GOutputStream) target = NULL;
+  goffset payload_size, transferred;
+  GError *error = NULL;
+
+  /* We expect the packet to be properly populated with payload information */
+  packet = valent_channel_read_packet_finish (endpoint, result, &error);
+  g_assert_no_error (error);
+  g_assert_true (VALENT_IS_PACKET (packet));
+  g_assert_true (valent_packet_has_payload (packet));
+
+  payload_size = valent_packet_get_payload_size (packet);
+  g_assert_cmpint (payload_size, >, 0);
+
+  /* We expect to be able to create a transfer stream from the packet */
+  stream = valent_channel_download (endpoint, packet, NULL, &error);
+  g_assert_no_error (error);
+  g_assert_true (G_IS_IO_STREAM (stream));
+
+  /* We expect to be able to transfer the full payload */
+  target = g_memory_output_stream_new_resizable ();
+  transferred = g_output_stream_splice (target,
+                                        g_io_stream_get_input_stream (stream),
+                                        (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
+                                         G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
+                                        NULL,
+                                        &error);
+  g_assert_no_error (error);
+  g_assert_cmpint (transferred, ==, valent_packet_get_payload_size (packet));
+}
+
 static void
 test_bluez_service_channel (BluezTestFixture *fixture,
                             gconstpointer     user_data)
@@ -344,6 +384,9 @@ test_bluez_service_channel (BluezTestFixture *fixture,
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
   g_autoptr (ValentMuxConnection) muxer = NULL;
+  g_autoptr (GFile) file = NULL;
+  JsonNode *packet;
+  GError *error = NULL;
 
   test_bluez_service_new_connection (fixture, user_data);
   valent_test_await_pending ();
@@ -365,6 +408,18 @@ test_bluez_service_channel (BluezTestFixture *fixture,
   g_assert_true (g_tls_certificate_is_same (certificate, peer_certificate));
   g_clear_object (&certificate);
   g_clear_object (&peer_certificate);
+
+  VALENT_TEST_CHECK ("Channel can transfer payloads");
+  file = g_file_new_for_uri ("resource:///tests/image.png");
+  packet = json_object_get_member (json_node_get_object (fixture->packets),
+                                   "transfer");
+
+  valent_channel_read_packet (fixture->endpoint,
+                              NULL,
+                              (GAsyncReadyCallback)on_incoming_transfer,
+                              NULL);
+  valent_test_upload (fixture->channel, packet, file, &error);
+  g_assert_no_error (error);
 }
 
 int
