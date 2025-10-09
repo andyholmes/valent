@@ -22,6 +22,7 @@
         "--socket=session-bus",
         "--socket=ssh-auth",
         "--socket=wayland",
+        "--system-talk-name=org.bluez",
         "--system-talk-name=org.freedesktop.Avahi",
         "--system-talk-name=org.freedesktop.hostname1",
         "--system-talk-name=org.freedesktop.login1",
