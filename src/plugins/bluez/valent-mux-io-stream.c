@@ -8,10 +8,10 @@
 #include <gio/gio.h>
 
 #include "valent-mux-connection.h"
-#include "valent-mux-io-stream.h"
 #include "valent-mux-input-stream.h"
 #include "valent-mux-output-stream.h"
 
+#include "valent-mux-io-stream.h"
 
 struct _ValentMuxIOStream
 {
@@ -58,29 +58,24 @@ valent_mux_io_stream_close_fn (GIOStream     *stream,
                                GError       **error)
 {
   ValentMuxIOStream *self = VALENT_MUX_IO_STREAM (stream);
-  gboolean ret = TRUE;
+  gboolean ret;
 
-  if (self->output_stream != NULL)
-    ret = g_output_stream_close (self->output_stream, cancellable, error);
+  VALENT_ENTRY;
 
+  ret = g_output_stream_close (self->output_stream, cancellable, error);
   if (error != NULL && *error != NULL)
     error = NULL;
 
-  if (self->input_stream != NULL)
-    ret &= g_input_stream_close (self->input_stream, cancellable, error);
-
+  ret &= g_input_stream_close (self->input_stream, cancellable, error);
   if (error != NULL && *error != NULL)
     error = NULL;
 
-  if (self->muxer != NULL && self->uuid != NULL)
-    {
-      ret &= valent_mux_connection_close_channel (self->muxer,
-                                                  self->uuid,
-                                                  cancellable,
-                                                  error);
-    }
+  ret &= valent_mux_connection_close_channel (self->muxer,
+                                              self->uuid,
+                                              cancellable,
+                                              error);
 
-  return ret;
+  VALENT_RETURN (ret);
 }
 
 /*
@@ -93,17 +88,17 @@ valent_mux_io_stream_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_mux_io_stream_parent_class)->constructed (object);
 
-  if (self->muxer != NULL && self->uuid != NULL)
-    {
-      self->input_stream = g_object_new (VALENT_TYPE_MUX_INPUT_STREAM,
-                                         "muxer", self->muxer,
-                                         "uuid",  self->uuid,
-                                         NULL);
-      self->output_stream = g_object_new (VALENT_TYPE_MUX_OUTPUT_STREAM,
-                                          "muxer", self->muxer,
-                                          "uuid",  self->uuid,
-                                          NULL);
-    }
+  g_assert (VALENT_IS_MUX_CONNECTION (self->muxer));
+  g_assert (g_uuid_string_is_valid (self->uuid));
+
+  self->input_stream = g_object_new (VALENT_TYPE_MUX_INPUT_STREAM,
+                                     "muxer", self->muxer,
+                                     "uuid",  self->uuid,
+                                     NULL);
+  self->output_stream = g_object_new (VALENT_TYPE_MUX_OUTPUT_STREAM,
+                                      "muxer", self->muxer,
+                                      "uuid",  self->uuid,
+                                      NULL);
 }
 
 static void
@@ -181,9 +176,7 @@ valent_mux_io_stream_class_init (ValentMuxIOStreamClass *klass)
   stream_class->get_output_stream = valent_mux_io_stream_get_output_stream;
 
   properties [PROP_MUXER] =
-    g_param_spec_object ("muxer",
-                         "Muxer",
-                         "Multiplexer that muxes and demuxes data for this stream",
+    g_param_spec_object ("muxer", NULL, NULL,
                          VALENT_TYPE_MUX_CONNECTION,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
@@ -191,9 +184,7 @@ valent_mux_io_stream_class_init (ValentMuxIOStreamClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   properties [PROP_UUID] =
-    g_param_spec_string ("uuid",
-                         "UUID",
-                         "UUID of the channel this stream represents",
+    g_param_spec_string ("uuid", NULL, NULL,
                          NULL,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
