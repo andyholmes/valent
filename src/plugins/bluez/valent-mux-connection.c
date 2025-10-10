@@ -388,10 +388,9 @@ recv_close_channel (ValentMuxConnection  *self,
                     GError              **error)
 {
   g_autoptr (ChannelState) state = NULL;
-  g_autofree char *key = NULL;
 
   valent_object_lock (VALENT_OBJECT (self));
-  if (g_hash_table_steal_extended (self->states, uuid, (void **)&key, (void **)&state))
+  if (g_hash_table_steal_extended (self->states, uuid, NULL, (void **)&state))
     channel_state_close (state);
   valent_object_unlock (VALENT_OBJECT (self));
 
