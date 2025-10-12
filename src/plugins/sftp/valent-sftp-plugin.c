@@ -31,25 +31,45 @@ static void   valent_sftp_plugin_update_menu    (ValentSftpPlugin *self);
 
 G_DEFINE_FINAL_TYPE (ValentSftpPlugin, valent_sftp_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
-
+/*< private >
+ * get_device_host:
+ * @self: a `ValentSftpPlugin`
+ *
+ * Try to find a IP-based device channel with a host.
+ *
+ * Returns: (nullable) (transfer full): a hostname or IP address
+ */
 static char *
 get_device_host (ValentSftpPlugin *self)
 {
   ValentDevice *device;
-  g_autoptr (ValentChannel) channel = NULL;
-  g_autofree char *host = NULL;
-  GParamSpec *pspec = NULL;
+  char *host = NULL;
 
-  /* The plugin doesn't know ValentChannel derivations, so we have to check for
-   * a "host" property to ensure it's IP-based */
+  g_assert (VALENT_IS_SFTP_PLUGIN (self));
+
   device = valent_resource_get_source (VALENT_RESOURCE (self));
-  channel = g_list_model_get_item (valent_device_get_channels (device), 0);
+  if (device != NULL)
+    {
+      GListModel *channels;
+      unsigned int n_channels;
 
-  if G_LIKELY (channel != NULL)
-    pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (channel), "host");
+      channels = valent_device_get_channels (device);
+      n_channels = g_list_model_get_n_items (channels);
+      for (unsigned int i = 0; i < n_channels; i++)
+        {
+          g_autoptr (ValentChannel) channel = NULL;
+          GParamSpec *pspec = NULL;
 
-  if G_LIKELY (pspec != NULL)
-    g_object_get (channel, "host", &host, NULL);
+          channel = g_list_model_get_item (channels, i);
+          pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (channel),
+                                                "host");
+          if (pspec != NULL)
+            {
+              g_object_get (channel, "host", &host, NULL);
+              break;
+            }
+        }
+    }
 
   return g_steal_pointer (&host);
 }
@@ -817,6 +837,7 @@ valent_sftp_plugin_update_state (ValentDevicePlugin *plugin,
 
   valent_extension_toggle_actions (VALENT_EXTENSION (plugin), available);
 
+  // FIXME: device may be in destruction when `get_device_host()` is invoked
   valent_sftp_plugin_update_menu (self);
 
   if (available)
