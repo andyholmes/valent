@@ -118,8 +118,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/google/libphonenumber.git",
-                    "commit": "c02f289dbe110d871ee10b53cfd4d6a23e0b8225",
-                    "tag": "v9.0.15"
+                    "commit": "7966b5e3f8cae4d5a6c8ebece12b0568bcd8a630",
+                    "tag": "v9.0.16"
                 }
             ],
             "modules": [
