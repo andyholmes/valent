@@ -437,7 +437,7 @@ recv_read (ValentMuxConnection  *self,
       g_mutex_unlock (&state->mutex);
     }
 
-  return TRUE;
+  return ret;
 }
 
 static inline gboolean
