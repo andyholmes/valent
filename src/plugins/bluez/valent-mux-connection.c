@@ -216,6 +216,25 @@ channel_state_lookup (ValentMuxConnection  *self,
   return ret;
 }
 
+static inline gboolean
+channel_state_notify (ChannelState  *state,
+                      GError       **error)
+{
+  int64_t byte = 1;
+
+  if (write (state->eventfd, &byte, sizeof (uint64_t)) == -1)
+    {
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           g_io_error_from_errno (errno),
+                           g_strerror (errno));
+      return FALSE;
+    }
+  g_cond_broadcast (&state->cond);
+
+  return TRUE;
+}
+
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (ChannelState, channel_state_unref)
 
 /**
@@ -419,21 +438,10 @@ recv_read (ValentMuxConnection  *self,
                                  error);
   if (ret)
     {
-      uint64_t byte = 1;
-
       g_mutex_lock (&state->mutex);
       state->write_free += GUINT16_FROM_BE (size_request);
+      ret = channel_state_notify (state, error);
       VALENT_NOTE ("UUID: %s, write_free: %u", state->uuid, state->write_free);
-
-      if (write (state->eventfd, &byte, sizeof (uint64_t)) == -1)
-        {
-          g_set_error_literal (error,
-                               G_IO_ERROR,
-                               g_io_error_from_errno (errno),
-                               g_strerror (errno));
-          ret = FALSE;
-        }
-      g_cond_broadcast (&state->cond);
       g_mutex_unlock (&state->mutex);
     }
 
@@ -486,21 +494,10 @@ recv_write (ValentMuxConnection  *self,
                                  error);
   if (ret)
     {
-      uint64_t byte = 1;
-
       state->end += n_read;
       state->read_free -= n_read;
+      ret = channel_state_notify (state, error);
       VALENT_NOTE ("UUID: %s, read_free: %u", state->uuid, state->read_free);
-
-      if (write (state->eventfd, &byte, sizeof (uint64_t)) == -1)
-        {
-          g_set_error_literal (error,
-                               G_IO_ERROR,
-                               g_io_error_from_errno (errno),
-                               g_strerror (errno));
-          ret = FALSE;
-        }
-      g_cond_broadcast (&state->cond);
     }
   g_mutex_unlock (&state->mutex);
 
