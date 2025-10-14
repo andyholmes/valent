@@ -94,6 +94,27 @@ g_pollable_input_stream_iface_init (GPollableInputStreamInterface *iface)
 /*
  * GInputStream
  */
+static gboolean
+valent_mux_input_stream_close (GInputStream  *stream,
+                               GCancellable  *cancellable,
+                               GError       **error)
+{
+  ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (stream);
+  gboolean ret;
+
+  VALENT_ENTRY;
+
+  g_assert (VALENT_IS_MUX_INPUT_STREAM (stream));
+
+  ret = valent_mux_connection_close_stream (self->muxer,
+                                            self->uuid,
+                                            G_IO_IN,
+                                            cancellable,
+                                            error);
+
+  VALENT_RETURN (ret);
+}
+
 static gssize
 valent_mux_input_stream_read (GInputStream  *stream,
                               void          *buffer,
@@ -189,6 +210,7 @@ valent_mux_input_stream_class_init (ValentMuxInputStreamClass *klass)
   object_class->get_property = valent_mux_input_stream_get_property;
   object_class->set_property = valent_mux_input_stream_set_property;
 
+  stream_class->close_fn = valent_mux_input_stream_close;
   stream_class->read_fn = valent_mux_input_stream_read;
 
   properties [PROP_MUXER] =

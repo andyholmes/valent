@@ -1152,6 +1152,51 @@ valent_mux_connection_close_channel (ValentMuxConnection  *connection,
 }
 
 /**
+ * valent_mux_connection_close_stream:
+ * @connection: a `ValentMuxConnection`
+ * @uuid: a channel UUID
+ * @condition: a `GIOCondition`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
+ *
+ * Close the stream for the channel with @uuid associated with the
+ * condition for @condition.
+ *
+ * Returns: %TRUE, or %FALSE with @error set
+ */
+gboolean
+valent_mux_connection_close_stream (ValentMuxConnection  *connection,
+                                    const char           *uuid,
+                                    GIOCondition          condition,
+                                    GCancellable         *cancellable,
+                                    GError              **error)
+{
+  g_autoptr (ChannelState) state = NULL;
+
+  g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), FALSE);
+  g_return_val_if_fail (uuid != NULL && *uuid != '\0', FALSE);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), TRUE);
+
+  state = channel_state_lookup (connection, uuid, error);
+  if (state == NULL)
+    return FALSE;
+
+  g_mutex_lock (&state->mutex);
+  state->condition &= ~condition;
+  if ((state->condition & G_IO_HUP) == 0)
+    {
+      valent_object_lock (VALENT_OBJECT (connection));
+      if (send_close_channel (connection, uuid, cancellable, error))
+        state->condition |= G_IO_HUP;
+      valent_object_unlock (VALENT_OBJECT (connection));
+    }
+  channel_state_notify (state, error);
+  g_mutex_unlock (&state->mutex);
+
+  return TRUE;
+}
+
+/**
  * valent_mux_connection_open_channel:
  * @muxer: a `ValentMuxConnection`
  * @uuid: a channel UUID
@@ -1261,7 +1306,6 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
       return -1;
     }
 
-  /* Check if the stream has been closed remotely */
   if ((state->condition & G_IO_HUP) != 0)
     {
       /* Return buffer contents before signaling EOF
