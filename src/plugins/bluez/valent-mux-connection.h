@@ -41,6 +41,11 @@ gboolean              valent_mux_connection_close_channel    (ValentMuxConnectio
                                                               const char           *uuid,
                                                               GCancellable         *cancellable,
                                                               GError              **error);
+gboolean              valent_mux_connection_close_stream     (ValentMuxConnection  *connection,
+                                                              const char           *uuid,
+                                                              GIOCondition          condition,
+                                                              GCancellable         *cancellable,
+                                                              GError              **error);
 GIOStream           * valent_mux_connection_open_channel     (ValentMuxConnection  *connection,
                                                               const char           *uuid,
                                                               GCancellable         *cancellable,

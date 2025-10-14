@@ -94,6 +94,27 @@ g_pollable_output_stream_iface_init (GPollableOutputStreamInterface *iface)
 /*
  * GOutputStream
  */
+static gboolean
+valent_mux_output_stream_close (GOutputStream  *stream,
+                                GCancellable   *cancellable,
+                                GError        **error)
+{
+  ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (stream);
+  gboolean ret;
+
+  VALENT_ENTRY;
+
+  g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
+
+  ret = valent_mux_connection_close_stream (self->muxer,
+                                            self->uuid,
+                                            G_IO_OUT,
+                                            cancellable,
+                                            error);
+
+  VALENT_RETURN (ret);
+}
+
 static gssize
 valent_mux_output_stream_write (GOutputStream  *stream,
                                 const void     *buffer,
@@ -189,6 +210,7 @@ valent_mux_output_stream_class_init (ValentMuxOutputStreamClass *klass)
   object_class->get_property = valent_mux_output_stream_get_property;
   object_class->set_property = valent_mux_output_stream_set_property;
 
+  stream_class->close_fn = valent_mux_output_stream_close;
   stream_class->write_fn = valent_mux_output_stream_write;
 
   properties [PROP_MUXER] =
