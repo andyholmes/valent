@@ -96,21 +96,22 @@ typedef enum
  */
 typedef struct
 {
-  char      *uuid;
-  GMutex     mutex;
-  GCond      cond;
-  GIOStream *stream;
+  char         *uuid;
+  GMutex        mutex;
+  GCond         cond;
+  GIOStream    *stream;
 
   /* Input Buffer */
-  uint8_t   *buf;
-  size_t     len;
-  size_t     pos;
-  size_t     end;
+  uint8_t      *buf;
+  size_t        len;
+  size_t        pos;
+  size_t        end;
 
   /* I/O State */
-  uint16_t   read_free;
-  uint16_t   write_free;
-  int        eventfd;
+  uint16_t      read_free;
+  uint16_t      write_free;
+  int           eventfd;
+  GIOCondition  condition;
 } ChannelState;
 
 static ChannelState *
@@ -126,6 +127,7 @@ channel_state_new (ValentMuxConnection *muxer,
   state->uuid = g_strdup (uuid);
   state->len = muxer->buffer_size;
   state->buf = g_malloc0 (state->len);
+  state->condition = (G_IO_IN | G_IO_OUT);
   state->stream = g_object_new (VALENT_TYPE_MUX_IO_STREAM,
                                 "muxer", muxer,
                                 "uuid",  uuid,
@@ -145,6 +147,7 @@ channel_state_close (ChannelState *state)
   if (!g_io_stream_is_closed (state->stream))
     {
       g_io_stream_close (state->stream, NULL, NULL);
+      state->condition = G_IO_HUP;
       g_cond_broadcast (&state->cond);
     }
   g_mutex_unlock (&state->mutex);
@@ -173,23 +176,6 @@ channel_state_unref (gpointer data)
   g_atomic_rc_box_release_full (data, channel_state_free);
 }
 
-static inline gboolean
-channel_state_set_error (ChannelState  *state,
-                         GCancellable  *cancellable,
-                         GError       **error)
-{
-  if (g_io_stream_is_closed (state->stream))
-    {
-      g_set_error (error,
-                   G_IO_ERROR,
-                   G_IO_ERROR_CLOSED,
-                   "Channel is closed");
-      return TRUE;
-    }
-
-  return g_cancellable_set_error_if_cancelled (cancellable, error);
-}
-
 static inline ChannelState *
 channel_state_lookup (ValentMuxConnection  *self,
                       const char           *uuid,
@@ -200,7 +186,7 @@ channel_state_lookup (ValentMuxConnection  *self,
 
   valent_object_lock (VALENT_OBJECT (self));
   state = g_hash_table_lookup (self->states, uuid);
-  if (state == NULL || g_io_stream_is_closed (state->stream))
+  if (state == NULL)
     {
       g_set_error_literal (error,
                            G_IO_ERROR,
@@ -408,10 +394,14 @@ recv_close_channel (ValentMuxConnection  *self,
 {
   g_autoptr (ChannelState) state = NULL;
 
-  valent_object_lock (VALENT_OBJECT (self));
-  if (g_hash_table_steal_extended (self->states, uuid, NULL, (void **)&state))
-    channel_state_close (state);
-  valent_object_unlock (VALENT_OBJECT (self));
+  state = channel_state_lookup (self, uuid, NULL);
+  if (state == NULL)
+    return TRUE;
+
+  g_mutex_lock (&state->mutex);
+  state->condition |= G_IO_HUP;
+  channel_state_notify (state, NULL);
+  g_mutex_unlock (&state->mutex);
 
   return TRUE;
 }
@@ -1261,10 +1251,63 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
     return -1;
 
   g_mutex_lock (&state->mutex);
+  if ((state->condition & G_IO_IN) == 0)
+    {
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_CLOSED,
+                           g_strerror (EPIPE));
+      g_mutex_unlock (&state->mutex);
+      return -1;
+    }
+
+  /* Check if the stream has been closed remotely */
+  if ((state->condition & G_IO_HUP) != 0)
+    {
+      /* Return buffer contents before signaling EOF
+       */
+      available = state->end - state->pos;
+      if (available > 0)
+        {
+          read = MIN (count, available);
+          memcpy (buffer, state->buf + state->pos, read);
+          state->pos += read;
+          g_mutex_unlock (&state->mutex);
+          return read;
+        }
+
+      /* Signal EOF and mark as closed
+       */
+      state->condition &= ~G_IO_IN;
+      g_mutex_unlock (&state->mutex);
+      return 0;
+    }
+
   if (blocking)
     {
-      while (!g_io_stream_is_closed (state->stream) && state->end <= state->pos)
+      while ((state->condition & G_IO_HUP) == 0 && state->end <= state->pos)
         g_cond_wait (&state->cond, &state->mutex);
+
+      if ((state->condition & G_IO_HUP) != 0)
+        {
+          /* Return the contents of the before signaling EOF
+           */
+          available = state->end - state->pos;
+          if (available > 0)
+            {
+              read = MIN (count, available);
+              memcpy (buffer, state->buf + state->pos, read);
+              state->pos += read;
+              g_mutex_unlock (&state->mutex);
+              return read;
+            }
+
+          /* Signal EOF and mark as closed
+           */
+          state->condition &= ~G_IO_IN;
+          g_mutex_unlock (&state->mutex);
+          return 0;
+        }
     }
   else if (state->end <= state->pos)
     {
@@ -1272,12 +1315,6 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
                            G_IO_ERROR,
                            G_IO_ERROR_WOULD_BLOCK,
                            g_strerror (EAGAIN));
-      g_mutex_unlock (&state->mutex);
-      return -1;
-    }
-
-  if (channel_state_set_error (state, cancellable, error))
-    {
       g_mutex_unlock (&state->mutex);
       return -1;
     }
@@ -1359,10 +1396,30 @@ valent_mux_connection_write (ValentMuxConnection  *connection,
     return -1;
 
   g_mutex_lock (&state->mutex);
+  if ((state->condition & G_IO_OUT) == 0)
+    {
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_CLOSED,
+                           g_strerror (EPIPE));
+      g_mutex_unlock (&state->mutex);
+      return -1;
+    }
+
   if (blocking)
     {
-      while (!g_io_stream_is_closed (state->stream) && state->write_free == 0)
+      while ((state->condition & G_IO_HUP) == 0 && state->write_free == 0)
         g_cond_wait (&state->cond, &state->mutex);
+
+      if ((state->condition & G_IO_OUT) == 0)
+        {
+          g_set_error_literal (error,
+                               G_IO_ERROR,
+                               G_IO_ERROR_CLOSED,
+                               g_strerror (EPIPE));
+          g_mutex_unlock (&state->mutex);
+          return -1;
+        }
     }
   else if (state->write_free == 0)
     {
@@ -1370,12 +1427,6 @@ valent_mux_connection_write (ValentMuxConnection  *connection,
                            G_IO_ERROR,
                            G_IO_ERROR_WOULD_BLOCK,
                            g_strerror (EAGAIN));
-      g_mutex_unlock (&state->mutex);
-      return -1;
-    }
-
-  if (channel_state_set_error (state, cancellable, error))
-    {
       g_mutex_unlock (&state->mutex);
       return -1;
     }
