@@ -115,6 +115,26 @@ valent_mux_output_stream_close (GOutputStream  *stream,
   VALENT_RETURN (ret);
 }
 
+static gboolean
+valent_mux_output_stream_flush (GOutputStream  *stream,
+                                GCancellable   *cancellable,
+                                GError        **error)
+{
+  ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (stream);
+  gboolean ret;
+
+  VALENT_ENTRY;
+
+  g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
+
+  ret = valent_mux_connection_flush_stream (self->muxer,
+                                            self->uuid,
+                                            cancellable,
+                                            error);
+
+  VALENT_RETURN (ret);
+}
+
 static gssize
 valent_mux_output_stream_write (GOutputStream  *stream,
                                 const void     *buffer,
@@ -211,6 +231,7 @@ valent_mux_output_stream_class_init (ValentMuxOutputStreamClass *klass)
   object_class->set_property = valent_mux_output_stream_set_property;
 
   stream_class->close_fn = valent_mux_output_stream_close;
+  stream_class->flush = valent_mux_output_stream_flush;
   stream_class->write_fn = valent_mux_output_stream_write;
 
   properties [PROP_MUXER] =
