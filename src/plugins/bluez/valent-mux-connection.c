@@ -1197,6 +1197,41 @@ valent_mux_connection_close_stream (ValentMuxConnection  *connection,
 }
 
 /**
+ * valent_mux_connection_flush_stream:
+ * @connection: a `ValentMuxConnection`
+ * @uuid: a channel UUID
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
+ *
+ * Close the stream for the channel with @uuid associated with the
+ * condition for @condition.
+ *
+ * Returns: %TRUE, or %FALSE with @error set
+ */
+gboolean
+valent_mux_connection_flush_stream (ValentMuxConnection  *connection,
+                                    const char           *uuid,
+                                    GCancellable         *cancellable,
+                                    GError              **error)
+{
+  g_autoptr (ChannelState) state = NULL;
+
+  g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), FALSE);
+  g_return_val_if_fail (uuid != NULL && *uuid != '\0', FALSE);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), TRUE);
+
+  state = channel_state_lookup (connection, uuid, error);
+  if (state == NULL)
+    return FALSE;
+
+  g_mutex_lock (&state->mutex);
+  channel_state_notify (state, error);
+  g_mutex_unlock (&state->mutex);
+
+  return TRUE;
+}
+
+/**
  * valent_mux_connection_open_channel:
  * @muxer: a `ValentMuxConnection`
  * @uuid: a channel UUID
