@@ -145,7 +145,6 @@ channel_state_close (ChannelState *state)
   if (!g_io_stream_is_closed (state->stream))
     {
       g_io_stream_close (state->stream, NULL, NULL);
-      g_clear_fd (&state->eventfd, NULL);
       g_cond_broadcast (&state->cond);
     }
   g_mutex_unlock (&state->mutex);
@@ -162,6 +161,7 @@ channel_state_free (gpointer data)
   g_clear_object (&state->stream);
   g_clear_pointer (&state->buf, g_free);
   g_clear_pointer (&state->uuid, g_free);
+  g_clear_fd (&state->eventfd, NULL);
   g_cond_clear (&state->cond);
   g_mutex_unlock (&state->mutex);
   g_mutex_clear (&state->mutex);
