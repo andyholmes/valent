@@ -1141,7 +1141,7 @@ valent_packet_to_stream_async (GOutputStream       *stream,
   g_autoptr (GTask) task = NULL;
   g_autoptr (JsonGenerator) generator = NULL;
   JsonObject *root;
-  g_autofree char *packet_str = NULL;
+  char *packet_str = NULL;
   size_t packet_len;
   GError *error = NULL;
 
@@ -1171,6 +1171,7 @@ valent_packet_to_stream_async (GOutputStream       *stream,
 
   task = g_task_new (stream, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_packet_to_stream_async);
+  g_task_set_task_data (task, packet_str, g_free);
   g_output_stream_write_all_async (stream,
                                    packet_str,
                                    packet_len,
