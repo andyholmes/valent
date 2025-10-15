@@ -300,13 +300,12 @@ recv_header (ValentMuxConnection  *self,
              GError              **error)
 {
   uint8_t hdr[HEADER_SIZE] = { 0, };
-  size_t bytes_read;
   gboolean ret;
 
   ret = g_input_stream_read_all (self->input_stream,
                                  hdr,
                                  sizeof (hdr),
-                                 &bytes_read,
+                                 NULL,
                                  cancellable,
                                  error);
   if (ret)
