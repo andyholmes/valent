@@ -73,6 +73,7 @@ on_connection_opened (ValentBluezProfile *profile,
   g_autoptr (ValentMuxConnection) muxer = NULL;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (GTask) task = NULL;
+  g_autoptr (GCancellable) cancellable = NULL;
 
   g_assert (VALENT_IS_BLUEZ_CHANNEL_SERVICE (self));
   g_assert (G_IS_SOCKET_CONNECTION (connection));
@@ -82,6 +83,7 @@ on_connection_opened (ValentBluezProfile *profile,
   g_task_set_task_data (task, g_strdup (object_path), g_free);
   g_task_set_source_tag (task, on_connection_opened);
 
+  cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
   muxer = g_object_new (VALENT_TYPE_MUX_CONNECTION,
                         "base-stream", connection,
@@ -89,7 +91,7 @@ on_connection_opened (ValentBluezProfile *profile,
                         NULL);
   valent_mux_connection_handshake (muxer,
                                    identity,
-                                   NULL,
+                                   cancellable,
                                    (GAsyncReadyCallback)valent_mux_connection_handshake_cb,
                                    g_object_ref (task));
 }
