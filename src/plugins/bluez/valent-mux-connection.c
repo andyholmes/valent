@@ -22,6 +22,8 @@
 
 #include "valent-mux-connection.h"
 
+#define IDENTITY_BUFFER_MAX  (8192)
+
 #define CERTIFICATE_HEADER "-----BEGIN CERTIFICATE-----\n"
 #define CERTIFICATE_FOOTER "-----END CERTIFICATE-----\n"
 
@@ -864,101 +866,49 @@ valent_mux_connection_close (ValentMuxConnection  *connection,
   VALENT_RETURN (ret);
 }
 
-static void
-valent_mux_connection_handshake_task (GTask        *task,
-                                      gpointer      source_object,
-                                      gpointer      task_data,
-                                      GCancellable *cancellable)
+typedef enum
 {
-  ValentMuxConnection *self = VALENT_MUX_CONNECTION (source_object);
-  JsonNode *identity = task_data;
-  g_autoptr (ChannelState) state = NULL;
-  g_autoptr (GThread) thread = NULL;
-  g_autoptr (JsonNode) peer_identity = NULL;
-  g_autoptr (GIOStream) base_stream = NULL;
+  HANDSHAKE_ENCRYPTED =     (1 << 0),
+  HANDSHAKE_IDENTITY_READ = (1 << 1),
+  HANDSHAKE_IDENTITY_SENT = (1 << 2),
+  HANDSHAKE_FAILED =        (1 << 3),
+  HANDSHAKE_COMPLETE =      (HANDSHAKE_ENCRYPTED |
+                             HANDSHAKE_IDENTITY_READ |
+                             HANDSHAKE_IDENTITY_SENT),
+} HandshakeFlags;
+
+typedef struct
+{
+  GIOStream      *connection;
+  JsonNode       *identity;
+  JsonNode       *peer_identity;
+  HandshakeFlags  flags;
+} HandshakeData;
+
+static void
+handshake_data_free (gpointer user_data)
+{
+  HandshakeData *data = (HandshakeData *)user_data;
+
+  g_clear_object (&data->connection);
+  g_clear_pointer (&data->identity, json_node_unref);
+  g_clear_pointer (&data->peer_identity, json_node_unref);
+  g_free (data);
+}
+
+static void
+handshake_task_complete (GTask *task)
+{
+  ValentMuxConnection *self = g_task_get_source_object (task);
+  HandshakeData *data = g_task_get_task_data (task);
   g_autoptr (ValentChannel) channel = NULL;
-  g_autoptr (GMainContext) context = NULL;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
-  const char *certificate_pem = NULL;
-  const char *peer_certificate_pem = NULL;
-  const char *device_name = NULL;
+  const char *certificate_pem;
+  const char *peer_certificate_pem;
   GError *error = NULL;
 
-  g_assert (VALENT_IS_MUX_CONNECTION (self));
-  g_assert (VALENT_IS_PACKET (identity));
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  valent_object_lock (VALENT_OBJECT (self));
-  if (!send_protocol_version (self, cancellable, &error))
-    {
-      valent_object_unlock (VALENT_OBJECT (self));
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  /* Create the primary channel and start the receive loop
-   */
-  state = channel_state_new (self, PRIMARY_UUID);
-  g_hash_table_replace (self->states,
-                        state->uuid,
-                        g_atomic_rc_box_acquire (state));
-
-  g_mutex_lock (&state->mutex);
-  if (send_read (self, state->uuid, state->len, cancellable, &error))
-    {
-      state->read_free = state->len;
-      base_stream = g_object_ref (state->stream);
-    }
-  g_mutex_unlock (&state->mutex);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  if (error != NULL)
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  thread = g_thread_try_new ("valent-mux-connection",
-                             valent_mux_connection_receive_loop,
-                             g_object_ref (self),
-                             &error);
-  if (thread == NULL)
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  /* Exchange identities
-   */
-  if (!valent_packet_to_stream (g_io_stream_get_output_stream (base_stream),
-                                identity,
-                                cancellable,
-                                &error))
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  context = g_main_context_new ();
-  g_main_context_push_thread_default (context);
-  peer_identity = valent_packet_from_stream (g_io_stream_get_input_stream (base_stream),
-                                             -1,
-                                             cancellable,
-                                             &error);
-  g_main_context_pop_thread_default (context);
-  if (peer_identity == NULL)
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  valent_packet_get_string (peer_identity, "deviceName", &device_name);
-  VALENT_JSON (peer_identity, device_name);
-
-  if (valent_packet_get_string (identity, "certificate", &certificate_pem))
+  if (valent_packet_get_string (data->identity, "certificate", &certificate_pem))
     {
       certificate = g_tls_certificate_new_from_pem (certificate_pem, -1, &error);
       if (certificate == NULL)
@@ -968,7 +918,7 @@ valent_mux_connection_handshake_task (GTask        *task,
         }
     }
 
-  if (valent_packet_get_string (peer_identity, "certificate", &peer_certificate_pem))
+  if (valent_packet_get_string (data->peer_identity, "certificate", &peer_certificate_pem))
     {
       g_autofree char *pem = NULL;
 
@@ -1003,14 +953,155 @@ valent_mux_connection_handshake_task (GTask        *task,
     }
 
   channel = g_object_new (VALENT_TYPE_BLUEZ_CHANNEL,
-                          "base-stream",      base_stream,
+                          "base-stream",      data->connection,
                           "certificate",      certificate,
-                          "identity",         identity,
-                          "peer-identity",    peer_identity,
+                          "identity",         data->identity,
                           "peer-certificate", peer_certificate,
+                          "peer-identity",    data->peer_identity,
                           "muxer",            self,
                           NULL);
-  g_task_return_pointer (task, g_steal_pointer (&channel), g_object_unref);
+  g_task_return_pointer (task, g_object_ref (channel), g_object_unref);
+}
+
+static void
+handshake_read_identity_cb (GInputStream *stream,
+                            GAsyncResult *result,
+                            gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  HandshakeData *data = g_task_get_task_data (task);
+  g_autoptr (JsonNode) secure_identity = NULL;
+  GError *error = NULL;
+
+  secure_identity = valent_packet_from_stream_finish (stream, result, &error);
+  if (secure_identity == NULL)
+    {
+      if ((data->flags & HANDSHAKE_FAILED) == 0)
+        {
+          data->flags |= HANDSHAKE_FAILED;
+          g_task_return_error (task, g_steal_pointer (&error));
+        }
+
+      return;
+    }
+
+  g_clear_pointer (&data->peer_identity, json_node_unref);
+  data->peer_identity = g_steal_pointer (&secure_identity);
+
+  data->flags |= HANDSHAKE_IDENTITY_READ;
+  if (data->flags == HANDSHAKE_COMPLETE)
+    handshake_task_complete (task);
+}
+
+static void
+handshake_write_identity_cb (GOutputStream *stream,
+                             GAsyncResult  *result,
+                             gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  HandshakeData *data = g_task_get_task_data (task);
+  GError *error = NULL;
+
+  if (!valent_packet_to_stream_finish (stream, result, &error))
+    {
+      if ((data->flags & HANDSHAKE_FAILED) == 0)
+        {
+          data->flags |= HANDSHAKE_FAILED;
+          g_task_return_error (task, g_steal_pointer (&error));
+        }
+
+      return;
+    }
+
+  data->flags |= HANDSHAKE_IDENTITY_SENT;
+  if (data->flags == HANDSHAKE_COMPLETE)
+    handshake_task_complete (task);
+}
+
+static void
+handshake_protocol_task_cb (GObject      *object,
+                            GAsyncResult *result,
+                            gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentMuxConnection *self = g_task_get_source_object (task);
+  HandshakeData *data = g_task_get_task_data (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (GIOStream) stream = NULL;
+  g_autoptr (GThread) thread = NULL;
+  GError *error = NULL;
+
+  stream = g_task_propagate_pointer (G_TASK (result), &error);
+  if (stream == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  thread = g_thread_try_new ("valent-mux-connection",
+                             valent_mux_connection_receive_loop,
+                             g_object_ref (self),
+                             &error);
+  if (thread == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  data->connection = g_object_ref (stream);
+  valent_packet_to_stream_async (g_io_stream_get_output_stream (data->connection),
+                                 data->identity,
+                                 cancellable,
+                                 (GAsyncReadyCallback)handshake_write_identity_cb,
+                                 g_object_ref (task));
+  valent_packet_from_stream_async (g_io_stream_get_input_stream (data->connection),
+                                   IDENTITY_BUFFER_MAX,
+                                   cancellable,
+                                   (GAsyncReadyCallback)handshake_read_identity_cb,
+                                   g_object_ref (task));
+}
+
+static void
+handshake_protocol_task (GTask        *task,
+                         gpointer      source_object,
+                         gpointer      task_data,
+                         GCancellable *cancellable)
+{
+  ValentMuxConnection *self = VALENT_MUX_CONNECTION (source_object);
+  ChannelState *state = (ChannelState *)task_data;
+  /* g_autoptr (ChannelState) state = NULL; */
+  g_autoptr (GIOStream) base_stream = NULL;
+  GError *error = NULL;
+
+  /* First send the protocol version, then request data for
+   * the primary
+   * multiplexed channel for the identity exchange
+   */
+  valent_object_lock (VALENT_OBJECT (self));
+  if (!send_protocol_version (self, cancellable, &error))
+    {
+      valent_object_unlock (VALENT_OBJECT (self));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_mutex_lock (&state->mutex);
+  if (send_read (self, state->uuid, state->len, cancellable, &error))
+    {
+      state->read_free = state->len;
+      base_stream = g_object_ref (state->stream);
+      VALENT_NOTE ("UUID: %s, read_free: %u", state->uuid, state->read_free);
+    }
+  g_mutex_unlock (&state->mutex);
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  if (error != NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_task_return_pointer (task, g_object_ref (base_stream), g_object_unref);
 }
 
 /**
@@ -1037,18 +1128,34 @@ valent_mux_connection_handshake (ValentMuxConnection *connection,
                                  GAsyncReadyCallback  callback,
                                  gpointer             user_data)
 {
+  g_autoptr (ChannelState) state = NULL;
+  g_autoptr (GTask) protocol = NULL;
   g_autoptr (GTask) task = NULL;
+  HandshakeData *data = NULL;
 
   g_return_if_fail (VALENT_IS_MUX_CONNECTION (connection));
   g_return_if_fail (VALENT_IS_PACKET (identity));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
+  valent_object_lock (VALENT_OBJECT (connection));
+  state = channel_state_new (connection, PRIMARY_UUID);
+  g_hash_table_replace (connection->states,
+                        state->uuid,
+                        g_atomic_rc_box_acquire (state));
+  valent_object_unlock (VALENT_OBJECT (connection));
+
+  data = g_new0 (HandshakeData, 1);
+  data->identity = json_node_ref (identity);
+  data->flags |= HANDSHAKE_ENCRYPTED;
+
   task = g_task_new (connection, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_mux_connection_handshake);
-  g_task_set_task_data (task,
-                        json_node_ref (identity),
-                        (GDestroyNotify)json_node_unref);
-  g_task_run_in_thread (task, valent_mux_connection_handshake_task);
+  g_task_set_task_data (task, g_steal_pointer (&data), handshake_data_free);
+
+  protocol = g_task_new (connection, cancellable, handshake_protocol_task_cb, g_object_ref (task));
+  g_task_set_source_tag (protocol, handshake_protocol_task);
+  g_task_set_task_data (protocol, g_steal_pointer (&state), channel_state_unref);
+  g_task_run_in_thread (protocol, handshake_protocol_task);
 }
 
 /**
