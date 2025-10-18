@@ -141,50 +141,6 @@ valent_test_mute_fuzzing (const char     *log_domain,
   return TRUE;
 }
 
-static GQueue events = G_QUEUE_INIT;
-
-/**
- * valent_test_event_free:
- * @free_func: the function to be called to free each event item
- *
- * Clear the event queue.
- */
-void
-valent_test_event_free (GDestroyNotify free_func)
-{
-  g_queue_clear_full (&events, free_func);
-}
-
-/**
- * valent_test_event_pop:
- *
- * Remove and return the event at the head of the queue
- *
- * Returns: (transfer full): an event
- */
-gpointer
-valent_test_event_pop (void)
-{
-  gpointer event = NULL;
-
-  while ((event = g_queue_pop_head (&events)) == NULL)
-    g_main_context_iteration (NULL, FALSE);
-
-  return event;
-}
-
-/**
- * valent_test_event_push:
- * @event: an event
- *
- * Add @event to the end of the event queue.
- */
-void
-valent_test_event_push (gpointer event)
-{
-  g_queue_push_tail (&events, event);
-}
-
 /**
  * valent_test_load_json:
  * @path: (type filename): path to JSON file
