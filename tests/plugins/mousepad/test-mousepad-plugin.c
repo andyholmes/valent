@@ -7,11 +7,46 @@
 
 #include "valent-mousepad-keydef.h"
 
+static ValentInputAdapter *default_adapter = NULL;
+static GQueue events = G_QUEUE_INIT;
+
+#define _valent_test_event_cmpstr(str)             \
+  G_STMT_START {                                   \
+    char *_event_str = g_queue_pop_head (&events); \
+    g_assert_cmpstr (_event_str, ==, str);         \
+    g_free (_event_str);                           \
+  } G_STMT_END
+
+static void
+on_event_state_changed (GActionGroup *group,
+                        const char   *name,
+                        GVariant     *value,
+                        gpointer      user_data)
+{
+  g_queue_push_tail (&events, g_variant_dup_string (value, NULL));
+}
+
+static void
+mousepad_plugin_fixture_set_up (ValentTestFixture *fixture,
+                                gconstpointer      user_data)
+{
+  valent_test_fixture_init (fixture, user_data);
+
+  default_adapter = valent_test_await_adapter (valent_input_get_default ());
+  g_signal_connect_object (default_adapter,
+                           "action-state-changed::event",
+                           G_CALLBACK (on_event_state_changed),
+                           NULL,
+                           G_CONNECT_DEFAULT);
+}
+
 static void
 mousepad_plugin_fixture_tear_down (ValentTestFixture *fixture,
                                    gconstpointer      user_data)
 {
-  valent_test_event_free (g_free);
+  g_signal_handlers_disconnect_by_func (default_adapter, on_event_state_changed, NULL);
+  g_queue_clear_full (&events, g_free);
+
   valent_test_fixture_clear (fixture, user_data);
 }
 
@@ -52,97 +87,97 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-motion");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("POINTER MOTION 1.0 1.0");
+  _valent_test_event_cmpstr ("POINTER MOTION 1.0 1.0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to scroll the pointer");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-axis");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("POINTER AXIS 0.0 1.0");
+  _valent_test_event_cmpstr ("POINTER AXIS 0.0 1.0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to perform a single click");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-singleclick");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("POINTER BUTTON 1 1");
-  valent_test_event_cmpstr ("POINTER BUTTON 1 0");
+  _valent_test_event_cmpstr ("POINTER BUTTON 1 1");
+  _valent_test_event_cmpstr ("POINTER BUTTON 1 0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to perform a double click");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-doubleclick");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("POINTER BUTTON 1 1");
-  valent_test_event_cmpstr ("POINTER BUTTON 1 0");
-  valent_test_event_cmpstr ("POINTER BUTTON 1 1");
-  valent_test_event_cmpstr ("POINTER BUTTON 1 0");
+  _valent_test_event_cmpstr ("POINTER BUTTON 1 1");
+  _valent_test_event_cmpstr ("POINTER BUTTON 1 0");
+  _valent_test_event_cmpstr ("POINTER BUTTON 1 1");
+  _valent_test_event_cmpstr ("POINTER BUTTON 1 0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to perform a middle click");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-middleclick");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("POINTER BUTTON 2 1");
-  valent_test_event_cmpstr ("POINTER BUTTON 2 0");
+  _valent_test_event_cmpstr ("POINTER BUTTON 2 1");
+  _valent_test_event_cmpstr ("POINTER BUTTON 2 0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to perform a right click");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-rightclick");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("POINTER BUTTON 3 1");
-  valent_test_event_cmpstr ("POINTER BUTTON 3 0");
+  _valent_test_event_cmpstr ("POINTER BUTTON 3 1");
+  _valent_test_event_cmpstr ("POINTER BUTTON 3 0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to perform a single hold");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-singlehold");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("POINTER BUTTON 1 1");
+  _valent_test_event_cmpstr ("POINTER BUTTON 1 1");
 
   VALENT_TEST_CHECK ("Plugin handles a request to perform a single release");
   packet = valent_test_fixture_lookup_packet (fixture, "pointer-singlerelease");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("POINTER BUTTON 1 0");
+  _valent_test_event_cmpstr ("POINTER BUTTON 1 0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to press-release a keysym");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("KEYSYM 97 1");
-  valent_test_event_cmpstr ("KEYSYM 97 0");
+  _valent_test_event_cmpstr ("KEYSYM 97 1");
+  _valent_test_event_cmpstr ("KEYSYM 97 0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to press-release a keysym with modifiers");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym-mask");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("KEYSYM 65513 1");
-  valent_test_event_cmpstr ("KEYSYM 65507 1");
-  valent_test_event_cmpstr ("KEYSYM 65505 1");
-  valent_test_event_cmpstr ("KEYSYM 65515 1");
-  valent_test_event_cmpstr ("KEYSYM 97 1");
-  valent_test_event_cmpstr ("KEYSYM 97 0");
-  valent_test_event_cmpstr ("KEYSYM 65513 0");
-  valent_test_event_cmpstr ("KEYSYM 65507 0");
-  valent_test_event_cmpstr ("KEYSYM 65505 0");
-  valent_test_event_cmpstr ("KEYSYM 65515 0");
+  _valent_test_event_cmpstr ("KEYSYM 65513 1");
+  _valent_test_event_cmpstr ("KEYSYM 65507 1");
+  _valent_test_event_cmpstr ("KEYSYM 65505 1");
+  _valent_test_event_cmpstr ("KEYSYM 65515 1");
+  _valent_test_event_cmpstr ("KEYSYM 97 1");
+  _valent_test_event_cmpstr ("KEYSYM 97 0");
+  _valent_test_event_cmpstr ("KEYSYM 65513 0");
+  _valent_test_event_cmpstr ("KEYSYM 65507 0");
+  _valent_test_event_cmpstr ("KEYSYM 65505 0");
+  _valent_test_event_cmpstr ("KEYSYM 65515 0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to press-release a special key");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym-special");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("KEYSYM 65361 1");
-  valent_test_event_cmpstr ("KEYSYM 65361 0");
+  _valent_test_event_cmpstr ("KEYSYM 65361 1");
+  _valent_test_event_cmpstr ("KEYSYM 65361 0");
 
   VALENT_TEST_CHECK ("Plugin handles a request to press-release a series of keysyms");
   packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym-string");
   valent_test_fixture_handle_packet (fixture, packet);
 
-  valent_test_event_cmpstr ("KEYSYM 116 1");
-  valent_test_event_cmpstr ("KEYSYM 116 0");
-  valent_test_event_cmpstr ("KEYSYM 101 1");
-  valent_test_event_cmpstr ("KEYSYM 101 0");
-  valent_test_event_cmpstr ("KEYSYM 115 1");
-  valent_test_event_cmpstr ("KEYSYM 115 0");
-  valent_test_event_cmpstr ("KEYSYM 116 1");
-  valent_test_event_cmpstr ("KEYSYM 116 0");
+  _valent_test_event_cmpstr ("KEYSYM 116 1");
+  _valent_test_event_cmpstr ("KEYSYM 116 0");
+  _valent_test_event_cmpstr ("KEYSYM 101 1");
+  _valent_test_event_cmpstr ("KEYSYM 101 0");
+  _valent_test_event_cmpstr ("KEYSYM 115 1");
+  _valent_test_event_cmpstr ("KEYSYM 115 0");
+  _valent_test_event_cmpstr ("KEYSYM 116 1");
+  _valent_test_event_cmpstr ("KEYSYM 116 0");
 }
 
 static void
@@ -344,31 +379,31 @@ main (int   argc,
 
   g_test_add ("/plugins/mousepad/handle-echo",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              mousepad_plugin_fixture_set_up,
               test_mousepad_plugin_handle_echo,
               mousepad_plugin_fixture_tear_down);
 
   g_test_add ("/plugins/mousepad/handle-request",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              mousepad_plugin_fixture_set_up,
               test_mousepad_plugin_handle_request,
               mousepad_plugin_fixture_tear_down);
 
   g_test_add ("/plugins/mousepad/send-keyboard-request",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              mousepad_plugin_fixture_set_up,
               test_mousepad_plugin_send_keyboard_request,
               mousepad_plugin_fixture_tear_down);
 
   g_test_add ("/plugins/mousepad/send-pointer-request",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              mousepad_plugin_fixture_set_up,
               test_mousepad_plugin_send_pointer_request,
               mousepad_plugin_fixture_tear_down);
 
   g_test_add ("/plugins/mousepad/fuzz",
               ValentTestFixture, path,
-              valent_test_fixture_init,
+              mousepad_plugin_fixture_set_up,
               test_mousepad_plugin_fuzz,
               mousepad_plugin_fixture_tear_down);
 

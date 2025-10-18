@@ -22,10 +22,6 @@ gboolean         valent_test_mute_fuzzing  (const char       *log_domain,
                                             const char       *message,
                                             gpointer          user_data);
 
-gpointer         valent_test_event_pop     (void);
-void             valent_test_event_push    (gpointer          data);
-void             valent_test_event_free    (GDestroyNotify    free_func);
-
 gpointer         valent_test_await_adapter (gpointer          component);
 void             valent_test_await_boolean (gboolean         *done);
 void             valent_test_await_pending (void);
@@ -75,14 +71,6 @@ gboolean         valent_test_upload        (ValentChannel    *channel,
   G_STMT_START {                                           \
     G_STATIC_ASSERT (sizeof (ptr) == sizeof (gpointer *)); \
     valent_test_await_nullptr ((gpointer *)ptr);           \
-  } G_STMT_END
-
-
-#define valent_test_event_cmpstr(str)       \
-  G_STMT_START {                            \
-    char *event = valent_test_event_pop (); \
-    g_assert_cmpstr (event, ==, str);       \
-    g_free (event);                         \
   } G_STMT_END
 
 /*
