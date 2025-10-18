@@ -28,13 +28,18 @@ static void
 packet_fixture_set_up (PacketFixture *fixture,
                        gconstpointer  user_data)
 {
+  g_autofree char *oversize = NULL;
+
   fixture->node = valent_test_load_json ("core.json");
   fixture->packets = json_node_get_object (fixture->node);
 
   fixture->invalid_node = valent_test_load_json ("core-packet.json");
   fixture->invalid_packets = json_node_get_object (fixture->invalid_node);
 
-  fixture->large_node = valent_test_load_json ("core-large.json");
+  oversize = g_strnfill (8096 + 1, '0');
+  fixture->large_node = valent_packet_new ("kdeconnect.identity");
+  json_object_set_string_member (json_node_get_object (fixture->large_node),
+                                 "oversize", oversize);
 }
 
 static void

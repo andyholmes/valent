@@ -46,7 +46,10 @@ test_device_transfer (ValentTestFixture *fixture,
   src_mtime = (int64_t)((src_mtime_s * 1000) + floor (src_mtime_us / 1000));
   src_size = g_file_info_get_size (src_info);
 
-  packet = valent_test_fixture_lookup_packet (fixture, "test-transfer");
+  packet = valent_packet_new ("kdeconnect.mock.transfer");
+  json_object_set_string_member (valent_packet_get_body (packet),
+                                 "filename",
+                                 "image.png");
   json_object_set_int_member (valent_packet_get_body (packet),
                               "creationTime",
                               src_btime);

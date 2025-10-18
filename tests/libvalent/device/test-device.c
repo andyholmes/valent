@@ -129,8 +129,6 @@ endpoint_expect_packet_echo (DeviceFixture *fixture,
   valent_test_await_pointer (&echo);
 
   v_assert_packet_type (echo, "kdeconnect.mock.echo");
-  v_assert_packet_field (echo, "foo");
-  v_assert_packet_cmpstr (echo, "foo", ==, "bar");
 }
 
 static void
@@ -538,8 +536,9 @@ static void
 test_handle_packet (DeviceFixture *fixture,
                     gconstpointer  user_data)
 {
-  JsonNode *packet = json_object_get_member (json_node_get_object (fixture->packets),
-                                             "test-echo");
+  g_autoptr (JsonNode) packet = NULL;
+
+  packet = valent_packet_new ("kdeconnect.mock.echo");
 
   valent_device_add_channel (fixture->device, fixture->channel);
   g_assert_true (valent_device_get_connected (fixture->device));
@@ -607,8 +606,7 @@ test_send_packet (DeviceFixture *fixture,
                   gconstpointer  user_data)
 {
   g_autoptr (JsonNode) pair_request = create_pair_packet (TRUE, TRUE);
-  JsonNode *packet = json_object_get_member (json_node_get_object (fixture->packets),
-                                             "test-echo");
+  g_autoptr (JsonNode) packet = valent_packet_new ("kdeconnect.mock.echo");
   gboolean done = FALSE;
 
   VALENT_TEST_CHECK ("Device refuses to send packets when disconnected");
