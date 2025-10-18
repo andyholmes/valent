@@ -260,11 +260,11 @@ test_lan_service_incoming_broadcast (LanTestFixture *fixture,
    * so we now expect the test service to write its identity packet.
    */
   VALENT_TEST_CHECK ("The service writes its identity after connecting");
-  valent_packet_from_stream_async (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
-                                   IDENTITY_BUFFER_MAX,
-                                   NULL,
-                                   (GAsyncReadyCallback)valent_packet_from_stream_cb,
-                                   &peer_identity);
+  valent_packet_from_stream (g_io_stream_get_input_stream (G_IO_STREAM (connection)),
+                             IDENTITY_BUFFER_MAX,
+                             NULL,
+                             (GAsyncReadyCallback)valent_packet_from_stream_cb,
+                             &peer_identity);
   valent_test_await_pointer (&peer_identity);
 
   VALENT_TEST_CHECK ("The service uses a valid device ID");
@@ -285,16 +285,16 @@ test_lan_service_incoming_broadcast (LanTestFixture *fixture,
   if (protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
     {
       VALENT_TEST_CHECK ("The service exchanges identity packets over TLS");
-      valent_packet_to_stream_async (g_io_stream_get_output_stream (tls_stream),
-                                     fixture->peer_identity,
-                                     NULL,
-                                     NULL,
-                                     NULL);
-      valent_packet_from_stream_async (g_io_stream_get_input_stream (tls_stream),
-                                       IDENTITY_BUFFER_MAX,
-                                       NULL,
-                                       NULL,
-                                       NULL);
+      valent_packet_to_stream (g_io_stream_get_output_stream (tls_stream),
+                               fixture->peer_identity,
+                               NULL,
+                               NULL,
+                               NULL);
+      valent_packet_from_stream (g_io_stream_get_input_stream (tls_stream),
+                                 IDENTITY_BUFFER_MAX,
+                                 NULL,
+                                 NULL,
+                                 NULL);
     }
 
   peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));
@@ -407,11 +407,11 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
       valent_test_await_timeout (HANDSHAKE_TIMEOUT_MS);
     }
 
-  valent_packet_to_stream_async (g_io_stream_get_output_stream (G_IO_STREAM (connection)),
-                                 fixture->peer_identity,
-                                 NULL,
-                                 (GAsyncReadyCallback)valent_packet_to_stream_cb,
-                                 &done);
+  valent_packet_to_stream (g_io_stream_get_output_stream (G_IO_STREAM (connection)),
+                           fixture->peer_identity,
+                           NULL,
+                           (GAsyncReadyCallback)valent_packet_to_stream_cb,
+                           &done);
   valent_test_await_boolean (&done);
 
   VALENT_TEST_CHECK ("The service negotiates TLS connections as the client");
@@ -428,16 +428,16 @@ test_lan_service_outgoing_broadcast (LanTestFixture *fixture,
   if (protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
     {
       VALENT_TEST_CHECK ("The service exchanges identity packets over TLS");
-      valent_packet_to_stream_async (g_io_stream_get_output_stream (tls_stream),
-                                     fixture->peer_identity,
-                                     NULL,
-                                     NULL,
-                                     NULL);
-      valent_packet_from_stream_async (g_io_stream_get_input_stream (tls_stream),
-                                       IDENTITY_BUFFER_MAX,
-                                       NULL,
-                                       NULL,
-                                       NULL);
+      valent_packet_to_stream (g_io_stream_get_output_stream (tls_stream),
+                               fixture->peer_identity,
+                               NULL,
+                               NULL,
+                               NULL);
+      valent_packet_from_stream (g_io_stream_get_input_stream (tls_stream),
+                                 IDENTITY_BUFFER_MAX,
+                                 NULL,
+                                 NULL,
+                                 NULL);
     }
 
   peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (tls_stream));

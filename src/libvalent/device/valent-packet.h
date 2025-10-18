@@ -155,7 +155,7 @@ VALENT_AVAILABLE_IN_1_0
 gboolean     valent_packet_validate           (JsonNode             *packet,
                                                GError              **error);
 VALENT_AVAILABLE_IN_1_0
-void         valent_packet_from_stream_async  (GInputStream         *stream,
+void         valent_packet_from_stream        (GInputStream         *stream,
                                                gssize                max_len,
                                                GCancellable         *cancellable,
                                                GAsyncReadyCallback   callback,
@@ -165,12 +165,7 @@ JsonNode   * valent_packet_from_stream_finish (GInputStream         *stream,
                                                GAsyncResult         *result,
                                                GError              **error);
 VALENT_AVAILABLE_IN_1_0
-JsonNode   * valent_packet_from_stream        (GInputStream         *stream,
-                                               gssize                max_len,
-                                               GCancellable         *cancellable,
-                                               GError              **error);
-VALENT_AVAILABLE_IN_1_0
-void         valent_packet_to_stream_async    (GOutputStream        *stream,
+void         valent_packet_to_stream          (GOutputStream        *stream,
                                                JsonNode             *packet,
                                                GCancellable         *cancellable,
                                                GAsyncReadyCallback   callback,
@@ -178,11 +173,6 @@ void         valent_packet_to_stream_async    (GOutputStream        *stream,
 VALENT_AVAILABLE_IN_1_0
 gboolean     valent_packet_to_stream_finish   (GOutputStream        *stream,
                                                GAsyncResult         *result,
-                                               GError              **error);
-VALENT_AVAILABLE_IN_1_0
-gboolean     valent_packet_to_stream          (GOutputStream        *stream,
-                                               JsonNode             *packet,
-                                               GCancellable         *cancellable,
                                                GError              **error);
 VALENT_AVAILABLE_IN_1_0
 char       * valent_packet_serialize          (JsonNode             *packet,

@@ -229,6 +229,17 @@ valent_packet_from_stream_cb (GInputStream  *stream,
 }
 
 static void
+valent_packet_from_stream_error_cb (GInputStream  *stream,
+                                    GAsyncResult  *result,
+                                    GError       **error)
+{
+  g_autoptr (JsonNode) packet = NULL;
+
+  packet = valent_packet_from_stream_finish (stream, result, error);
+  valent_test_quit_loop ();
+}
+
+static void
 test_packet_streaming (PacketFixture *fixture,
                        gconstpointer  user_data)
 {
@@ -238,6 +249,7 @@ test_packet_streaming (PacketFixture *fixture,
   GInputStream *in = NULL;
   GOutputStream *out = NULL;
   g_autoptr (GBytes) bytes = NULL;
+  gboolean done = FALSE;
   GError *error = NULL;
 
   VALENT_TEST_CHECK ("valent_packet_to_stream_async() can write packets");
@@ -248,11 +260,11 @@ test_packet_streaming (PacketFixture *fixture,
     {
       gboolean success = FALSE;
 
-      valent_packet_to_stream_async (out,
-                                     packet_in,
-                                     NULL,
-                                     (GAsyncReadyCallback) valent_packet_to_stream_cb,
-                                     &success);
+      valent_packet_to_stream (out,
+                               packet_in,
+                               NULL,
+                               (GAsyncReadyCallback) valent_packet_to_stream_cb,
+                               &success);
       valent_test_await_boolean (&success);
     }
 
@@ -266,11 +278,11 @@ test_packet_streaming (PacketFixture *fixture,
 
   while (json_object_iter_next (&iter, NULL, &packet_in))
     {
-      valent_packet_from_stream_async (in,
-                                       -1,
-                                       NULL,
-                                       (GAsyncReadyCallback) valent_packet_from_stream_cb,
-                                       &packet_out);
+      valent_packet_from_stream (in,
+                                 -1,
+                                 NULL,
+                                 (GAsyncReadyCallback) valent_packet_from_stream_cb,
+                                 &packet_out);
       valent_test_await_pointer (&packet_out);
       g_assert_true (json_node_equal (packet_in, packet_out));
       g_clear_pointer (&packet_out, json_node_unref);
@@ -282,53 +294,85 @@ test_packet_streaming (PacketFixture *fixture,
 
   VALENT_TEST_CHECK ("valent_packet_to_stream() can write large packets");
   out = g_memory_output_stream_new_resizable ();
-  valent_packet_to_stream (out, fixture->large_node, NULL, &error);
-  g_assert_no_error (error);
+  valent_packet_to_stream (out,
+                           fixture->large_node,
+                           NULL,
+                           (GAsyncReadyCallback) valent_packet_to_stream_cb,
+                           &done);
+  valent_test_await_boolean (&done);
   g_output_stream_close (out, NULL, &error);
   g_assert_no_error (error);
 
   VALENT_TEST_CHECK ("valent_packet_from_stream() can read large packets");
   bytes = g_memory_output_stream_steal_as_bytes (G_MEMORY_OUTPUT_STREAM (out));
   in = g_memory_input_stream_new_from_bytes (bytes);
-  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
-  g_assert_no_error (error);
+  valent_packet_from_stream (in,
+                             -1,
+                             NULL,
+                             (GAsyncReadyCallback) valent_packet_from_stream_cb,
+                             &packet_out);
+  valent_test_await_pointer (&packet_out);
   g_clear_object (&out);
   g_clear_object (&in);
   g_clear_pointer (&packet_out, json_node_unref);
 
   VALENT_TEST_CHECK ("valent_packet_from_stream() sets an error for corrupt packets");
   in = g_memory_input_stream_new_from_data (corrupt_packet, -1, NULL);
-  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
+  valent_packet_from_stream (in,
+                             -1,
+                             NULL,
+                             (GAsyncReadyCallback) valent_packet_from_stream_error_cb,
+                             &error);
+  valent_test_run_loop ();
   g_assert_error (error, JSON_PARSER_ERROR, JSON_PARSER_ERROR_INVALID_BAREWORD);
   g_clear_object (&in);
-  g_clear_pointer (&packet_out, json_node_unref);
   g_clear_error (&error);
 
   VALENT_TEST_CHECK ("valent_packet_from_stream() sets an error for closed streams");
   in = g_memory_input_stream_new_from_data ("", 0, NULL);
   g_input_stream_close (in, NULL, NULL);
-  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
+  valent_packet_from_stream (in,
+                             -1,
+                             NULL,
+                             (GAsyncReadyCallback) valent_packet_from_stream_error_cb,
+                             &error);
+  valent_test_run_loop ();
   g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CLOSED);
   g_clear_object (&in);
   g_clear_error (&error);
 
   VALENT_TEST_CHECK ("valent_packet_from_stream() sets an error for empty streams");
   in = g_memory_input_stream_new_from_data ("", 0, NULL);
-  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
+  valent_packet_from_stream (in,
+                             -1,
+                             NULL,
+                             (GAsyncReadyCallback) valent_packet_from_stream_error_cb,
+                             &error);
+  valent_test_run_loop ();
   g_assert_error (error, VALENT_PACKET_ERROR, VALENT_PACKET_ERROR_INVALID_DATA);
   g_clear_object (&in);
   g_clear_error (&error);
 
   VALENT_TEST_CHECK ("valent_packet_from_stream() sets an error for invalid data");
   in = g_memory_input_stream_new_from_data ("\n", 1, NULL);
-  packet_out = valent_packet_from_stream (in, -1, NULL, &error);
+  valent_packet_from_stream (in,
+                             -1,
+                             NULL,
+                             (GAsyncReadyCallback) valent_packet_from_stream_error_cb,
+                             &error);
+  valent_test_run_loop ();
   g_assert_error (error, VALENT_PACKET_ERROR, VALENT_PACKET_ERROR_INVALID_DATA);
   g_clear_object (&in);
   g_clear_error (&error);
 
   VALENT_TEST_CHECK ("valent_packet_from_stream() sets an error for oversize packets");
   in = g_memory_input_stream_new_from_data ("1234567890", 10, NULL);
-  packet_out = valent_packet_from_stream (in, 5, NULL, &error);
+  valent_packet_from_stream (in,
+                             5,
+                             NULL,
+                             (GAsyncReadyCallback) valent_packet_from_stream_error_cb,
+                             &error);
+  valent_test_run_loop ();
   g_assert_error (error, G_IO_ERROR, G_IO_ERROR_MESSAGE_TOO_LARGE);
   g_clear_object (&in);
   g_clear_error (&error);
