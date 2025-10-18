@@ -1118,7 +1118,7 @@ valent_packet_to_stream (GOutputStream       *stream,
  * @result: a `GAsyncResult`
  * @error: (nullable): a `GError`
  *
- * Finish an operation started by [func@Valent.packet_to_stream_async].
+ * Finish an operation started by [func@Valent.packet_to_stream].
  *
  * Returns: %TRUE, or %FALSE with @error set
  *
