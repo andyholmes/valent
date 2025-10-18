@@ -126,6 +126,7 @@ if get_option('introspection')
              'libpeas-2',
              'tracker-sparql-3.0',
           ],
+         vapi_dirs: [meson.project_source_root() / 'vapi'],
            install: true,
        install_dir: vapidir,
     )
