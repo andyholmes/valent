@@ -372,16 +372,16 @@ valent_lan_connection_handshake_cb (GSocketConnection *connection,
   if (data->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
     {
       identity = valent_channel_service_ref_identity (service);
-      valent_packet_to_stream_async (g_io_stream_get_output_stream (data->connection),
-                                     identity,
-                                     cancellable,
-                                     (GAsyncReadyCallback)handshake_write_identity_cb,
-                                     g_object_ref (task));
-      valent_packet_from_stream_async (g_io_stream_get_input_stream (data->connection),
-                                       IDENTITY_BUFFER_MAX,
-                                       cancellable,
-                                       (GAsyncReadyCallback)handshake_read_identity_cb,
-                                       g_object_ref (task));
+      valent_packet_to_stream (g_io_stream_get_output_stream (data->connection),
+                               identity,
+                               cancellable,
+                               (GAsyncReadyCallback)handshake_write_identity_cb,
+                               g_object_ref (task));
+      valent_packet_from_stream (g_io_stream_get_input_stream (data->connection),
+                                 IDENTITY_BUFFER_MAX,
+                                 cancellable,
+                                 (GAsyncReadyCallback)handshake_read_identity_cb,
+                                 g_object_ref (task));
     }
   else
     {
@@ -502,11 +502,11 @@ g_socket_client_connect_to_host_cb (GSocketClient *client,
    * so the local device must send its identity before TLS negotiation.
    */
   identity = valent_channel_service_ref_identity (service);
-  valent_packet_to_stream_async (g_io_stream_get_output_stream (data->connection),
-                                 identity,
-                                 cancellable,
-                                 (GAsyncReadyCallback)valent_packet_to_stream_cb,
-                                 g_object_ref (task));
+  valent_packet_to_stream (g_io_stream_get_output_stream (data->connection),
+                           identity,
+                           cancellable,
+                           (GAsyncReadyCallback)valent_packet_to_stream_cb,
+                           g_object_ref (task));
 }
 
 /*
@@ -540,11 +540,11 @@ on_incoming_connection (ValentChannelService *service,
   /* The incoming connection is in response to the local device's broadcast,
    * so the remote device must send its identity before TLS negotiation.
    */
-  valent_packet_from_stream_async (g_io_stream_get_input_stream (data->connection),
-                                   IDENTITY_BUFFER_MAX,
-                                   data->task_cancellable,
-                                   (GAsyncReadyCallback)valent_packet_from_stream_cb,
-                                   g_object_ref (task));
+  valent_packet_from_stream (g_io_stream_get_input_stream (data->connection),
+                             IDENTITY_BUFFER_MAX,
+                             data->task_cancellable,
+                             (GAsyncReadyCallback)valent_packet_from_stream_cb,
+                             g_object_ref (task));
 
   return TRUE;
 }

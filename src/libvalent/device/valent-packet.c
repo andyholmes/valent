@@ -967,7 +967,7 @@ valent_packet_from_stream_task (GTask        *task,
 }
 
 /**
- * valent_packet_from_stream_async:
+ * valent_packet_from_stream:
  * @stream: a `GInputStream`
  * @max_len: the maximum number bytes to read, or `-1` for no limit
  * @cancellable: (nullable): a `GCancellable`
@@ -988,11 +988,11 @@ valent_packet_from_stream_task (GTask        *task,
  * Since: 1.0
  */
 void
-valent_packet_from_stream_async (GInputStream        *stream,
-                                 gssize               max_len,
-                                 GCancellable        *cancellable,
-                                 GAsyncReadyCallback  callback,
-                                 gpointer             user_data)
+valent_packet_from_stream (GInputStream        *stream,
+                           gssize               max_len,
+                           GCancellable        *cancellable,
+                           GAsyncReadyCallback  callback,
+                           gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
   gssize _max_len = max_len;
@@ -1001,7 +1001,7 @@ valent_packet_from_stream_async (GInputStream        *stream,
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (stream, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_packet_from_stream_async);
+  g_task_set_source_tag (task, valent_packet_from_stream);
   g_task_set_task_data (task, (void *)(intptr_t)_max_len, NULL);
   g_task_run_in_thread (task, valent_packet_from_stream_task);
 }
@@ -1031,75 +1031,6 @@ valent_packet_from_stream_finish (GInputStream  *stream,
 }
 
 static void
-valent_packet_from_stream_cb (GObject      *object,
-                              GAsyncResult *result,
-                              gpointer      user_data)
-{
-  GInputStream *stream = G_INPUT_STREAM (object);
-  GTask *task = G_TASK (user_data);
-  JsonNode *packet;
-  GError *error = NULL;
-
-  packet = valent_packet_from_stream_finish (stream, result, &error);
-  if (packet != NULL)
-    {
-      g_task_return_pointer (task,
-                             g_steal_pointer (&packet),
-                             (GDestroyNotify)json_node_unref);
-    }
-  else
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-    }
-}
-
-/**
- * valent_packet_from_stream:
- * @stream: a `GInputStream`
- * @max_len: the maximum number bytes to read, or `-1` for no limit
- * @cancellable: (nullable): a `GCancellable`
- * @error: (nullable): a `GError`
- *
- * Read a KDE Connect packet from an input stream.
- *
- * This is a synchronous wrapper around [func@Valent.packet_from_stream_async]
- * that iterates the thread-default main context, as returned by
- * [func@GLib.MainContext.ref_thread_default].
- *
- * Returns: (transfer full): a KDE Connect packet, or %NULL with @error set.
- *
- * Since: 1.0
- */
-JsonNode *
-valent_packet_from_stream (GInputStream  *stream,
-                           gssize         max_len,
-                           GCancellable  *cancellable,
-                           GError       **error)
-{
-  g_autoptr (GMainContext) context = NULL;
-  g_autoptr (GTask) task = NULL;
-
-  g_return_val_if_fail (G_IS_INPUT_STREAM (stream), NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  task = g_task_new (NULL, NULL, NULL, NULL);
-  g_task_set_source_tag (task, valent_packet_from_stream);
-
-  valent_packet_from_stream_async (stream,
-                                   max_len,
-                                   cancellable,
-                                   (GAsyncReadyCallback)valent_packet_from_stream_cb,
-                                   task);
-
-  context = g_main_context_ref_thread_default ();
-  while (!g_task_get_completed (task))
-    g_main_context_iteration (context, TRUE);
-
-  return g_task_propagate_pointer (task, error);
-}
-
-static void
 g_output_stream_write_all_cb (GOutputStream *stream,
                               GAsyncResult  *result,
                               gpointer       user_data)
@@ -1118,7 +1049,7 @@ g_output_stream_write_all_cb (GOutputStream *stream,
 }
 
 /**
- * valent_packet_to_stream_async:
+ * valent_packet_to_stream:
  * @stream: a `GOutputStream`
  * @packet: a KDE Connect packet
  * @cancellable: (nullable): a `GCancellable`
@@ -1132,11 +1063,11 @@ g_output_stream_write_all_cb (GOutputStream *stream,
  * Since: 1.0
  */
 void
-valent_packet_to_stream_async (GOutputStream       *stream,
-                               JsonNode            *packet,
-                               GCancellable        *cancellable,
-                               GAsyncReadyCallback  callback,
-                               gpointer             user_data)
+valent_packet_to_stream (GOutputStream       *stream,
+                         JsonNode            *packet,
+                         GCancellable        *cancellable,
+                         GAsyncReadyCallback  callback,
+                         gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
   g_autoptr (JsonGenerator) generator = NULL;
@@ -1152,7 +1083,7 @@ valent_packet_to_stream_async (GOutputStream       *stream,
   if (!valent_packet_validate (packet, &error))
     {
       g_task_report_error (stream, callback, user_data,
-                           valent_packet_to_stream_async,
+                           valent_packet_to_stream,
                            g_steal_pointer (&error));
       return;
     }
@@ -1170,7 +1101,7 @@ valent_packet_to_stream_async (GOutputStream       *stream,
   packet_str[packet_len++] = '\n';
 
   task = g_task_new (stream, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_packet_to_stream_async);
+  g_task_set_source_tag (task, valent_packet_to_stream);
   g_task_set_task_data (task, packet_str, g_free);
   g_output_stream_write_all_async (stream,
                                    packet_str,
@@ -1203,59 +1134,6 @@ valent_packet_to_stream_finish (GOutputStream  *stream,
   g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
   return g_task_propagate_boolean (G_TASK (result), error);
-}
-
-/**
- * valent_packet_to_stream:
- * @stream: a `GOutputStream`
- * @packet: a KDE Connect packet
- * @cancellable: (nullable): a `GCancellable`
- * @error: (nullable): a `GError`
- *
- * Write a KDE Connect packet to an output stream.
- *
- * Returns: %TRUE if successful, or %FALSE with @error set
- *
- * Since: 1.0
- */
-gboolean
-valent_packet_to_stream (GOutputStream  *stream,
-                         JsonNode       *packet,
-                         GCancellable   *cancellable,
-                         GError        **error)
-{
-  g_autoptr (JsonGenerator) generator = NULL;
-  JsonObject *root;
-  g_autoptr (GString) packet_str = NULL;
-
-  g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), FALSE);
-  g_return_val_if_fail (packet != NULL, FALSE);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), FALSE);
-  g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-  if (!valent_packet_validate (packet, error))
-    return FALSE;
-
-  /* Timestamp the packet (UNIX Epoch ms)
-   */
-  root = json_node_get_object (packet);
-  json_object_set_int_member (root, "id", valent_timestamp_ms ());
-
-  /* Serialize the packet and replace the trailing NULL with an LF
-   */
-  generator = json_generator_new ();
-  json_generator_set_root (generator, packet);
-
-  packet_str = g_string_new (NULL);
-  json_generator_to_gstring (generator, packet_str);
-  g_string_append_c (packet_str, '\n');
-
-  return g_output_stream_write_all (stream,
-                                    packet_str->str,
-                                    packet_str->len,
-                                    NULL,
-                                    cancellable,
-                                    error);
 }
 
 /**
