@@ -66,7 +66,6 @@
 
     <!-- Test Vectors -->
     <file preprocess="json-stripblanks" alias="core.json">data/core.json</file>
-    <file preprocess="json-stripblanks" alias="core-large.json">data/core-large.json</file>
     <file preprocess="json-stripblanks" alias="core-packet.json">data/core-packet.json</file>
     <file preprocess="json-stripblanks" alias="core-state.json">data/core-state.json</file>
     <file preprocess="json-stripblanks" alias="plugin-battery.json">data/plugin-battery.json</file>

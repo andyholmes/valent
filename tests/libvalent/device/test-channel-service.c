@@ -107,8 +107,6 @@ read_packet_cb (ValentChannel         *channel,
   g_assert_true (VALENT_IS_PACKET (packet));
 
   v_assert_packet_type (packet, "kdeconnect.mock.echo");
-  v_assert_packet_cmpstr (packet, "foo", ==, "bar");
-
   valent_test_quit_loop ();
 }
 
@@ -314,14 +312,14 @@ static void
 test_channel_service_channel (ChannelServiceFixture *fixture,
                               gconstpointer          user_data)
 {
-  GError *error = NULL;
-  JsonNode *packet;
+  g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GIOStream) base_stream_out = NULL;
   g_autoptr (JsonNode) identity_out = NULL;
   g_autoptr (JsonNode) peer_identity_out = NULL;
   g_autoptr (GTlsCertificate) certificate_out = NULL;
   g_autoptr (GTlsCertificate) peer_certificate_out = NULL;
   g_autoptr (GFile) file = NULL;
+  GError *error = NULL;
 
   g_signal_connect (fixture->service,
                     "channel",
@@ -353,9 +351,8 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
   g_assert_true (json_node_equal (valent_channel_get_identity (fixture->channel), identity_out));
   g_assert_true (json_node_equal (valent_channel_get_peer_identity (fixture->channel), peer_identity_out));
 
-  /* Packet Exchange */
-  packet = json_object_get_member (json_node_get_object (fixture->packets),
-                                   "test-echo");
+  VALENT_TEST_CHECK ("Channel can send and receive packets");
+  packet = valent_packet_new ("kdeconnect.mock.echo");
   valent_channel_write_packet (fixture->channel,
                                packet,
                                NULL,
@@ -368,22 +365,25 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
                               (GAsyncReadyCallback)read_packet_cb,
                               fixture);
   valent_test_run_loop ();
+  g_clear_pointer (&packet, json_node_unref);
 
-  /* Download */
+  VALENT_TEST_CHECK ("Channel can download payloads from packets");
   valent_channel_read_packet (fixture->endpoint,
                               NULL,
                               (GAsyncReadyCallback)read_download_cb,
                               fixture);
 
+  packet = valent_packet_new ("kdeconnect.mock.transfer");
+  json_object_set_string_member (valent_packet_get_body (packet),
+                                 "filename",
+                                 "image.png");
   file = g_file_new_for_uri ("resource:///tests/image.png");
-  packet = json_object_get_member (json_node_get_object (fixture->packets),
-                                   "test-transfer");
 
   valent_test_upload (fixture->channel, packet, file, &error);
   g_assert_no_error (error);
 
-  /* Upload */
   /* NOTE: The `payloadTransferInfo` has been set by the previous test */
+  VALENT_TEST_CHECK ("Channel can upload payloads with packets");
   valent_channel_upload_async (fixture->channel,
                                packet,
                                NULL,
@@ -395,7 +395,7 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
                               fixture);
   valent_test_run_loop ();
 
-  /* Closing */
+  VALENT_TEST_CHECK ("Channel can be closed");
   valent_channel_close_async (fixture->endpoint,
                               NULL,
                               (GAsyncReadyCallback)close_cb,
