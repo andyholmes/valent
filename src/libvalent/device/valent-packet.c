@@ -605,7 +605,7 @@ valent_packet_get_int (JsonNode   *packet,
  * valent_packet_get_string:
  * @packet: a KDE Connect packet
  * @field: (not nullable): field name
- * @value: (out) (nullable): a string
+ * @value: (out) (nullable) (transfer none): a string
  *
  * Lookup @field in the body of @packet and assign it to @value.
  *
@@ -655,7 +655,7 @@ valent_packet_get_string (JsonNode    *packet,
  * valent_packet_get_array:
  * @packet: a KDE Connect packet
  * @field: (not nullable): field name
- * @value: (out) (nullable): a `JsonArray`
+ * @value: (out) (nullable) (transfer none): a `JsonArray`
  *
  * Lookup @field in the body of @packet and assign it to @value.
  *
@@ -699,7 +699,7 @@ valent_packet_get_array (JsonNode    *packet,
  * valent_packet_get_object:
  * @packet: a KDE Connect packet
  * @field: (not nullable): field name
- * @value: (out) (nullable): a `JsonObject`
+ * @value: (out) (nullable) (transfer none): a `JsonObject`
  *
  * Lookup @field in the body of @packet and assign it to @value.
  *
