@@ -1,4 +1,6 @@
-/*
+/* SPDX-License-Identifier: MIT
+ * SPDX-FileCopyrightText: 2020 Corentin Noël <corentin.noel@collabora.com>
+ *
  * Copyright 2020 Corentin Noël <corentin.noel@collabora.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
