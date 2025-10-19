@@ -12,12 +12,12 @@ static void
 test_device_transfer (ValentTestFixture *fixture,
                       gconstpointer      user_data)
 {
+  g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GFile) file = NULL;
   g_autoptr (GFileInfo) src_info = NULL;
   g_autoptr (GFile) dest = NULL;
   g_autoptr (GFileInfo) dest_info = NULL;
   const char *dest_dir = NULL;
-  JsonNode *packet = NULL;
   uint64_t src_btime_s, src_mtime_s, dest_mtime_s;
   uint32_t src_btime_us, src_mtime_us, dest_mtime_us;
   int64_t src_btime, src_mtime, dest_mtime;
