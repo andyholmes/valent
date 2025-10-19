@@ -15,16 +15,14 @@ typedef struct
 {
   ValentNotifications *notifications;
   GDBusConnection     *connection;
-
-  unsigned int         notification_nid;
 } FdoNotificationsFixture;
 
 static void
-on_notification_added (ValentNotifications *notifications,
-                       ValentNotification  *notification,
+on_notification_added (ValentNotifications  *notifications,
+                       ValentNotification   *notification,
                        ValentNotification  **notification_out)
 {
-  *notification_out = g_object_ref (notification);
+  g_set_object (notification_out, notification);
 }
 
 static void
@@ -32,7 +30,7 @@ on_notification_removed (ValentNotifications  *notifications,
                          const char           *id,
                          char                **notification_id)
 {
-  *notification_id = g_strdup (id);
+  g_set_str (notification_id, id);
 }
 
 static void
@@ -63,21 +61,22 @@ close_notification_cb (GDBusConnection         *connection,
                        FdoNotificationsFixture *fixture)
 {
   g_autoptr (GVariant) reply = NULL;
-  g_autoptr (GError) error = NULL;
+  GError *error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
   g_assert_no_error (error);
 }
 
 static void
-close_notification (FdoNotificationsFixture *fixture)
+close_notification (FdoNotificationsFixture *fixture,
+                    GVariant                *notification_id)
 {
   g_dbus_connection_call (fixture->connection,
                           "org.freedesktop.Notifications",
                           "/org/freedesktop/Notifications",
                           "org.freedesktop.Notifications",
                           "CloseNotification",
-                          g_variant_new ("(u)", fixture->notification_nid),
+                          notification_id,
                           NULL,
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
@@ -87,24 +86,22 @@ close_notification (FdoNotificationsFixture *fixture)
 }
 
 static void
-send_notification_cb (GDBusConnection         *connection,
-                      GAsyncResult            *result,
-                      FdoNotificationsFixture *fixture)
+send_notification_cb (GDBusConnection  *connection,
+                      GAsyncResult     *result,
+                      GVariant        **id_out)
 {
-  g_autoptr (GVariant) reply = NULL;
-  g_autoptr (GError) error = NULL;
+  GError *error = NULL;
 
-  reply = g_dbus_connection_call_finish (connection, result, &error);
+  g_clear_pointer (id_out, g_variant_unref);
+  *id_out = g_dbus_connection_call_finish (connection, result, &error);
   g_assert_no_error (error);
-
-  g_variant_get (reply, "(u)", &fixture->notification_nid);
 }
 
 static void
-send_notification (FdoNotificationsFixture *fixture,
-                   gboolean                 with_pixbuf)
+send_notification (FdoNotificationsFixture  *fixture,
+                   gboolean                  with_pixbuf,
+                   GVariant                **id_out)
 {
-  GVariant *notification = NULL;
   GVariantBuilder actions_builder;
   GVariantBuilder hints_builder;
 
@@ -153,30 +150,28 @@ send_notification (FdoNotificationsFixture *fixture,
     }
 #endif /* HAVE_GLYCIN */
 
-  notification = g_variant_new ("(susssasa{sv}i)",
-                                "Test Application",
-                                0, // id
-                                with_pixbuf
-                                  ? ""
-                                  : "dialog-information-symbolic",
-                                "Test Title",
-                                "Test Body",
-                                &actions_builder,
-                                &hints_builder,
-                                -1); // timeout
-
   g_dbus_connection_call (fixture->connection,
                           "org.freedesktop.Notifications",
                           "/org/freedesktop/Notifications",
                           "org.freedesktop.Notifications",
                           "Notify",
-                          notification,
+                          g_variant_new ("(susssasa{sv}i)",
+                                         "Test Application",
+                                         0, // replaces_id
+                                         with_pixbuf
+                                           ? ""
+                                           : "dialog-information-symbolic",
+                                         "Test Title",
+                                         "Test Body",
+                                         &actions_builder,
+                                         &hints_builder,
+                                         -1), // timeout,
                           NULL,
                           G_DBUS_CALL_FLAGS_NONE,
                           -1,
                           NULL,
                           (GAsyncReadyCallback)send_notification_cb,
-                          fixture);
+                          id_out);
 }
 
 static void
@@ -186,6 +181,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_autoptr (ValentNotification) notification = NULL;
   g_autoptr (GIcon) cmp_icon = NULL;
   g_autoptr (GIcon) icon = NULL;
+  g_autoptr (GVariant) id_value = NULL;
   g_autofree char *notification_id = NULL;
   g_autofree char *id = NULL;
   g_autofree char *application = NULL;
@@ -208,9 +204,9 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
                     &notification_id);
 
   VALENT_TEST_CHECK ("Adapter adds notifications");
-  send_notification (fixture, FALSE);
+  send_notification (fixture, FALSE, &id_value);
+  valent_test_await_pointer (&id_value);
   valent_test_await_pointer (&notification);
-  g_assert_true (VALENT_IS_NOTIFICATION (notification));
 
   VALENT_TEST_CHECK ("Notifications have the expected content");
   cmp_icon = g_themed_icon_new ("dialog-information-symbolic");
@@ -228,23 +224,54 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_assert_cmpstr (body, ==, "Test Body");
   g_assert_true (g_icon_equal (icon, cmp_icon));
   g_assert_cmpuint (priority, ==, G_NOTIFICATION_PRIORITY_URGENT);
-  g_clear_object (&notification);
 
   VALENT_TEST_CHECK ("Adapter removes notifications");
-  close_notification (fixture);
+  close_notification (fixture, id_value);
   valent_test_await_pointer (&notification_id);
   g_assert_cmpstr (id, ==, notification_id);
-  g_clear_pointer (&notification_id, g_free);
+
+  g_clear_pointer (&id, g_free);
+  g_clear_pointer (&application, g_free);
+  g_clear_pointer (&title, g_free);
+  g_clear_pointer (&body, g_free);
+  g_clear_object (&icon);
 
 #ifdef HAVE_GLYCIN
   VALENT_TEST_CHECK ("Adapter adds notifications with pixbuf icons");
-  send_notification (fixture, TRUE);
+  send_notification (fixture, TRUE, &id_value);
+  valent_test_await_pointer (&id_value);
   valent_test_await_pointer (&notification);
-  g_clear_object (&notification);
+
+  VALENT_TEST_CHECK ("Notifications with pixbuf icons have the expected content");
+  g_object_get (notification,
+                "id",          &id,
+                "application", &application,
+                "title",       &title,
+                "body",        &body,
+                "icon",        &icon,
+                "priority",    &priority,
+                NULL);
+
+  g_assert_cmpstr (application, ==, "Test Application");
+  g_assert_cmpstr (title, ==, "Test Title");
+  g_assert_cmpstr (body, ==, "Test Body");
+  g_assert_true (G_IS_ICON (icon));
+  g_assert_cmpuint (priority, ==, G_NOTIFICATION_PRIORITY_URGENT);
+
+  VALENT_TEST_CHECK ("Adapter removes notifications with pixbuf icons");
+  close_notification (fixture, id_value);
+  valent_test_await_pointer (&notification_id);
+  g_assert_cmpstr (id, ==, notification_id);
+
+  g_clear_pointer (&id, g_free);
+  g_clear_pointer (&application, g_free);
+  g_clear_pointer (&title, g_free);
+  g_clear_pointer (&body, g_free);
+  g_clear_object (&icon);
 #endif /* HAVE_GLYCIN */
 
-  g_signal_handlers_disconnect_by_data (fixture->notifications, notification);
-  g_signal_handlers_disconnect_by_data (fixture->notifications, notification_id);
+  g_signal_handlers_disconnect_by_data (fixture->notifications, &notification);
+  g_signal_handlers_disconnect_by_data (fixture->notifications, &notification_id);
 }
 
 int
