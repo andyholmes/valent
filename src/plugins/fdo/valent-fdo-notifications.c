@@ -19,6 +19,7 @@ struct _ValentFdoNotifications
 {
   ValentNotificationsAdapter  parent_instance;
 
+  GHashTable                 *pending;
   GDBusInterfaceVTable        vtable;
   GDBusNodeInfo              *node_info;
   GDBusInterfaceInfo         *iface_info;
@@ -28,6 +29,7 @@ struct _ValentFdoNotifications
   unsigned int                name_owner_id;
   GDBusConnection            *session;
   unsigned int                closed_id;
+  unsigned int                filter_id;
 };
 
 static void   g_async_initable_iface_init (GAsyncInitableIface *iface);
@@ -63,12 +65,14 @@ static const char interface_xml[] =
   "      <arg name='actions' type='as' direction='in'/>"
   "      <arg name='hints' type='a{sv}' direction='in'/>"
   "      <arg name='timeout' type='i' direction='in'/>"
+  "      <arg name='id' type='u' direction='out'/>"
   "    </method>"
   "  </interface>"
   "</node>";
 
 static const char *interface_matches[] = {
   "interface='org.freedesktop.Notifications',member='Notify',type='method_call'",
+  "type='method_return'",
   NULL
 };
 
@@ -171,10 +175,13 @@ _notification_closed (ValentNotificationsAdapter *adapter,
 
 static void
 _notify (ValentNotificationsAdapter *adapter,
+         GDBusMessage               *message,
          GVariant                   *parameters)
 {
+  ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (adapter);
   g_autoptr (ValentNotification) notification = NULL;
   g_autoptr (GIcon) icon = NULL;
+  uint32_t serial;
 
   const char *app_name;
   uint32_t replaces_id;
@@ -245,7 +252,14 @@ _notify (ValentNotificationsAdapter *adapter,
   /* Set a timestamp */
   valent_notification_set_time (notification, valent_timestamp_ms ());
 
-  valent_notifications_adapter_notification_added (adapter, notification);
+  /* Wait for the reply to get the correct notification ID
+   */
+  valent_object_lock (VALENT_OBJECT (self));
+  serial = g_dbus_message_get_serial (message);
+  g_hash_table_replace (self->pending,
+                        GUINT_TO_POINTER (serial),
+                        g_object_ref (notification));
+  valent_object_unlock (VALENT_OBJECT (self));
 }
 
 static void
@@ -276,10 +290,93 @@ valent_fdo_notifications_method_call (GDBusConnection       *connection,
     goto out;
 
   if (g_strcmp0 (method_name, "Notify") == 0)
-    _notify (adapter, parameters);
+    _notify (adapter, message, parameters);
 
   out:
     g_object_unref (invocation);
+}
+
+static gboolean
+valent_fdo_notifications_filter_main (gpointer data)
+{
+  GTask *task = G_TASK (data);
+  ValentFdoNotifications *self = g_task_get_source_object (task);
+  ValentNotificationsAdapter *adapter = g_task_get_source_object (task);
+  GDBusMessage *message = g_task_get_task_data (task);
+  g_autoptr (ValentNotification) notification = NULL;
+  uint32_t reply_serial;
+
+  g_assert (VALENT_IS_MAIN_THREAD ());
+
+  reply_serial = g_dbus_message_get_reply_serial (message);
+  valent_object_lock (VALENT_OBJECT (self));
+  g_hash_table_steal_extended (self->pending,
+                               GUINT_TO_POINTER (reply_serial),
+                               NULL,
+                               (void **)&notification);
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  if (notification != NULL)
+    {
+      GVariant *body = NULL;
+
+      body = g_dbus_message_get_body (message);
+      if (g_variant_is_of_type (body, G_VARIANT_TYPE ("(u)")))
+        {
+          g_autofree char *id_str = NULL;
+          uint32_t notification_id;
+
+          g_variant_get (body, "(u)", &notification_id);
+          id_str = g_strdup_printf ("%u", notification_id);
+          valent_notification_set_id (notification, id_str);
+        }
+
+      valent_notifications_adapter_notification_added (adapter, notification);
+    }
+
+  return G_SOURCE_REMOVE;
+}
+
+static GDBusMessage *
+valent_fdo_notifications_filter (GDBusConnection *connection,
+                                 GDBusMessage    *message,
+                                 gboolean         incoming,
+                                 gpointer         user_data)
+{
+  ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (user_data);
+  GDBusMessageType message_type;
+
+  g_assert (VALENT_IS_FDO_NOTIFICATIONS (self));
+
+  message_type = g_dbus_message_get_message_type (message);
+  if (message_type == G_DBUS_MESSAGE_TYPE_METHOD_RETURN)
+    {
+      uint32_t reply_serial;
+      gboolean pending;
+
+      reply_serial = g_dbus_message_get_reply_serial (message);
+      valent_object_lock (VALENT_OBJECT (self));
+      pending = g_hash_table_contains (self->pending,
+                                       GUINT_TO_POINTER (reply_serial));
+      valent_object_unlock (VALENT_OBJECT (self));
+
+      if (pending)
+        {
+          g_autoptr (GTask) task = NULL;
+
+          task = g_task_new (self, NULL, NULL, NULL);
+          g_task_set_source_tag (task, valent_fdo_notifications_filter);
+          g_task_set_task_data (task, g_object_ref (message), g_object_unref);
+
+          g_main_context_invoke_full (NULL,
+                                      g_task_get_priority (task),
+                                      valent_fdo_notifications_filter_main,
+                                      g_object_ref (task),
+                                      g_object_unref);
+        }
+    }
+
+  return message;
 }
 
 static void
@@ -327,6 +424,14 @@ on_name_appeared (GDBusConnection *connection,
                                             self, NULL);
     }
 
+  if (self->filter_id == 0)
+    {
+      g_dbus_connection_add_filter (self->monitor,
+                                    valent_fdo_notifications_filter,
+                                    self,
+                                    NULL);
+    }
+
   valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                          VALENT_PLUGIN_STATE_ACTIVE,
                                          NULL);
@@ -345,6 +450,12 @@ on_name_vanished (GDBusConnection *connection,
     {
       g_dbus_connection_signal_unsubscribe (self->session, self->closed_id);
       self->closed_id = 0;
+    }
+
+  if (self->filter_id > 0)
+    {
+      g_dbus_connection_remove_filter (self->session, self->filter_id);
+      self->filter_id = 0;
     }
 
   valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
@@ -509,6 +620,12 @@ valent_fdo_notifications_destroy (ValentObject *object)
       self->closed_id = 0;
     }
 
+  if (self->filter_id > 0)
+    {
+      g_dbus_connection_remove_filter (self->session, self->filter_id);
+      self->filter_id = 0;
+    }
+
   if (self->name_owner_id > 0)
     {
       g_clear_handle_id (&self->name_owner_id, g_bus_unwatch_name);
@@ -535,7 +652,10 @@ valent_fdo_notifications_finalize (GObject *object)
 {
   ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (object);
 
+  valent_object_lock (VALENT_OBJECT (self));
   g_clear_pointer (&self->node_info, g_dbus_node_info_unref);
+  g_clear_pointer (&self->pending, g_hash_table_unref);
+  valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_fdo_notifications_parent_class)->finalize (object);
 }
@@ -560,5 +680,12 @@ valent_fdo_notifications_init (ValentFdoNotifications *self)
   self->vtable.method_call = valent_fdo_notifications_method_call;
   self->vtable.get_property = NULL;
   self->vtable.set_property = NULL;
+
+  valent_object_lock (VALENT_OBJECT (self));
+  self->pending = g_hash_table_new_full (NULL,
+                                         NULL,
+                                         NULL,
+                                         g_object_unref);
+  valent_object_unlock (VALENT_OBJECT (self));
 }
 
