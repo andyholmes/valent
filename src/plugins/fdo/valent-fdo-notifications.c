@@ -334,6 +334,8 @@ valent_fdo_notifications_filter_main (gpointer data)
       valent_notifications_adapter_notification_added (adapter, notification);
     }
 
+  g_task_return_boolean (task, TRUE);
+
   return G_SOURCE_REMOVE;
 }
 
