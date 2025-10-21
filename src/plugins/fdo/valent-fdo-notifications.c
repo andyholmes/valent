@@ -85,10 +85,6 @@ _g_icon_new_for_variant (GVariant *image_data)
   gboolean has_alpha;
   int32_t bits_per_sample, n_channels;
   g_autoptr (GVariant) data_variant = NULL;
-  const unsigned char *data = NULL;
-  size_t data_len = 0;
-  size_t expected_len = 0;
-
   g_autoptr (GlyCreator) creator = NULL;
   g_autoptr (GlyNewFrame) frame = NULL;
   g_autoptr (GlyEncodedImage) image = NULL;
@@ -104,23 +100,8 @@ _g_icon_new_for_variant (GVariant *image_data)
                  &bits_per_sample,
                  &n_channels,
                  &data_variant);
-
-  data = g_variant_get_data (data_variant);
-  data_len = g_variant_get_size (data_variant);
-  expected_len = (height - 1) * rowstride + width
-    * ((n_channels * bits_per_sample + 7) / 8);
-
-  if (expected_len != data_len)
-    {
-      g_warning ("Expected image data to be of length %zu not %zu",
-                 expected_len,
-                 data_len);
-      return NULL;
-    }
-
-  g_return_val_if_fail (bits_per_sample == 8, NULL);
-  g_return_val_if_fail ((has_alpha && n_channels == 4) ||
-                        (!has_alpha && n_channels == 3), NULL);
+  texture = g_bytes_new (g_variant_get_data (data_variant),
+                         g_variant_get_size (data_variant));
 
   creator = gly_creator_new ("image/png", &error);
   if (creator == NULL)
@@ -129,7 +110,6 @@ _g_icon_new_for_variant (GVariant *image_data)
       return NULL;
     }
 
-  texture = g_bytes_new (data, data_len);
   frame = gly_creator_add_frame_with_stride (creator,
                                              width,
                                              height,
