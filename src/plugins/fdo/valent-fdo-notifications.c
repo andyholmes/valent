@@ -370,11 +370,10 @@ valent_fdo_notifications_filter (GDBusConnection *connection,
           g_task_set_source_tag (task, valent_fdo_notifications_filter);
           g_task_set_task_data (task, g_object_ref (message), g_object_unref);
 
-          g_main_context_invoke_full (NULL,
-                                      g_task_get_priority (task),
-                                      valent_fdo_notifications_filter_main,
-                                      g_object_ref (task),
-                                      g_object_unref);
+          g_idle_add_full (g_task_get_priority (task),
+                           valent_fdo_notifications_filter_main,
+                           g_object_ref (task),
+                           g_object_unref);
         }
     }
 
