@@ -454,7 +454,7 @@ on_name_vanished (GDBusConnection *connection,
 
   if (self->filter_id > 0)
     {
-      g_dbus_connection_remove_filter (self->session, self->filter_id);
+      g_dbus_connection_remove_filter (self->monitor, self->filter_id);
       self->filter_id = 0;
     }
 
@@ -622,7 +622,7 @@ valent_fdo_notifications_destroy (ValentObject *object)
 
   if (self->filter_id > 0)
     {
-      g_dbus_connection_remove_filter (self->session, self->filter_id);
+      g_dbus_connection_remove_filter (self->monitor, self->filter_id);
       self->filter_id = 0;
     }
 
