@@ -66,7 +66,10 @@ valent_transfer_execute_cb (GObject      *object,
   g_autoptr (GError) error = NULL;
 
   if (!valent_transfer_execute_finish (transfer, result, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   if (self->position < self->items->len)
     {

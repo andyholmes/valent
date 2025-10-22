@@ -192,7 +192,6 @@ become_monitor_cb (GDBusConnection *connection,
   g_autoptr (GError) error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-
   if (reply == NULL)
     {
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
@@ -200,7 +199,8 @@ become_monitor_cb (GDBusConnection *connection,
                                              error);
       g_clear_object (&self->monitor);
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   /* Watch the true name owner*/
@@ -211,10 +211,6 @@ become_monitor_cb (GDBusConnection *connection,
                                           on_name_vanished,
                                           self, NULL);
 
-  /* Report the adapter as active */
-  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
-                                         VALENT_PLUGIN_STATE_ACTIVE,
-                                         NULL);
   g_task_return_boolean (task, TRUE);
 }
 
@@ -236,10 +232,12 @@ new_for_address_cb (GObject      *object,
                                              VALENT_PLUGIN_STATE_ERROR,
                                              error);
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
-  /* Export the monitor interface */
+  /* Export the interface and register as a monitor
+   */
   self->monitor_id =
     g_dbus_connection_register_object (self->monitor,
                                        "/org/gtk/Notifications",
@@ -255,10 +253,10 @@ new_for_address_cb (GObject      *object,
                                              error);
       g_clear_object (&self->monitor);
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
-  /* Become a monitor for notifications */
   g_dbus_connection_call (self->monitor,
                           "org.freedesktop.DBus",
                           "/org/freedesktop/DBus",
@@ -294,20 +292,21 @@ valent_gtk_notifications_init_async (GAsyncInitable      *initable,
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_gtk_notifications_init_async);
 
-  /* Get a bus address */
+  /* Get a bus address and dedicated monitoring connection
+   */
   address = g_dbus_address_get_for_bus_sync (G_BUS_TYPE_SESSION,
                                              cancellable,
                                              &error);
-
   if (address == NULL)
     {
       valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
                                              VALENT_PLUGIN_STATE_ERROR,
                                              error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
-  /* Get a dedicated connection for monitoring */
   g_dbus_connection_new_for_address (address,
                                      G_DBUS_CONNECTION_FLAGS_AUTHENTICATION_CLIENT |
                                      G_DBUS_CONNECTION_FLAGS_MESSAGE_BUS_CONNECTION,

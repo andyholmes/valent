@@ -1233,7 +1233,8 @@ valent_device_init (ValentDevice *self)
   g_signal_connect_object (action,
                            "activate",
                            G_CALLBACK (pair_action),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   g_hash_table_replace (self->actions,
                         g_strdup ("pair"),
                         g_steal_pointer (&action));
@@ -1242,7 +1243,8 @@ valent_device_init (ValentDevice *self)
   g_signal_connect_object (action,
                            "activate",
                            G_CALLBACK (unpair_action),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   g_hash_table_replace (self->actions,
                         g_strdup ("unpair"),
                         g_steal_pointer (&action));

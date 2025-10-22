@@ -486,7 +486,8 @@ valent_preferences_dialog_constructed (GObject *object)
   g_signal_connect_object (self->settings,
                            "changed::name",
                            G_CALLBACK (on_settings_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   name = g_settings_get_string (self->settings, "name");
   gtk_editable_set_text (GTK_EDITABLE (self->name_entry), name);
 

@@ -458,13 +458,15 @@ valent_clipboard_plugin_constructed (GObject *object)
   g_signal_connect_object (settings,
                            "changed::auto-pull",
                            G_CALLBACK (on_auto_pull_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   self->auto_push = g_settings_get_boolean (settings, "auto-push");
   g_signal_connect_object (settings,
                            "changed::auto-push",
                            G_CALLBACK (on_auto_push_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   self->clipboard = valent_clipboard_get_default ();
   self->local_timestamp = valent_clipboard_get_timestamp (self->clipboard);

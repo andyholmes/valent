@@ -285,7 +285,8 @@ valent_menu_list_add_submenu (ValentMenuList *self,
   g_signal_connect_object (row,
                            "destroy",
                            G_CALLBACK (on_submenu_removed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   /* Side-step GtkListBox to catch row activation; it will not be emitted if
    * this row has an action set (and it should).  */
@@ -297,11 +298,13 @@ valent_menu_list_add_submenu (ValentMenuList *self,
   g_signal_connect_object (controller,
                            "pressed",
                            G_CALLBACK (on_gesture_pressed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (controller,
                            "released",
                            G_CALLBACK (on_gesture_released),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   gtk_widget_add_controller (GTK_WIDGET (row), g_steal_pointer (&controller));
 
   controller = g_object_new (GTK_TYPE_EVENT_CONTROLLER_KEY,
@@ -310,7 +313,8 @@ valent_menu_list_add_submenu (ValentMenuList *self,
   g_signal_connect_object (controller,
                            "key-pressed",
                            G_CALLBACK (on_key_pressed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   gtk_widget_add_controller (GTK_WIDGET (row), g_steal_pointer (&controller));
 }
 
@@ -592,7 +596,8 @@ valent_menu_list_set_menu_model (ValentMenuList *list,
       g_signal_connect_object (list->model,
                                "items-changed",
                                G_CALLBACK (on_items_changed),
-                               list, 0);
+                               list,
+                               G_CONNECT_DEFAULT);
 
       n_items = g_menu_model_get_n_items (model);
       on_items_changed (model, 0, 0, n_items, list);

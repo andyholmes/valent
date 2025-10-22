@@ -133,7 +133,8 @@ valent_contacts_preferences_create_row_func (gpointer item,
   g_signal_connect_object (G_OBJECT (row),
                            "activated",
                            G_CALLBACK (on_adapter_selected),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   settings = valent_preferences_page_get_settings (page, "contacts");
   local_iri = g_settings_get_string (settings, "local-uid");
@@ -317,7 +318,8 @@ add_application (ValentPreferencesSyncPage *self,
   g_signal_connect_object (row,
                            "notify::active",
                            G_CALLBACK (on_switch_toggled),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   /* App icon */
   if ((icon_v = g_variant_lookup_value (app, "icon", NULL)) != NULL)

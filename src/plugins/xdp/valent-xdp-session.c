@@ -89,15 +89,16 @@ xdp_portal_session_monitor_start_cb (GObject      *object,
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                              VALENT_PLUGIN_STATE_ERROR,
                                              error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_signal_connect_object (portal,
                            "session-state-changed",
                            G_CALLBACK (on_session_state_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
-  /* Report the adapter as active */
   valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                          VALENT_PLUGIN_STATE_ACTIVE,
                                          NULL);

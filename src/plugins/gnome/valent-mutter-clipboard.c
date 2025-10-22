@@ -143,17 +143,20 @@ selection_read_cb (GDBusConnection *connection,
                                                            &list,
                                                            result,
                                                            &error);
-
   if (reply == NULL)
     {
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_variant_get (reply, "(h)", &index_);
-
-  if ((fd = unix_fd_list_get (list, index_, &error)) == -1)
-    return g_task_return_error (task, g_steal_pointer (&error));
+  fd = unix_fd_list_get (list, index_, &error);
+  if (fd == -1)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   stream = g_unix_input_stream_new (fd, TRUE);
   g_input_stream_read_bytes_async (stream,
@@ -188,7 +191,6 @@ selection_write_done_cb (GDBusConnection *connection,
   g_autoptr (GError) error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-
   if (reply == NULL)
     {
       g_dbus_error_strip_remote_error (error);
@@ -221,9 +223,11 @@ g_output_stream_write_bytes_cb (GOutputStream *stream,
                           cancellable,
                           (GAsyncReadyCallback)selection_write_done_cb,
                           NULL);
-
   if (!success)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_task_return_boolean (task, TRUE);
 }
@@ -246,17 +250,20 @@ selection_write_cb (GDBusConnection *connection,
                                                            &fd_list,
                                                            result,
                                                            &error);
-
   if (reply == NULL)
     {
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_variant_get (reply, "(h)", &index_);
-
-  if ((selection->fd = unix_fd_list_get (fd_list, index_, &error)) == -1)
-    return g_task_return_error (task, g_steal_pointer (&error));
+  selection->fd = unix_fd_list_get (fd_list, index_, &error);
+  if (selection->fd == -1)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   stream = g_unix_output_stream_new (selection->fd, TRUE);
   g_output_stream_write_bytes_async (stream,
@@ -443,33 +450,44 @@ valent_mutter_clipboard_read_bytes (ValentClipboardAdapter *adapter,
   g_assert (mimetype != NULL && *mimetype != '\0');
 
   if (self->connection == NULL || self->session_path == NULL)
-    return g_task_report_new_error (adapter, callback, user_data, callback,
-                                    G_IO_ERROR,
-                                    G_IO_ERROR_DBUS_ERROR,
-                                    "Clipboard service not available.");
+    {
+      g_task_report_new_error (adapter, callback, user_data, callback,
+                               G_IO_ERROR,
+                               G_IO_ERROR_DBUS_ERROR,
+                               "Clipboard service not available.");
+      return;
+    }
 
   if (self->mimetypes == NULL)
-    return g_task_report_new_error (adapter, callback, user_data, callback,
-                                    G_IO_ERROR,
-                                    G_IO_ERROR_NOT_SUPPORTED,
-                                    "Clipboard empty");
+    {
+      g_task_report_new_error (adapter, callback, user_data, callback,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "Clipboard empty");
+      return;
+    }
 
   mimetypes = g_variant_get_strv (self->mimetypes, NULL);
-
   if (!g_strv_contains (mimetypes, mimetype))
-    return g_task_report_new_error (adapter, callback, user_data, callback,
-                                    G_IO_ERROR,
-                                    G_IO_ERROR_NOT_SUPPORTED,
-                                    "%s format not available.",
-                                    mimetype);
+    {
+      g_task_report_new_error (adapter, callback, user_data, callback,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "%s format not available.",
+                               mimetype);
+      return;
+    }
 
   task = g_task_new (adapter, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_mutter_clipboard_read_bytes);
 
   if (self->is_owner && self->content != NULL)
-    return g_task_return_pointer (task,
-                                  g_bytes_ref (self->content),
-                                  (GDestroyNotify)g_bytes_unref);
+    {
+      g_task_return_pointer (task,
+                             g_bytes_ref (self->content),
+                             (GDestroyNotify)g_bytes_unref);
+      return;
+    }
 
   g_dbus_connection_call (self->connection,
                           REMOTE_DESKTOP_NAME,
@@ -495,11 +513,11 @@ set_selection_cb (GDBusConnection *connection,
   g_autoptr (GError) error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-
   if (reply == NULL)
     {
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_task_return_boolean (task, TRUE);
@@ -521,10 +539,13 @@ valent_mutter_clipboard_write_bytes (ValentClipboardAdapter *adapter,
   g_assert (bytes != NULL || (mimetype != NULL && *mimetype != '\0'));
 
   if (self->connection == NULL || self->session_path == NULL)
-    return g_task_report_new_error (adapter, callback, user_data, callback,
-                                    G_IO_ERROR,
-                                    G_IO_ERROR_DBUS_ERROR,
-                                    "Clipboard service not available.");
+    {
+      g_task_report_new_error (adapter, callback, user_data, callback,
+                               G_IO_ERROR,
+                               G_IO_ERROR_DBUS_ERROR,
+                               "Clipboard service not available.");
+      return;
+    }
 
   /* Update the local content */
   g_clear_pointer (&self->content, g_bytes_unref);
@@ -596,11 +617,11 @@ enable_clipboard_cb (GDBusConnection *connection,
   g_autoptr (GError) error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-
   if (reply == NULL)
     {
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
@@ -621,11 +642,11 @@ create_session_cb (GDBusConnection *connection,
   g_autoptr (GError) error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-
   if (reply == NULL)
     {
       g_dbus_error_strip_remote_error (error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_clear_pointer (&self->session_path, g_free);

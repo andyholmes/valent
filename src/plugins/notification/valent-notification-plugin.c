@@ -119,11 +119,13 @@ valent_notification_plugin_watch_notifications (ValentNotificationPlugin *self,
       g_signal_connect_object (notifications,
                                "notification-added",
                                G_CALLBACK (on_notification_added),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
       g_signal_connect_object (notifications,
                                "notification-removed",
                                G_CALLBACK (on_notification_removed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
       self->notifications_watch = TRUE;
     }
   else

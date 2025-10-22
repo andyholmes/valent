@@ -414,19 +414,23 @@ valent_share_dialog_create_row (gpointer item,
   g_signal_connect_object (row,
                            "notify::selected",
                            G_CALLBACK (on_selected_changed),
-                           self, G_CONNECT_SWAPPED);
+                           self,
+                           G_CONNECT_SWAPPED);
   g_signal_connect_object (device,
                            "action-added::share.uris",
                            G_CALLBACK (on_action_added),
-                           row, 0);
+                           row,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (device,
                            "action-removed::share.uris",
                            G_CALLBACK (on_action_removed),
-                           row, 0);
+                           row,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (device,
                            "action-enabled-changed::share.uris",
                            G_CALLBACK (on_action_enabled_changed),
-                           row, 0);
+                           row,
+                           G_CONNECT_DEFAULT);
   on_action_added (G_ACTION_GROUP (device), "share.uris", row);
 
   return row;
@@ -705,7 +709,8 @@ valent_share_dialog_constructed (GObject *object)
   g_signal_connect_object (self->manager,
                            "items-changed",
                            G_CALLBACK (on_items_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   on_items_changed (G_LIST_MODEL (self->manager),
                     0,
                     0,
