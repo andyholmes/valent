@@ -128,15 +128,11 @@ list_names_cb (GDBusConnection *connection,
                GAsyncResult    *result,
                gpointer         user_data)
 {
-  ValentMPRISAdapter *self;
   g_autoptr (GTask) task = G_TASK (user_data);
+  ValentMPRISAdapter *self = g_task_get_source_object (task);
   g_autoptr (GVariant) reply = NULL;
 
-  self = g_task_get_source_object (task);
-
-  /* If successful, add any currently exported players */
   reply = g_dbus_connection_call_finish (connection, result, NULL);
-
   if (reply != NULL)
     {
       g_autoptr (GCancellable) destroy = NULL;
@@ -171,7 +167,8 @@ list_names_cb (GDBusConnection *connection,
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  /* Regardless of the result of `ListNames()`, the connection is valid */
+  /* Regardless of the result of `ListNames()`, the connection is valid
+   */
   self->name_owner_changed_id =
     g_dbus_connection_signal_subscribe (connection,
                                         "org.freedesktop.DBus",
@@ -183,8 +180,6 @@ list_names_cb (GDBusConnection *connection,
                                         on_name_owner_changed,
                                         self, NULL);
 
-
-  /* Report the adapter as active */
   valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                          VALENT_PLUGIN_STATE_ACTIVE,
                                          NULL);
@@ -211,13 +206,14 @@ valent_mpris_adapter_init_async (GAsyncInitable      *initable,
   self->connection = g_bus_get_sync (G_BUS_TYPE_SESSION,
                                      cancellable,
                                      &error);
-
   if (self->connection == NULL)
     {
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                              VALENT_PLUGIN_STATE_ERROR,
                                              error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_dbus_connection_call (self->connection,

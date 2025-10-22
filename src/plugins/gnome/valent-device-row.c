@@ -290,7 +290,8 @@ valent_device_row_constructed (GObject *object)
       g_signal_connect_object (self->device,
                                "action-state-changed::connectivity_report.state",
                                G_CALLBACK (on_connectivity_state_changed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
       g_signal_connect_object (self->device,
                                "action-enabled-changed::connectivity_report.state",
                                G_CALLBACK (on_connectivity_enabled_changed),

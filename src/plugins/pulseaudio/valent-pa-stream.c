@@ -194,7 +194,8 @@ valent_pa_stream_constructed (GObject *object)
   g_signal_connect_object (self->stream,
                            "notify::port",
                            G_CALLBACK (on_port_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   on_port_changed (self->stream, NULL, self);
 }
 

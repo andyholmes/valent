@@ -565,7 +565,8 @@ valent_mpris_impl_constructed (GObject *object)
   g_signal_connect_object (self->player,
                            "notify",
                            G_CALLBACK (valent_mpris_impl_propagate_notify),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 }
 
 static void
@@ -786,12 +787,19 @@ valent_mpris_impl_export_full_cb (GObject      *object,
   g_autoptr (GError) error = NULL;
 
   connection = g_dbus_connection_new_for_address_finish (result, &error);
-
   if (connection == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   if (!valent_mpris_impl_export (self, connection, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_task_return_boolean (task, TRUE);
 }
@@ -831,9 +839,12 @@ valent_mpris_impl_export_full (ValentMPRISImpl     *impl,
   address = g_dbus_address_get_for_bus_sync (G_BUS_TYPE_SESSION,
                                              cancellable,
                                              &error);
-
   if (address == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_dbus_connection_new_for_address (address,
                                      G_DBUS_CONNECTION_FLAGS_AUTHENTICATION_CLIENT |

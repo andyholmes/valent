@@ -132,7 +132,8 @@ on_windows_changed (GListModel          *list,
       g_signal_connect_object (window,
                                "notify::is-active",
                                G_CALLBACK (on_window_is_active),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
     }
 }
 
@@ -158,7 +159,8 @@ on_autostart_changed (GSettings           *settings,
       self->active_id = g_signal_connect_object (windows,
                                                  "items-changed",
                                                  G_CALLBACK (on_windows_changed),
-                                                 self, 0);
+                                                 self,
+                                                 G_CONNECT_DEFAULT);
       on_windows_changed (windows, 0, 0, g_list_model_get_n_items (windows), self);
       return;
     }
@@ -208,7 +210,8 @@ valent_xdp_background_constructed (GObject *object)
   g_signal_connect_object (self->settings,
                            "changed::autostart",
                            G_CALLBACK (on_autostart_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   on_autostart_changed (self->settings, "autostart", self);
 #endif /* HAVE_GTK4 && HAVE_LIBPORTAL_GTK4 */
 }

@@ -68,9 +68,11 @@ valent_clipboard_adapter_read_bytes_cb (ValentClipboardAdapter *adapter,
   g_assert (g_task_is_valid (result, adapter));
 
   bytes = valent_clipboard_adapter_read_bytes_finish (adapter, result, &error);
-
   if (bytes == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_task_return_pointer (task,
                          g_steal_pointer (&bytes),
@@ -89,7 +91,10 @@ valent_clipboard_adapter_write_bytes_cb (ValentClipboardAdapter *adapter,
   g_assert (g_task_is_valid (result, adapter));
 
   if (!valent_clipboard_adapter_write_bytes_finish (adapter, result, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_task_return_boolean (task, TRUE);
 }
@@ -109,12 +114,13 @@ valent_clipboard_adapter_read_text_cb (ValentClipboardAdapter *adapter,
   g_assert (g_task_is_valid (result, adapter));
 
   bytes = valent_clipboard_adapter_read_bytes_finish (adapter, result, &error);
-
   if (bytes == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   data = g_bytes_get_data (bytes, &size);
-
   if (size > 0 && data[size - 1] == '\0')
     g_task_return_pointer (task, g_strdup (data), g_free);
   else

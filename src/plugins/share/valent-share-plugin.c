@@ -599,7 +599,8 @@ valent_share_plugin_upload_file (ValentSharePlugin *self,
       g_signal_connect_object (self->upload,
                                "items-changed",
                                G_CALLBACK (valent_share_upload_files_added),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
       g_hash_table_replace (self->transfers,
                             valent_transfer_dup_id (self->upload),
                             g_object_ref (self->upload));

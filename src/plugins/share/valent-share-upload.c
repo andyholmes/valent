@@ -90,7 +90,10 @@ valent_transfer_execute_cb (GObject      *object,
   g_autoptr (GError) error = NULL;
 
   if (!valent_transfer_execute_finish (transfer, result, &error))
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   if (self->position < self->items->len)
     {
@@ -397,9 +400,11 @@ valent_share_upload_add_files_task (GTask        *task,
                                 G_FILE_QUERY_INFO_NONE,
                                 cancellable,
                                 &error);
-
       if (info == NULL)
-        return g_task_return_error (task, g_steal_pointer (&error));
+        {
+          g_task_return_error (task, g_steal_pointer (&error));
+          return;
+        }
 
       filename = g_file_info_get_name (info);
       payload_size = g_file_info_get_size (info);

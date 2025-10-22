@@ -118,39 +118,37 @@ new_session_cb (GObject      *object,
   g_assert (VALENT_IS_FDO_SESSION (self));
 
   self->proxy = g_dbus_proxy_new_for_bus_finish (result, &error);
-
   if (self->proxy == NULL)
     {
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                              VALENT_PLUGIN_STATE_ERROR,
                                              error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
-  /* Preload properties */
+  /* Preload properties and watch for changes
+   */
   active = g_dbus_proxy_get_cached_property (self->proxy, "Active");
-
   if (active != NULL)
     self->active = g_variant_get_boolean (active);
 
   locked = g_dbus_proxy_get_cached_property (self->proxy, "LockedHint");
-
   if (locked != NULL)
     self->locked = g_variant_get_boolean (locked);
 
-  /* Watch for changes */
   g_signal_connect_object (self->proxy,
                            "g-properties-changed",
                            G_CALLBACK (on_properties_changed),
-                           self, 0);
-
+                           self,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (self->proxy,
                            "g-signal",
                            G_CALLBACK (on_signal),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
-
-  /* Report the adapter as active */
   valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                          VALENT_PLUGIN_STATE_ACTIVE,
                                          NULL);
@@ -172,13 +170,14 @@ get_display_cb (GDBusConnection *connection,
   g_assert (G_IS_TASK (task));
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-
   if (reply == NULL)
     {
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                              VALENT_PLUGIN_STATE_ERROR,
                                              error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_variant_get (reply, "(v)", &value);
@@ -208,13 +207,14 @@ get_user_cb (GDBusConnection *connection,
   g_assert (G_IS_TASK (task));
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
-
   if (reply == NULL)
     {
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                              VALENT_PLUGIN_STATE_ERROR,
                                              error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_variant_get (reply, "(&o)", &object_path);
@@ -254,18 +254,19 @@ valent_fdo_notifications_init_async (GAsyncInitable             *initable,
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, valent_fdo_notifications_init_async);
 
-  /* Get a bus address */
+  /* Get a system connection and the current user
+   */
   connection = g_bus_get_sync (G_BUS_TYPE_SYSTEM, cancellable, &error);
-
   if (connection == NULL)
     {
       valent_extension_plugin_state_changed (VALENT_EXTENSION (initable),
                                              VALENT_PLUGIN_STATE_ERROR,
                                              error);
-      return g_task_return_error (task, g_steal_pointer (&error));
+      g_dbus_error_strip_remote_error (error);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
-  /* Check for logind */
   g_dbus_connection_call (connection,
                           "org.freedesktop.login1",
                           "/org/freedesktop/login1",

@@ -61,9 +61,11 @@ g_input_stream_read_bytes_cb (GInputStream *stream,
   g_autoptr (GError) error = NULL;
 
   bytes = g_input_stream_read_bytes_finish (stream, result, &error);
-
   if (bytes == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_task_return_pointer (task,
                          g_bytes_ref (bytes),
@@ -85,9 +87,11 @@ gdk_clipboard_read_cb (GdkClipboard *clipboard,
   g_assert (g_task_is_valid (result, clipboard));
 
   input = gdk_clipboard_read_finish (clipboard, result, &mimetype, &error);
-
   if (input == NULL)
-    return g_task_return_error (task, g_steal_pointer (&error));
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_input_stream_read_bytes_async (input,
                                    G_PRIORITY_DEFAULT,
@@ -110,9 +114,11 @@ gdk_clipboard_read_text_cb (GdkClipboard *clipboard,
   g_assert (g_task_is_valid (result, clipboard));
 
   text = gdk_clipboard_read_text_finish (clipboard, result, &error);
-
   if (text == NULL)
-    return g_task_return_error (task, error);
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   g_task_return_pointer (task,
                          g_bytes_new_take (text, strlen (text) + 1),
@@ -289,7 +295,8 @@ valent_gdk_clipboard_constructed (GObject *object)
       g_signal_connect_object (self->clipboard,
                                "changed",
                                G_CALLBACK (on_changed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
     }
   else
     {

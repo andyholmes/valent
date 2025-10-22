@@ -276,7 +276,8 @@ g_dbus_proxy_new_for_bus_cb (GObject       *object,
   g_signal_connect_object (self->proxy,
                            "g-properties-changed",
                            G_CALLBACK (on_properties_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
   g_signal_emit (G_OBJECT (self), signals [CHANGED], 0);
 }
 

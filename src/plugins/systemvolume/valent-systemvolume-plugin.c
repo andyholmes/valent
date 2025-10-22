@@ -154,7 +154,8 @@ stream_state_new (ValentSystemvolumePlugin *self,
   g_signal_connect_object (state->stream,
                            "notify",
                            G_CALLBACK (on_stream_changed),
-                           self, 0);
+                           self,
+                           G_CONNECT_DEFAULT);
 
   state->name = g_strdup (valent_mixer_stream_get_name (stream));
   state->description = g_strdup (valent_mixer_stream_get_description (stream));

@@ -418,8 +418,7 @@ valent_device_page_constructed (GObject *object)
                            G_CONNECT_DEFAULT);
   on_state_changed (self->device, NULL, self);
 
-  /*
-   * Battery Status
+  /* Battery Status
    */
   g_signal_connect_object (action_group,
                            "action-state-changed::battery.state",
@@ -435,14 +434,13 @@ valent_device_page_constructed (GObject *object)
   enabled = g_action_group_get_action_enabled (action_group, "battery.state");
   on_battery_enabled_changed (action_group, "battery.state", enabled, self);
 
-  /*
-   * Connectivity Status
+  /* Connectivity Status
    */
   g_signal_connect_object (action_group,
                            "action-state-changed::connectivity_report.state",
                            G_CALLBACK (on_connectivity_state_changed),
-                           self, 0);
-
+                           self,
+                           G_CONNECT_DEFAULT);
   g_signal_connect_object (action_group,
                            "action-enabled-changed::connectivity_report.state",
                            G_CALLBACK (on_connectivity_enabled_changed),

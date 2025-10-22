@@ -323,7 +323,8 @@ refresh_action (GtkWidget  *widget,
       g_signal_connect_object (self->scan,
                                "notify::state",
                                G_CALLBACK (on_animation_state_changed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
 
       target = adw_property_animation_target_new (G_OBJECT (self->progress_bar),
                                                   "opacity");
@@ -331,7 +332,8 @@ refresh_action (GtkWidget  *widget,
       g_signal_connect_object (self->fade,
                                "notify::state",
                                G_CALLBACK (on_animation_state_changed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
     }
   else
     {

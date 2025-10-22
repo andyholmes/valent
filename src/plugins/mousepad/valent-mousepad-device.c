@@ -496,7 +496,8 @@ valent_mousepad_device_constructed (GObject *object)
       g_signal_connect_object (self->settings,
                                "notify::gtk-double-click-time",
                                G_CALLBACK (on_pointer_settings_changed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
       on_pointer_settings_changed (self->settings, NULL, self);
     }
 #endif

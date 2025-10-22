@@ -432,7 +432,8 @@ valent_runcommand_plugin_update_state (ValentDevicePlugin *plugin,
             g_signal_connect_object (settings,
                                      "changed::commands",
                                      G_CALLBACK (on_commands_changed),
-                                     self, 0);
+                                     self,
+                                     G_CONNECT_DEFAULT);
         }
 
       valent_runcommand_plugin_send_command_list (self);

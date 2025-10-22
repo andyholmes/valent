@@ -61,7 +61,8 @@ valent_connectivity_report_plugin_watch_telephony (ValentConnectivityReportPlugi
       g_signal_connect_object (self->telephony,
                                "changed",
                                G_CALLBACK (on_telephony_changed),
-                               self, 0);
+                               self,
+                               G_CONNECT_DEFAULT);
       self->telephony_watch = TRUE;
     }
   else

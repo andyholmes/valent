@@ -120,7 +120,10 @@ valent_mock_clipboard_adapter_write_bytes (ValentClipboardAdapter *adapter,
   g_task_set_source_tag (task, valent_mock_clipboard_adapter_write_bytes);
 
   if (g_bytes_equal (self->content, bytes))
-    return g_task_return_boolean (task, TRUE);
+    {
+      g_task_return_boolean (task, TRUE);
+      return;
+    }
 
   source = g_idle_source_new ();
   g_task_attach_source(task, source, task_source_cb);
