@@ -494,11 +494,6 @@ become_monitor_cb (GDBusConnection *connection,
                                           on_name_vanished,
                                           self, NULL);
 
-
-  /* Report the adapter as active */
-  valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
-                                         VALENT_PLUGIN_STATE_ACTIVE,
-                                         NULL);
   g_task_return_boolean (task, TRUE);
 }
 
