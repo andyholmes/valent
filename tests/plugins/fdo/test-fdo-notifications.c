@@ -67,7 +67,6 @@ send_notification_cb (GDBusConnection  *connection,
 {
   GError *error = NULL;
 
-  g_clear_pointer (id_out, g_variant_unref);
   *id_out = g_dbus_connection_call_finish (connection, result, &error);
   g_assert_no_error (error);
 }
@@ -255,6 +254,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_clear_pointer (&title, g_free);
   g_clear_pointer (&body, g_free);
   g_clear_object (&icon);
+  g_clear_pointer (&id_value, g_variant_unref);
 
 #ifdef HAVE_GLYCIN
   VALENT_TEST_CHECK ("Adapter adds notifications with pixbuf icons");
@@ -287,6 +287,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_clear_pointer (&title, g_free);
   g_clear_pointer (&body, g_free);
   g_clear_object (&icon);
+  g_clear_pointer (&id_value, g_variant_unref);
 #endif /* HAVE_GLYCIN */
 
   g_signal_handlers_disconnect_by_data (adapter, &notification);
