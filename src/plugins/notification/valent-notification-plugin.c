@@ -57,17 +57,28 @@ static void valent_notification_plugin_show_notification           (ValentNotifi
  * ValentNotifications Callbacks
  */
 static void
-on_notification_added (ValentNotifications      *listener,
-                       ValentNotification       *notification,
-                       ValentNotificationPlugin *self)
+on_notification_removed (ValentNotificationPlugin *self,
+                         ValentNotification       *notification)
+{
+  const char *id = NULL;
+
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+  g_assert (VALENT_IS_NOTIFICATION (notification));
+
+  id = valent_notification_get_id (notification);
+  valent_notification_plugin_close_notification (self, id);
+}
+
+static void
+on_notification_added (ValentNotificationPlugin *self,
+                       ValentNotification       *notification)
 {
   GSettings *settings;
   const char *application;
   g_auto (GStrv) deny = NULL;
 
-  g_assert (VALENT_IS_NOTIFICATIONS (listener));
-  g_assert (VALENT_IS_NOTIFICATION (notification));
   g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+  g_assert (VALENT_IS_NOTIFICATION (notification));
 
   settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 
@@ -90,17 +101,57 @@ on_notification_added (ValentNotifications      *listener,
                                                 valent_resource_get_title (VALENT_RESOURCE (notification)),
                                                 valent_notification_get_body (notification),
                                                 valent_notification_get_icon (notification));
+
+  // TODO: avoid relying on the destroy signal with a state property
+  g_signal_connect_object (notification,
+                           "destroy",
+                           G_CALLBACK (on_notification_removed),
+                           self,
+                           G_CONNECT_SWAPPED);
 }
 
 static void
-on_notification_removed (ValentNotifications      *notifications,
-                         const char               *id,
-                         ValentNotificationPlugin *self)
+on_notifications_changed (GListModel               *list,
+                          unsigned int              position,
+                          unsigned int              removed,
+                          unsigned int              added,
+                          ValentNotificationPlugin *self)
 {
-  g_assert (VALENT_IS_NOTIFICATIONS (notifications));
-  g_assert (id != NULL);
+  g_assert (G_IS_LIST_MODEL (list));
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
 
-  valent_notification_plugin_close_notification (self, id);
+  for (unsigned int i = 0; i < added; i++)
+    {
+      g_autoptr (ValentNotification) notification = NULL;
+
+      notification = g_list_model_get_item (list, position + i);
+      on_notification_added (self, notification);
+    }
+}
+
+static void
+on_adapters_changed (GListModel               *list,
+                     unsigned int              position,
+                     unsigned int              removed,
+                     unsigned int              added,
+                     ValentNotificationPlugin *self)
+{
+  g_assert (G_IS_LIST_MODEL (list));
+  g_assert (VALENT_IS_NOTIFICATION_PLUGIN (self));
+
+  for (unsigned int i = 0; i < added; i++)
+    {
+      g_autoptr (ValentMediaAdapter) adapter = NULL;
+
+      adapter = g_list_model_get_item (list, position + i);
+      g_signal_connect_object (adapter,
+                               "items-changed",
+                               G_CALLBACK (on_notifications_changed),
+                               self,
+                               G_CONNECT_DEFAULT);
+
+      // TODO: send existing notifications, with some heuristic for duplicates
+    }
 }
 
 static void
@@ -117,19 +168,40 @@ valent_notification_plugin_watch_notifications (ValentNotificationPlugin *self,
   if (watch)
     {
       g_signal_connect_object (notifications,
-                               "notification-added",
-                               G_CALLBACK (on_notification_added),
+                               "items-changed",
+                               G_CALLBACK (on_adapters_changed),
                                self,
                                G_CONNECT_DEFAULT);
-      g_signal_connect_object (notifications,
-                               "notification-removed",
-                               G_CALLBACK (on_notification_removed),
-                               self,
-                               G_CONNECT_DEFAULT);
+      on_adapters_changed (G_LIST_MODEL (notifications),
+                           0,
+                           0,
+                           g_list_model_get_n_items (G_LIST_MODEL (notifications)),
+                           self);
       self->notifications_watch = TRUE;
     }
   else
     {
+      unsigned int n_adapters = 0;
+
+      n_adapters = g_list_model_get_n_items (G_LIST_MODEL (notifications));
+      for (unsigned int i = 0; i < n_adapters; i++)
+        {
+          g_autoptr (ValentMediaAdapter) adapter = NULL;
+          unsigned int n_notifications = 0;
+
+          adapter = g_list_model_get_item (G_LIST_MODEL (notifications), i);
+          g_signal_handlers_disconnect_by_data (adapter, self);
+
+          n_notifications = g_list_model_get_n_items (G_LIST_MODEL (adapter));
+          for (unsigned int j = 0; j < n_notifications; j++)
+            {
+              g_autoptr (ValentNotification) notification = NULL;
+
+              notification = g_list_model_get_item (G_LIST_MODEL (adapter), i);
+              g_signal_handlers_disconnect_by_data (notification, self);
+            }
+        }
+
       g_signal_handlers_disconnect_by_data (notifications, self);
       self->notifications_watch = FALSE;
     }

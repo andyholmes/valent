@@ -13,38 +13,14 @@
 
 typedef struct
 {
-  ValentNotifications *notifications;
   GDBusConnection     *connection;
 } FdoNotificationsFixture;
-
-static void
-on_notification_added (ValentNotifications  *notifications,
-                       ValentNotification   *notification,
-                       ValentNotification  **notification_out)
-{
-  g_set_object (notification_out, notification);
-}
-
-static void
-on_notification_removed (ValentNotifications  *notifications,
-                         const char           *id,
-                         char                **notification_id)
-{
-  g_set_str (notification_id, id);
-}
 
 static void
 fdo_notifications_fixture_set_up (FdoNotificationsFixture *fixture,
                                   gconstpointer            user_data)
 {
-  g_autoptr (GSettings) settings = NULL;
-
-  /* Disable the mock plugin */
-  settings = valent_test_mock_settings ("notifications");
-  g_settings_set_boolean (settings, "enabled", FALSE);
-
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-  fixture->notifications = valent_notifications_get_default ();
 }
 
 static void
@@ -52,7 +28,6 @@ fdo_notifications_fixture_tear_down (FdoNotificationsFixture *fixture,
                                      gconstpointer            user_data)
 {
   g_clear_object (&fixture->connection);
-  v_await_finalize_object (fixture->notifications);
 }
 
 static void
@@ -175,33 +150,78 @@ send_notification (FdoNotificationsFixture  *fixture,
 }
 
 static void
+on_items_changed (GListModel          *list,
+                  unsigned int         position,
+                  unsigned int         removed,
+                  unsigned int         added,
+                  ValentNotification **notification_out)
+{
+  if (removed)
+    {
+      g_clear_object (notification_out);
+    }
+
+  if (added)
+    {
+      g_clear_object (notification_out);
+      *notification_out = g_list_model_get_item (list, position);
+    }
+}
+
+static void
+g_async_initable_init_async_cb (GAsyncInitable *initable,
+                                GAsyncResult   *result,
+                                gboolean       *done)
+{
+  GError *error = NULL;
+
+  *done = g_async_initable_init_finish (initable, result, &error);
+  g_assert_no_error (error);
+  g_assert_true (*done);
+}
+
+static void
 test_fdo_notifications_source (FdoNotificationsFixture *fixture,
                                gconstpointer            user_data)
 {
+  PeasEngine *engine;
+  PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
+  g_autoptr (GObject) adapter = NULL;
   g_autoptr (ValentNotification) notification = NULL;
   g_autoptr (GIcon) cmp_icon = NULL;
   g_autoptr (GIcon) icon = NULL;
   g_autoptr (GVariant) id_value = NULL;
-  g_autofree char *notification_id = NULL;
   g_autofree char *id = NULL;
   g_autofree char *application = NULL;
   g_autofree char *title = NULL;
   g_autofree char *body = NULL;
   GNotificationPriority priority;
+  gboolean done = FALSE;
 
-  /* Wait a bit longer for initialization to finish
-   * NOTE: this is longer than most tests due to the chained async functions
-   *       being called in ValentFdoNotifications.
-   */
-  valent_test_await_timeout (1000);
-  g_signal_connect (fixture->notifications,
-                    "notification-added",
-                    G_CALLBACK (on_notification_added),
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "fdo");
+  context = valent_context_new (NULL, "plugin", "fdo");
+
+  VALENT_TEST_CHECK ("Adapter can be constructed");
+  adapter = peas_engine_create_extension (engine,
+                                          plugin_info,
+                                          VALENT_TYPE_NOTIFICATIONS_ADAPTER,
+                                          "iri",     "urn:valent:notifications:fdo",
+                                          "source",  NULL,
+                                          "context", context,
+                                          NULL);
+  g_async_initable_init_async (G_ASYNC_INITABLE (adapter),
+                               G_PRIORITY_DEFAULT,
+                               NULL,
+                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                               &done);
+  valent_test_await_boolean (&done);
+
+  g_signal_connect (adapter,
+                    "items-changed",
+                    G_CALLBACK (on_items_changed),
                     &notification);
-  g_signal_connect (fixture->notifications,
-                    "notification-removed",
-                    G_CALLBACK (on_notification_removed),
-                    &notification_id);
 
   VALENT_TEST_CHECK ("Adapter adds notifications");
   send_notification (fixture, FALSE, &id_value);
@@ -227,8 +247,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
 
   VALENT_TEST_CHECK ("Adapter removes notifications");
   close_notification (fixture, id_value);
-  valent_test_await_pointer (&notification_id);
-  g_assert_cmpstr (id, ==, notification_id);
+  valent_test_await_nullptr (&notification);
 
   g_clear_pointer (&id, g_free);
   g_clear_pointer (&application, g_free);
@@ -260,8 +279,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
 
   VALENT_TEST_CHECK ("Adapter removes notifications with pixbuf icons");
   close_notification (fixture, id_value);
-  valent_test_await_pointer (&notification_id);
-  g_assert_cmpstr (id, ==, notification_id);
+  valent_test_await_nullptr (&notification);
 
   g_clear_pointer (&id, g_free);
   g_clear_pointer (&application, g_free);
@@ -270,8 +288,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_clear_object (&icon);
 #endif /* HAVE_GLYCIN */
 
-  g_signal_handlers_disconnect_by_data (fixture->notifications, &notification);
-  g_signal_handlers_disconnect_by_data (fixture->notifications, &notification_id);
+  g_signal_handlers_disconnect_by_data (adapter, &notification);
 }
 
 int

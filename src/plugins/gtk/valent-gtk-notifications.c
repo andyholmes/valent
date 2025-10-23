@@ -18,6 +18,7 @@ struct _ValentGtkNotifications
 {
   ValentNotificationsAdapter  parent_instance;
 
+  GHashTable                 *active;
   GDBusInterfaceVTable        vtable;
   GDBusNodeInfo              *node_info;
   GDBusInterfaceInfo         *iface_info;
@@ -62,6 +63,7 @@ static void
 _add_notification (ValentNotificationsAdapter *adapter,
                    GVariant                   *parameters)
 {
+  ValentGtkNotifications *self = VALENT_GTK_NOTIFICATIONS (adapter);
   g_autoptr (ValentNotification) notification = NULL;
   g_autofree char *desktop_id = NULL;
   g_autoptr (GDesktopAppInfo) desktop_info = NULL;
@@ -94,6 +96,9 @@ _add_notification (ValentNotificationsAdapter *adapter,
       valent_notification_set_application (notification, app_name);
     }
 
+  g_hash_table_replace (self->active,
+                        (char *)valent_notification_get_id (notification),
+                        g_object_ref (notification));
   valent_notifications_adapter_notification_added (adapter, notification);
 }
 
@@ -101,6 +106,8 @@ static void
 _remove_notification (ValentNotificationsAdapter *adapter,
                       GVariant                   *parameters)
 {
+  ValentGtkNotifications *self = VALENT_GTK_NOTIFICATIONS (adapter);
+  g_autoptr (ValentNotification) notification = NULL;
   const char *app_id;
   const char *notif_id;
 
@@ -110,7 +117,13 @@ _remove_notification (ValentNotificationsAdapter *adapter,
   if (g_str_equal (app_id, APPLICATION_ID))
     return;
 
-  valent_notifications_adapter_notification_removed (adapter, notif_id);
+  if (g_hash_table_steal_extended (self->active,
+                                   notif_id,
+                                   NULL,
+                                   (void **)&notification))
+    {
+      valent_notifications_adapter_notification_removed (adapter, notification);
+    }
 }
 
 static void
@@ -356,6 +369,7 @@ valent_gtk_notifications_finalize (GObject *object)
   ValentGtkNotifications *self = VALENT_GTK_NOTIFICATIONS (object);
 
   g_clear_pointer (&self->node_info, g_dbus_node_info_unref);
+  g_clear_pointer (&self->active, g_hash_table_unref);
 
   G_OBJECT_CLASS (valent_gtk_notifications_parent_class)->finalize(object);
 }
@@ -380,5 +394,10 @@ valent_gtk_notifications_init (ValentGtkNotifications *self)
   self->vtable.method_call = valent_gtk_notifications_method_call;
   self->vtable.get_property = NULL;
   self->vtable.set_property = NULL;
+
+  self->active = g_hash_table_new_full (g_str_hash,
+                                        g_str_equal,
+                                        NULL,
+                                        g_object_unref);
 }
 
