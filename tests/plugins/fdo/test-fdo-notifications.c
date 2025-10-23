@@ -7,10 +7,6 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#ifdef HAVE_GLYCIN
-#include <glycin.h>
-#endif /* HAVE_GLYCIN */
-
 typedef struct
 {
   GDBusConnection     *connection;
@@ -85,44 +81,24 @@ send_notification (FdoNotificationsFixture  *fixture,
   g_variant_builder_init (&hints_builder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add (&hints_builder, "{sv}", "urgency", g_variant_new_byte (2));
 
-#ifdef HAVE_GLYCIN
   if (with_pixbuf)
     {
-      g_autoptr (GFile) file = NULL;
-      g_autoptr (GlyLoader) loader = NULL;
-      g_autoptr (GlyImage) image = NULL;
-      g_autoptr (GlyFrame) frame = NULL;
-      GBytes *bytes;
-      GlyMemoryFormat memory_format;
       GVariant *value;
-      GError *error = NULL;
 
-      file = g_file_new_for_uri ("resource://tests/image.png");
-      loader = gly_loader_new (file);
-      image = gly_loader_load (loader, &error);
-      g_assert_no_error (error);
-      frame = gly_image_next_frame (image, &error);
-      g_assert_no_error (error);
-
-      bytes = gly_frame_get_buf_bytes (frame);
-      memory_format = gly_frame_get_memory_format (frame);
       value = g_variant_new ("(iiibii@ay)",
-                             gly_frame_get_width (frame),
-                             gly_frame_get_height (frame),
-                             gly_frame_get_stride (frame),
-                             gly_memory_format_has_alpha (memory_format),
-                             8, /* bits_per_sample */
-                             gly_memory_format_has_alpha (memory_format) ? 4 : 3,
+                             1,     // width
+                             1,     // height
+                             3,     // stride
+                             FALSE, // has_alpha
+                             8,     // bits_per_sample
+                             3,     // channels
                              g_variant_new_from_data (G_VARIANT_TYPE ("ay"),
-                                                      g_bytes_get_data (bytes, NULL),
-                                                      g_bytes_get_size (bytes),
+                                                      "\x00\x00\x00", 3,
                                                       TRUE,
-                                                      (GDestroyNotify)g_bytes_unref,
-                                                      g_bytes_ref (bytes)));
-
+                                                      NULL,
+                                                      NULL));
       g_variant_builder_add (&hints_builder, "{sv}", "image-data", value);
     }
-#endif /* HAVE_GLYCIN */
 
   g_dbus_connection_call (fixture->connection,
                           "org.freedesktop.Notifications",
