@@ -419,10 +419,11 @@ on_name_appeared (GDBusConnection *connection,
 
   if (self->filter_id == 0)
     {
-      g_dbus_connection_add_filter (self->monitor,
-                                    valent_fdo_notifications_filter,
-                                    self,
-                                    NULL);
+      self->filter_id =
+        g_dbus_connection_add_filter (self->monitor,
+                                      valent_fdo_notifications_filter,
+                                      g_object_ref (self),
+                                      g_object_unref);
     }
 
   valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
