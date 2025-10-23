@@ -191,6 +191,8 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_autoptr (GIcon) cmp_icon = NULL;
   g_autoptr (GIcon) icon = NULL;
   g_autoptr (GVariant) id_value = NULL;
+  uint32_t id_out;
+  g_autofree char *id_str = NULL;
   g_autofree char *id = NULL;
   g_autofree char *application = NULL;
   g_autofree char *title = NULL;
@@ -239,6 +241,10 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
                 "priority",    &priority,
                 NULL);
 
+  g_variant_get (id_value, "(u)", &id_out);
+  id_str = g_strdup_printf ("%u", id_out);
+
+  g_assert_cmpstr (id, ==, id_str);
   g_assert_cmpstr (application, ==, "Test Application");
   g_assert_cmpstr (title, ==, "Test Title");
   g_assert_cmpstr (body, ==, "Test Body");
@@ -255,6 +261,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_clear_pointer (&body, g_free);
   g_clear_object (&icon);
   g_clear_pointer (&id_value, g_variant_unref);
+  g_clear_pointer (&id_str, g_free);
 
 #ifdef HAVE_GLYCIN
   VALENT_TEST_CHECK ("Adapter adds notifications with pixbuf icons");
@@ -272,6 +279,10 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
                 "priority",    &priority,
                 NULL);
 
+  g_variant_get (id_value, "(u)", &id_out);
+  id_str = g_strdup_printf ("%u", id_out);
+
+  g_assert_cmpstr (id, ==, id_str);
   g_assert_cmpstr (application, ==, "Test Application");
   g_assert_cmpstr (title, ==, "Test Title");
   g_assert_cmpstr (body, ==, "Test Body");
@@ -288,6 +299,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_clear_pointer (&body, g_free);
   g_clear_object (&icon);
   g_clear_pointer (&id_value, g_variant_unref);
+  g_clear_pointer (&id_str, g_free);
 #endif /* HAVE_GLYCIN */
 
   g_signal_handlers_disconnect_by_data (adapter, &notification);
