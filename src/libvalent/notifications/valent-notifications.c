@@ -37,14 +37,6 @@ struct _ValentNotifications
 
 G_DEFINE_FINAL_TYPE (ValentNotifications, valent_notifications, VALENT_TYPE_COMPONENT)
 
-typedef enum {
-  NOTIFICATION_ADDED,
-  NOTIFICATION_REMOVED,
-} ValentNotificationsSignal;
-
-static guint signals[NOTIFICATION_REMOVED + 1] = { 0, };
-
-
 static GVariant *
 app_info_serialize (GAppInfo *info)
 {
@@ -144,36 +136,24 @@ add_application (ValentNotifications *self,
   self->applications = g_variant_ref_sink (g_variant_dict_end (&dict));
 }
 
-
-/*
- * ValentNotificationsAdapter Callbacks
- */
 static void
-on_notification_added (ValentNotificationsAdapter *adapter,
-                       ValentNotification         *notification,
-                       ValentNotifications        *self)
+on_items_changed (GListModel          *list,
+                  unsigned int         position,
+                  unsigned int         removed,
+                  unsigned int         added,
+                  ValentNotifications *self)
 {
-  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
-  g_assert (VALENT_IS_NOTIFICATION (notification));
+  g_assert (G_IS_LIST_MODEL (list));
   g_assert (VALENT_IS_NOTIFICATIONS (self));
 
-  add_application (self, notification_serialize (notification));
+  for (unsigned int i = 0; i < added; i++)
+    {
+      g_autoptr (ValentNotification) notification = NULL;
 
-  g_signal_emit (G_OBJECT (self), signals [NOTIFICATION_ADDED], 0, notification);
+      notification = g_list_model_get_item (list, position + i);
+      add_application (self, notification_serialize (notification));
+    }
 }
-
-static void
-on_notification_removed (ValentNotificationsAdapter *adapter,
-                         const char                 *id,
-                         ValentNotifications        *self)
-{
-  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
-  g_assert (id != NULL);
-  g_assert (VALENT_IS_NOTIFICATIONS (self));
-
-  g_signal_emit (G_OBJECT (self), signals [NOTIFICATION_REMOVED], 0, id);
-}
-
 
 /*
  * ValentComponent
@@ -191,13 +171,8 @@ valent_notifications_bind_extension (ValentComponent *component,
   g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
 
   g_signal_connect_object (adapter,
-                           "notification-added",
-                           G_CALLBACK (on_notification_added),
-                           self,
-                           G_CONNECT_DEFAULT);
-  g_signal_connect_object (adapter,
-                           "notification-removed",
-                           G_CALLBACK (on_notification_removed),
+                           "items-changed",
+                           G_CALLBACK (on_items_changed),
                            self,
                            G_CONNECT_DEFAULT);
 
@@ -214,8 +189,7 @@ valent_notifications_unbind_extension (ValentComponent *component,
   g_assert (VALENT_IS_NOTIFICATIONS (self));
   g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
 
-  g_signal_handlers_disconnect_by_func (adapter, on_notification_added, self);
-  g_signal_handlers_disconnect_by_func (adapter, on_notification_removed, self);
+  g_signal_handlers_disconnect_by_func (adapter, on_items_changed, self);
 }
 
 
@@ -242,50 +216,6 @@ valent_notifications_class_init (ValentNotificationsClass *klass)
 
   component_class->bind_extension = valent_notifications_bind_extension;
   component_class->unbind_extension = valent_notifications_unbind_extension;
-
-  /**
-   * ValentNotifications::notification-added:
-   * @notifications: a `ValentNotifications`
-   * @notification: a `ValentNotification`
-   *
-   * Emitted when a notification is added to a
-   * [class@Valent.NotificationsAdapter].
-   *
-   * Since: 1.0
-   */
-  signals [NOTIFICATION_ADDED] =
-    g_signal_new ("notification-added",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_NOTIFICATION);
-  g_signal_set_va_marshaller (signals [NOTIFICATION_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
-
-  /**
-   * ValentNotifications::notification-removed:
-   * @notifications: a `ValentNotifications`
-   * @id: a notification id
-   *
-   * Emitted when a notification is removed from a
-   * [class@Valent.NotificationsAdapter].
-   *
-   * Since: 1.0
-   */
-  signals [NOTIFICATION_REMOVED] =
-    g_signal_new ("notification-removed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST,
-                  0,
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__STRING,
-                  G_TYPE_NONE, 1, G_TYPE_STRING);
-  g_signal_set_va_marshaller (signals [NOTIFICATION_REMOVED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__STRINGv);
 }
 
 static void

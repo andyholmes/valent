@@ -11,40 +11,14 @@
 
 typedef struct
 {
-  ValentNotifications *notifications;
   GDBusConnection     *connection;
-
-  unsigned int         notification_nid;
 } GtkNotificationsFixture;
-
-static void
-on_notification_added (ValentNotifications *notifications,
-                       ValentNotification  *notification,
-                       ValentNotification  **notification_out)
-{
-  *notification_out = g_object_ref (notification);
-}
-
-static void
-on_notification_removed (ValentNotifications  *notifications,
-                         const char           *id,
-                         char                **notification_id)
-{
-  *notification_id = g_strdup (id);
-}
 
 static void
 gtk_notifications_fixture_set_up (GtkNotificationsFixture *fixture,
                                   gconstpointer            user_data)
 {
-  g_autoptr (GSettings) settings = NULL;
-
-  /* Disable the mock plugin */
-  settings = valent_test_mock_settings ("notifications");
-  g_settings_set_boolean (settings, "enabled", FALSE);
-
   fixture->connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
-  fixture->notifications = valent_notifications_get_default ();
 }
 
 static void
@@ -52,10 +26,7 @@ gtk_notifications_fixture_tear_down (GtkNotificationsFixture *fixture,
                                      gconstpointer            user_data)
 {
   g_clear_object (&fixture->connection);
-  v_await_finalize_object (fixture->notifications);
 }
-
-
 
 static void
 notification_cb (GDBusConnection         *connection,
@@ -63,7 +34,7 @@ notification_cb (GDBusConnection         *connection,
                  GtkNotificationsFixture *fixture)
 {
   g_autoptr (GVariant) reply = NULL;
-  g_autoptr (GError) error = NULL;
+  GError *error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
   g_assert_no_error (error);
@@ -125,32 +96,77 @@ add_notification (GtkNotificationsFixture *fixture)
 }
 
 static void
+on_items_changed (GListModel          *list,
+                  unsigned int         position,
+                  unsigned int         removed,
+                  unsigned int         added,
+                  ValentNotification **notification_out)
+{
+  if (removed)
+    {
+      g_clear_object (notification_out);
+    }
+
+  if (added)
+    {
+      g_clear_object (notification_out);
+      *notification_out = g_list_model_get_item (list, position);
+    }
+}
+
+static void
+g_async_initable_init_async_cb (GAsyncInitable *initable,
+                                GAsyncResult   *result,
+                                gboolean       *done)
+{
+  GError *error = NULL;
+
+  *done = g_async_initable_init_finish (initable, result, &error);
+  g_assert_no_error (error);
+  g_assert_true (*done);
+}
+
+static void
 test_gtk_notifications_source (GtkNotificationsFixture *fixture,
                                gconstpointer            user_data)
 {
+  PeasEngine *engine;
+  PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
+  g_autoptr (GObject) adapter = NULL;
   g_autoptr (ValentNotification) notification = NULL;
   g_autoptr (GIcon) cmp_icon = NULL;
   g_autoptr (GIcon) icon = NULL;
-  g_autofree char *notification_id = NULL;
   g_autofree char *id = NULL;
   g_autofree char *application = NULL;
   g_autofree char *title = NULL;
   g_autofree char *body = NULL;
   GNotificationPriority priority;
+  gboolean done = FALSE;
 
-  /* Wait a bit longer for initialization to finish
-   * NOTE: this is longer than most tests due to the chained async functions
-   *       being called in ValentGtkNotifications.
-   */
-  valent_test_await_timeout (1000);
-  g_signal_connect (fixture->notifications,
-                    "notification-added",
-                    G_CALLBACK (on_notification_added),
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "gtk");
+  context = valent_context_new (NULL, "plugin", "gtk");
+
+  VALENT_TEST_CHECK ("Adapter can be constructed");
+  adapter = peas_engine_create_extension (engine,
+                                          plugin_info,
+                                          VALENT_TYPE_NOTIFICATIONS_ADAPTER,
+                                          "iri",     "urn:valent:notifications:gtk",
+                                          "source",  NULL,
+                                          "context", context,
+                                          NULL);
+  g_async_initable_init_async (G_ASYNC_INITABLE (adapter),
+                               G_PRIORITY_DEFAULT,
+                               NULL,
+                               (GAsyncReadyCallback)g_async_initable_init_async_cb,
+                               &done);
+  valent_test_await_boolean (&done);
+
+  g_signal_connect (adapter,
+                    "items-changed",
+                    G_CALLBACK (on_items_changed),
                     &notification);
-  g_signal_connect (fixture->notifications,
-                    "notification-removed",
-                    G_CALLBACK (on_notification_removed),
-                    &notification_id);
 
   VALENT_TEST_CHECK ("Adapter adds notifications");
   add_notification (fixture);
@@ -176,11 +192,9 @@ test_gtk_notifications_source (GtkNotificationsFixture *fixture,
 
   VALENT_TEST_CHECK ("Adapter removes notifications");
   remove_notification (fixture);
-  valent_test_await_pointer (&notification_id);
-  g_assert_cmpstr (id, ==, notification_id);
+  valent_test_await_nullptr (&notification);
 
-  g_signal_handlers_disconnect_by_data (fixture->notifications, notification);
-  g_signal_handlers_disconnect_by_data (fixture->notifications, notification_id);
+  g_signal_handlers_disconnect_by_data (adapter, &notification);
 }
 
 int

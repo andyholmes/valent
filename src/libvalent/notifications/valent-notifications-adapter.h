@@ -22,10 +22,10 @@ struct _ValentNotificationsAdapterClass
   ValentExtensionClass   parent_class;
 
   /* signals */
-  void                   (*notification_added)   (ValentNotificationsAdapter  *adapter,
-                                                  ValentNotification          *notification);
-  void                   (*notification_removed) (ValentNotificationsAdapter  *adapter,
-                                                  const char                  *id);
+  void                   (*notification_added)   (ValentNotificationsAdapter *adapter,
+                                                  ValentNotification         *notification);
+  void                   (*notification_removed) (ValentNotificationsAdapter *adapter,
+                                                  ValentNotification         *notification);
 
   /*< private >*/
   gpointer               padding[8];
@@ -36,7 +36,7 @@ void  valent_notifications_adapter_notification_added   (ValentNotificationsAdap
                                                          ValentNotification         *notification);
 VALENT_AVAILABLE_IN_1_0
 void  valent_notifications_adapter_notification_removed (ValentNotificationsAdapter *adapter,
-                                                         const char                 *id);
+                                                         ValentNotification         *notification);
 
 G_END_DECLS
 

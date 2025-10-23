@@ -19,6 +19,7 @@ struct _ValentFdoNotifications
 {
   ValentNotificationsAdapter  parent_instance;
 
+  GHashTable                 *active;
   GHashTable                 *pending;
   GDBusInterfaceVTable        vtable;
   GDBusNodeInfo              *node_info;
@@ -144,13 +145,21 @@ static void
 _notification_closed (ValentNotificationsAdapter *adapter,
                       GVariant                   *parameters)
 {
+  ValentFdoNotifications *self = VALENT_FDO_NOTIFICATIONS (adapter);
   uint32_t id, reason;
+  g_autoptr (ValentNotification) notification = NULL;
   g_autofree char *id_str = NULL;
 
   g_variant_get (parameters, "(uu)", &id, &reason);
 
   id_str = g_strdup_printf ("%u", id);
-  valent_notifications_adapter_notification_removed (adapter, id_str);
+  if (g_hash_table_steal_extended (self->active,
+                                   id_str,
+                                   NULL,
+                                   (void **)&notification))
+    {
+      valent_notifications_adapter_notification_removed (adapter, notification);
+    }
 }
 
 static void
@@ -311,6 +320,9 @@ valent_fdo_notifications_filter_main (gpointer data)
           valent_notification_set_id (notification, id_str);
         }
 
+      g_hash_table_replace (self->active,
+                            (char *)valent_notification_get_id (notification),
+                            g_object_ref (notification));
       valent_notifications_adapter_notification_added (adapter, notification);
     }
 
@@ -631,6 +643,7 @@ valent_fdo_notifications_finalize (GObject *object)
 
   valent_object_lock (VALENT_OBJECT (self));
   g_clear_pointer (&self->node_info, g_dbus_node_info_unref);
+  g_clear_pointer (&self->active, g_hash_table_unref);
   g_clear_pointer (&self->pending, g_hash_table_unref);
   valent_object_unlock (VALENT_OBJECT (self));
 
@@ -659,6 +672,10 @@ valent_fdo_notifications_init (ValentFdoNotifications *self)
   self->vtable.set_property = NULL;
 
   valent_object_lock (VALENT_OBJECT (self));
+  self->active = g_hash_table_new_full (g_str_hash,
+                                        g_str_equal,
+                                        NULL,
+                                        g_object_unref);
   self->pending = g_hash_table_new_full (NULL,
                                          NULL,
                                          NULL,

@@ -206,7 +206,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   json_node_unref (packet);
 
   VALENT_TEST_CHECK ("Plugin forwards notification removals");
-  valent_notifications_adapter_notification_removed (adapter, "test-id");
+  valent_notifications_adapter_notification_removed (adapter, notification);
 
   packet = valent_test_fixture_expect_packet (fixture);
   v_assert_packet_type (packet, "kdeconnect.notification.request");

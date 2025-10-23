@@ -34,77 +34,86 @@
 
 typedef struct
 {
-  GPtrArray *notifications;
+  GPtrArray *items;
 } ValentNotificationsAdapterPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentNotificationsAdapter, valent_notifications_adapter, VALENT_TYPE_EXTENSION)
+static void   g_list_model_iface_init (GListModelInterface *iface);
 
-enum {
-  NOTIFICATION_ADDED,
-  NOTIFICATION_REMOVED,
-  N_SIGNALS
-};
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentNotificationsAdapter, valent_notifications_adapter, VALENT_TYPE_EXTENSION,
+                                  G_ADD_PRIVATE (ValentNotificationsAdapter)
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
-static guint signals[N_SIGNALS] = { 0, };
+/*
+ * GListModel
+ */
+static gpointer
+valent_notifications_adapter_get_item (GListModel   *list,
+                                       unsigned int  position)
+{
+  ValentNotificationsAdapter *self = VALENT_NOTIFICATIONS_ADAPTER (list);
+  ValentNotificationsAdapterPrivate *priv = valent_notifications_adapter_get_instance_private (self);
+
+  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (self));
+
+  if G_UNLIKELY (position >= priv->items->len)
+    return NULL;
+
+  return g_object_ref (g_ptr_array_index (priv->items, position));
+}
+
+static GType
+valent_notifications_adapter_get_item_type (GListModel *list)
+{
+  return VALENT_TYPE_NOTIFICATION;
+}
+
+static unsigned int
+valent_notifications_adapter_get_n_items (GListModel *list)
+{
+  ValentNotificationsAdapter *self = VALENT_NOTIFICATIONS_ADAPTER (list);
+  ValentNotificationsAdapterPrivate *priv = valent_notifications_adapter_get_instance_private (self);
+
+  g_assert (VALENT_IS_NOTIFICATIONS_ADAPTER (self));
+
+  return priv->items->len;
+}
+
+static void
+g_list_model_iface_init (GListModelInterface *iface)
+{
+  iface->get_item = valent_notifications_adapter_get_item;
+  iface->get_item_type = valent_notifications_adapter_get_item_type;
+  iface->get_n_items = valent_notifications_adapter_get_n_items;
+}
 
 /*
  * GObject
  */
 static void
+valent_notifications_adapter_finalize (GObject *object)
+{
+  ValentNotificationsAdapter *self = VALENT_NOTIFICATIONS_ADAPTER (object);
+  ValentNotificationsAdapterPrivate *priv = valent_notifications_adapter_get_instance_private (self);
+
+  g_clear_pointer (&priv->items, g_ptr_array_unref);
+
+  G_OBJECT_CLASS (valent_notifications_adapter_parent_class)->finalize (object);
+}
+
+static void
 valent_notifications_adapter_class_init (ValentNotificationsAdapterClass *klass)
 {
-  /**
-   * ValentNotificationsAdapter::notification-added:
-   * @adapter: a `ValentNotificationsAdapter`
-   * @notification: a `ValentNotification`
-   *
-   * Emitted when a [class@Valent.Notification] is added to @adapter.
-   *
-   * Implementations must chain up if they override
-   * [vfunc@Valent.NotificationsAdapter.notification_added].
-   *
-   * Since: 1.0
-   */
-  signals [NOTIFICATION_ADDED] =
-    g_signal_new ("notification-added",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  G_STRUCT_OFFSET (ValentNotificationsAdapterClass, notification_added),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
-                  G_TYPE_NONE, 1, VALENT_TYPE_NOTIFICATION);
-  g_signal_set_va_marshaller (signals [NOTIFICATION_ADDED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__OBJECTv);
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  /**
-   * ValentNotificationsAdapter::notification-removed:
-   * @adapter: a `ValentNotificationsAdapter`
-   * @notification: a `ValentNotification`
-   *
-   * Emitted when a [class@Valent.Notification] is removed from @adapter.
-   *
-   * Implementations must chain up if they override
-   * [vfunc@Valent.NotificationsAdapter.notification_removed].
-   *
-   * Since: 1.0
-   */
-  signals [NOTIFICATION_REMOVED] =
-    g_signal_new ("notification-removed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_LAST,
-                  G_STRUCT_OFFSET (ValentNotificationsAdapterClass, notification_removed),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__STRING,
-                  G_TYPE_NONE, 1, G_TYPE_STRING);
-  g_signal_set_va_marshaller (signals [NOTIFICATION_REMOVED],
-                              G_TYPE_FROM_CLASS (klass),
-                              g_cclosure_marshal_VOID__STRINGv);
+  object_class->finalize = valent_notifications_adapter_finalize;
 }
 
 static void
 valent_notifications_adapter_init (ValentNotificationsAdapter *adapter)
 {
+  ValentNotificationsAdapterPrivate *priv = valent_notifications_adapter_get_instance_private (adapter);
+
+  priv->items = g_ptr_array_new_with_free_func (g_object_unref);
 }
 
 /**
@@ -112,10 +121,11 @@ valent_notifications_adapter_init (ValentNotificationsAdapter *adapter)
  * @adapter: a `ValentNotificationsAdapter`
  * @notification: a `ValentNotification`
  *
- * Emit [signal@Valent.NotificationsAdapter::notification-added] on @adapter.
+ * Called when @notification has been added to @adapter.
  *
  * This method should only be called by implementations of
- * [class@Valent.NotificationsAdapter].
+ * [class@Valent.NotificationsAdapter]. @adapter will hold a reference on
+ * @notification and emit [signal@Gio.ListModel::items-changed].
  *
  * Since: 1.0
  */
@@ -123,29 +133,48 @@ void
 valent_notifications_adapter_notification_added (ValentNotificationsAdapter *adapter,
                                                  ValentNotification         *notification)
 {
-  g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
+  ValentNotificationsAdapterPrivate *priv = valent_notifications_adapter_get_instance_private (adapter);
+  unsigned int position = 0;
 
-  g_signal_emit (G_OBJECT (adapter), signals [NOTIFICATION_ADDED], 0, notification);
+  g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
+  g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
+
+  position = priv->items->len;
+  g_ptr_array_add (priv->items, g_object_ref (notification));
+  g_list_model_items_changed (G_LIST_MODEL (adapter), position, 0, 1);
 }
 
 /**
  * valent_notifications_adapter_notification_removed:
  * @adapter: a `ValentNotificationsAdapter`
- * @id: a notification id
+ * @notification: a `ValentNotification`
  *
- * Emit [signal@Valent.NotificationsAdapter::notification-removed] on @adapter.
+ * Called when @notification has been removed from @adapter.
  *
  * This method should only be called by implementations of
- * [class@Valent.NotificationsAdapter].
+ * [class@Valent.NotificationsAdapter]. @adapter will drop its reference on
+ * @notification and emit [signal@Gio.ListModel::items-changed].
  *
  * Since: 1.0
  */
 void
 valent_notifications_adapter_notification_removed (ValentNotificationsAdapter *adapter,
-                                                   const char                 *id)
+                                                   ValentNotification         *notification)
 {
-  g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
+  ValentNotificationsAdapterPrivate *priv = valent_notifications_adapter_get_instance_private (adapter);
+  g_autoptr (ValentNotification) item = NULL;
+  unsigned int position = 0;
 
-  g_signal_emit (G_OBJECT (adapter), signals [NOTIFICATION_REMOVED], 0, id);
+  g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
+  g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
+
+  if (!g_ptr_array_find (priv->items, notification, &position))
+    return;
+
+  item = g_ptr_array_steal_index (priv->items, position);
+  g_list_model_items_changed (G_LIST_MODEL (adapter), position, 1, 0);
+
+  // TODO: avoid relying on the destroy signal with a state property
+  valent_object_destroy (VALENT_OBJECT (notification));
 }
 
