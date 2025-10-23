@@ -109,7 +109,11 @@ search_contacts_cb (ValentContactsAdapter *adapter,
       g_autofree char *number = NULL;
       unsigned int n_attrs;
 
+#if EDS_CHECK_VERSION (3, 59, 0)
+      attrs = e_vcard_get_attributes_by_name (E_VCARD (contact), EVC_TEL);
+#else
       attrs = e_contact_get_attributes (contact, E_CONTACT_TEL);
+#endif
       n_attrs = g_list_length (attrs);
       if (n_attrs == 0)
         continue;
@@ -395,8 +399,11 @@ on_search_selected (GtkListBox           *box,
       EContact *contact;
 
       contact = valent_contact_row_get_contact (VALENT_CONTACT_ROW (row));
-      attrs = e_contact_get_attributes (E_CONTACT (contact), E_CONTACT_TEL);
-
+#if EDS_CHECK_VERSION (3, 59, 0)
+      attrs = e_vcard_get_attributes_by_name (E_VCARD (contact), EVC_TEL);
+#else
+      attrs = e_contact_get_attributes (contact, E_CONTACT_TEL);
+#endif
       if (g_list_length (attrs) == 1)
         {
           on_contact_medium_selected (row, self);
