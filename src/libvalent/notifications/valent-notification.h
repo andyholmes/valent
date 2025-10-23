@@ -48,20 +48,12 @@ int64_t                 valent_notification_get_time               (ValentNotifi
 VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_set_time               (ValentNotification    *notification,
                                                                     int64_t                time);
-
 VALENT_AVAILABLE_IN_1_0
-void                    valent_notification_set_action             (ValentNotification    *notification,
-                                                                    const char            *action);
-VALENT_AVAILABLE_IN_1_0
-void                    valent_notification_set_action_and_target  (ValentNotification    *notification,
+void                    valent_notification_set_default_action     (ValentNotification    *notification,
                                                                     const char            *action,
                                                                     GVariant              *target);
 VALENT_AVAILABLE_IN_1_0
 void                    valent_notification_add_button             (ValentNotification    *notification,
-                                                                    const char            *label,
-                                                                    const char            *action);
-VALENT_AVAILABLE_IN_1_0
-void                    valent_notification_add_button_with_target (ValentNotification    *notification,
                                                                     const char            *label,
                                                                     const char            *action,
                                                                     GVariant              *target);

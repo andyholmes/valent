@@ -36,8 +36,7 @@ struct _ValentNotification
 };
 
 typedef enum {
-  PROP_ACTION = 1,
-  PROP_APPLICATION,
+  PROP_APPLICATION = 1,
   PROP_BODY,
   PROP_ICON,
   PROP_ID,
@@ -175,7 +174,6 @@ valent_notification_get_property (GObject    *object,
       g_value_set_int64 (value, valent_notification_get_time (self));
       break;
 
-    case PROP_ACTION:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -191,10 +189,6 @@ valent_notification_set_property (GObject      *object,
 
   switch ((ValentNotificationProperty)prop_id)
     {
-    case PROP_ACTION:
-      valent_notification_set_action (self, g_value_get_string (value));
-      break;
-
     case PROP_APPLICATION:
       valent_notification_set_application (self, g_value_get_string (value));
       break;
@@ -239,20 +233,6 @@ valent_notification_class_init (ValentNotificationClass *klass)
   object_class->finalize = valent_notification_finalize;
   object_class->get_property = valent_notification_get_property;
   object_class->set_property = valent_notification_set_property;
-
-  /**
-   * ValentNotification:action:
-   *
-   * The default notification action.
-   *
-   * Since: 1.0
-   */
-  properties [PROP_ACTION] =
-    g_param_spec_string ("action", NULL, NULL,
-                         NULL,
-                         (G_PARAM_WRITABLE |
-                          G_PARAM_EXPLICIT_NOTIFY |
-                          G_PARAM_STATIC_STRINGS));
 
   /**
    * ValentNotification:application: (getter get_application) (setter set_application)
@@ -372,37 +352,6 @@ valent_notification_new (const char *title)
     return g_object_new (VALENT_TYPE_NOTIFICATION,
                          "title", title,
                          NULL);
-}
-
-/**
- * valent_notification_set_action:
- * @notification: a `ValentNotification`
- * @action: a detailed action
- *
- * Sets the default notification action.
- *
- * @action may be a detailed action as parsed by
- * [func@Gio.Action.parse_detailed_name].
- *
- * Since: 1.0
- */
-void
-valent_notification_set_action (ValentNotification *notification,
-                                const char         *action)
-{
-  g_autofree char *aname = NULL;
-  g_autoptr (GVariant) atarget = NULL;
-  g_autoptr (GError) error = NULL;
-
-  g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
-
-  if (!g_action_parse_detailed_name (action, &aname, &atarget, &error))
-    {
-      g_warning ("%s(): %s", G_STRFUNC, error->message);
-      return;
-    }
-
-  valent_notification_set_action_and_target (notification, aname, atarget);
 }
 
 /**
@@ -639,7 +588,7 @@ valent_notification_set_time (ValentNotification *notification,
 }
 
 /**
- * valent_notification_add_button_with_target:
+ * valent_notification_add_button:
  * @notification: a `ValentNotification`
  * @label: a button label
  * @action: an action name
@@ -647,90 +596,103 @@ valent_notification_set_time (ValentNotification *notification,
  *
  * Add a notification button.
  *
- * Since: 1.0
- */
-void
-valent_notification_add_button_with_target (ValentNotification *notification,
-                                            const char         *label,
-                                            const char         *action,
-                                            GVariant           *target)
-{
-  Button *button;
-
-  g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
-  g_return_if_fail (label != NULL);
-  g_return_if_fail (action != NULL && g_action_name_is_valid (action));
-  g_return_if_fail (notification->buttons->len < 3);
-
-  button = g_new0 (Button, 1);
-  button->label = g_strdup (label);
-  button->action = g_strdup (action);
-
-  if (target)
-    button->target = g_variant_ref_sink (target);
-
-  g_ptr_array_add (notification->buttons, button);
-}
-
-/**
- * valent_notification_add_button:
- * @notification: a `ValentNotification`
- * @label: a button label
- * @action: an action name
- *
- * Add a notification button.
+ * If @target is %NULL, then @action may be a detailed action name.
  *
  * Since: 1.0
  */
 void
 valent_notification_add_button (ValentNotification *notification,
                                 const char         *label,
-                                const char         *action)
+                                const char         *action,
+                                GVariant           *target)
 {
-  g_autofree char *name = NULL;
-  g_autoptr (GVariant) target = NULL;
-  g_autoptr (GError) error = NULL;
+  Button *button;
 
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
   g_return_if_fail (label != NULL);
   g_return_if_fail (action != NULL);
+  g_return_if_fail (target == NULL || g_action_name_is_valid (action));
   g_return_if_fail (notification->buttons->len < 3);
 
-  if (!g_action_parse_detailed_name (action, &name, &target, &error))
+  if (target != NULL)
     {
-      g_warning ("%s(): %s", G_STRFUNC, error->message);
-      return;
+      button = g_new0 (Button, 1);
+      button->label = g_strdup (label);
+      button->action = g_strdup (action);
+
+      if (target)
+        button->target = g_variant_ref_sink (target);
+    }
+  else
+    {
+      g_autofree char *name = NULL;
+      g_autoptr (GVariant) parameter = NULL;
+      g_autoptr (GError) error = NULL;
+
+      if (!g_action_parse_detailed_name (action, &name, &parameter, &error))
+        {
+          g_warning ("%s(): %s", G_STRFUNC, error->message);
+          return;
+        }
+
+      button = g_new0 (Button, 1);
+      button->label = g_strdup (label);
+      button->action = g_strdup (name);
+
+      if (parameter)
+        button->target = g_variant_ref_sink (parameter);
     }
 
-  valent_notification_add_button_with_target (notification, label, name, target);
+  g_ptr_array_add (notification->buttons, button);
 }
 
 /**
- * valent_notification_set_action_and_target:
+ * valent_notification_set_default_action:
  * @notification: a `ValentNotification`
  * @action: an action name
  * @target: (nullable): a `GVariant` to use as @action's parameter
  *
  * Set the default notification action.
  *
- * If @target is non-%NULL, @action will be activated with @target as its
- * parameter.
+ * If @target is %NULL, then @action may be a detailed action name.
  *
  * Since: 1.0
  */
 void
-valent_notification_set_action_and_target (ValentNotification *notification,
-                                           const char         *action,
-                                           GVariant           *target)
+valent_notification_set_default_action (ValentNotification *notification,
+                                        const char         *action,
+                                        GVariant           *target)
 {
   g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
-  g_return_if_fail (action != NULL && g_action_name_is_valid (action));
+  g_return_if_fail (action != NULL);
+  g_return_if_fail (target == NULL || g_action_name_is_valid (action));
 
-  g_set_str (&notification->default_action, action);
-  g_clear_pointer (&notification->default_action_target, g_variant_unref);
+  if (target != NULL)
+    {
+      g_set_str (&notification->default_action, action);
+      g_clear_pointer (&notification->default_action_target, g_variant_unref);
 
-  if (target)
-    notification->default_action_target = g_variant_ref_sink (target);
+      if (target)
+        notification->default_action_target = g_variant_ref_sink (target);
+    }
+  else
+    {
+      g_autofree char *name = NULL;
+      g_autoptr (GVariant) parameter = NULL;
+      g_autoptr (GError) error = NULL;
+
+      if (!g_action_parse_detailed_name (action, &name, &parameter, &error))
+        {
+          g_warning ("%s(): %s", G_STRFUNC, error->message);
+          return;
+        }
+
+      g_set_str (&notification->default_action, name);
+      g_clear_pointer (&notification->default_action_target, g_variant_unref);
+
+      if (parameter)
+        notification->default_action_target = g_variant_ref_sink (target);
+    }
 }
 
 /**
@@ -871,9 +833,9 @@ valent_notification_deserialize (GVariant *variant)
       default_action_target = g_variant_lookup_value (props,
                                                       "default-action-target",
                                                       NULL);
-      valent_notification_set_action_and_target (notification,
-                                                 default_action,
-                                                 default_action_target);
+      valent_notification_set_default_action (notification,
+                                              default_action,
+                                              default_action_target);
     }
 
   if (g_variant_lookup (props, "buttons", "@aa{sv}", &buttons))
@@ -885,20 +847,15 @@ valent_notification_deserialize (GVariant *variant)
       n_buttons = g_variant_iter_init (&iter, buttons);
       g_warn_if_fail (n_buttons <= 3);
 
-      while (g_variant_iter_next (&iter, "@a{sv}", &button))
+      while (g_variant_iter_loop (&iter, "@a{sv}", &button))
         {
           const char *label, *action;
           g_autoptr (GVariant) target = NULL;
 
           g_variant_lookup (button, "label", "&s", &label);
           g_variant_lookup (button, "action", "&s", &action);
-
-          if ((target = g_variant_lookup_value (button, "target", NULL)))
-            valent_notification_add_button_with_target (notification, label, action, target);
-          else
-            valent_notification_add_button (notification, label, action);
-
-          g_variant_unref (button);
+          target = g_variant_lookup_value (button, "target", NULL);
+          valent_notification_add_button (notification, label, action, target);
         }
     }
 

@@ -112,11 +112,11 @@ test_notifications_component_notification (NotificationsComponentFixture *fixtur
                 "body",        "Test Body",
                 "icon",        icon,
                 "priority",    G_NOTIFICATION_PRIORITY_HIGH,
-                "action",      "foo.bar::baz",
                 "time",        time,
                 NULL);
 
-  valent_notification_add_button (fixture->notification, "Button 1", "foo.bar::baz");
+  valent_notification_set_default_action (fixture->notification, "foo.bar::baz", NULL);
+  valent_notification_add_button (fixture->notification, "Button 1", "foo.bar::baz", NULL);
 
 
   valent_notifications_adapter_notification_added (fixture->adapter, fixture->notification);
