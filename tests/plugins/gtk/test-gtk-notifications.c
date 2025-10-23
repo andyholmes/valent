@@ -162,6 +162,7 @@ test_gtk_notifications_source (GtkNotificationsFixture *fixture,
                                (GAsyncReadyCallback)g_async_initable_init_async_cb,
                                &done);
   valent_test_await_boolean (&done);
+  valent_test_await_signal (adapter, "notify::plugin-state");
 
   g_signal_connect (adapter,
                     "items-changed",
