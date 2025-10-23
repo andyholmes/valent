@@ -21,12 +21,6 @@ struct _ValentNotificationsAdapterClass
 {
   ValentExtensionClass   parent_class;
 
-  /* virtual functions */
-  void                   (*add_notification)     (ValentNotificationsAdapter  *adapter,
-                                                  ValentNotification          *notification);
-  void                   (*remove_notification)  (ValentNotificationsAdapter  *adapter,
-                                                  const char                  *id);
-
   /* signals */
   void                   (*notification_added)   (ValentNotificationsAdapter  *adapter,
                                                   ValentNotification          *notification);
@@ -38,17 +32,11 @@ struct _ValentNotificationsAdapterClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_notification_added   (ValentNotificationsAdapter  *adapter,
-                                                              ValentNotification          *notification);
+void  valent_notifications_adapter_notification_added   (ValentNotificationsAdapter *adapter,
+                                                         ValentNotification         *notification);
 VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_notification_removed (ValentNotificationsAdapter  *adapter,
-                                                              const char                  *id);
-VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_add_notification     (ValentNotificationsAdapter  *adapter,
-                                                              ValentNotification          *notification);
-VALENT_AVAILABLE_IN_1_0
-void       valent_notifications_adapter_remove_notification  (ValentNotificationsAdapter  *adapter,
-                                                              const char                  *id);
+void  valent_notifications_adapter_notification_removed (ValentNotificationsAdapter *adapter,
+                                                         const char                 *id);
 
 G_END_DECLS
 
