@@ -47,30 +47,12 @@ enum {
 
 static guint signals[N_SIGNALS] = { 0, };
 
-
-/* LCOV_EXCL_START */
-static void
-valent_notifications_adapter_real_add_notification (ValentNotificationsAdapter *adapter,
-                                                    ValentNotification         *notification)
-{
-}
-
-static void
-valent_notifications_adapter_real_remove_notification (ValentNotificationsAdapter *adapter,
-                                                       const char                 *id)
-{
-}
-/* LCOV_EXCL_STOP */
-
 /*
  * GObject
  */
 static void
 valent_notifications_adapter_class_init (ValentNotificationsAdapterClass *klass)
 {
-  klass->add_notification = valent_notifications_adapter_real_add_notification;
-  klass->remove_notification = valent_notifications_adapter_real_remove_notification;
-
   /**
    * ValentNotificationsAdapter::notification-added:
    * @adapter: a `ValentNotificationsAdapter`
@@ -165,53 +147,5 @@ valent_notifications_adapter_notification_removed (ValentNotificationsAdapter *a
   g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
 
   g_signal_emit (G_OBJECT (adapter), signals [NOTIFICATION_REMOVED], 0, id);
-}
-
-/**
- * valent_notifications_adapter_add_notification: (virtual add_notification)
- * @adapter: a `ValentNotificationsAdapter`
- * @notification: a `ValentNotification`
- *
- * Send @notification to the @adapter.
- *
- * Since: 1.0
- */
-void
-valent_notifications_adapter_add_notification (ValentNotificationsAdapter *adapter,
-                                               ValentNotification         *notification)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
-  g_return_if_fail (VALENT_IS_NOTIFICATION (notification));
-
-  VALENT_NOTIFICATIONS_ADAPTER_GET_CLASS (adapter)->add_notification (adapter,
-                                                                      notification);
-
-  VALENT_EXIT;
-}
-
-/**
- * valent_notifications_adapter_remove_notification: (virtual remove_notification)
- * @adapter: a `ValentNotificationsAdapter`
- * @id: a notification id
- *
- * Withdraw @id from @adapter.
- *
- * Since: 1.0
- */
-void
-valent_notifications_adapter_remove_notification (ValentNotificationsAdapter *adapter,
-                                                  const char                 *id)
-{
-  VALENT_ENTRY;
-
-  g_return_if_fail (VALENT_IS_NOTIFICATIONS_ADAPTER (adapter));
-  g_return_if_fail (id == NULL);
-
-  VALENT_NOTIFICATIONS_ADAPTER_GET_CLASS (adapter)->remove_notification (adapter,
-                                                                         id);
-
-  VALENT_EXIT;
 }
 
