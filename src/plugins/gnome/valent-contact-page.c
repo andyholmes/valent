@@ -212,7 +212,11 @@ contact_list_create (gpointer item,
   g_autofree char *number = NULL;
   unsigned int n_attrs;
 
+#if EDS_CHECK_VERSION (3, 59, 0)
+  attrs = e_vcard_get_attributes_by_name (E_VCARD (contact), EVC_TEL);
+#else
   attrs = e_contact_get_attributes (contact, E_CONTACT_TEL);
+#endif
   n_attrs = g_list_length (attrs);
 
   g_object_get (contact, "primary-phone", &number, NULL);
@@ -289,7 +293,11 @@ on_contact_selected (ValentContactPage *self)
     return;
 
   contact = valent_contact_row_get_contact (VALENT_CONTACT_ROW (row));
-  attrs = e_contact_get_attributes (E_CONTACT (contact), E_CONTACT_TEL);
+#if EDS_CHECK_VERSION (3, 59, 0)
+  attrs = e_vcard_get_attributes_by_name (E_VCARD (contact), EVC_TEL);
+#else
+  attrs = e_contact_get_attributes (contact, E_CONTACT_TEL);
+#endif
 
   if (g_list_length (attrs) == 1)
     {

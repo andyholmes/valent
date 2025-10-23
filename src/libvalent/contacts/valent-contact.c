@@ -71,7 +71,11 @@ valent_contact_resource_from_econtact (EContact *contact)
   resource = tracker_resource_new (NULL);
   tracker_resource_set_uri (resource, "rdf:type", "nco:PersonContact");
 
+#if EDS_CHECK_VERSION (3, 59, 0)
+  vcard = e_vcard_to_string (E_VCARD (contact));
+#else
   vcard = e_vcard_to_string (E_VCARD (contact), EVC_FORMAT_VCARD_21);
+#endif
   tracker_resource_set_string (resource, "nie:plainTextContent", vcard);
 
   for (size_t i = 0; i < G_N_ELEMENTS (contact_fields); i++)
@@ -95,7 +99,11 @@ valent_contact_resource_from_econtact (EContact *contact)
       tracker_resource_set_datetime (resource, "nco:birthDate", date);
     }
 
+#if EDS_CHECK_VERSION (3, 59, 0)
+  phone_numbers = e_vcard_get_attributes_by_name (E_VCARD (contact), EVC_TEL);
+#else
   phone_numbers = e_contact_get_attributes (contact, E_CONTACT_TEL);
+#endif
   for (const GList *iter = phone_numbers; iter != NULL; iter = iter->next)
     {
       EVCardAttribute *attr = iter->data;
@@ -135,7 +143,11 @@ valent_contact_resource_from_econtact (EContact *contact)
                                           g_steal_pointer (&medium_resource));
     }
 
+#if EDS_CHECK_VERSION (3, 59, 0)
+  email_addresses = e_vcard_get_attributes_by_name (E_VCARD (contact), EVC_EMAIL);
+#else
   email_addresses = e_contact_get_attributes (contact, E_CONTACT_EMAIL);
+#endif
   for (const GList *iter = email_addresses; iter != NULL; iter = iter->next)
     {
       EVCardAttribute *attr = iter->data;
@@ -154,7 +166,11 @@ valent_contact_resource_from_econtact (EContact *contact)
     }
 
 #if 0
+#if EDS_CHECK_VERSION (3, 59, 0)
+  postal_addresses = e_vcard_get_attributes_by_name (E_VCARD (contact), EVC_ADR);
+#else
   postal_addresses = e_contact_get_attributes (contact, E_CONTACT_ADDRESS);
+#endif
   for (const GList *iter = postal_addresses; iter; iter = iter->next)
     {
       EVCardAttribute *attr = iter->data;
@@ -208,7 +224,11 @@ valent_contact_resource_from_econtact (EContact *contact)
     }
 #endif
 
+#if EDS_CHECK_VERSION (3, 59, 0)
+  urls = e_vcard_get_attributes_by_name (E_VCARD (contact), EVC_URL);
+#else
   urls = e_contact_get_attributes (contact, E_CONTACT_HOMEPAGE_URL);
+#endif
   for (const GList *iter = urls; iter != NULL; iter = iter->next)
     {
       EVCardAttribute *attr = iter->data;

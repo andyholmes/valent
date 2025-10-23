@@ -117,7 +117,11 @@ valent_contact_plugin_handle_request_vcards_by_uid (ValentContactsPlugin *self,
         {
           g_autofree char *vcard_data = NULL;
 
+#if EDS_CHECK_VERSION (3, 59, 0)
+          vcard_data = e_vcard_to_string (E_VCARD (contact));
+#else
           vcard_data = e_vcard_to_string (E_VCARD (contact), EVC_FORMAT_VCARD_21);
+#endif
 
           json_builder_set_member_name (builder, uid);
           json_builder_add_string_value (builder, vcard_data);
