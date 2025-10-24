@@ -66,7 +66,6 @@ on_network_changed (GNetworkMonitor         *monitor,
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                              VALENT_PLUGIN_STATE_ACTIVE,
                                              NULL);
-      valent_channel_service_identify (VALENT_CHANNEL_SERVICE (self), NULL);
     }
   else
     {
@@ -1125,13 +1124,6 @@ valent_lan_channel_service_init_sync (GInitable     *initable,
   g_assert (VALENT_IS_LAN_CHANNEL_SERVICE (initable));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  self->network_available = g_network_monitor_get_network_available (self->monitor);
-  g_signal_connect_object (self->monitor,
-                           "network-changed",
-                           G_CALLBACK (on_network_changed),
-                           self,
-                           G_CONNECT_DEFAULT);
-
   if (!valent_lan_channel_service_tcp_setup (self, cancellable, error))
     return FALSE;
 
@@ -1148,6 +1140,13 @@ valent_lan_channel_service_init_sync (GInitable     *initable,
                            self,
                            G_CONNECT_DEFAULT);
   valent_lan_dnssd_start (VALENT_LAN_DNSSD (self->dnssd));
+
+  g_signal_connect_object (self->monitor,
+                           "network-changed",
+                           G_CALLBACK (on_network_changed),
+                           self,
+                           G_CONNECT_DEFAULT);
+  on_network_changed (self->monitor, TRUE, self);
 
   return TRUE;
 }
