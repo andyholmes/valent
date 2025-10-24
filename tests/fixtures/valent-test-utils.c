@@ -9,6 +9,7 @@
 #include <valent.h>
 
 #include "valent-mock-channel.h"
+#include "valent-mock-network-monitor.h"
 
 #include "valent-test-utils.h"
 
@@ -37,8 +38,16 @@ valent_test_init (int    *argcp,
                   char ***argvp,
                   ...)
 {
+  GIOExtensionPoint *ep;
+
   g_content_type_set_mime_dirs (NULL);
   g_test_init (argcp, argvp, G_TEST_OPTION_ISOLATE_DIRS, NULL);
+
+  /* GIO extensions
+   */
+  ep = g_io_extension_point_register (G_NETWORK_MONITOR_EXTENSION_POINT_NAME);
+  g_io_extension_point_set_required_type (ep, G_TYPE_NETWORK_MONITOR);
+  g_type_ensure (VALENT_TYPE_MOCK_NETWORK_MONITOR);
 
   /* Core */
   g_type_ensure (VALENT_TYPE_APPLICATION);
