@@ -66,7 +66,6 @@ on_network_changed (GNetworkMonitor         *monitor,
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                              VALENT_PLUGIN_STATE_ACTIVE,
                                              NULL);
-      valent_channel_service_identify (VALENT_CHANNEL_SERVICE (self), NULL);
     }
   else
     {

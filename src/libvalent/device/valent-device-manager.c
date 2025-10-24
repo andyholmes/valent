@@ -263,6 +263,31 @@ on_channel (ValentChannelService *service,
 }
 
 static void
+on_service_state (ValentExtension     *extension,
+                  GParamSpec          *pspec,
+                  ValentDeviceManager *self)
+{
+  ValentPluginState state;
+  g_autoptr (GError) error = NULL;
+
+  state = valent_extension_plugin_state_check (extension, &error);
+  switch ((ValentPluginState)state)
+    {
+    case VALENT_PLUGIN_STATE_ACTIVE:
+      valent_channel_service_identify (VALENT_CHANNEL_SERVICE (extension), NULL);
+      break;
+
+    case VALENT_PLUGIN_STATE_INACTIVE:
+      g_debug ("%s: %s", G_OBJECT_TYPE_NAME (extension), "inactive");
+      break;
+
+    case VALENT_PLUGIN_STATE_ERROR:
+      g_warning ("%s: %s", G_OBJECT_TYPE_NAME (extension), error->message);
+      break;
+    }
+}
+
+static void
 g_async_initable_init_async_cb (GAsyncInitable *initable,
                                 GAsyncResult   *result,
                                 gpointer        user_data)
@@ -298,6 +323,11 @@ valent_device_manager_enable_plugin (ValentDeviceManager *self,
   g_signal_connect_object (plugin->extension,
                            "channel",
                            G_CALLBACK (on_channel),
+                           self,
+                           G_CONNECT_DEFAULT);
+  g_signal_connect_object (plugin->extension,
+                           "notify::plugin-state",
+                           G_CALLBACK (on_service_state),
                            self,
                            G_CONNECT_DEFAULT);
 
