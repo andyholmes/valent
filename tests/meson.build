@@ -13,6 +13,7 @@ tests_env = [
   'G_DEBUG=gc-friendly',
   'G_ENABLE_DIAGNOSTIC=1',
   # https://docs.gtk.org/gio/overview.html
+  'GIO_USE_NETWORK_MONITOR=valent',
   'GIO_USE_VFS=local',
   'GIO_USE_VOLUME_MONITOR=unix',
   'GSETTINGS_BACKEND=memory',
