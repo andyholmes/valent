@@ -58,14 +58,6 @@ valent_test_init (int    *argcp,
   g_type_ensure (VALENT_TYPE_COMPONENT);
   g_type_ensure (VALENT_TYPE_TRANSFER);
 
-  /* Device */
-  g_type_ensure (VALENT_TYPE_CHANNEL);
-  g_type_ensure (VALENT_TYPE_CHANNEL_SERVICE);
-  g_type_ensure (VALENT_TYPE_DEVICE);
-  g_type_ensure (VALENT_TYPE_DEVICE_MANAGER);
-  g_type_ensure (VALENT_TYPE_DEVICE_PLUGIN);
-  g_type_ensure (VALENT_TYPE_DEVICE_TRANSFER);
-
   /* Components */
   g_type_ensure (VALENT_TYPE_CLIPBOARD);
   g_type_ensure (VALENT_TYPE_CLIPBOARD_ADAPTER);
@@ -88,6 +80,14 @@ valent_test_init (int    *argcp,
   g_type_ensure (VALENT_TYPE_NOTIFICATION);
   g_type_ensure (VALENT_TYPE_SESSION);
   g_type_ensure (VALENT_TYPE_SESSION_ADAPTER);
+
+  /* Device */
+  g_type_ensure (VALENT_TYPE_CHANNEL);
+  g_type_ensure (VALENT_TYPE_CHANNEL_SERVICE);
+  g_type_ensure (VALENT_TYPE_DEVICE);
+  g_type_ensure (VALENT_TYPE_DEVICE_MANAGER);
+  g_type_ensure (VALENT_TYPE_DEVICE_PLUGIN);
+  g_type_ensure (VALENT_TYPE_DEVICE_TRANSFER);
 }
 
 static GMainLoop *test_loop = NULL;
