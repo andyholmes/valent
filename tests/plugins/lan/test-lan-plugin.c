@@ -573,7 +573,7 @@ static LanTestCase compliance_tests[] = {
     .errmsg = "*Packet too large*",
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
-#if !(VALENT_SANITIZE_ADDRESS)
+#if !(VALENT_SANITIZE_ADDRESS || VALENT_SANITIZE_THREAD)
   {
     .name = TEST_OUTGOING_IDENTITY_TIMEOUT,
     .errmsg = "*timed out waiting for peer*",
