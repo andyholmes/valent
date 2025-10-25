@@ -1,0 +1,248 @@
+/* SPDX-License-Identifier: CC0-1.0 */
+/* SPDX-FileCopyrightText: No rights reserved */
+
+@import url(https://www.andyholmes.ca/assets/css/base.css);
+
+/*
+ * General
+ */
+a {
+  color: currentColor;
+}
+
+.content {
+  width: 85%;
+  margin: 0 auto;
+  max-width: 900px;
+}
+
+
+/*
+ * Header
+ */
+header {
+  padding: 2rem 0;
+  text-align: center;
+}
+
+header h1 {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+
+  margin: 0;
+  padding-right: 2rem;
+
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+header h1 svg {
+  fill: currentColor;
+  height: auto;
+  width: 1em;
+}
+
+
+/*
+ * Description
+ */
+#description {
+  padding: 0 0 2rem;
+  text-align: center;
+}
+
+#description h2 {
+  font-size: 2.5rem;
+  font-weight: normal;
+  margin: 0 0 2rem;
+}
+
+#description p {
+  max-width: 30em;
+}
+
+
+/*
+ * Downloads
+ */
+#downloads {
+  padding: 2rem 0;
+  text-align: center;
+}
+
+#downloads h2 {
+  font-size: 1.75rem;
+  font-weight: normal;
+  margin: 0 0 2rem;
+}
+
+#downloads ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 0;
+}
+
+#downloads li {
+  display: block;
+  padding: 1em;
+}
+
+#downloads li > svg {
+  display: block;
+  fill: currentColor;
+  width: 96px;
+  height: auto;
+  margin: 0 auto 1rem;
+}
+
+#downloads li > a {
+  display: block;
+  transition: all 250ms ease-in-out;
+
+  color: var(--dark5);
+  background-color: var(--light5);
+
+  font-weight: bold;
+  font-size: 1.125rem;
+  text-align: center;
+  text-decoration: none;
+
+  border-radius: 2em;
+  padding: 0.5em;
+}
+
+#downloads li > a:focus,
+#downloads li > a:hover {
+  color: var(--dark5);
+  background-color: var(--light4);
+}
+
+
+/*
+ * Resources: Users & Development
+ */
+#resources {
+  padding: 1rem 0;
+  text-align: center;
+}
+
+#resources h2 {
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 0 0 1rem;
+}
+
+#resources > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  justify-items: center;
+}
+
+#resources ul {
+  margin: 0;
+  padding: 0;
+}
+
+#resources ul > li {
+  display: block;
+  transition: all 200ms ease-in-out;
+  border-radius: 2rem;
+}
+
+#resources ul > li:focus,
+#resources ul > li:hover {
+  background-color: var(--dark2);
+}
+
+#resources ul > li a {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  justify-content: start;
+  align-items: center;
+
+  font-weight: normal;
+  font-size: 1rem;
+  text-align: left;
+  text-decoration: none;
+
+  padding: 0.5em 1em;
+}
+
+#resources ul svg {
+  display: block;
+  fill: currentColor;
+  width: 1em;
+  height: auto;
+}
+
+
+/*
+ * Footer
+ */
+footer {
+  background-color: var(--dark4);
+  color: white;
+  padding: 2rem 0;
+  font-size: 80%;
+  text-align: center;
+}
+
+footer a {
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+
+/*
+ *
+ */
+@media (min-width: 700px) {
+  html, body {
+    font-size: 18px;
+  }
+}
+
+
+/*
+ * Dark/Light Theme
+ */
+@media (prefers-color-scheme: dark) {
+  #downloads li > a {
+    color: var(--dark5);
+    background-color: var(--light5);
+  }
+  #downloads li > a:focus,
+  #downloads li > a:hover {
+    color: var(--dark5);
+    background-color: var(--light4);
+  }
+
+  #resources ul > li:focus,
+  #resources ul > li:hover {
+    background-color: var(--dark2);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  #downloads li > a {
+    color: var(--light3);
+    background-color: var(--dark3);
+  }
+  #downloads li > a:focus,
+  #downloads li > a:hover {
+    color: var(--light3);
+    background-color: var(--dark4);
+  }
+
+  #resources ul > li:focus,
+  #resources ul > li:hover {
+    background-color: var(--light2);
+  }
+}
+
