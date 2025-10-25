@@ -4,9 +4,6 @@
 # https://gitlab.freedesktop.org/fontconfig/fontconfig/-/issues/77
 leak:libfontconfig.so
 
-# https://gitlab.gnome.org/GNOME/evolution-data-server/-/merge_requests/162
-leak:e_contact_get_property
-
 # TODO: Seems to come up every cycle or so :shrug:
 # https://gitlab.gnome.org/GNOME/libadwaita/blob/main/src/adw-style-manager.c
 leak:adw_init
