@@ -120,7 +120,7 @@
                     "type": "git",
                     "url": "https://github.com/google/libphonenumber.git",
                     "commit": "543b9e8d513753f61024b3112fc6b3280ee3d6e2",
-                    "tag": "v9.0.17",
+                    "tag": "v9.0.17"
                 }
             ],
             "modules": [
