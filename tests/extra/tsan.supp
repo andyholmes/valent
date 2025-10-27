@@ -6,90 +6,24 @@
 #
 # The errors below are either known bugs being tracked or undiagnosed.
 #
-mutex:valent_extension_get_type_once
+race:valent_channel_close
 
-# /src/libvalent/device/valent-channel.c (valent_channel_download)
-race:valent_mock_channel_class_init
+# src/libvalent/core/valent-object.c
+race:valent_object_finalizer_source_check
+race:valent_object_finalizer_source_dispatch
 
 #
-# Uninstrumented libraries (Yes, all of these are really necessary)
+# Partially Instrumented
+#
+# These errors only occur when GLib is uninstrumented
+#
+race:*_get_type_once
+race:*_class_init
+
+#
+# Uninstrumented libraries
 #
 
-# src/plugins/notification/valent-notification-upload.c
-called_from_lib:libglycin-2
-
-# src/libvalent/device/valent-certificate.c
-# src/plugins/lan/valent-lan-channel.c
-called_from_lib:libp11-kit
-called_from_lib:p11-kit-client
-called_from_lib:p11-kit-trust
-called_from_lib:libtasn1
-
-# Unconfirmed: https://gitlab.gnome.org/GNOME/tinysparql/-/issues/new
 mutex:tracker_triples_cursor_reset
 race:tracker_data_load_from_deserializer
-
-# GTK
-called_from_lib:libadwaita-1
-called_from_lib:libcairo.so
-called_from_lib:libfontconfig
-called_from_lib:libgdk_pixbuf-2
-called_from_lib:libgtk-4
-called_from_lib:libmedia-gstreamer.so
-called_from_lib:libpango-1
-called_from_lib:libpangocairo-1
-called_from_lib:libpangoft2
-called_from_lib:librsvg-2
-called_from_lib:libxml2
-
-# EDS Dependencies
-called_from_lib:libebackend-1.2
-called_from_lib:libedata-book
-called_from_lib:libedataserver-1.2
-called_from_lib:libicui18n
-called_from_lib:libicuuc
-called_from_lib:libphonenumber
-called_from_lib:libprotobuf
-called_from_lib:libsqlite3
-
-# TinySPARQL Dependencies
-called_from_lib:libstemmer.so
-called_from_lib:libtinysparql-3.0
-called_from_lib:libtracker-sparql-3.0
-
-# GLib
-called_from_lib:libglib-2
-called_from_lib:libgobject-2
-called_from_lib:libgio-2
-called_from_lib:libgnutls
-called_from_lib:libgvfscommon
-called_from_lib:libgvfsdbus
-
-# X.org
-called_from_lib:libX11.so
-called_from_lib:libX11-xcb
-called_from_lib:libXau
-called_from_lib:libxcb.so
-called_from_lib:libXcomposite
-called_from_lib:libXcursor
-called_from_lib:libXdamage
-called_from_lib:libXdmcp
-called_from_lib:libXext
-called_from_lib:libXfixes
-called_from_lib:libXi.so
-called_from_lib:libXrandr
-called_from_lib:libXrender
-called_from_lib:libXss
-
-# Graphics Libraries
-deadlock:libEGL
-deadlock:libGLX
-mutex:libEGL
-mutex:libGLX
-mutex:swrast_dri.so
-race:libEGL
-race:libGLX
-race:libgallium
-race:radeonsi_dri
-race:swrast_dri.so
 
