@@ -26,11 +26,18 @@ tests_env = [
   'GDK_DEBUG=default-settings',
   'GSK_RENDERER=opengl',
   'GTK_A11Y=test',
-  # See: https://github.com/google/sanitizers/issues/1322
-  'ASAN_OPTIONS=detect_leaks=1,intercept_tls_get_addr=0',
-  'LSAN_OPTIONS=fast_unwind_on_malloc=0,suppressions=@0@'.format(
+  # https://github.com/google/sanitizers/wiki/SanitizerCommonFlags
+  # https://github.com/google/sanitizers/wiki/AddressSanitizerFlags
+  # https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags
+  'ASAN_OPTIONS=detect_leaks=1,' +
+               'intercept_tls_get_addr=0',
+  'LSAN_OPTIONS=fast_unwind_on_malloc=0,' +
+               'suppressions=@0@'.format(
     join_paths(meson.current_source_dir(), 'extra', 'lsan.supp')),
-  'TSAN_OPTIONS=force_seq_cst_atomics=1,history_size=5,suppressions=@0@'.format(
+  'TSAN_OPTIONS=force_seq_cst_atomics=1,' +
+               'history_size=5,' +
+               'ignore_noninstrumented_modules=1,' +
+               'suppressions=@0@'.format(
     join_paths(meson.current_source_dir(), 'extra', 'tsan.supp')),
   'UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1',
   'PYTHONDONTWRITEBYTECODE=yes',
