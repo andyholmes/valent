@@ -21,27 +21,6 @@ struct _ValentMockChannelService
 
 G_DEFINE_FINAL_TYPE (ValentMockChannelService, valent_mock_channel_service, VALENT_TYPE_CHANNEL_SERVICE)
 
-static const char peer_identity_json[] =
-"{                                                          "
-"  \"id\": 0,                                               "
-"  \"type\": \"kdeconnect.identity\",                       "
-"  \"body\": {                                              "
-"    \"deviceId\": \"00000000_0000_0000_0000_000000000002\","
-"    \"deviceName\": \"Mock Device\",                       "
-"    \"protocolVersion\": 7,                                "
-"    \"deviceType\": \"phone\",                             "
-"    \"incomingCapabilities\": [                            "
-"      \"kdeconnect.mock.echo\",                            "
-"      \"kdeconnect.mock.transfer\"                         "
-"    ],                                                     "
-"    \"outgoingCapabilities\": [                            "
-"      \"kdeconnect.mock.echo\",                            "
-"      \"kdeconnect.mock.transfer\"                         "
-"    ]                                                      "
-"  }                                                        "
-"}                                                          ";
-
-
 /*
  * ValentChannelService
  */
@@ -61,19 +40,22 @@ valent_mock_channel_service_identify (ValentChannelService *service,
   g_autoptr (GSocketConnection) peer_connection = NULL;
   g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (ValentChannel) endpoint = NULL;
-  g_autofree char *peer_path = NULL;
+  g_autofree char *peer_identity_json = NULL;
 
   g_assert (VALENT_IS_MOCK_CHANNEL_SERVICE (self));
 
   /* Generate certificates and update the identity packets
    */
   identity = valent_channel_service_ref_identity (service);
+  peer_identity_json = json_to_string (identity, FALSE);
   peer_identity = json_from_string (peer_identity_json, NULL);
-  peer_path = g_dir_make_tmp (NULL, NULL);
-  peer_certificate = valent_certificate_new_sync (peer_path, NULL);
+  peer_certificate = valent_certificate_new_sync (NULL, NULL);
   json_object_set_string_member (valent_packet_get_body (peer_identity),
                                  "deviceId",
                                  valent_certificate_get_common_name (peer_certificate));
+  json_object_set_string_member (valent_packet_get_body (peer_identity),
+                                 "deviceName",
+                                 "Peer Device");
 
   /* Open a socket pair to back the connections
    */
@@ -108,7 +90,7 @@ valent_mock_channel_service_identify (ValentChannelService *service,
                            "peer-identity",    identity,
                            NULL);
   g_object_set_data_full (G_OBJECT (self),
-                          "valent-test-endpoint",
+                          "valent-peer-channel",
                           g_object_ref (endpoint),
                           g_object_unref);
 

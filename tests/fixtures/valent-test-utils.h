@@ -11,43 +11,53 @@
 
 G_BEGIN_DECLS
 
-void             valent_test_init          (int              *argcp,
-                                            char           ***argvp,
-                                                              ...);
-void             valent_test_run_loop      (void);
-gboolean         valent_test_quit_loop     (void);
+void             valent_test_init            (int                   *argcp,
+                                              char                ***argvp,
+                                                                     ...);
+void             valent_test_run_loop        (void);
+gboolean         valent_test_quit_loop       (void);
 
-gboolean         valent_test_mute_fuzzing  (const char       *log_domain,
-                                            GLogLevelFlags    log_level,
-                                            const char       *message,
-                                            gpointer          user_data);
+gboolean         valent_test_mute_fuzzing    (const char            *log_domain,
+                                              GLogLevelFlags         log_level,
+                                              const char            *message,
+                                              gpointer               user_data);
 
-gpointer         valent_test_await_adapter (gpointer          component);
-void             valent_test_await_boolean (gboolean         *done);
-void             valent_test_await_pending (void);
-void             valent_test_await_pointer (gpointer         *result);
-void             valent_test_await_nullptr (gpointer         *result);
-void             valent_test_await_signal  (gpointer          object,
-                                            const char       *signal_name);
-void             valent_test_watch_signal  (gpointer          object,
-                                            const char       *signal_name,
-                                            gboolean         *watch);
-void             valent_test_watch_clear   (gpointer          object,
-                                            gboolean         *watch);
-void             valent_test_await_timeout (unsigned int      duration);
-JsonNode       * valent_test_load_json     (const char       *path);
-GSettings      * valent_test_mock_settings (const char       *domain);
-void             valent_test_channel_pair  (JsonNode         *identity,
-                                            JsonNode         *peer_identity,
-                                            ValentChannel   **channel_out,
-                                            ValentChannel   **peer_channel_out);
-gboolean         valent_test_download      (ValentChannel    *channel,
-                                            JsonNode         *packet,
-                                            GError          **error);
-gboolean         valent_test_upload        (ValentChannel    *channel,
-                                            JsonNode         *packet,
-                                            GFile            *file,
-                                            GError          **error);
+gpointer         valent_test_await_adapter   (gpointer               component);
+void             valent_test_await_boolean   (gboolean              *done);
+void             valent_test_await_pending   (void);
+void             valent_test_await_pointer   (gpointer              *result);
+void             valent_test_await_nullptr   (gpointer              *result);
+void             valent_test_await_signal    (gpointer               object,
+                                              const char            *signal_name);
+void             valent_test_watch_signal    (gpointer               object,
+                                              const char            *signal_name,
+                                              gboolean              *watch);
+void             valent_test_watch_clear     (gpointer               object,
+                                              gboolean              *watch);
+void             valent_test_await_timeout   (unsigned int           duration);
+JsonNode       * valent_test_load_json       (const char            *path);
+GSettings      * valent_test_mock_settings   (const char            *domain);
+void             valent_test_channel_pair    (JsonNode              *identity,
+                                              JsonNode              *peer_identity,
+                                              ValentChannel        **channel_out,
+                                              ValentChannel        **peer_channel_out);
+void             valent_test_download        (ValentChannel         *channel,
+                                              JsonNode              *packet,
+                                              GCancellable          *cancellable,
+                                              GAsyncReadyCallback    callback,
+                                              gpointer               user_data);
+gboolean         valent_test_download_finish (ValentChannel         *channel,
+                                              GAsyncResult          *result,
+                                              GError               **error);
+void             valent_test_upload          (ValentChannel         *channel,
+                                              JsonNode              *packet,
+                                              GFile                 *file,
+                                              GCancellable          *cancellable,
+                                              GAsyncReadyCallback    callback,
+                                              gpointer               user_data);
+gboolean         valent_test_upload_finish   (ValentChannel         *channel,
+                                              GAsyncResult          *result,
+                                              GError               **error);
 
 #define valent_test_await_boolean(ptr)                     \
   G_STMT_START {                                           \

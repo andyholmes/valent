@@ -63,7 +63,7 @@
     "id": 0,
     "type": "kdeconnect.share.request",
     "body": {
-      "filename": "image.png",
+      "filename": "kittens.png",
       "numberOfFiles": 1,
       "totalPayloadSize": 882
     }
@@ -80,7 +80,7 @@
     "id": 0,
     "type": "kdeconnect.share.request",
     "body": {
-      "filename": "image.png",
+      "filename": "puppies.png",
       "numberOfFiles": 3,
       "totalPayloadSize": 2646
     }
@@ -89,7 +89,7 @@
     "id": 0,
     "type": "kdeconnect.share.request",
     "body": {
-      "filename": "image.png",
+      "filename": "puppies-and-kittens.png",
       "numberOfFiles": 3,
       "totalPayloadSize": 2646
     }
