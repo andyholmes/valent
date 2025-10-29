@@ -364,6 +364,17 @@ valent_test_fixture_handle_packet (ValentTestFixture *fixture,
   valent_test_await_boolean (&done);
 }
 
+static void
+valent_test_download_cb (ValentChannel *channel,
+                         GAsyncResult  *result,
+                         gpointer       user_data)
+{
+  GError **error = (GError **)user_data;
+
+  valent_test_upload_finish (channel, result, error);
+  valent_test_quit_loop ();
+}
+
 /**
  * valent_test_fixture_download:
  * @fixture: a `ValentTestFixture`
@@ -383,7 +394,25 @@ valent_test_fixture_download (ValentTestFixture  *fixture,
   g_assert (fixture != NULL);
   g_assert (VALENT_IS_PACKET (packet));
 
-  return valent_test_download (fixture->endpoint, packet, error);
+  valent_test_download (fixture->endpoint,
+                        packet,
+                        NULL, // cancellable
+                        (GAsyncReadyCallback)valent_test_download_cb,
+                        error);
+  valent_test_run_loop ();
+
+  return (error == NULL || *error == NULL);
+}
+
+static void
+valent_test_upload_cb (ValentChannel *channel,
+                       GAsyncResult  *result,
+                       gpointer       user_data)
+{
+  GError **error = (GError **)user_data;
+
+  valent_test_upload_finish (channel, result, error);
+  valent_test_quit_loop ();
 }
 
 /**
@@ -406,7 +435,15 @@ valent_test_fixture_upload (ValentTestFixture  *fixture,
   g_assert (G_IS_FILE (file));
   g_assert (error == NULL || *error == NULL);
 
-  return valent_test_upload (fixture->endpoint, packet, file, error);
+  valent_test_upload (fixture->endpoint,
+                      packet,
+                      file,
+                      NULL, // cancellable
+                      (GAsyncReadyCallback)valent_test_upload_cb,
+                      error);
+  valent_test_run_loop ();
+
+  return (error == NULL || *error == NULL);
 }
 
 /**

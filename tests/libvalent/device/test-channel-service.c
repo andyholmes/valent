@@ -29,11 +29,13 @@ channel_service_fixture_set_up (ChannelServiceFixture *fixture,
   PeasPluginInfo *plugin_info;
   g_autoptr (ValentContext) context = NULL;
 
+  fixture->packets = valent_test_load_json ("core.json");
+
+  VALENT_TEST_CHECK ("Adapter can be constructed");
   engine = valent_get_plugin_engine ();
   plugin_info = peas_engine_get_plugin_info (engine, "mock");
   context = valent_context_new (NULL, "plugin", "mock");
 
-  fixture->packets = valent_test_load_json ("core.json");
   fixture->service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
                                    "iri",         "urn:valent:network:mock",
                                    // FIXME: root source
@@ -47,14 +49,25 @@ static void
 channel_service_fixture_tear_down (ChannelServiceFixture *fixture,
                                    gconstpointer      user_data)
 {
-  g_clear_pointer (&fixture->packets, json_node_unref);
-  v_await_finalize_object (fixture->service);
+  if (fixture->service != NULL)
+    {
+      valent_object_destroy (VALENT_OBJECT (fixture->service));
+      v_await_finalize_object (fixture->service);
+    }
 
   if (fixture->channel != NULL)
-    v_await_finalize_object (fixture->channel);
+    {
+      valent_object_destroy (VALENT_OBJECT (fixture->channel));
+      v_await_finalize_object (fixture->channel);
+    }
 
   if (fixture->endpoint != NULL)
-    v_await_finalize_object (fixture->endpoint);
+    {
+      valent_object_destroy (VALENT_OBJECT (fixture->endpoint));
+      v_await_finalize_object (fixture->endpoint);
+    }
+
+  g_clear_pointer (&fixture->packets, json_node_unref);
 }
 
 /*
@@ -65,39 +78,56 @@ on_channel (ValentChannelService  *service,
             ValentChannel         *channel,
             ChannelServiceFixture *fixture)
 {
-  fixture->channel = channel;
-  g_object_add_weak_pointer (G_OBJECT (fixture->channel),
-                             (gpointer)&fixture->channel);
-
-  fixture->endpoint = g_object_get_data (G_OBJECT (service),
-                                         "valent-test-endpoint");
-  g_object_add_weak_pointer (G_OBJECT (fixture->endpoint),
-                             (gpointer)&fixture->endpoint);
+  fixture->channel = g_object_ref (channel);
+  fixture->endpoint = g_object_ref (g_object_get_data (G_OBJECT (service),
+                                                       "valent-peer-channel"));
 }
 
+static void
+test_channel_service_service (ChannelServiceFixture *fixture,
+                              gconstpointer          user_data)
+{
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autofree char *id = NULL;
+  g_autoptr (JsonNode) identity = NULL;
+
+  VALENT_TEST_CHECK ("GObject properties function correctly");
+  g_object_get (fixture->service,
+                "certificate", &certificate,
+                "id",          &id,
+                "identity",    &identity,
+                NULL);
+
+  g_assert_true (G_IS_TLS_CERTIFICATE (certificate));
+  g_assert_nonnull (id);
+  g_assert_true (VALENT_IS_PACKET (identity));
+  g_clear_pointer (&id, g_free);
+
+  VALENT_TEST_CHECK ("The service ID matches the certificate common name");
+  id = valent_channel_service_dup_id (fixture->service);
+  g_assert_cmpstr (id, ==, valent_certificate_get_common_name (certificate));
+
+  VALENT_TEST_CHECK ("The service creates channels for successful connections");
+  g_signal_connect (fixture->service,
+                    "channel",
+                    G_CALLBACK (on_channel),
+                    fixture);
+  valent_channel_service_identify (fixture->service, NULL);
+
+  valent_test_await_pointer (&fixture->channel);
+  g_assert_true (VALENT_IS_CHANNEL (fixture->channel));
+  g_assert_true (VALENT_IS_CHANNEL (fixture->endpoint));
+
+  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
+}
 
 /*
- * ValentChannel Callbacks
+ * Channel
  */
 static void
-close_cb (ValentChannel         *channel,
-          GAsyncResult          *result,
-          ChannelServiceFixture *fixture)
-{
-  gboolean ret;
-  GError *error = NULL;
-
-  ret = valent_channel_close_finish (channel, result, &error);
-  g_assert_no_error (error);
-  g_assert_true (ret);
-
-  valent_test_quit_loop ();
-}
-
-static void
-read_packet_cb (ValentChannel         *channel,
-                GAsyncResult          *result,
-                ChannelServiceFixture *fixture)
+valent_channel_read_packet_cb (ValentChannel *channel,
+                               GAsyncResult  *result,
+                               gpointer       user_data)
 {
   g_autoptr (JsonNode) packet = NULL;
   GError *error = NULL;
@@ -111,9 +141,9 @@ read_packet_cb (ValentChannel         *channel,
 }
 
 static void
-write_packet_cb (ValentChannel         *channel,
-                 GAsyncResult          *result,
-                 ChannelServiceFixture *fixture)
+valent_channel_write_packet_cb (ValentChannel *channel,
+                                GAsyncResult  *result,
+                                gpointer       user_data)
 {
   gboolean ret;
   GError *error = NULL;
@@ -125,187 +155,61 @@ write_packet_cb (ValentChannel         *channel,
   valent_test_quit_loop ();
 }
 
-/*
- * Payload Callbacks
- */
 static void
-g_output_stream_splice_cb (GOutputStream *target,
-                           GAsyncResult  *result,
-                           gssize        *transferred)
-{
-  gssize ret;
-  GError *error = NULL;
-
-  ret = g_output_stream_splice_finish (target, result, &error);
-  g_assert_no_error (error);
-
-  if (transferred != NULL)
-    *transferred = ret;
-}
-
-static void
-valent_channel_download_cb (ValentChannel  *channel,
-                            GAsyncResult   *result,
-                            GIOStream     **stream)
+valent_test_upload_cb (ValentChannel *channel,
+                       GAsyncResult  *result,
+                       gboolean      *done)
 {
   GError *error = NULL;
 
-  g_assert_nonnull (stream);
-
-  *stream = valent_channel_download_finish (channel, result, &error);
+  *done = valent_test_upload_finish (channel, result, &error);
   g_assert_no_error (error);
-  g_assert_true (G_IS_IO_STREAM (*stream));
 }
 
 static void
-read_download_cb (ValentChannel         *endpoint,
-                  GAsyncResult          *result,
-                  ChannelServiceFixture *fixture)
+valent_test_download_cb (ValentChannel *channel,
+                         GAsyncResult  *result,
+                         gboolean      *done)
+{
+  GError *error = NULL;
+
+  *done = valent_test_download_finish (channel, result, &error);
+  g_assert_no_error (error);
+}
+
+static void
+valent_channel_read_download_cb (ValentChannel *endpoint,
+                                 GAsyncResult  *result,
+                                 gboolean      *done)
 {
   g_autoptr (JsonNode) packet = NULL;
-  g_autoptr (GIOStream) stream = NULL;
-  g_autoptr (GOutputStream) target = NULL;
-  goffset payload_size;
-  gssize transferred = -2;
   GError *error = NULL;
 
-  /* We expect the packet to be properly populated with payload information */
   packet = valent_channel_read_packet_finish (endpoint, result, &error);
   g_assert_no_error (error);
   g_assert_true (VALENT_IS_PACKET (packet));
   g_assert_true (valent_packet_has_payload (packet));
 
-  /* We expect to be able to create a transfer stream from the packet */
-  valent_channel_download_async (endpoint,
-                                 packet,
-                                 NULL,
-                                 (GAsyncReadyCallback)valent_channel_download_cb,
-                                 &stream);
-  valent_test_await_pointer (&stream);
-
-  /* We expect to be able to transfer the full payload */
-  target = g_memory_output_stream_new_resizable ();
-  g_output_stream_splice_async (target,
-                                g_io_stream_get_input_stream (stream),
-                                (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                                 G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                                G_PRIORITY_DEFAULT,
-                                NULL,
-                                (GAsyncReadyCallback)g_output_stream_splice_cb,
-                                &transferred);
-
-  while (transferred == -2)
-    g_main_context_iteration (NULL, FALSE);
-
-  payload_size = valent_packet_get_payload_size (packet);
-  g_assert_cmpint (transferred, ==, payload_size);
+  valent_test_download (endpoint,
+                        packet,
+                        NULL,
+                        (GAsyncReadyCallback)valent_test_download_cb,
+                        done);
 }
 
 static void
-valent_channel_upload_cb (ValentChannel *channel,
-                          GAsyncResult  *result,
-                          GFile         *file)
+valent_channel_close_cb (ValentChannel *channel,
+                         GAsyncResult  *result,
+                         gpointer       user_data)
 {
-  g_autoptr (GIOStream) stream = NULL;
-  g_autoptr (GFileInputStream) file_source = NULL;
+  gboolean ret;
   GError *error = NULL;
 
-  stream = valent_channel_upload_finish (channel, result, &error);
+  ret = valent_channel_close_finish (channel, result, &error);
   g_assert_no_error (error);
-  g_assert_true (G_IS_IO_STREAM (stream));
-
-  file_source = g_file_read (file, NULL, &error);
-  g_assert_no_error (error);
-
-  g_output_stream_splice_async (g_io_stream_get_output_stream (stream),
-                                G_INPUT_STREAM (file_source),
-                                (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                                 G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                                G_PRIORITY_DEFAULT,
-                                NULL,
-                                (GAsyncReadyCallback)g_output_stream_splice_cb,
-                                NULL);
-}
-
-static void
-read_upload_cb (ValentChannel         *endpoint,
-                GAsyncResult          *result,
-                ChannelServiceFixture *fixture)
-{
-  g_autoptr (JsonNode) packet = NULL;
-  GError *error = NULL;
-
-  /* We expect the packet to be properly populated with payload information */
-  packet = valent_channel_read_packet_finish (endpoint, result, &error);
-  g_assert_no_error (error);
-  g_assert_true (VALENT_IS_PACKET (packet));
-  g_assert_true (valent_packet_has_payload (packet));
-
-  valent_test_download (endpoint, packet, &error);
-  g_assert_no_error (error);
+  g_assert_true (ret);
 
   valent_test_quit_loop ();
-}
-
-
-static void
-test_channel_service_basic (void)
-{
-  PeasEngine *engine;
-  PeasPluginInfo *plugin_info;
-  g_autoptr (ValentContext) context = NULL;
-  g_autoptr (ValentChannelService) service = NULL;
-  g_autoptr (GTlsCertificate) certificate_out = NULL;
-  g_autofree char *id_out = NULL;
-  g_autoptr (JsonNode) identity_out = NULL;
-
-  engine = valent_get_plugin_engine ();
-  plugin_info = peas_engine_get_plugin_info (engine, "mock");
-  context = valent_context_new (NULL, "plugin", "mock");
-
-  VALENT_TEST_CHECK ("Adapter can be constructed");
-  service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
-                          "iri",         "urn:valent:network:mock",
-                          // FIXME: root source
-                          "source",      NULL,
-                          "context",     context,
-                          "plugin-info", plugin_info,
-                          NULL);
-
-  VALENT_TEST_CHECK ("GObject properties function correctly");
-  g_object_get (service,
-                "certificate", &certificate_out,
-                "id",          &id_out,
-                "identity",    &identity_out,
-                NULL);
-
-  g_assert_true (G_IS_TLS_CERTIFICATE (certificate_out));
-  g_assert_nonnull (id_out);
-  g_assert_true (VALENT_IS_PACKET (identity_out));
-
-  g_clear_pointer (&id_out, g_free);
-  id_out = valent_channel_service_dup_id (service);
-  g_assert_nonnull (id_out);
-}
-
-static void
-test_channel_service_identify (ChannelServiceFixture *fixture,
-                               gconstpointer          user_data)
-{
-  g_signal_connect (fixture->service,
-                    "channel",
-                    G_CALLBACK (on_channel),
-                    fixture);
-  valent_channel_service_identify (fixture->service, NULL);
-
-  valent_test_await_pointer (&fixture->channel);
-  g_assert_true (VALENT_IS_CHANNEL (fixture->channel));
-
-  valent_test_await_pointer (&fixture->endpoint);
-  g_assert_true (VALENT_IS_CHANNEL (fixture->endpoint));
-
-  g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 static void
@@ -313,98 +217,93 @@ test_channel_service_channel (ChannelServiceFixture *fixture,
                               gconstpointer          user_data)
 {
   g_autoptr (JsonNode) packet = NULL;
-  g_autoptr (GIOStream) base_stream_out = NULL;
-  g_autoptr (JsonNode) identity_out = NULL;
-  g_autoptr (JsonNode) peer_identity_out = NULL;
-  g_autoptr (GTlsCertificate) certificate_out = NULL;
-  g_autoptr (GTlsCertificate) peer_certificate_out = NULL;
+  g_autoptr (GIOStream) base_stream = NULL;
+  g_autoptr (JsonNode) identity = NULL;
+  g_autoptr (JsonNode) peer_identity = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  g_autoptr (GTlsCertificate) peer_certificate = NULL;
+  g_autoptr (GTlsCertificate) endpoint_certificate = NULL;
+  g_autoptr (GTlsCertificate) endpoint_peer_certificate = NULL;
   g_autoptr (GFile) file = NULL;
-  GError *error = NULL;
+  gboolean download_done = FALSE;
+  gboolean upload_done = FALSE;
 
+  VALENT_TEST_CHECK ("The service creates channels for successful connections");
   g_signal_connect (fixture->service,
                     "channel",
                     G_CALLBACK (on_channel),
                     fixture);
   valent_channel_service_identify (fixture->service, NULL);
-
   valent_test_await_pointer (&fixture->channel);
   g_assert_true (VALENT_IS_CHANNEL (fixture->channel));
 
-  valent_test_await_pointer (&fixture->endpoint);
-  g_assert_true (VALENT_IS_CHANNEL (fixture->endpoint));
-
   VALENT_TEST_CHECK ("GObject properties function correctly");
   g_object_get (fixture->channel,
-                "base-stream",      &base_stream_out,
-                "certificate",      &certificate_out,
-                "identity",         &identity_out,
-                "peer-certificate", &peer_certificate_out,
-                "peer-identity",    &peer_identity_out,
+                "base-stream",      &base_stream,
+                "certificate",      &certificate,
+                "identity",         &identity,
+                "peer-certificate", &peer_certificate,
+                "peer-identity",    &peer_identity,
                 NULL);
 
-  g_assert_true (G_IS_IO_STREAM (base_stream_out));
-  g_assert_true (G_IS_TLS_CERTIFICATE (certificate_out));
-  g_assert_true (G_IS_TLS_CERTIFICATE (peer_certificate_out));
-  g_assert_true (VALENT_IS_PACKET (identity_out));
-  g_assert_true (VALENT_IS_PACKET (peer_identity_out));
+  g_assert_true (G_IS_IO_STREAM (base_stream));
+  g_assert_true (G_IS_TLS_CERTIFICATE (certificate));
+  g_assert_true (G_IS_TLS_CERTIFICATE (peer_certificate));
+  g_assert_true (VALENT_IS_PACKET (identity));
+  g_assert_true (VALENT_IS_PACKET (peer_identity));
 
-  g_assert_true (json_node_equal (valent_channel_get_identity (fixture->channel), identity_out));
-  g_assert_true (json_node_equal (valent_channel_get_peer_identity (fixture->channel), peer_identity_out));
+  endpoint_certificate = valent_channel_ref_certificate (fixture->endpoint);
+  endpoint_peer_certificate = valent_channel_ref_peer_certificate (fixture->endpoint);
+  g_assert_true (g_tls_certificate_is_same (certificate, endpoint_peer_certificate));
+  g_assert_true (g_tls_certificate_is_same (peer_certificate, endpoint_certificate));
+  g_assert_true (json_node_equal (valent_channel_get_identity (fixture->channel), identity));
+  g_assert_true (json_node_equal (valent_channel_get_peer_identity (fixture->channel), peer_identity));
 
   VALENT_TEST_CHECK ("Channel can send and receive packets");
   packet = valent_packet_new ("kdeconnect.mock.echo");
   valent_channel_write_packet (fixture->channel,
                                packet,
-                               NULL,
-                               (GAsyncReadyCallback)write_packet_cb,
-                               fixture);
+                               NULL, // cancellable
+                               (GAsyncReadyCallback)valent_channel_write_packet_cb,
+                               NULL);
   valent_test_run_loop ();
 
   valent_channel_read_packet (fixture->endpoint,
-                              NULL,
-                              (GAsyncReadyCallback)read_packet_cb,
-                              fixture);
+                              NULL, // cancellable
+                              (GAsyncReadyCallback)valent_channel_read_packet_cb,
+                              NULL);
   valent_test_run_loop ();
   g_clear_pointer (&packet, json_node_unref);
 
-  VALENT_TEST_CHECK ("Channel can download payloads from packets");
-  valent_channel_read_packet (fixture->endpoint,
-                              NULL,
-                              (GAsyncReadyCallback)read_download_cb,
-                              fixture);
-
+  VALENT_TEST_CHECK ("Channel can transfer payloads");
   packet = valent_packet_new ("kdeconnect.mock.transfer");
   json_object_set_string_member (valent_packet_get_body (packet),
                                  "filename",
                                  "image.png");
   file = g_file_new_for_uri ("resource:///tests/image.png");
 
-  valent_test_upload (fixture->channel, packet, file, &error);
-  g_assert_no_error (error);
-
-  /* NOTE: The `payloadTransferInfo` has been set by the previous test */
-  VALENT_TEST_CHECK ("Channel can upload payloads with packets");
-  valent_channel_upload_async (fixture->channel,
-                               packet,
-                               NULL,
-                               (GAsyncReadyCallback)valent_channel_upload_cb,
-                               file);
+  valent_test_upload (fixture->channel,
+                      packet,
+                      file,
+                      NULL, // cancellable
+                      (GAsyncReadyCallback)valent_test_upload_cb,
+                      &upload_done);
   valent_channel_read_packet (fixture->endpoint,
-                              NULL,
-                              (GAsyncReadyCallback)read_upload_cb,
-                              fixture);
-  valent_test_run_loop ();
+                              NULL, // cancellable
+                              (GAsyncReadyCallback)valent_channel_read_download_cb,
+                              &download_done);
+  valent_test_await_boolean (&upload_done);
+  valent_test_await_boolean (&download_done);
 
   VALENT_TEST_CHECK ("Channel can be closed");
-  valent_channel_close_async (fixture->endpoint,
-                              NULL,
-                              (GAsyncReadyCallback)close_cb,
-                              fixture);
+  valent_channel_close_async (fixture->channel,
+                              NULL, // cancellable
+                              (GAsyncReadyCallback)valent_channel_close_cb,
+                              NULL);
   valent_test_run_loop ();
-  valent_channel_close (fixture->channel, NULL, NULL);
+  valent_channel_close (fixture->endpoint, NULL, NULL);
 
   g_signal_handlers_disconnect_by_data (fixture->service, fixture);
-  valent_object_destroy (VALENT_OBJECT (fixture->service));
 }
 
 int
@@ -416,13 +315,10 @@ main (int   argc,
   g_type_ensure (VALENT_TYPE_MOCK_CHANNEL);
   g_type_ensure (VALENT_TYPE_MOCK_CHANNEL_SERVICE);
 
-  g_test_add_func ("/libvalent/device/channel-service/basic",
-                   test_channel_service_basic);
-
-  g_test_add ("/libvalent/device/channel-service/identify",
+  g_test_add ("/libvalent/device/channel-service/service",
               ChannelServiceFixture, NULL,
               channel_service_fixture_set_up,
-              test_channel_service_identify,
+              test_channel_service_service,
               channel_service_fixture_tear_down);
 
   g_test_add ("/libvalent/device/channel-service/channel",

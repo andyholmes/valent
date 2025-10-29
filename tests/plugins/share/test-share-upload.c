@@ -117,7 +117,7 @@ test_share_upload_single (ValentTestFixture *fixture,
 
   g_assert_cmpint (valent_packet_get_payload_size (packet), ==, file_size);
 
-  valent_test_download (fixture->endpoint, packet, &error);
+  valent_test_fixture_download (fixture, packet, &error);
   g_assert_no_error (error);
   g_clear_pointer (&packet, json_node_unref);
 }

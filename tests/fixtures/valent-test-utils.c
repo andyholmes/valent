@@ -500,150 +500,196 @@ valent_test_channel_pair (JsonNode       *identity,
 
 typedef struct
 {
-  GRecMutex  lock;
-  JsonNode  *packet;
-  GFile     *file;
+  GIOStream    *stream;
+  JsonNode     *packet;
+  GInputStream *source;
 } TransferOperation;
 
 static void
-transfer_op_free (gpointer data)
+transfer_operation_free (gpointer data)
 {
-  TransferOperation *op = data;
+  TransferOperation *operation = (TransferOperation *)data;
 
-  g_rec_mutex_lock (&op->lock);
-  g_clear_object (&op->file);
-  g_clear_pointer (&op->packet, json_node_unref);
-  g_rec_mutex_unlock (&op->lock);
-  g_rec_mutex_clear (&op->lock);
-  g_clear_pointer (&op, g_free);
+  g_clear_object (&operation->stream);
+  g_clear_object (&operation->source);
+  g_clear_pointer (&operation->packet, json_node_unref);
+  g_free (operation);
 }
 
 static void
-download_task (GTask        *task,
-               gpointer      source_object,
-               gpointer      task_data,
-               GCancellable *cancellable)
+g_output_stream_splice_cb (GOutputStream *stream,
+                           GAsyncResult  *result,
+                           gpointer       user_data)
 {
-  ValentChannel *channel = VALENT_CHANNEL (source_object);
-  JsonNode *packet = task_data;
-  g_autoptr (GIOStream) stream = NULL;
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  TransferOperation *operation = g_task_get_task_data (task);
+  gssize transferred, payload_size = 0;
+  GError *error = NULL;
+
+  transferred = g_output_stream_splice_finish (stream, result, &error);
+  if (error != NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  payload_size = valent_packet_get_payload_size (operation->packet);
+  if (transferred != payload_size)
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "Expected payload of %zi, received %zi",
+                               payload_size, transferred);
+      return;
+    }
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static void
+valent_channel_download_cb (ValentChannel *channel,
+                            GAsyncResult  *result,
+                            gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  TransferOperation *operation = g_task_get_task_data (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
   g_autoptr (GOutputStream) target = NULL;
   GError *error = NULL;
 
-  stream = valent_channel_download (channel, packet, cancellable, &error);
-  if (stream == NULL)
+  operation->stream = valent_channel_download_finish (channel, result, &error);
+  if (operation->stream == NULL)
     {
       g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
 
   target = g_memory_output_stream_new_resizable ();
-  g_output_stream_splice (target,
-                          g_io_stream_get_input_stream (stream),
-                          (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                           G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                          cancellable,
-                          &error);
-  if (error != NULL)
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  g_task_return_boolean (task, TRUE);
+  g_output_stream_splice_async (target,
+                                g_io_stream_get_input_stream (operation->stream),
+                                (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
+                                 G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
+                                G_PRIORITY_DEFAULT,
+                                cancellable,
+                                (GAsyncReadyCallback)g_output_stream_splice_cb,
+                                g_object_ref (task));
 }
 
 /**
  * valent_test_download:
  * @channel: a `ValentChannel`
  * @packet: a `JsonNode`
- * @error: (nullable): a `GError`
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
+ * @user_data: user supplied data
  *
  * Simulate downloading the payload described by @packet using @channel.
  *
- * Returns: %TRUE if successful
+ * Call [type@Valent.TestFixture.download_finish] to get the result.
  */
-gboolean
-valent_test_download (ValentChannel  *channel,
-                      JsonNode       *packet,
-                      GError        **error)
+void
+valent_test_download (ValentChannel       *channel,
+                      JsonNode            *packet,
+                      GCancellable        *cancellable,
+                      GAsyncReadyCallback  callback,
+                      gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
+  TransferOperation *operation;
 
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  operation = g_new0 (TransferOperation, 1);
+  operation->packet = json_node_ref (packet);
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_test_download);
+  g_task_set_task_data (task, operation, transfer_operation_free);
+  valent_channel_download_async (channel,
+                                 packet,
+                                 cancellable,
+                                 (GAsyncReadyCallback)valent_channel_download_cb,
+                                 g_object_ref (task));
+}
+
+/**
+ * valent_test_download_finish:
+ * @channel: a `ValentChannel`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
+ *
+ * Finish an operation started by [type@Valent.TestFixture.download].
+ *
+ * Returns: %TRUE, or %FALSE with @error set
+ */
+gboolean
+valent_test_download_finish (ValentChannel  *channel,
+                             GAsyncResult   *result,
+                             GError        **error)
+{
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (g_task_is_valid (result, channel));
   g_assert (error == NULL || *error == NULL);
 
-  task = g_task_new (channel, NULL, NULL, NULL);
-  g_task_set_source_tag (task, valent_test_download);
-  g_task_set_task_data (task,
-                        json_node_ref (packet),
-                        (GDestroyNotify)json_node_unref);
-  g_task_run_in_thread (task, download_task);
-
-  while (!g_task_get_completed (task))
-    g_main_context_iteration (NULL, FALSE);
-
-  return g_task_propagate_boolean (task, error);
+  return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 static void
-upload_task (GTask        *task,
-             gpointer      source_object,
-             gpointer      task_data,
-             GCancellable *cancellable)
+valent_channel_upload_cb (ValentChannel *channel,
+                          GAsyncResult  *result,
+                          gpointer       user_data)
 {
-  ValentChannel *channel = VALENT_CHANNEL (source_object);
-  TransferOperation *op = task_data;
-  g_autoptr (GIOStream) stream = NULL;
-  g_autoptr (GFile) file = NULL;
-  g_autoptr (JsonNode) packet = NULL;
-  g_autoptr (GFileInfo) file_info = NULL;
-  g_autoptr (GFileInputStream) file_source = NULL;
-  goffset size;
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  TransferOperation *operation = g_task_get_task_data (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
   GError *error = NULL;
 
-  g_rec_mutex_lock (&op->lock);
-  file = g_object_ref (op->file);
-  packet = json_node_ref (op->packet);
-  g_rec_mutex_unlock (&op->lock);
-
-  file_info = g_file_query_info (file, "standard::size", 0, NULL, &error);
-  if (file_info == NULL)
-    {
-      g_task_return_error (task, error);
-      return;
-    }
-
-  file_source = g_file_read (file, cancellable, &error);
-  if (file_source == NULL)
-    {
-      g_task_return_error (task, error);
-      return;
-    }
-
-  size = g_file_info_get_size (file_info);
-  valent_packet_set_payload_size (packet, size);
-  stream = valent_channel_upload (channel, packet, cancellable, &error);
-  if (stream == NULL)
+  operation->stream = valent_channel_upload_finish (channel, result, &error);
+  if (operation->stream == NULL)
     {
       g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
 
-  g_output_stream_splice (g_io_stream_get_output_stream (stream),
-                          G_INPUT_STREAM (file_source),
-                          (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
-                           G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
-                          cancellable,
-                          &error);
-  if (error != NULL)
+  g_output_stream_splice_async (g_io_stream_get_output_stream (operation->stream),
+                                operation->source,
+                                (G_OUTPUT_STREAM_SPLICE_CLOSE_SOURCE |
+                                 G_OUTPUT_STREAM_SPLICE_CLOSE_TARGET),
+                                G_PRIORITY_DEFAULT,
+                                cancellable,
+                                (GAsyncReadyCallback)g_output_stream_splice_cb,
+                                g_object_ref (task));
+}
+
+static void
+g_file_load_bytes_cb (GFile        *file,
+                      GAsyncResult *result,
+                      gpointer      user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentChannel *channel = g_task_get_source_object (task);
+  TransferOperation *operation = g_task_get_task_data (task);
+  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (GBytes) bytes = NULL;
+  GError *error = NULL;
+
+  bytes = g_file_load_bytes_finish (file, result, NULL, &error);
+  if (bytes == NULL)
     {
       g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
 
-  g_task_return_boolean (task, TRUE);
+  operation->source = g_memory_input_stream_new_from_bytes (bytes);
+  valent_packet_set_payload_size (operation->packet, g_bytes_get_size (bytes));
+  valent_channel_upload_async (channel,
+                               operation->packet,
+                               cancellable,
+                               (GAsyncReadyCallback)valent_channel_upload_cb,
+                               g_object_ref (task));
 }
 
 /**
@@ -651,39 +697,61 @@ upload_task (GTask        *task,
  * @channel: a `ValentChannel`
  * @packet: a `JsonNode`
  * @file: a `GFile`
- * @error: (nullable): a `GError`
+ * @cancellable: (nullable): a `GCancellable`
+ * @callback: (scope async): a `GAsyncReadyCallback`
+ * @user_data: user supplied data
  *
  * Simulate uploading @file to the endpoint of @channel.
+ *
+ * Call [type@Valent.TestFixture.upload_finish] to get the result.
  */
-gboolean
-valent_test_upload (ValentChannel  *channel,
-                    JsonNode       *packet,
-                    GFile          *file,
-                    GError        **error)
+void
+valent_test_upload (ValentChannel       *channel,
+                    JsonNode            *packet,
+                    GFile               *file,
+                    GCancellable        *cancellable,
+                    GAsyncReadyCallback  callback,
+                    gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
-  TransferOperation *op;
+  TransferOperation *operation;
 
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (G_IS_FILE (file));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  operation = g_new0 (TransferOperation, 1);
+  operation->packet = json_node_ref (packet);
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_test_upload);
+  g_task_set_task_data (task, operation, transfer_operation_free);
+  g_file_load_bytes_async (file,
+                           cancellable,
+                           (GAsyncReadyCallback)g_file_load_bytes_cb,
+                           g_object_ref (task));
+}
+
+/**
+ * valent_test_upload_finish:
+ * @channel: a `ValentChannel`
+ * @result: a `GAsyncResult`
+ * @error: (nullable): a `GError`
+ *
+ * Finish an operation started by [type@Valent.TestFixture.upload].
+ *
+ * Returns: %TRUE, or %FALSE with @error set
+ */
+gboolean
+valent_test_upload_finish (ValentChannel  *channel,
+                           GAsyncResult   *result,
+                           GError        **error)
+{
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (g_task_is_valid (result, channel));
   g_assert (error == NULL || *error == NULL);
 
-  op = g_new0 (TransferOperation, 1);
-  g_rec_mutex_init (&op->lock);
-  g_rec_mutex_lock (&op->lock);
-  op->packet = json_node_ref (packet);
-  op->file = g_object_ref (file);
-  g_rec_mutex_unlock (&op->lock);
-
-  task = g_task_new (channel, NULL, NULL, NULL);
-  g_task_set_source_tag (task, valent_test_upload);
-  g_task_set_task_data (task, op, transfer_op_free);
-  g_task_run_in_thread (task, upload_task);
-
-  while (!g_task_get_completed (task))
-    g_main_context_iteration (NULL, FALSE);
-
-  return g_task_propagate_boolean (task, error);
+  return g_task_propagate_boolean (G_TASK (result), error);
 }
 

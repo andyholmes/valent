@@ -9,25 +9,60 @@
 
 
 static void
+on_changed (GFileMonitor      *monitor,
+            GFile             *file,
+            GFile             *other_file,
+            GFileMonitorEvent  event_type,
+            gpointer           user_data)
+{
+  unsigned int *pending = (unsigned int *)user_data;
+
+  if (event_type == G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT)
+    {
+      g_autofree char *basename = NULL;
+
+      basename = g_file_get_basename (file);
+      if (g_str_equal (basename, "image.png"))
+        *pending -= 1;
+    }
+}
+
+static void
 test_device_transfer (ValentTestFixture *fixture,
                       gconstpointer      user_data)
 {
   g_autoptr (JsonNode) packet = NULL;
-  g_autoptr (GFile) file = NULL;
+  g_autoptr (GFileMonitor) monitor = NULL;
+  g_autoptr (GFile) source = NULL;
   g_autoptr (GFileInfo) src_info = NULL;
   g_autoptr (GFile) dest = NULL;
+  g_autoptr (GFile) dest_dir = NULL;
   g_autoptr (GFileInfo) dest_info = NULL;
-  const char *dest_dir = NULL;
+  const char *downloads_path = NULL;
   uint64_t src_btime_s, src_mtime_s, dest_mtime_s;
   uint32_t src_btime_us, src_mtime_us, dest_mtime_us;
   int64_t src_btime, src_mtime, dest_mtime;
   goffset src_size, dest_size;
+  unsigned int pending = 1;
   GError *error = NULL;
 
   valent_test_fixture_connect (fixture);
 
-  file = g_file_new_for_uri ("resource:///tests/image.png");
-  src_info = g_file_query_info (file,
+  /* Monitor the destination for new files
+   */
+  downloads_path = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
+  dest_dir = g_file_new_for_path (downloads_path);
+  monitor = g_file_monitor_directory (dest_dir,
+                                      G_FILE_MONITOR_WATCH_MOVES,
+                                      NULL,
+                                      NULL);
+  g_signal_connect (monitor,
+                    "changed",
+                    G_CALLBACK (on_changed),
+                    &pending);
+
+  source = g_file_new_for_uri ("resource:///tests/image.png");
+  src_info = g_file_query_info (source,
                                 G_FILE_ATTRIBUTE_TIME_CREATED","
                                 G_FILE_ATTRIBUTE_TIME_CREATED_USEC","
                                 G_FILE_ATTRIBUTE_TIME_MODIFIED","
@@ -57,14 +92,15 @@ test_device_transfer (ValentTestFixture *fixture,
                               "lastModified",
                               src_mtime);
 
-  valent_test_upload (fixture->endpoint, packet, file, &error);
+  valent_test_fixture_upload (fixture, packet, source, &error);
   g_assert_no_error (error);
 
-  /* Ensure the download task has time to set the file mtime */
-  valent_test_await_timeout (1);
+  /* Ensure the download task has an opportunity to finish completely
+   */
+  while (pending > 0)
+    g_main_context_iteration (NULL, FALSE);
 
-  dest_dir = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
-  dest = valent_get_user_file (dest_dir, "image.png", FALSE);
+  dest = valent_get_user_file (downloads_path, "image.png", FALSE);
   dest_info = g_file_query_info (dest,
                                  G_FILE_ATTRIBUTE_TIME_MODIFIED","
                                  G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC","
