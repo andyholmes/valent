@@ -79,6 +79,65 @@ valent_mock_channel_download (ValentChannel  *channel,
                        NULL);
 }
 
+static void
+valent_mock_channel_download_async (ValentChannel       *channel,
+                                    JsonNode            *packet,
+                                    GCancellable        *cancellable,
+                                    GAsyncReadyCallback  callback,
+                                    gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (GSocket) socket = NULL;
+  g_autoptr (GIOStream) ret = NULL;
+  JsonObject *info;
+  int fd = 0;
+  goffset size;
+  GError *error = NULL;
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (VALENT_IS_PACKET (packet));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  /* Get the fd from the payloadTransferInfo
+   */
+  info = valent_packet_get_payload_full (packet, &size, &error);
+  if (info == NULL)
+    {
+      g_task_report_error (channel, callback, user_data,
+                           valent_mock_channel_download_async,
+                           g_steal_pointer (&error));
+      return;
+    }
+
+  fd = json_object_get_int_member (info, "fd");
+  if (fd == -1)
+    {
+      g_task_report_new_error (channel, callback, user_data,
+                               valent_mock_channel_download_async,
+                               VALENT_PACKET_ERROR,
+                               VALENT_PACKET_ERROR_INVALID_FIELD,
+                               "expected \"fd\" field holding a file descriptor");
+      return;
+    }
+
+  socket = g_socket_new_from_fd (fd, &error);
+  if (socket == NULL)
+    {
+      g_task_report_error (channel, callback, user_data,
+                           valent_mock_channel_download_async,
+                           g_steal_pointer (&error));
+      return;
+    }
+
+  ret = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                      "socket", socket,
+                      NULL);
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_mock_channel_download_async);
+  g_task_return_pointer (task, g_object_ref (ret), g_object_unref);
+}
+
 static GIOStream *
 valent_mock_channel_upload (ValentChannel  *channel,
                             JsonNode       *packet,
@@ -126,6 +185,85 @@ valent_mock_channel_upload (ValentChannel  *channel,
   return g_object_new (G_TYPE_SOCKET_CONNECTION,
                        "socket", socket,
                        NULL);
+}
+
+static void
+valent_channel_write_packet_cb (ValentChannel *channel,
+                                GAsyncResult  *result,
+                                gpointer       user_data)
+{
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  GSocket *socket = g_task_get_task_data (task);
+  g_autoptr (GIOStream) ret = NULL;
+  GError *error = NULL;
+
+  if (!valent_channel_write_packet_finish (channel, result, &error))
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  ret = g_object_new (G_TYPE_SOCKET_CONNECTION,
+                      "socket", socket,
+                      NULL);
+
+  g_task_return_pointer (task, g_object_ref (ret), g_object_unref);
+}
+
+static void
+valent_mock_channel_upload_async (ValentChannel       *channel,
+                                  JsonNode            *packet,
+                                  GCancellable        *cancellable,
+                                  GAsyncReadyCallback  callback,
+                                  gpointer             user_data)
+{
+  static GRecMutex socketpair_lock;
+  g_autoptr (GTask) task = NULL;
+  g_autoptr (GSocket) socket = NULL;
+  JsonObject *info;
+  int sv[2] = { 0, };
+  GError *error = NULL;
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (VALENT_IS_PACKET (packet));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  g_rec_mutex_lock (&socketpair_lock);
+  if (socketpair (AF_UNIX, SOCK_STREAM, 0, sv) == -1)
+    {
+      g_task_report_new_error (channel, callback, user_data,
+                               valent_mock_channel_upload_async,
+                               G_IO_ERROR,
+                               G_IO_ERROR_FAILED,
+                               "%s", g_strerror (errno));
+      g_rec_mutex_unlock (&socketpair_lock);
+      return;
+    }
+  g_rec_mutex_unlock (&socketpair_lock);
+
+  socket = g_socket_new_from_fd (sv[0], &error);
+  if (socket == NULL)
+    {
+      g_task_report_error (channel, callback, user_data,
+                           valent_mock_channel_upload_async,
+                           g_steal_pointer (&error));
+      return;
+    }
+
+  /* Pass the fd as the payloadTransferInfo
+   */
+  info = json_object_new();
+  json_object_set_int_member (info, "fd", (int64_t)sv[1]);
+  valent_packet_set_payload_info (packet, info);
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_mock_channel_upload_async);
+  g_task_set_task_data (task, g_object_ref (socket), g_object_unref);
+  valent_channel_write_packet (channel,
+                               packet,
+                               cancellable,
+                               (GAsyncReadyCallback)valent_channel_write_packet_cb,
+                               g_object_ref (task));
 }
 
 /*
@@ -208,7 +346,9 @@ valent_mock_channel_class_init (ValentMockChannelClass *klass)
   object_class->set_property = valent_mock_channel_set_property;
 
   channel_class->download = valent_mock_channel_download;
+  channel_class->download_async = valent_mock_channel_download_async;
   channel_class->upload = valent_mock_channel_upload;
+  channel_class->upload_async = valent_mock_channel_upload_async;
 
   /**
    * ValentMockChannel:host:
