@@ -39,7 +39,8 @@ tests_env = [
                'ignore_noninstrumented_modules=1,' +
                'suppressions=@0@'.format(
     join_paths(meson.current_source_dir(), 'extra', 'tsan.supp')),
-  'UBSAN_OPTIONS=print_stacktrace=1:print_summary=1:halt_on_error=1',
+  'UBSAN_OPTIONS=halt_on_error=1,' +
+                'print_stacktrace=1',
   'PYTHONDONTWRITEBYTECODE=yes',
 ]
 
