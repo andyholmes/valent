@@ -30,77 +30,140 @@ static GParamSpec *properties[PROP_MUXER + 1] = { NULL, };
 /*
  * ValentChannel
  */
-static GIOStream *
-valent_bluez_channel_download (ValentChannel  *channel,
-                               JsonNode       *packet,
-                               GCancellable   *cancellable,
-                               GError        **error)
+static void
+valent_bluez_channel_download_task (GTask        *task,
+                                    gpointer      source_object,
+                                    gpointer      task_data,
+                                    GCancellable *cancellable)
 {
-  ValentBluezChannel *self = VALENT_BLUEZ_CHANNEL (channel);
+  ValentBluezChannel *self = VALENT_BLUEZ_CHANNEL (source_object);
+  JsonNode *packet = (JsonNode *)task_data;
   JsonObject *info;
   const char *uuid;
+  g_autoptr (GIOStream) stream = NULL;
   goffset size;
+  GError *error = NULL;
 
-  g_assert (VALENT_IS_BLUEZ_CHANNEL (channel));
-  g_assert (VALENT_IS_PACKET (packet));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  /* Payload Info */
-  if ((info = valent_packet_get_payload_full (packet, &size, error)) == NULL)
-    return NULL;
+  /* Payload Info
+   */
+  info = valent_packet_get_payload_full (packet, &size, &error);
+  if (info == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
   if ((uuid = json_object_get_string_member (info, "uuid")) == NULL ||
       *uuid == '\0')
     {
-      g_set_error_literal (error,
-                           VALENT_PACKET_ERROR,
-                           VALENT_PACKET_ERROR_INVALID_FIELD,
-                           "Invalid \"uuid\" field");
-      return NULL;
+      g_task_return_new_error_literal (task,
+                                       VALENT_PACKET_ERROR,
+                                       VALENT_PACKET_ERROR_INVALID_FIELD,
+                                       "Invalid \"uuid\" field");
+      return;
     }
 
-  /* Accept the new channel */
-  return valent_mux_connection_accept_channel (self->muxer,
-                                               uuid,
-                                               cancellable,
-                                               error);
+  /* Open a new channel
+   */
+  valent_object_lock (VALENT_OBJECT (self));
+  stream = valent_mux_connection_accept_channel (self->muxer,
+                                                 uuid,
+                                                 cancellable,
+                                                 &error);
+  valent_object_unlock (VALENT_OBJECT (self));
+  if (stream == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_task_return_pointer (task, g_object_ref (stream), g_object_unref);
 }
 
-static GIOStream *
-valent_bluez_channel_upload (ValentChannel  *channel,
-                             JsonNode       *packet,
-                             GCancellable   *cancellable,
-                             GError        **error)
+static void
+valent_bluez_channel_download (ValentChannel       *channel,
+                               JsonNode            *packet,
+                               GCancellable        *cancellable,
+                               GAsyncReadyCallback  callback,
+                               gpointer             user_data)
 {
-  ValentBluezChannel *self = VALENT_BLUEZ_CHANNEL (channel);
+  g_autoptr (GTask) task = NULL;
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (VALENT_IS_PACKET (packet));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_bluez_channel_download);
+  g_task_set_task_data (task,
+                        json_node_ref (packet),
+                        (GDestroyNotify)json_node_unref);
+  g_task_run_in_thread (task, valent_bluez_channel_download_task);
+}
+
+static void
+valent_bluez_channel_upload_task (GTask        *task,
+                                  gpointer      source_object,
+                                  gpointer      task_data,
+                                  GCancellable *cancellable)
+{
+  ValentBluezChannel *self = VALENT_BLUEZ_CHANNEL (source_object);
+  JsonNode *packet = (JsonNode *)task_data;
   JsonObject *info;
   g_autoptr (GIOStream) stream = NULL;
   g_autofree char *uuid = NULL;
+  GError *error = NULL;
 
-  g_assert (VALENT_IS_BLUEZ_CHANNEL (channel));
-  g_assert (VALENT_IS_PACKET (packet));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  /* Choose a unique UUID? */
+  /* Payload Info
+   */
   uuid = g_uuid_string_random ();
-
-  /* Payload Info */
   info = json_object_new();
   json_object_set_string_member (info, "uuid", uuid);
   valent_packet_set_payload_info (packet, info);
 
-  /* Open a new channel */
+  /* Open a new channel
+   */
+  valent_object_lock (VALENT_OBJECT (self));
   stream = valent_mux_connection_open_channel (self->muxer,
                                                uuid,
                                                cancellable,
-                                               error);
+                                               &error);
+  valent_object_unlock (VALENT_OBJECT (self));
+  if (stream == NULL)
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
 
-  /* Notify the device we're ready */
-  valent_channel_write_packet (channel, packet, cancellable, NULL, NULL);
+  /* Notify the device we're ready
+   */
+  valent_channel_write_packet (VALENT_CHANNEL (self),
+                               packet,
+                               cancellable,
+                               NULL,
+                               NULL);
+  g_task_return_pointer (task, g_object_ref (stream), g_object_unref);
+}
 
-  return g_steal_pointer (&stream);
+static void
+valent_bluez_channel_upload (ValentChannel       *channel,
+                             JsonNode            *packet,
+                             GCancellable        *cancellable,
+                             GAsyncReadyCallback  callback,
+                             gpointer             user_data)
+{
+  g_autoptr (GTask) task = NULL;
+
+  g_assert (VALENT_IS_CHANNEL (channel));
+  g_assert (VALENT_IS_PACKET (packet));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  task = g_task_new (channel, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_bluez_channel_upload);
+  g_task_set_task_data (task,
+                        json_node_ref (packet),
+                        (GDestroyNotify)json_node_unref);
+  g_task_run_in_thread (task, valent_bluez_channel_upload_task);
 }
 
 /*

@@ -343,11 +343,11 @@ valent_channel_upload_cb (ValentChannel *channel,
           next = _valent_device_next_channel (self->device, channel);
           if (next != NULL)
             {
-              valent_channel_upload_async (next,
-                                           self->packet,
-                                           g_task_get_cancellable (task),
-                                           (GAsyncReadyCallback)valent_channel_upload_cb,
-                                           g_object_ref (task));
+              valent_channel_upload (next,
+                                     self->packet,
+                                     g_task_get_cancellable (task),
+                                     (GAsyncReadyCallback)valent_channel_upload_cb,
+                                     g_object_ref (task));
               return;
             }
         }
@@ -401,11 +401,11 @@ valent_notification_upload_transfer_bytes (GTask  *task,
     }
 
   g_task_set_task_data (task, g_bytes_ref (bytes), (GDestroyNotify)g_bytes_unref);
-  valent_channel_upload_async (channel,
-                               self->packet,
-                               cancellable,
-                               (GAsyncReadyCallback)valent_channel_upload_cb,
-                               g_object_ref (task));
+  valent_channel_upload (channel,
+                         self->packet,
+                         cancellable,
+                         (GAsyncReadyCallback)valent_channel_upload_cb,
+                         g_object_ref (task));
 }
 
 static void

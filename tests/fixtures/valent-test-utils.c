@@ -608,11 +608,11 @@ valent_test_download (ValentChannel       *channel,
   task = g_task_new (channel, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_test_download);
   g_task_set_task_data (task, operation, transfer_operation_free);
-  valent_channel_download_async (channel,
-                                 packet,
-                                 cancellable,
-                                 (GAsyncReadyCallback)valent_channel_download_cb,
-                                 g_object_ref (task));
+  valent_channel_download (channel,
+                           packet,
+                           cancellable,
+                           (GAsyncReadyCallback)valent_channel_download_cb,
+                           g_object_ref (task));
 }
 
 /**
@@ -685,11 +685,11 @@ g_file_load_bytes_cb (GFile        *file,
 
   operation->source = g_memory_input_stream_new_from_bytes (bytes);
   valent_packet_set_payload_size (operation->packet, g_bytes_get_size (bytes));
-  valent_channel_upload_async (channel,
-                               operation->packet,
-                               cancellable,
-                               (GAsyncReadyCallback)valent_channel_upload_cb,
-                               g_object_ref (task));
+  valent_channel_upload (channel,
+                         operation->packet,
+                         cancellable,
+                         (GAsyncReadyCallback)valent_channel_upload_cb,
+                         g_object_ref (task));
 }
 
 /**
