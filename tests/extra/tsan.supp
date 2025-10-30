@@ -11,6 +11,14 @@
 race:valent_object_finalizer_source_check
 race:valent_object_finalizer_source_dispatch
 
+# GLib
+race:g_markup_error_quark
+race:g_resources_lookup_data
+race:g_test_print_handler_full
+
+# Glycin
+race:glycin::gobject::loader::GlyLoader::load
+
 #
 # Partially Instrumented
 #
@@ -18,11 +26,4 @@ race:valent_object_finalizer_source_dispatch
 #
 race:*_get_type_once
 race:*_class_init
-
-#
-# Uninstrumented libraries
-#
-
-mutex:tracker_triples_cursor_reset
-race:tracker_data_load_from_deserializer
 
