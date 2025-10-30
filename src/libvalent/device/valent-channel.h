@@ -23,11 +23,7 @@ struct _ValentChannelClass
   ValentObjectClass   parent_class;
 
   /* virtual functions */
-  GIOStream         * (*download)             (ValentChannel        *channel,
-                                               JsonNode             *packet,
-                                               GCancellable         *cancellable,
-                                               GError              **error);
-  void                (*download_async)       (ValentChannel        *channel,
+  void                (*download)             (ValentChannel        *channel,
                                                JsonNode             *packet,
                                                GCancellable         *cancellable,
                                                GAsyncReadyCallback   callback,
@@ -35,11 +31,7 @@ struct _ValentChannelClass
   GIOStream         * (*download_finish)      (ValentChannel        *channel,
                                                GAsyncResult         *result,
                                                GError              **error);
-  GIOStream         * (*upload)               (ValentChannel        *channel,
-                                               JsonNode             *packet,
-                                               GCancellable         *cancellable,
-                                               GError              **error);
-  void                (*upload_async)         (ValentChannel        *channel,
+  void                (*upload)               (ValentChannel        *channel,
                                                JsonNode             *packet,
                                                GCancellable         *cancellable,
                                                GAsyncReadyCallback   callback,
@@ -64,12 +56,7 @@ GTlsCertificate * valent_channel_ref_peer_certificate (ValentChannel        *cha
 VALENT_AVAILABLE_IN_1_0
 JsonNode        * valent_channel_get_peer_identity    (ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0
-GIOStream       * valent_channel_download             (ValentChannel        *channel,
-                                                       JsonNode             *packet,
-                                                       GCancellable         *cancellable,
-                                                       GError              **error);
-VALENT_AVAILABLE_IN_1_0
-void              valent_channel_download_async       (ValentChannel        *channel,
+void              valent_channel_download             (ValentChannel        *channel,
                                                        JsonNode             *packet,
                                                        GCancellable         *cancellable,
                                                        GAsyncReadyCallback   callback,
@@ -79,12 +66,7 @@ GIOStream       * valent_channel_download_finish      (ValentChannel        *cha
                                                        GAsyncResult         *result,
                                                        GError              **error);
 VALENT_AVAILABLE_IN_1_0
-GIOStream       * valent_channel_upload               (ValentChannel        *channel,
-                                                       JsonNode             *packet,
-                                                       GCancellable         *cancellable,
-                                                       GError              **error);
-VALENT_AVAILABLE_IN_1_0
-void              valent_channel_upload_async         (ValentChannel        *channel,
+void              valent_channel_upload               (ValentChannel        *channel,
                                                        JsonNode             *packet,
                                                        GCancellable         *cancellable,
                                                        GAsyncReadyCallback   callback,

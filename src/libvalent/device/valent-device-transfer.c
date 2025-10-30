@@ -259,11 +259,11 @@ valent_channel_download_cb (ValentChannel *channel,
           next = _valent_device_next_channel (self->device, channel);
           if (next != NULL)
             {
-              valent_channel_download_async (next,
-                                             self->packet,
-                                             g_task_get_cancellable (task),
-                                             (GAsyncReadyCallback)valent_channel_download_cb,
-                                             g_object_ref (task));
+              valent_channel_download (next,
+                                       self->packet,
+                                       g_task_get_cancellable (task),
+                                       (GAsyncReadyCallback)valent_channel_download_cb,
+                                       g_object_ref (task));
               return;
             }
         }
@@ -317,11 +317,11 @@ valent_channel_upload_cb (ValentChannel *channel,
           next = _valent_device_next_channel (self->device, channel);
           if (next != NULL)
             {
-              valent_channel_upload_async (next,
-                                           self->packet,
-                                           g_task_get_cancellable (task),
-                                           (GAsyncReadyCallback)valent_channel_upload_cb,
-                                           g_object_ref (task));
+              valent_channel_upload (next,
+                                     self->packet,
+                                     g_task_get_cancellable (task),
+                                     (GAsyncReadyCallback)valent_channel_upload_cb,
+                                     g_object_ref (task));
               return;
             }
         }
@@ -384,11 +384,11 @@ g_file_query_info_cb (GFile        *file,
     }
 
   valent_device_transfer_update_packet (self->packet, info);
-  valent_channel_upload_async (channel,
-                               self->packet,
-                               g_task_get_cancellable (task),
-                               (GAsyncReadyCallback)valent_channel_upload_cb,
-                               g_object_ref (task));
+  valent_channel_upload (channel,
+                         self->packet,
+                         g_task_get_cancellable (task),
+                         (GAsyncReadyCallback)valent_channel_upload_cb,
+                         g_object_ref (task));
   g_file_read_async (file,
                      G_PRIORITY_DEFAULT,
                      g_task_get_cancellable (task),
@@ -447,11 +447,11 @@ valent_device_transfer_execute (ValentTransfer      *transfer,
                             g_task_get_cancellable (task),
                             (GAsyncReadyCallback)g_file_replace_cb,
                             g_object_ref (task));
-      valent_channel_download_async (channel,
-                                     self->packet,
-                                     g_task_get_cancellable (task),
-                                     (GAsyncReadyCallback)valent_channel_download_cb,
-                                     g_object_ref (task));
+      valent_channel_download (channel,
+                               self->packet,
+                               g_task_get_cancellable (task),
+                               (GAsyncReadyCallback)valent_channel_download_cb,
+                               g_object_ref (task));
     }
   else
     {

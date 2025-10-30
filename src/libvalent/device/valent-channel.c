@@ -73,60 +73,23 @@ static GParamSpec *properties[PROP_PEER_IDENTITY + 1] = { NULL, };
 
 
 /* LCOV_EXCL_START */
-static GIOStream *
-valent_channel_real_download (ValentChannel  *channel,
-                              JsonNode       *packet,
-                              GCancellable   *cancellable,
-                              GError        **error)
-{
-  g_set_error (error,
-               G_IO_ERROR,
-               G_IO_ERROR_NOT_SUPPORTED,
-               "%s does not implement download()",
-               G_OBJECT_TYPE_NAME (channel));
-  return NULL;
-}
-
 static void
-valent_channel_real_download_task (GTask        *task,
-                                   gpointer      source_object,
-                                   gpointer      task_data,
-                                   GCancellable *cancellable)
+valent_channel_real_download (ValentChannel       *channel,
+                              JsonNode            *packet,
+                              GCancellable        *cancellable,
+                              GAsyncReadyCallback  callback,
+                              gpointer             user_data)
 {
-  ValentChannel *self = source_object;
-  JsonNode *packet = task_data;
-  g_autoptr (GIOStream) stream = NULL;
-  GError *error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  stream = valent_channel_download (self, packet, cancellable, &error);
-  if (stream != NULL)
-    g_task_return_pointer (task, g_steal_pointer (&stream), g_object_unref);
-  else
-    g_task_return_error (task, error);
-}
-
-static void
-valent_channel_real_download_async (ValentChannel       *channel,
-                                    JsonNode            *packet,
-                                    GCancellable        *cancellable,
-                                    GAsyncReadyCallback  callback,
-                                    gpointer             user_data)
-{
-  g_autoptr (GTask) task = NULL;
-
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (channel, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_channel_real_download_async);
-  g_task_set_task_data (task,
-                        json_node_ref (packet),
-                        (GDestroyNotify)json_node_unref);
-  g_task_run_in_thread (task, valent_channel_real_download_task);
+  g_task_report_new_error (channel, callback, user_data,
+                           valent_channel_download,
+                           G_IO_ERROR,
+                           G_IO_ERROR_NOT_SUPPORTED,
+                           "%s does not implement download()",
+                           G_OBJECT_TYPE_NAME (channel));
 }
 
 static GIOStream *
@@ -141,60 +104,23 @@ valent_channel_real_download_finish (ValentChannel  *channel,
   return g_task_propagate_pointer (G_TASK (result), error);
 }
 
-static GIOStream *
-valent_channel_real_upload (ValentChannel  *channel,
-                            JsonNode       *packet,
-                            GCancellable   *cancellable,
-                            GError        **error)
-{
-  g_set_error (error,
-               G_IO_ERROR,
-               G_IO_ERROR_NOT_SUPPORTED,
-               "%s does not implement upload()",
-               G_OBJECT_TYPE_NAME (channel));
-  return NULL;
-}
-
 static void
-valent_channel_upload_task (GTask        *task,
-                            gpointer      source_object,
-                            gpointer      task_data,
-                            GCancellable *cancellable)
+valent_channel_real_upload (ValentChannel       *channel,
+                            JsonNode            *packet,
+                            GCancellable        *cancellable,
+                            GAsyncReadyCallback  callback,
+                            gpointer             user_data)
 {
-  ValentChannel *self = source_object;
-  JsonNode *packet = task_data;
-  g_autoptr (GIOStream) stream = NULL;
-  GError *error = NULL;
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  stream = valent_channel_upload (self, packet, cancellable, &error);
-  if (stream != NULL)
-    g_task_return_pointer (task, g_steal_pointer (&stream), g_object_unref);
-  else
-    g_task_return_error (task, error);
-}
-
-static void
-valent_channel_real_upload_async (ValentChannel       *channel,
-                                  JsonNode            *packet,
-                                  GCancellable        *cancellable,
-                                  GAsyncReadyCallback  callback,
-                                  gpointer             user_data)
-{
-  g_autoptr (GTask) task = NULL;
-
   g_assert (VALENT_IS_CHANNEL (channel));
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  task = g_task_new (channel, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_channel_real_upload_async);
-  g_task_set_task_data (task,
-                        json_node_ref (packet),
-                        (GDestroyNotify)json_node_unref);
-  g_task_run_in_thread (task, valent_channel_upload_task);
+  g_task_report_new_error (channel, callback, user_data,
+                           valent_channel_upload,
+                           G_IO_ERROR,
+                           G_IO_ERROR_NOT_SUPPORTED,
+                           "%s does not implement upload()",
+                           G_OBJECT_TYPE_NAME (channel));
 }
 
 static GIOStream *
@@ -408,10 +334,8 @@ valent_channel_class_init (ValentChannelClass *klass)
   object_class->set_property = valent_channel_set_property;
 
   klass->download = valent_channel_real_download;
-  klass->download_async = valent_channel_real_download_async;
   klass->download_finish = valent_channel_real_download_finish;
   klass->upload = valent_channel_real_upload;
-  klass->upload_async = valent_channel_real_upload_async;
   klass->upload_finish = valent_channel_real_upload_finish;
 
   /**
@@ -1009,7 +933,8 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
  * @channel: a `ValentChannel`
  * @packet: a KDE Connect packet
  * @cancellable: (nullable): a `GCancellable`
- * @error: (nullable): a `GError`
+ * @callback: (scope async): a `GAsyncReadyCallback`
+ * @user_data: user supplied data
  *
  * Open an auxiliary connection, usually to download data.
  *
@@ -1021,57 +946,16 @@ valent_channel_write_packet_finish (ValentChannel  *channel,
  * `payloadTransferInfo` dictionary on the same host as the channel. When the
  * connection is accepted the caller can perform operations on it as required.
  *
- * Returns: (transfer full) (nullable): a `GIOStream`
- *
- * Since: 1.0
- */
-GIOStream *
-valent_channel_download (ValentChannel  *channel,
-                         JsonNode       *packet,
-                         GCancellable   *cancellable,
-                         GError        **error)
-{
-  GIOStream *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
-  g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  ret = VALENT_CHANNEL_GET_CLASS (channel)->download (channel,
-                                                      packet,
-                                                      cancellable,
-                                                      error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_channel_download_async: (virtual download_async)
- * @channel: a `ValentChannel`
- * @packet: a KDE Connect packet
- * @cancellable: (nullable): a `GCancellable`
- * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: user supplied data
- *
- * Open an auxiliary connection, usually to download data.
- *
- * This is a non-blocking variant of [method@Valent.Channel.download]. Call
- * [method@Valent.Channel.download_finish] to get the result.
- *
- * The default implementation of this method invokes
- * [vfunc@Valent.Channel.download] in a thread.
+ * Call [method@Valent.Channel.download_finish] to get the result.
  *
  * Since: 1.0
  */
 void
-valent_channel_download_async (ValentChannel       *channel,
-                               JsonNode            *packet,
-                               GCancellable        *cancellable,
-                               GAsyncReadyCallback  callback,
-                               gpointer             user_data)
+valent_channel_download (ValentChannel       *channel,
+                         JsonNode            *packet,
+                         GCancellable        *cancellable,
+                         GAsyncReadyCallback  callback,
+                         gpointer             user_data)
 {
   VALENT_ENTRY;
 
@@ -1079,7 +963,7 @@ valent_channel_download_async (ValentChannel       *channel,
   g_return_if_fail (VALENT_IS_PACKET (packet));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  VALENT_CHANNEL_GET_CLASS (channel)->download_async (channel,
+  VALENT_CHANNEL_GET_CLASS (channel)->download (channel,
                                                       packet,
                                                       cancellable,
                                                       callback,
@@ -1094,7 +978,7 @@ valent_channel_download_async (ValentChannel       *channel,
  * @result: a `GAsyncResult`
  * @error: (nullable): a `GError`
  *
- * Finish an operation started with [method@Valent.Channel.download_async].
+ * Finish an operation started with [method@Valent.Channel.download].
  *
  * Returns: (transfer full) (nullable): a `GIOStream`
  *
@@ -1125,7 +1009,8 @@ valent_channel_download_finish (ValentChannel  *channel,
  * @channel: a `ValentChannel`
  * @packet: a KDE Connect packet
  * @cancellable: (nullable): a `GCancellable`
- * @error: (nullable): a `GError`
+ * @callback: (scope async): a `GAsyncReadyCallback`
+ * @user_data: user supplied data
  *
  * Accept an auxiliary connection, usually to upload data.
  *
@@ -1138,57 +1023,16 @@ valent_channel_download_finish (ValentChannel  *channel,
  * send the packet with that port in the `payloadTransferInfo` dictionary. When
  * a connection is accepted the caller can perform operations on it as required.
  *
- * Returns: (transfer full) (nullable): a `GIOStream`
- *
- * Since: 1.0
- */
-GIOStream *
-valent_channel_upload (ValentChannel  *channel,
-                       JsonNode       *packet,
-                       GCancellable   *cancellable,
-                       GError        **error)
-{
-  GIOStream *ret;
-
-  VALENT_ENTRY;
-
-  g_return_val_if_fail (VALENT_IS_CHANNEL (channel), NULL);
-  g_return_val_if_fail (VALENT_IS_PACKET (packet), NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  ret = VALENT_CHANNEL_GET_CLASS (channel)->upload (channel,
-                                                    packet,
-                                                    cancellable,
-                                                    error);
-
-  VALENT_RETURN (ret);
-}
-
-/**
- * valent_channel_upload_async: (virtual upload_async)
- * @channel: a `ValentChannel`
- * @packet: a KDE Connect packet
- * @cancellable: (nullable): a `GCancellable`
- * @callback: (scope async): a `GAsyncReadyCallback`
- * @user_data: user supplied data
- *
- * Accept an auxiliary connection, usually to upload data.
- *
- * This is a non-blocking variant of [method@Valent.Channel.upload]. Call
- * [method@Valent.Channel.upload_finish] to get the result.
- *
- * The default implementation of this method invokes
- * [vfunc@Valent.Channel.upload] in a thread.
+ * Call [method@Valent.Channel.upload_finish] to get the result.
  *
  * Since: 1.0
  */
 void
-valent_channel_upload_async (ValentChannel       *channel,
-                             JsonNode            *packet,
-                             GCancellable        *cancellable,
-                             GAsyncReadyCallback  callback,
-                             gpointer             user_data)
+valent_channel_upload (ValentChannel       *channel,
+                       JsonNode            *packet,
+                       GCancellable        *cancellable,
+                       GAsyncReadyCallback  callback,
+                       gpointer             user_data)
 {
   VALENT_ENTRY;
 
@@ -1196,7 +1040,7 @@ valent_channel_upload_async (ValentChannel       *channel,
   g_return_if_fail (VALENT_IS_PACKET (packet));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  VALENT_CHANNEL_GET_CLASS (channel)->upload_async (channel,
+  VALENT_CHANNEL_GET_CLASS (channel)->upload (channel,
                                                     packet,
                                                     cancellable,
                                                     callback,
@@ -1211,7 +1055,7 @@ valent_channel_upload_async (ValentChannel       *channel,
  * @result: a `GAsyncResult`
  * @error: (nullable): a `GError`
  *
- * Finish an operation started with [method@Valent.Channel.upload_async].
+ * Finish an operation started with [method@Valent.Channel.upload].
  *
  * Returns: (transfer full) (nullable): a `GIOStream`
  *

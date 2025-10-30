@@ -36,82 +36,6 @@ static GParamSpec *properties[PROP_PORT + 1] = { NULL, };
 /*
  * ValentChannel
  */
-static GIOStream *
-valent_lan_channel_download (ValentChannel  *channel,
-                             JsonNode       *packet,
-                             GCancellable   *cancellable,
-                             GError        **error)
-{
-  ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
-  JsonObject *info;
-  int64_t port;
-  goffset size;
-  g_autoptr (GSocketClient) client = NULL;
-  g_autoptr (GSocketConnection) connection = NULL;
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  g_autoptr (GTlsCertificate) peer_certificate = NULL;
-  g_autofree char *host = NULL;
-  g_autoptr (GIOStream) tls_stream = NULL;
-
-  g_assert (VALENT_IS_CHANNEL (channel));
-  g_assert (VALENT_IS_PACKET (packet));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  /* Get the connection information
-   */
-  if ((info = valent_packet_get_payload_full (packet, &size, error)) == NULL)
-    return NULL;
-
-  if ((port = json_object_get_int_member (info, "port")) == 0 ||
-      (port < VALENT_LAN_TRANSFER_PORT_MIN || port > VALENT_LAN_TRANSFER_PORT_MAX))
-    {
-      g_set_error (error,
-                   VALENT_PACKET_ERROR,
-                   VALENT_PACKET_ERROR_INVALID_FIELD,
-                   "expected \"port\" field holding a uint16 between %u-%u",
-                   VALENT_LAN_TRANSFER_PORT_MIN,
-                   VALENT_LAN_TRANSFER_PORT_MAX);
-      return NULL;
-    }
-
-  valent_object_lock (VALENT_OBJECT (self));
-  host = g_strdup (self->host);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  /* Open a connection to the host at the expected port
-   */
-  client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                         "enable-proxy", FALSE,
-                         NULL);
-  connection = g_socket_client_connect_to_host (client,
-                                                host,
-                                                (uint16_t)port,
-                                                cancellable,
-                                                error);
-  if (connection == NULL)
-    return NULL;
-
-  /* NOTE: When negotiating an auxiliary connection, a KDE Connect device
-   *       acts as the TLS client when opening TCP connections.
-   */
-  certificate = valent_channel_ref_certificate (channel);
-  peer_certificate = valent_channel_ref_peer_certificate (channel);
-  tls_stream = valent_lan_connection_handshake (connection,
-                                                certificate,
-                                                peer_certificate,
-                                                TRUE, /* is_client */
-                                                cancellable,
-                                                error);
-  if (tls_stream == NULL)
-    {
-      g_io_stream_close (G_IO_STREAM (connection), NULL, NULL);
-      return NULL;
-    }
-
-  return g_steal_pointer (&tls_stream);
-}
-
 static void
 valent_lan_connection_handshake_cb (GSocketConnection *connection,
                                     GAsyncResult      *result,
@@ -166,11 +90,11 @@ g_socket_client_connect_to_host_cb (GSocketClient *client,
 }
 
 static void
-valent_lan_channel_download_async (ValentChannel       *channel,
-                                   JsonNode            *packet,
-                                   GCancellable        *cancellable,
-                                   GAsyncReadyCallback  callback,
-                                   gpointer             user_data)
+valent_lan_channel_download (ValentChannel       *channel,
+                             JsonNode            *packet,
+                             GCancellable        *cancellable,
+                             GAsyncReadyCallback  callback,
+                             gpointer             user_data)
 {
   ValentLanChannel *self = VALENT_LAN_CHANNEL (channel);
   g_autoptr (GTask) task = NULL;
@@ -186,10 +110,7 @@ valent_lan_channel_download_async (ValentChannel       *channel,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (channel, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_lan_channel_download_async);
-  g_task_set_task_data (task,
-                        json_node_ref (packet),
-                        (GDestroyNotify)json_node_unref);
+  g_task_set_source_tag (task, valent_lan_channel_download);
 
   /* Get the connection information
    */
@@ -229,69 +150,6 @@ valent_lan_channel_download_async (ValentChannel       *channel,
                                          g_object_ref (task));
 }
 
-static GIOStream *
-valent_lan_channel_upload (ValentChannel  *channel,
-                           JsonNode       *packet,
-                           GCancellable   *cancellable,
-                           GError        **error)
-{
-  JsonObject *info;
-  g_autoptr (GSocketListener) listener = NULL;
-  g_autoptr (GSocketConnection) connection = NULL;
-  uint16_t port = VALENT_LAN_TRANSFER_PORT_MIN;
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  g_autoptr (GTlsCertificate) peer_certificate = NULL;
-  g_autoptr (GIOStream) tls_stream = NULL;
-
-  g_assert (VALENT_IS_CHANNEL (channel));
-  g_assert (VALENT_IS_PACKET (packet));
-  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_assert (error == NULL || *error == NULL);
-
-  /* Find an open port and prepare the payload information
-   */
-  listener = g_socket_listener_new ();
-  while (!g_socket_listener_add_inet_port (listener, port, NULL, error))
-    {
-      if (port >= VALENT_LAN_TRANSFER_PORT_MAX)
-        return NULL;
-
-      port++;
-      g_clear_error (error);
-    }
-
-  info = json_object_new();
-  json_object_set_int_member (info, "port", (int64_t)port);
-  valent_packet_set_payload_info (packet, info);
-
-  /* Queue the packet and wait for the incoming connection
-   */
-  valent_channel_write_packet (channel, packet, cancellable, NULL, NULL);
-  connection = g_socket_listener_accept (listener, NULL, cancellable, error);
-  g_socket_listener_close (listener);
-  if (connection == NULL)
-    return NULL;
-
-  /* NOTE: When negotiating an auxiliary connection, a KDE Connect device
-   *       acts as the TLS server when accepting TCP connections.
-   */
-  certificate = valent_channel_ref_certificate (channel);
-  peer_certificate = valent_channel_ref_peer_certificate (channel);
-  tls_stream = valent_lan_connection_handshake (connection,
-                                                certificate,
-                                                peer_certificate,
-                                                FALSE, /* is_client */
-                                                cancellable,
-                                                error);
-  if (tls_stream == NULL)
-    {
-      g_io_stream_close (G_IO_STREAM (connection), NULL, NULL);
-      return NULL;
-    }
-
-  return g_steal_pointer (&tls_stream);
-}
-
 static void
 g_socket_listener_accept_cb (GSocketListener *listener,
                              GAsyncResult    *result,
@@ -328,11 +186,11 @@ g_socket_listener_accept_cb (GSocketListener *listener,
 }
 
 static void
-valent_lan_channel_upload_async (ValentChannel       *channel,
-                                 JsonNode            *packet,
-                                 GCancellable        *cancellable,
-                                 GAsyncReadyCallback  callback,
-                                 gpointer             user_data)
+valent_lan_channel_upload (ValentChannel       *channel,
+                           JsonNode            *packet,
+                           GCancellable        *cancellable,
+                           GAsyncReadyCallback  callback,
+                           gpointer             user_data)
 {
   g_autoptr (GTask) task = NULL;
   g_autoptr (GSocketListener) listener = NULL;
@@ -345,10 +203,7 @@ valent_lan_channel_upload_async (ValentChannel       *channel,
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   task = g_task_new (channel, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_lan_channel_upload_async);
-  g_task_set_task_data (task,
-                        json_node_ref (packet),
-                        (GDestroyNotify)json_node_unref);
+  g_task_set_source_tag (task, valent_lan_channel_upload);
 
   /* Find an open port and prepare the payload information
    */
@@ -458,9 +313,7 @@ valent_lan_channel_class_init (ValentLanChannelClass *klass)
   object_class->set_property = valent_lan_channel_set_property;
 
   channel_class->download = valent_lan_channel_download;
-  channel_class->download_async = valent_lan_channel_download_async;
   channel_class->upload = valent_lan_channel_upload;
-  channel_class->upload_async = valent_lan_channel_upload_async;
 
   /**
    * ValentLanChannel:host:
