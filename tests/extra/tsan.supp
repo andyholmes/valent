@@ -6,7 +6,6 @@
 #
 # The errors below are either known bugs being tracked or undiagnosed.
 #
-race:valent_channel_close
 
 # src/libvalent/core/valent-object.c
 race:valent_object_finalizer_source_check
