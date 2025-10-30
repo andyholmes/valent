@@ -208,7 +208,11 @@ contact_list_create (gpointer item,
 {
   EContact *contact = E_CONTACT (item);
   GtkWidget *row;
+#if EDS_CHECK_VERSION (3, 59, 0)
+  g_autoptr (GList) attrs = NULL;
+#else
   g_autolist (EVCardAttribute) attrs = NULL;
+#endif
   g_autofree char *number = NULL;
   unsigned int n_attrs;
 
@@ -282,7 +286,11 @@ on_contact_row_collapsed (AdwDialog *dialog,
 static void
 on_contact_selected (ValentContactPage *self)
 {
+#if EDS_CHECK_VERSION (3, 59, 0)
+  g_autoptr (GList) attrs = NULL;
+#else
   g_autolist (EVCardAttribute) attrs = NULL;
+#endif
   GtkListBoxRow *row;
   EContact *contact;
 
