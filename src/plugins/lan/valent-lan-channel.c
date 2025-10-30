@@ -102,7 +102,6 @@ valent_lan_channel_download (ValentChannel       *channel,
   int64_t port;
   goffset size;
   g_autoptr (GSocketClient) client = NULL;
-  g_autofree char *host = NULL;
   GError *error = NULL;
 
   g_assert (VALENT_IS_CHANNEL (channel));
@@ -133,17 +132,13 @@ valent_lan_channel_download (ValentChannel       *channel,
       return;
     }
 
-  valent_object_lock (VALENT_OBJECT (self));
-  host = g_strdup (self->host);
-  valent_object_unlock (VALENT_OBJECT (self));
-
   /* Open a connection to the host at the expected port
    */
   client = g_object_new (G_TYPE_SOCKET_CLIENT,
                          "enable-proxy", FALSE,
                          NULL);
   g_socket_client_connect_to_host_async (client,
-                                         host,
+                                         self->host,
                                          (uint16_t)port,
                                          cancellable,
                                          (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
@@ -241,9 +236,7 @@ valent_lan_channel_finalize (GObject *object)
 {
   ValentLanChannel *self = VALENT_LAN_CHANNEL (object);
 
-  valent_object_lock (VALENT_OBJECT (self));
   g_clear_pointer (&self->host, g_free);
-  valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_lan_channel_parent_class)->finalize (object);
 }
@@ -259,15 +252,11 @@ valent_lan_channel_get_property (GObject    *object,
   switch ((ValentLanChannelProperty)prop_id)
     {
     case PROP_HOST:
-      valent_object_lock (VALENT_OBJECT (self));
       g_value_set_string (value, self->host);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_PORT:
-      valent_object_lock (VALENT_OBJECT (self));
       g_value_set_uint (value, self->port);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -286,15 +275,11 @@ valent_lan_channel_set_property (GObject      *object,
   switch ((ValentLanChannelProperty)prop_id)
     {
     case PROP_HOST:
-      valent_object_lock (VALENT_OBJECT (self));
       self->host = g_value_dup_string (value);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_PORT:
-      valent_object_lock (VALENT_OBJECT (self));
       self->port = g_value_get_uint (value);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
