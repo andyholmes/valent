@@ -65,34 +65,6 @@ typedef enum {
 static guint signals[CHANNEL + 1] = { 0, };
 
 
-typedef struct
-{
-  GRecMutex      lock;
-  GWeakRef       service;
-  ValentChannel *channel;
-} ChannelEmission;
-
-static gboolean
-valent_channel_service_channel_main (gpointer data)
-{
-  ChannelEmission *emission = data;
-  g_autoptr (ValentChannelService) service = NULL;
-
-  g_assert (VALENT_IS_MAIN_THREAD ());
-
-  g_rec_mutex_lock (&emission->lock);
-  if ((service = g_weak_ref_get (&emission->service)) != NULL)
-    valent_channel_service_channel (service, emission->channel);
-
-  g_weak_ref_clear (&emission->service);
-  g_clear_object (&emission->channel);
-  g_rec_mutex_unlock (&emission->lock);
-  g_rec_mutex_clear (&emission->lock);
-  g_clear_pointer (&emission, g_free);
-
-  return G_SOURCE_REMOVE;
-}
-
 static void
 on_channel_destroyed (ValentChannelService *self,
                       ValentChannel        *channel)
@@ -802,6 +774,10 @@ valent_channel_service_identify (ValentChannelService *service,
  *
  * Emit [signal@Valent.ChannelService::channel] on @service.
  *
+ * If @channel fails basic verification checks (e.g. certificate errors), the
+ * signal will not be emitted and [method@Valent.Object.destroy] will be called
+ * on @channel.
+ *
  * This method should only be called by implementations of
  * [class@Valent.ChannelService].
  *
@@ -811,28 +787,12 @@ void
 valent_channel_service_channel (ValentChannelService *service,
                                 ValentChannel        *channel)
 {
-  ChannelEmission *emission;
-
   g_return_if_fail (VALENT_IS_CHANNEL_SERVICE (service));
   g_return_if_fail (VALENT_IS_CHANNEL (channel));
 
-  if G_LIKELY (VALENT_IS_MAIN_THREAD ())
-    {
-      if (valent_channel_service_verify_channel (service, channel))
-        g_signal_emit (G_OBJECT (service), signals [CHANNEL], 0, channel);
-      else if (!valent_object_in_destruction (VALENT_OBJECT (channel)))
-        valent_object_destroy (VALENT_OBJECT (channel));
-
-      return;
-    }
-
-  emission = g_new0 (ChannelEmission, 1);
-  g_rec_mutex_init (&emission->lock);
-  g_rec_mutex_lock (&emission->lock);
-  g_weak_ref_init (&emission->service, service);
-  emission->channel = g_object_ref (channel);
-  g_rec_mutex_unlock (&emission->lock);
-
-  g_timeout_add (0, valent_channel_service_channel_main, emission);
+  if (valent_channel_service_verify_channel (service, channel))
+    g_signal_emit (G_OBJECT (service), signals [CHANNEL], 0, channel);
+  else if (!valent_object_in_destruction (VALENT_OBJECT (channel)))
+    valent_object_destroy (VALENT_OBJECT (channel));
 }
 
