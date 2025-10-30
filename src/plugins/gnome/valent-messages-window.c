@@ -104,10 +104,14 @@ search_contacts_cb (ValentContactsAdapter *adapter,
   for (unsigned int i = 0; i < n_contacts; i++)
     {
       g_autoptr (EContact) contact = g_list_model_get_item (contacts, i);
-      GtkWidget *row;
+#if EDS_CHECK_VERSION (3, 59, 0)
+      g_autoptr (GList) attrs = NULL;
+#else
       g_autolist (EVCardAttribute) attrs = NULL;
+#endif
       g_autofree char *number = NULL;
       unsigned int n_attrs;
+      GtkWidget *row;
 
 #if EDS_CHECK_VERSION (3, 59, 0)
       attrs = e_vcard_get_attributes_by_name (E_VCARD (contact), EVC_TEL);
@@ -395,8 +399,12 @@ on_search_selected (GtkListBox           *box,
     }
   else if (VALENT_IS_CONTACT_ROW (row))
     {
-      g_autolist (EVCardAttribute) attrs = NULL;
       EContact *contact;
+#if EDS_CHECK_VERSION (3, 59, 0)
+      g_autoptr (GList) attrs = NULL;
+#else
+      g_autolist (EVCardAttribute) attrs = NULL;
+#endif
 
       contact = valent_contact_row_get_contact (VALENT_CONTACT_ROW (row));
 #if EDS_CHECK_VERSION (3, 59, 0)

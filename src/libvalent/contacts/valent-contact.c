@@ -28,10 +28,17 @@ TrackerResource *
 valent_contact_resource_from_econtact (EContact *contact)
 {
   g_autoptr (TrackerResource) resource = NULL;
+#if EDS_CHECK_VERSION (3, 59, 0)
+  g_autoptr (GList) phone_numbers = NULL;
+  g_autoptr (GList) email_addresses = NULL;
+  g_autoptr (GList) urls = NULL;
+  // g_autoptr (GList) postal_addresses = NULL;
+#else
   g_autolist (EVCardAttribute) phone_numbers = NULL;
   g_autolist (EVCardAttribute) email_addresses = NULL;
   g_autolist (EVCardAttribute) urls = NULL;
   // g_autolist (EVCardAttribute) postal_addresses = NULL;
+#endif
   g_autoptr (EContactDate) birthdate = NULL;
   g_autofree char *vcard = NULL;
   static struct
