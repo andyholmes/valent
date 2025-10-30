@@ -127,7 +127,6 @@ valent_mock_channel_upload (ValentChannel       *channel,
                             GAsyncReadyCallback  callback,
                             gpointer             user_data)
 {
-  static GRecMutex socketpair_lock;
   g_autoptr (GTask) task = NULL;
   g_autoptr (GSocket) socket = NULL;
   JsonObject *info;
@@ -138,7 +137,6 @@ valent_mock_channel_upload (ValentChannel       *channel,
   g_assert (VALENT_IS_PACKET (packet));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  g_rec_mutex_lock (&socketpair_lock);
   if (socketpair (AF_UNIX, SOCK_STREAM, 0, sv) == -1)
     {
       g_task_report_new_error (channel, callback, user_data,
@@ -146,10 +144,8 @@ valent_mock_channel_upload (ValentChannel       *channel,
                                G_IO_ERROR,
                                G_IO_ERROR_FAILED,
                                "%s", g_strerror (errno));
-      g_rec_mutex_unlock (&socketpair_lock);
       return;
     }
-  g_rec_mutex_unlock (&socketpair_lock);
 
   socket = g_socket_new_from_fd (sv[0], &error);
   if (socket == NULL)
@@ -184,9 +180,7 @@ valent_mock_channel_finalize (GObject *object)
 {
   ValentMockChannel *self = VALENT_MOCK_CHANNEL (object);
 
-  valent_object_lock (VALENT_OBJECT (self));
   g_clear_pointer (&self->host, g_free);
-  valent_object_unlock (VALENT_OBJECT (self));
 
   G_OBJECT_CLASS (valent_mock_channel_parent_class)->finalize (object);
 }
@@ -202,15 +196,11 @@ valent_mock_channel_get_property (GObject    *object,
   switch ((ValentMockChannelProperty)prop_id)
     {
     case PROP_HOST:
-      valent_object_lock (VALENT_OBJECT (self));
       g_value_set_string (value, self->host);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_PORT:
-      valent_object_lock (VALENT_OBJECT (self));
       g_value_set_uint (value, self->port);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
@@ -229,15 +219,11 @@ valent_mock_channel_set_property (GObject      *object,
   switch ((ValentMockChannelProperty)prop_id)
     {
     case PROP_HOST:
-      valent_object_lock (VALENT_OBJECT (self));
       self->host = g_value_dup_string (value);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     case PROP_PORT:
-      valent_object_lock (VALENT_OBJECT (self));
       self->port = g_value_get_uint (value);
-      valent_object_unlock (VALENT_OBJECT (self));
       break;
 
     default:
