@@ -957,10 +957,10 @@ valent_channel_download (ValentChannel       *channel,
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   VALENT_CHANNEL_GET_CLASS (channel)->download (channel,
-                                                      packet,
-                                                      cancellable,
-                                                      callback,
-                                                      user_data);
+                                                packet,
+                                                cancellable,
+                                                callback,
+                                                user_data);
 
   VALENT_EXIT;
 }
@@ -1034,10 +1034,10 @@ valent_channel_upload (ValentChannel       *channel,
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
   VALENT_CHANNEL_GET_CLASS (channel)->upload (channel,
-                                                    packet,
-                                                    cancellable,
-                                                    callback,
-                                                    user_data);
+                                              packet,
+                                              cancellable,
+                                              callback,
+                                              user_data);
 
   VALENT_EXIT;
 }
