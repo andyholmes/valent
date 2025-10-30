@@ -29,7 +29,6 @@ foreach test : plugin_sms_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'sms'],
-        timeout: 240,
   )
 
   installed_tests_plan += [{
