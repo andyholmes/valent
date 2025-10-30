@@ -5,9 +5,6 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-mock-channel.h"
-#include "valent-mock-channel-service.h"
-
 #define TEST_OBJECT_PATH "/ca/andyholmes/Valent/Test"
 #define DEVICE_INTERFACE "ca.andyholmes.Valent.Device"
 
