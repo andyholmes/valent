@@ -36,6 +36,12 @@ option('tests',
         value: false,
 )
 
+option('tests_libdir',
+  description: 'LD_LIBRARY_PATH for tests (e.g. instrumented libraries)',
+         type: 'string',
+        value: '',
+)
+
 option('fuzz_tests',
   description: 'Enable fuzzing tests',
          type: 'boolean',

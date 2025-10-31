@@ -72,6 +72,11 @@ installed_tests_env = [
 installed_tests_tmpl = join_paths(meson.current_source_dir(), 'extra',
   'template.test.in')
 
+# Instrumented Libraries
+if get_option('tests_libdir') != ''
+  tests_env += 'LD_LIBRARY_PATH=@0@'.format(get_option('tests_libdir'))
+  installed_tests_env += 'LD_LIBRARY_PATH=@0@'.format(get_option('tests_libdir'))
+endif
 
 # Optional dependencies
 if glycin_dep.found()
