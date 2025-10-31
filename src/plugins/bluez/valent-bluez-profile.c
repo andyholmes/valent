@@ -20,6 +20,8 @@ struct _ValentBluezProfile
   GDBusInterfaceVTable    vtable;
   GDBusNodeInfo          *node_info;
   GDBusInterfaceInfo     *iface_info;
+  unsigned int            in_registration : 1;
+  unsigned int            registered : 1;
 };
 
 G_DEFINE_FINAL_TYPE (ValentBluezProfile, valent_bluez_profile, G_TYPE_DBUS_INTERFACE_SKELETON)
@@ -68,9 +70,9 @@ valent_bluez_profile_new_connection (ValentBluezProfile *profile,
                                      int                 fd,
                                      GVariant           *fd_properties)
 {
-  g_autoptr (GError) error = NULL;
   g_autoptr (GSocket) socket = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
+  g_autoptr (GError) error = NULL;
 
   g_assert (VALENT_IS_BLUEZ_PROFILE (profile));
   g_assert (g_variant_is_object_path (object_path));
@@ -111,6 +113,7 @@ valent_bluez_profile_request_disconnection (ValentBluezProfile *profile,
                                             const char         *object_path)
 {
   g_assert (VALENT_IS_BLUEZ_PROFILE (profile));
+  g_assert (g_variant_is_object_path (object_path));
 
   g_signal_emit (G_OBJECT (profile),
                  signals [CONNECTION_CLOSED], 0,
@@ -130,13 +133,13 @@ static void
 valent_bluez_profile_release (ValentBluezProfile *profile)
 {
   GDBusInterfaceSkeleton *iface = G_DBUS_INTERFACE_SKELETON (profile);
-  const char *object_path = NULL;
 
   g_assert (VALENT_IS_BLUEZ_PROFILE (profile));
 
-  object_path = g_dbus_interface_skeleton_get_object_path (iface);
-  if (object_path != NULL)
+  if (g_dbus_interface_skeleton_get_object_path (iface) != NULL)
     g_dbus_interface_skeleton_unexport (iface);
+
+  profile->registered = FALSE;
 }
 
 
@@ -332,18 +335,27 @@ profile_manager_register_profile_cb (GDBusConnection *connection,
                                      gpointer         user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentBluezProfile *self = g_task_get_source_object (task);
+  GDBusInterfaceSkeleton *iface = G_DBUS_INTERFACE_SKELETON (self);
   g_autoptr (GVariant) reply = NULL;
   GError *error = NULL;
 
   reply = g_dbus_connection_call_finish (connection, result, &error);
   if (reply == NULL)
     {
+      if (g_dbus_interface_skeleton_get_object_path (iface) != NULL)
+        g_dbus_interface_skeleton_unexport (iface);
+
       g_dbus_error_strip_remote_error (error);
       g_task_return_error (task, g_steal_pointer (&error));
-      return;
+    }
+  else
+    {
+      self->registered = TRUE;
+      g_task_return_boolean (task, TRUE);
     }
 
-  g_task_return_boolean (task, TRUE);
+  self->in_registration = FALSE;
 }
 
 /**
@@ -376,16 +388,19 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
   task = g_task_new (profile, cancellable, callback, user_data);
   g_task_set_source_tag (task, valent_bluez_profile_register);
 
-  if (g_dbus_interface_skeleton_get_object_path (iface) == NULL)
+  if (profile->registered || profile->in_registration)
     {
-      if (!g_dbus_interface_skeleton_export (iface,
-                                             connection,
-                                             VALENT_BLUEZ_PROFILE_PATH,
-                                             &error))
-        {
-          g_task_return_error (task, g_steal_pointer (&error));
-          return;
-        }
+      g_task_return_boolean (task, TRUE);
+      return;
+    }
+
+  if (!g_dbus_interface_skeleton_export (iface,
+                                         connection,
+                                         VALENT_BLUEZ_PROFILE_PATH,
+                                         &error))
+    {
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_variant_dict_init (&dict, NULL);
@@ -394,6 +409,7 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
   g_variant_dict_insert (&dict, "Service", "s", VALENT_BLUEZ_PROFILE_UUID);
   g_variant_dict_insert (&dict, "Channel", "q", 0x06);
 
+  profile->in_registration = TRUE;
   g_dbus_connection_call (connection,
                           "org.bluez",
                           "/org/bluez",
@@ -433,6 +449,29 @@ valent_bluez_profile_register_finish (ValentBluezProfile  *profile,
   return g_task_propagate_boolean (G_TASK (result), error);
 }
 
+static void
+profile_manager_unregister_profile_cb (GDBusConnection *connection,
+                                       GAsyncResult    *result,
+                                       gpointer         user_data)
+{
+  g_autoptr (ValentBluezProfile) self = g_steal_pointer (&user_data);
+  GDBusInterfaceSkeleton *iface = G_DBUS_INTERFACE_SKELETON (self);
+  g_autoptr (GVariant) reply = NULL;
+  g_autoptr (GError) error = NULL;
+
+  reply = g_dbus_connection_call_finish (connection, result, &error);
+  if (reply == NULL)
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_debug ("%s(): %s", G_STRFUNC, error->message);
+    }
+
+  if (g_dbus_interface_skeleton_get_object_path (iface) != NULL)
+    g_dbus_interface_skeleton_unexport (iface);
+
+  self->registered = FALSE;
+  self->in_registration = FALSE;
+}
 
 /**
  * valent_bluez_profile_unregister:
@@ -448,9 +487,12 @@ valent_bluez_profile_unregister (ValentBluezProfile *profile)
 
   g_return_if_fail (VALENT_IS_BLUEZ_PROFILE (profile));
 
-  object_path = g_dbus_interface_skeleton_get_object_path (iface);
-  if (object_path != NULL)
+  if (profile->registered && !profile->in_registration)
     {
+      object_path = g_dbus_interface_skeleton_get_object_path (iface);
+      g_return_if_fail (g_variant_is_object_path (object_path));
+
+      profile->in_registration = TRUE;
       g_dbus_connection_call (g_dbus_interface_skeleton_get_connection (iface),
                               "org.bluez",
                               "/org/bluez",
@@ -461,9 +503,8 @@ valent_bluez_profile_unregister (ValentBluezProfile *profile)
                               G_DBUS_CALL_FLAGS_NO_AUTO_START,
                               -1,
                               NULL,
-                              NULL,
-                              NULL);
-      g_dbus_interface_skeleton_unexport (iface);
+                              (GAsyncReadyCallback)profile_manager_unregister_profile_cb,
+                              g_object_ref (profile));
     }
 }
 
