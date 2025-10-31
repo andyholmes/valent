@@ -115,11 +115,16 @@ valent_channel_service_verify_channel (ValentChannelService *self,
       return FALSE;
     }
 
-  if (!valent_packet_get_string (peer_identity, "deviceName", &device_name) ||
-      !valent_device_validate_name (device_name))
+  if (!valent_packet_get_string (peer_identity, "deviceName", &device_name))
+    {
+      g_warning ("%s(): expected \"deviceName\" field holding a string",
+                 G_STRFUNC);
+      return FALSE;
+    }
+
+  if (!valent_device_validate_name (device_name))
     {
       g_warning ("%s(): invalid device name \"%s\"", G_STRFUNC, device_name);
-      return FALSE;
     }
 
   /* Ensure the deviceId field matches the certificate common name
