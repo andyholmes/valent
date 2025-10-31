@@ -71,7 +71,7 @@ option('plugin_battery',
 option('plugin_bluez',
   description: 'Enable Bluetooth Networking (Bluez)',
          type: 'boolean',
-        value: false,
+        value: true,
 )
 
 option('plugin_clipboard',
