@@ -36,9 +36,15 @@ plugin_gnome_tests = {
 }
 
 foreach test, test_wrapper : plugin_gnome_tests
-  plugin_gnome_tests_env = tests_env + [
+  plugin_gnome_tests_env = [
     'G_TEST_EXE=@0@'.format(join_paths(meson.current_build_dir(), test)),
+    'G_TEST_LIBDIR=@0@'.format(get_option('tests_libdir')),
   ]
+  foreach envvar : tests_env
+    if not (test_wrapper.found() and envvar.startswith('LD_LIBRARY_PATH'))
+      plugin_gnome_tests_env += envvar
+    endif
+  endforeach
 
   test_program = executable(test, '@0@.c'.format(test),
                  c_args: test_c_args,

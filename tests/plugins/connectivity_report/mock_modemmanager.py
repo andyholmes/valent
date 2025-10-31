@@ -42,9 +42,15 @@ class ModemManagerTestFixture(dbusmock.DBusTestCase):
         self.p_mock.wait()
 
     def test_run(self) -> None:
+        test_env = os.environ
+        if os.environ.get('G_TEST_LIBDIR'):
+            test_env = dict(os.environ,
+                LD_LIBRARY_PATH=os.environ.get('G_TEST_LIBDIR'))
+
         subprocess.run([os.environ.get('G_TEST_EXE', ''), '--tap'],
                        check=True,
                        encoding='utf-8',
+                       env=test_env,
                        stderr=sys.stderr,
                        stdout=sys.stdout)
 
