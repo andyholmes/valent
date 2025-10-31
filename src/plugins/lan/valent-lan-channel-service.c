@@ -1146,7 +1146,9 @@ valent_lan_channel_service_init_sync (GInitable     *initable,
                            G_CALLBACK (on_network_changed),
                            self,
                            G_CONNECT_DEFAULT);
-  on_network_changed (self->monitor, TRUE, self);
+  on_network_changed (self->monitor,
+                      g_network_monitor_get_network_available (self->monitor),
+                      self);
 
   return TRUE;
 }
