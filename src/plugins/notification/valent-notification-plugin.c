@@ -691,10 +691,7 @@ valent_notification_plugin_send_notification (ValentNotificationPlugin *self,
 
   packet = valent_packet_end (&builder);
 
-  if (icon == NULL)
-    valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
-  else
-    valent_notification_plugin_send_notification_with_icon (self, packet, icon);
+  valent_notification_plugin_send_notification_with_icon (self, packet, icon);
 }
 
 /*
