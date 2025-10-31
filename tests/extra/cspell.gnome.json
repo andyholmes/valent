@@ -150,7 +150,7 @@
                 },
                 {
                     "name": "gtk-symbols",
-                    "pattern": "/(\\bgtk_\\w+)/gi"
+                    "pattern": "/(\\b(gtk|gdk|gsk)_\\w+)/gi"
                 },
                 {
                     "name": "adw-symbols",
