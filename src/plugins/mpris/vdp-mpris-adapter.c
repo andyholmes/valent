@@ -27,9 +27,9 @@ G_DEFINE_FINAL_TYPE (VdpMprisAdapter, vdp_mpris_adapter, VALENT_TYPE_MEDIA_ADAPT
 static inline void
 _valent_object_deref (gpointer data)
 {
-  g_assert (VALENT_IS_OBJECT (data));
+  if (!valent_object_in_destruction (VALENT_OBJECT (data)))
+    valent_object_destroy (VALENT_OBJECT (data));
 
-  valent_object_destroy (VALENT_OBJECT (data));
   g_object_unref (data);
 }
 
