@@ -209,7 +209,7 @@ activate_cb (GObject      *object,
              GAsyncResult *result,
              gpointer      user_data)
 {
-  ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (user_data);
+  ValentBluezChannelService *self = g_task_get_source_object (G_TASK (result));
   g_autoptr (GError) error = NULL;
 
   if (g_task_propagate_boolean (G_TASK (result), &error))
@@ -297,15 +297,14 @@ on_name_owner_changed (GDBusProxy                *proxy,
   if (name_owner != NULL)
     {
       g_autoptr (GTask) task = NULL;
-      GDBusConnection *connection = NULL;
+      g_autoptr (GCancellable) destroy = NULL;
 
-      connection = g_dbus_proxy_get_connection (proxy);
-      task = g_task_new (self, NULL, activate_cb, self);
+      destroy = valent_object_ref_cancellable (VALENT_OBJECT (self));
+      task = g_task_new (self, destroy, activate_cb, NULL);
       g_task_set_source_tag (task, on_name_owner_changed);
-      g_task_set_task_data (task, g_object_ref (connection), g_object_unref);
       valent_bluez_profile_register (self->profile,
-                                     connection,
-                                     NULL,
+                                     g_dbus_proxy_get_connection (proxy),
+                                     destroy,
                                      (GAsyncReadyCallback)valent_bluez_profile_register_cb,
                                      g_object_ref (task));
     }
@@ -322,7 +321,7 @@ on_name_owner_changed (GDBusProxy                *proxy,
         }
 
       g_hash_table_remove_all (self->devices);
-
+      valent_bluez_profile_unregister (self->profile);
       valent_extension_plugin_state_changed (VALENT_EXTENSION (self),
                                              VALENT_PLUGIN_STATE_INACTIVE,
                                              NULL);
