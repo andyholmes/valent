@@ -65,6 +65,15 @@ typedef enum {
 static guint signals[CHANNEL + 1] = { 0, };
 
 
+static inline void
+_valent_object_deref (gpointer data)
+{
+  if (!valent_object_in_destruction (VALENT_OBJECT (data)))
+    valent_object_destroy (VALENT_OBJECT (data));
+
+  g_object_unref (data);
+}
+
 static void
 on_channel_destroyed (ValentChannelService *self,
                       ValentChannel        *channel)
@@ -634,7 +643,7 @@ valent_channel_service_init (ValentChannelService *self)
   priv->channels = g_hash_table_new_full (g_str_hash,
                                           g_str_equal,
                                           g_free,
-                                          g_object_unref);
+                                          _valent_object_deref);
 }
 
 /**
