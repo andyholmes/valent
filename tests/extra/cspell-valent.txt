@@ -11,6 +11,7 @@ kdeconnect
 addressbook
 albumart
 basepath
+devel
 econtact
 esource
 gresource
@@ -127,6 +128,7 @@ alsa
 avahi
 bluez
 dbusmock
+glycin
 lcov
 libportal
 logind
@@ -139,3 +141,4 @@ stephenhay
 sysprof
 tsparql
 upower
+vapi
