@@ -2007,15 +2007,14 @@ valent_device_validate_name (const char *name)
   if G_UNLIKELY (name == NULL || *name == '\0')
     return FALSE;
 
-  while (name[len] != '\0')
+  for (const char *p = name; *p != '\0'; p = g_utf8_next_char (p))
     {
-      uint8_t c = (uint8_t)name[len];
-
-      if (forbidden_chars[c])
+      gunichar ch = g_utf8_get_char (p);
+      if (ch <= 127 && forbidden_chars[(uint8_t)ch])
         return FALSE;
 
       if (!has_nonwhitespace)
-        has_nonwhitespace = !g_ascii_isspace (c);
+        has_nonwhitespace = !g_unichar_isspace (ch);
 
       if (++len > 32)
         return FALSE;
