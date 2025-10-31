@@ -392,7 +392,6 @@ valent_bluez_profile_register (ValentBluezProfile  *profile,
   g_variant_dict_insert (&dict, "RequireAuthentication", "b", TRUE);
   g_variant_dict_insert (&dict, "RequireAuthorization", "b", FALSE);
   g_variant_dict_insert (&dict, "Service", "s", VALENT_BLUEZ_PROFILE_UUID);
-  g_variant_dict_insert (&dict, "Role", "s", "server");
   g_variant_dict_insert (&dict, "Channel", "q", 0x06);
 
   g_dbus_connection_call (connection,
