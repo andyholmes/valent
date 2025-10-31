@@ -864,6 +864,45 @@ valent_device_handle_pair (ValentDevice *device,
 /*
  * Private identity methods
  */
+static char *
+valent_device_sanitize_name (const char *name,
+                             const char *fallback)
+{
+  static const uint8_t forbidden_chars[256] = {
+    ['"'] = 1, ['\''] = 1,
+    [','] = 1, ['.'] = 1,
+    [';'] = 1, [':'] = 1,
+    ['!'] = 1, ['?'] = 1,
+    ['('] = 1, [')'] = 1,
+    ['['] = 1, [']'] = 1,
+    ['<'] = 1, ['>'] = 1,
+  };
+  g_autoptr (GString) ret = NULL;
+
+  g_assert (name != NULL && *name != '\0');
+
+  ret = g_string_new (NULL);
+  for (const char *p = name; *p != '\0'; p = g_utf8_next_char (p))
+    {
+      gunichar ch = g_utf8_get_char (p);
+      if (ch > 127 || !forbidden_chars[(uint8_t)ch])
+        g_string_append_unichar (ret, ch);
+
+      if (ret->len == 32)
+        break;
+    }
+
+  if (ret->len == 0)
+    {
+      g_warning ("%s(): device name \"%s\" could not be sanitized",
+                 G_STRFUNC,
+                 name);
+      return g_strdup (fallback);
+    }
+
+  return g_string_free_and_steal (g_steal_pointer (&ret));
+}
+
 static void
 valent_device_handle_identity (ValentDevice *device,
                                JsonNode     *packet)
@@ -871,14 +910,14 @@ valent_device_handle_identity (ValentDevice *device,
   const char *device_id;
   const char *device_name;
   const char *device_type;
+  g_autofree char *sanitized_name = NULL;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (VALENT_IS_PACKET (packet));
 
-  /* The ID must match the construct-time value, while the device name is
-   * assumed to be validated already.
+  /* The ID must match the construct-time value.
    */
   if (!valent_packet_get_string (packet, "deviceId", &device_id) ||
       !g_str_equal (device->id, device_id))
@@ -889,6 +928,9 @@ valent_device_handle_identity (ValentDevice *device,
       VALENT_EXIT;
     }
 
+  /* If the device name is invalid, try removing the offended characters,
+   * falling back to the device ID.
+   */
   if (!valent_packet_get_string (packet, "deviceName", &device_name))
     {
       g_critical ("%s(): expected \"deviceName\" field holding a string",
@@ -896,7 +938,8 @@ valent_device_handle_identity (ValentDevice *device,
       VALENT_EXIT;
     }
 
-  if (g_set_str (&device->name, device_name))
+  sanitized_name = valent_device_sanitize_name (device_name, device_id);
+  if (g_set_str (&device->name, sanitized_name))
     g_object_notify_by_pspec (G_OBJECT (device), properties [PROP_NAME]);
 
   /* The device type is only used to generate an icon name.
