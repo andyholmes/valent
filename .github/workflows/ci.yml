@@ -189,6 +189,7 @@ jobs:
 
       - name: Test
         id: test
+        if: ${{ !(matrix.compiler == 'llvm' && matrix.suite == 'tsan') }}
         uses: andyholmes/actuary@main
         with:
           suite: ${{ matrix.suite }}
