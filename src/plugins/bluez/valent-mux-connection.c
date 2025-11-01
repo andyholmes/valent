@@ -432,7 +432,6 @@ recv_read (ValentMuxConnection  *self,
       g_mutex_lock (&state->mutex);
       state->write_free += GUINT16_FROM_BE (size_request);
       ret = channel_state_notify (state, error);
-      VALENT_NOTE ("UUID: %s, write_free: %u", state->uuid, state->write_free);
       g_mutex_unlock (&state->mutex);
     }
 
@@ -488,7 +487,6 @@ recv_write (ValentMuxConnection  *self,
       state->end += n_read;
       state->read_free -= n_read;
       ret = channel_state_notify (state, error);
-      VALENT_NOTE ("UUID: %s, read_free: %u", state->uuid, state->read_free);
     }
   g_mutex_unlock (&state->mutex);
 
@@ -1090,7 +1088,6 @@ handshake_protocol_task (GTask        *task,
     {
       state->read_free = state->len;
       base_stream = g_object_ref (state->stream);
-      VALENT_NOTE ("UUID: %s, read_free: %u", state->uuid, state->read_free);
     }
   g_mutex_unlock (&state->mutex);
   valent_object_unlock (VALENT_OBJECT (self));
@@ -1532,7 +1529,6 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
         {
           g_mutex_lock (&state->mutex);
           state->read_free += size_request;
-          VALENT_NOTE ("UUID: %s, read_free: %u", state->uuid, state->read_free);
           g_mutex_unlock (&state->mutex);
         }
     }
@@ -1620,7 +1616,6 @@ valent_mux_connection_write (ValentMuxConnection  *connection,
   if (send_write (connection, uuid, written, buffer, cancellable, error))
     {
       state->write_free -= written;
-      VALENT_NOTE ("UUID: %s, write_free: %u", state->uuid, state->write_free);
     }
   else
     {
