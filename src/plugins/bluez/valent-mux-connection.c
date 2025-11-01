@@ -83,10 +83,10 @@ typedef enum
  * @mutex: a lock for changes to the state
  * @cond: a `GCond` triggered when data can be read/written
  * @stream: a `GIOStream`
- * @buf: an input buffer
- * @len: size of the input buffer
- * @pos: data start
- * @end: data end
+ * @buffer: an input buffer
+ * @size: size of the input buffer
+ * @head: data start
+ * @tail: data end
  * @read_free: free space in the input buffer
  * @write_free: amount of bytes that can be written
  * @eventfd: a file descriptor for notifying IO state
@@ -104,10 +104,11 @@ typedef struct
   GIOStream    *stream;
 
   /* Input Buffer */
-  uint8_t      *buf;
-  size_t        len;
-  size_t        pos;
-  size_t        end;
+  uint8_t      *buffer;
+  size_t        size;
+  size_t        head;
+  size_t        tail;
+  size_t        count;
 
   /* I/O State */
   uint16_t      read_free;
@@ -127,8 +128,8 @@ channel_state_new (ValentMuxConnection *muxer,
   g_mutex_lock (&state->mutex);
   g_cond_init (&state->cond);
   state->uuid = g_strdup (uuid);
-  state->len = muxer->buffer_size;
-  state->buf = g_malloc0 (state->len);
+  state->size = muxer->buffer_size;
+  state->buffer = g_malloc0 (state->size);
   state->condition = (G_IO_IN | G_IO_OUT);
   state->stream = g_object_new (VALENT_TYPE_MUX_IO_STREAM,
                                 "muxer", muxer,
@@ -142,17 +143,34 @@ channel_state_new (ValentMuxConnection *muxer,
   return state;
 }
 
-static void
-channel_state_close (ChannelState *state)
+static void   channel_state_close (ChannelState *state);
+
+static inline size_t
+channel_state_get_writable (ChannelState *state)
 {
-  g_mutex_lock (&state->mutex);
-  if (!g_io_stream_is_closed (state->stream))
-    {
-      g_io_stream_close (state->stream, NULL, NULL);
-      state->condition = G_IO_HUP;
-      g_cond_broadcast (&state->cond);
-    }
-  g_mutex_unlock (&state->mutex);
+  return state->size - state->count;
+}
+
+static inline size_t
+channel_state_read_unlocked (ChannelState *state,
+                             uint8_t      *buffer,
+                             size_t        count)
+{
+  size_t tail_chunk;
+
+  count = MIN (count, state->count);
+  if (count == 0)
+    return 0;
+
+  tail_chunk = MIN (state->size - state->head, count);
+  memcpy (buffer, state->buffer + state->head, tail_chunk);
+  if (count > tail_chunk)
+    memcpy (buffer + tail_chunk, state->buffer, count - tail_chunk);
+
+  state->head = (state->head + count) % state->size;
+  state->count -= count;
+
+  return count;
 }
 
 static void
@@ -164,7 +182,7 @@ channel_state_free (gpointer data)
 
   g_mutex_lock (&state->mutex);
   g_clear_object (&state->stream);
-  g_clear_pointer (&state->buf, g_free);
+  g_clear_pointer (&state->buffer, g_free);
   g_clear_pointer (&state->uuid, g_free);
   g_clear_fd (&state->eventfd, NULL);
   g_cond_clear (&state->cond);
@@ -205,8 +223,8 @@ channel_state_lookup (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-channel_state_notify (ChannelState  *state,
-                      GError       **error)
+channel_state_notify_unlocked (ChannelState  *state,
+                               GError       **error)
 {
   int64_t byte = 1;
 
@@ -221,6 +239,19 @@ channel_state_notify (ChannelState  *state,
   g_cond_broadcast (&state->cond);
 
   return TRUE;
+}
+
+static void
+channel_state_close (ChannelState *state)
+{
+  g_mutex_lock (&state->mutex);
+  if (!g_io_stream_is_closed (state->stream))
+    {
+      g_io_stream_close (state->stream, NULL, NULL);
+      state->condition |= G_IO_HUP;
+      channel_state_notify_unlocked (state, NULL);
+    }
+  g_mutex_unlock (&state->mutex);
 }
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (ChannelState, channel_state_unref)
@@ -399,9 +430,12 @@ recv_close_channel (ValentMuxConnection  *self,
   if (state == NULL)
     return TRUE;
 
+  /* Signify the close by setting the G_IO_HUP flag,
+   * to allow any pending readers to empty the buffer.
+   */
   g_mutex_lock (&state->mutex);
   state->condition |= G_IO_HUP;
-  channel_state_notify (state, NULL);
+  channel_state_notify_unlocked (state, NULL);
   g_mutex_unlock (&state->mutex);
 
   return TRUE;
@@ -431,7 +465,7 @@ recv_read (ValentMuxConnection  *self,
     {
       g_mutex_lock (&state->mutex);
       state->write_free += GUINT16_FROM_BE (size_request);
-      ret = channel_state_notify (state, error);
+      ret = channel_state_notify_unlocked (state, error);
       g_mutex_unlock (&state->mutex);
     }
 
@@ -446,6 +480,7 @@ recv_write (ValentMuxConnection  *self,
             GError              **error)
 {
   g_autoptr (ChannelState) state = NULL;
+  size_t tail_free;
   size_t n_read;
   gboolean ret;
 
@@ -465,28 +500,30 @@ recv_write (ValentMuxConnection  *self,
       return FALSE;
     }
 
-  /* Compact the buffer if necessary
-   */
-  if (size > state->len - state->end)
-    {
-      size_t n_used = state->end - state->pos;
-
-      memmove (state->buf, state->buf + state->pos, n_used);
-      state->pos = 0;
-      state->end = n_used;
-    }
-
+  tail_free = MIN (state->size - state->tail, size);
   ret = g_input_stream_read_all (self->input_stream,
-                                 &state->buf[state->end],
-                                 size,
+                                 &state->buffer[state->tail],
+                                 tail_free,
                                  &n_read,
                                  cancellable,
                                  error);
+  if (ret && size > tail_free)
+    {
+      ret = g_input_stream_read_all (self->input_stream,
+                                     &state->buffer[0],
+                                     size - tail_free,
+                                     &n_read,
+                                     cancellable,
+                                     error);
+      n_read += tail_free;
+    }
+
   if (ret)
     {
-      state->end += n_read;
+      state->tail = (state->tail + n_read) % state->size;
+      state->count += n_read;
       state->read_free -= n_read;
-      ret = channel_state_notify (state, error);
+      ret = channel_state_notify_unlocked (state, error);
     }
   g_mutex_unlock (&state->mutex);
 
@@ -1067,7 +1104,6 @@ handshake_protocol_task (GTask        *task,
 {
   ValentMuxConnection *self = VALENT_MUX_CONNECTION (source_object);
   ChannelState *state = (ChannelState *)task_data;
-  /* g_autoptr (ChannelState) state = NULL; */
   g_autoptr (GIOStream) base_stream = NULL;
   GError *error = NULL;
 
@@ -1084,9 +1120,9 @@ handshake_protocol_task (GTask        *task,
     }
 
   g_mutex_lock (&state->mutex);
-  if (send_read (self, state->uuid, state->len, cancellable, &error))
+  if (send_read (self, state->uuid, state->size, cancellable, &error))
     {
-      state->read_free = state->len;
+      state->read_free = state->size;
       base_stream = g_object_ref (state->stream);
     }
   g_mutex_unlock (&state->mutex);
@@ -1210,9 +1246,9 @@ valent_mux_connection_accept_channel (ValentMuxConnection  *connection,
       if (state != NULL)
         {
           g_mutex_lock (&state->mutex);
-          if (send_read (connection, uuid, state->len, cancellable, error))
+          if (send_read (connection, uuid, state->size, cancellable, error))
             {
-              state->read_free += state->len;
+              state->read_free += state->size;
               ret = g_object_ref (state->stream);
             }
           g_mutex_unlock (&state->mutex);
@@ -1232,7 +1268,7 @@ valent_mux_connection_accept_channel (ValentMuxConnection  *connection,
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
  *
- * Get the multiplex protocol version used by @connection.
+ * Close the the channel with @uuid.
  *
  * Returns: the protocol version
  */
@@ -1242,13 +1278,27 @@ valent_mux_connection_close_channel (ValentMuxConnection  *connection,
                                      GCancellable         *cancellable,
                                      GError              **error)
 {
+  g_autoptr (ChannelState) state = NULL;
   gboolean ret = TRUE;
 
   g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), FALSE);
 
   valent_object_lock (VALENT_OBJECT (connection));
-  if (g_hash_table_remove (connection->states, uuid))
-    ret = send_close_channel (connection, uuid, cancellable, error);
+  g_hash_table_steal_extended (connection->states, uuid, NULL, (void **)&state);
+  valent_object_unlock (VALENT_OBJECT (connection));
+  if (state != NULL)
+    {
+      g_mutex_lock (&state->mutex);
+      if ((state->condition & G_IO_HUP) == 0)
+        {
+          valent_object_lock (VALENT_OBJECT (connection));
+          send_close_channel (connection, uuid, cancellable, NULL);
+          state->condition = G_IO_HUP;
+          valent_object_unlock (VALENT_OBJECT (connection));
+        }
+      ret = channel_state_notify_unlocked (state, NULL);
+      g_mutex_unlock (&state->mutex);
+    }
   valent_object_unlock (VALENT_OBJECT (connection));
 
   return ret;
@@ -1275,6 +1325,7 @@ valent_mux_connection_close_stream (ValentMuxConnection  *connection,
                                     GError              **error)
 {
   g_autoptr (ChannelState) state = NULL;
+  gboolean ret;
 
   g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), FALSE);
   g_return_val_if_fail (uuid != NULL && *uuid != '\0', FALSE);
@@ -1284,6 +1335,9 @@ valent_mux_connection_close_stream (ValentMuxConnection  *connection,
   if (state == NULL)
     return FALSE;
 
+  /* When `close()` is called on a substream unset the condition flag
+   * and ensure the peer is notified of the closure
+   */
   g_mutex_lock (&state->mutex);
   state->condition &= ~condition;
   if ((state->condition & G_IO_HUP) == 0)
@@ -1293,10 +1347,10 @@ valent_mux_connection_close_stream (ValentMuxConnection  *connection,
         state->condition |= G_IO_HUP;
       valent_object_unlock (VALENT_OBJECT (connection));
     }
-  channel_state_notify (state, error);
+  ret = channel_state_notify_unlocked (state, error);
   g_mutex_unlock (&state->mutex);
 
-  return TRUE;
+  return ret;
 }
 
 /**
@@ -1306,8 +1360,8 @@ valent_mux_connection_close_stream (ValentMuxConnection  *connection,
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
  *
- * Close the stream for the channel with @uuid associated with the
- * condition for @condition.
+ * Flush the streams by notifying any pollable sources or waiting threads
+ * of a condition change.
  *
  * Returns: %TRUE, or %FALSE with @error set
  */
@@ -1318,6 +1372,7 @@ valent_mux_connection_flush_stream (ValentMuxConnection  *connection,
                                     GError              **error)
 {
   g_autoptr (ChannelState) state = NULL;
+  gboolean ret;
 
   g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), FALSE);
   g_return_val_if_fail (uuid != NULL && *uuid != '\0', FALSE);
@@ -1328,10 +1383,10 @@ valent_mux_connection_flush_stream (ValentMuxConnection  *connection,
     return FALSE;
 
   g_mutex_lock (&state->mutex);
-  channel_state_notify (state, error);
+  ret = channel_state_notify_unlocked (state, error);
   g_mutex_unlock (&state->mutex);
 
-  return TRUE;
+  return ret;
 }
 
 /**
@@ -1378,9 +1433,9 @@ valent_mux_connection_open_channel (ValentMuxConnection  *muxer,
 
       g_mutex_lock (&state->mutex);
       if (send_open_channel (muxer, uuid, cancellable, error) &&
-          send_read (muxer, uuid, state->len, cancellable, error))
+          send_read (muxer, uuid, state->size, cancellable, error))
         {
-          state->read_free = state->len;
+          state->read_free = state->size;
           ret = g_object_ref (state->stream);
         }
       g_mutex_unlock (&state->mutex);
@@ -1421,8 +1476,7 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
 {
   g_autoptr (ChannelState) state = NULL;
   gssize read;
-  size_t available;
-  uint16_t size_request;
+  uint16_t size_request = 0;
 
   g_assert (VALENT_IS_MUX_CONNECTION (connection));
   g_assert (g_uuid_string_is_valid (uuid));
@@ -1448,12 +1502,9 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
     {
       /* Return buffer contents before signaling EOF
        */
-      available = state->end - state->pos;
-      if (available > 0)
+      if (state->count > 0)
         {
-          read = MIN (count, available);
-          memcpy (buffer, state->buf + state->pos, read);
-          state->pos += read;
+          read = channel_state_read_unlocked (state, buffer, count);
           g_mutex_unlock (&state->mutex);
           return read;
         }
@@ -1467,19 +1518,16 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
 
   if (blocking)
     {
-      while ((state->condition & G_IO_HUP) == 0 && state->end <= state->pos)
+      while ((state->condition & G_IO_HUP) == 0 && state->count == 0)
         g_cond_wait (&state->cond, &state->mutex);
 
       if ((state->condition & G_IO_HUP) != 0)
         {
           /* Return the contents of the before signaling EOF
            */
-          available = state->end - state->pos;
-          if (available > 0)
+          if (state->count > 0)
             {
-              read = MIN (count, available);
-              memcpy (buffer, state->buf + state->pos, read);
-              state->pos += read;
+              read = channel_state_read_unlocked (state, buffer, count);
               g_mutex_unlock (&state->mutex);
               return read;
             }
@@ -1491,7 +1539,7 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
           return 0;
         }
     }
-  else if (state->end <= state->pos)
+  else if (state->count == 0)
     {
       g_set_error_literal (error,
                            G_IO_ERROR,
@@ -1501,23 +1549,9 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
       return -1;
     }
 
-  available = state->end - state->pos;
-  if (count <= available)
-    {
-      memcpy (buffer, state->buf + state->pos, count);
-      state->pos += count;
-      read = count;
-    }
-  else
-    {
-      memcpy (buffer, state->buf + state->pos, available);
-      state->pos = 0;
-      state->end = 0;
-      read = available;
-    }
-
-  size_request = state->len - (state->end - state->pos) - state->read_free;
-  if ((double)size_request / (double)state->len < 0.5)
+  read = channel_state_read_unlocked (state, buffer, count);
+  size_request = channel_state_get_writable (state) - state->read_free;
+  if ((double)size_request / (double)state->size < 0.5)
     size_request = 0;
   g_mutex_unlock (&state->mutex);
 
@@ -1661,7 +1695,7 @@ muxer_stream_source_prepare (GSource *source,
       if ((stream_source->condition & G_IO_OUT) != 0)
         ret = (state->write_free > 0);
       else if ((stream_source->condition & G_IO_IN) != 0)
-        ret = (state->end > state->pos);
+        ret = (state->count > 0);
     }
   g_mutex_unlock (&state->mutex);
 
@@ -1680,24 +1714,24 @@ muxer_stream_source_check (GSource *source)
   uint64_t buf;
 
   g_mutex_lock (&state->mutex);
-  if (!g_io_stream_is_closed (state->stream))
+  if ((state->condition & G_IO_HUP) == 0)
     {
-      if ((stream_source->condition & G_IO_OUT) != 0)
-        ret = (state->write_free > 0);
-
       if ((stream_source->condition & G_IO_IN) != 0)
-        ret = (state->end > state->pos);
+        ret |= (state->count > 0);
+
+      if ((stream_source->condition & G_IO_OUT) != 0)
+        ret |= (state->write_free > 0);
     }
-  g_mutex_unlock (&state->mutex);
 
   if (read (state->eventfd, &buf, sizeof (uint64_t)) == -1)
     {
       if (errno != EAGAIN && errno != EWOULDBLOCK)
         {
           g_critical ("%s(): %s", G_STRFUNC, g_strerror (errno));
-          return FALSE;
+          ret = FALSE;
         }
     }
+  g_mutex_unlock (&state->mutex);
 
   return ret;
 }
@@ -1820,17 +1854,17 @@ valent_mux_connection_condition_check (ValentMuxConnection *connection,
     return G_IO_ERR;
 
   g_mutex_lock (&state->mutex);
-  if (g_io_stream_is_closed (state->stream))
+  if ((state->condition & G_IO_HUP) != 0)
     {
       ret = G_IO_ERR;
     }
   else
     {
+      if ((condition & G_IO_IN) != 0 && (state->count > 0))
+        ret |= G_IO_IN;
+
       if ((condition & G_IO_OUT) != 0 && state->write_free > 0)
         ret |= G_IO_OUT;
-
-      if ((condition & G_IO_IN) != 0 && state->end > state->pos)
-        ret |= G_IO_IN;
     }
   g_mutex_unlock (&state->mutex);
 
