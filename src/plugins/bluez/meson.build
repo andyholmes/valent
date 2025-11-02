@@ -12,9 +12,9 @@ plugin_bluez_sources = files([
   'valent-bluez-channel-service.c',
   'valent-bluez-channel.c',
   'valent-bluez-device.c',
+  'valent-bluez-muxer.c',
   'valent-bluez-profile.c',
   'valent-mux-io-stream.c',
-  'valent-mux-connection.c',
   'valent-mux-input-stream.c',
   'valent-mux-output-stream.c',
 ])

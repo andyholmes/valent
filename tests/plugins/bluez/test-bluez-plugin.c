@@ -10,8 +10,8 @@
 
 #include "valent-bluez-channel.h"
 #include "valent-bluez-channel-service.h"
+#include "valent-bluez-muxer.h"
 #include "valent-bluez-profile.h"
-#include "valent-mux-connection.h"
 
 #define BLUEZ_ADAPTER_NAME "hci0"
 #define BLUEZ_DEVICE_ADDR  "AA:BB:CC:DD:EE:FF"
@@ -277,15 +277,15 @@ dbusmock_new_connection (BluezTestFixture *fixture)
 }
 
 static void
-handshake_cb (ValentMuxConnection *connection,
-              GAsyncResult        *result,
-              BluezTestFixture    *fixture)
+handshake_cb (ValentBluezMuxer *connection,
+              GAsyncResult     *result,
+              BluezTestFixture *fixture)
 {
   GError *error = NULL;
 
-  fixture->endpoint = valent_mux_connection_handshake_finish (connection,
-                                                              result,
-                                                              &error);
+  fixture->endpoint = valent_bluez_muxer_handshake_finish (connection,
+                                                           result,
+                                                           &error);
   g_assert_no_error (error);
 }
 
@@ -295,7 +295,7 @@ test_bluez_service_new_connection (BluezTestFixture *fixture,
 {
   g_autoptr (GSocket) socket = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
-  g_autoptr (ValentMuxConnection) muxer = NULL;
+  g_autoptr (ValentBluezMuxer) muxer = NULL;
   GError *error = NULL;
 
   VALENT_TEST_CHECK ("The service can be initialized");
@@ -319,14 +319,14 @@ test_bluez_service_new_connection (BluezTestFixture *fixture,
   connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
                              "socket", socket,
                              NULL);
-  muxer = valent_mux_connection_new (G_IO_STREAM (connection));
+  muxer = valent_bluez_muxer_new (G_IO_STREAM (connection));
 
   dbusmock_new_connection (fixture);
-  valent_mux_connection_handshake (muxer,
-                                   fixture->peer_identity,
-                                   NULL,
-                                   (GAsyncReadyCallback)handshake_cb,
-                                   fixture);
+  valent_bluez_muxer_handshake (muxer,
+                                fixture->peer_identity,
+                                NULL,
+                                (GAsyncReadyCallback)handshake_cb,
+                                fixture);
 
   VALENT_TEST_CHECK ("The service creates channels for successful connections");
   g_signal_connect (fixture->service,
@@ -437,7 +437,7 @@ test_bluez_service_channel (BluezTestFixture *fixture,
   g_autoptr (JsonNode) packet = NULL;
   g_autoptr (GTlsCertificate) certificate = NULL;
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
-  g_autoptr (ValentMuxConnection) muxer = NULL;
+  g_autoptr (ValentBluezMuxer) muxer = NULL;
   g_autoptr (GFile) file = NULL;
   gboolean download_done = FALSE;
   gboolean upload_done = FALSE;
@@ -449,7 +449,7 @@ test_bluez_service_channel (BluezTestFixture *fixture,
   g_object_get (fixture->channel,
                 "muxer", &muxer,
                 NULL);
-  g_assert_true (VALENT_IS_MUX_CONNECTION (muxer));
+  g_assert_true (VALENT_IS_BLUEZ_MUXER (muxer));
 
   VALENT_TEST_CHECK ("Channel can send and receive packets");
   packet = valent_packet_new ("kdeconnect.mock.echo");

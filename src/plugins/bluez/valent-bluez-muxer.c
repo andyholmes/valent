@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-#define G_LOG_DOMAIN "valent-mux-connection"
+#define G_LOG_DOMAIN "valent-bluez-muxer"
 
 #include "config.h"
 
@@ -20,7 +20,7 @@
 #include "valent-bluez-channel.h"
 #include "valent-mux-io-stream.h"
 
-#include "valent-mux-connection.h"
+#include "valent-bluez-muxer.h"
 
 #define IDENTITY_BUFFER_MAX  (8192)
 
@@ -34,7 +34,7 @@
 #define PROTOCOL_MAX        (1)
 
 
-struct _ValentMuxConnection
+struct _ValentBluezMuxer
 {
   ValentObject   parent_instance;
 
@@ -49,12 +49,12 @@ struct _ValentMuxConnection
   GOutputStream *output_stream;
 };
 
-G_DEFINE_FINAL_TYPE (ValentMuxConnection, valent_mux_connection, VALENT_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (ValentBluezMuxer, valent_bluez_muxer, VALENT_TYPE_OBJECT)
 
 typedef enum {
   PROP_BASE_STREAM = 1,
   PROP_BUFFER_SIZE,
-} ValentMuxConnectionProperty;
+} ValentBluezMuxerProperty;
 
 static GParamSpec *properties[PROP_BUFFER_SIZE + 1] = { NULL, };
 
@@ -94,7 +94,7 @@ typedef enum
  * A thread-safe info struct to track the state of a multiplex channel.
  *
  * Each virtual multiplex channel is tracked by the real
- * `ValentMuxConnection` as a `ChannelState`.
+ * `ValentBluezMuxer` as a `ChannelState`.
  */
 typedef struct
 {
@@ -118,8 +118,8 @@ typedef struct
 } ChannelState;
 
 static ChannelState *
-channel_state_new (ValentMuxConnection *muxer,
-                   const char          *uuid)
+channel_state_new (ValentBluezMuxer *muxer,
+                   const char       *uuid)
 {
   ChannelState *state = NULL;
 
@@ -197,9 +197,9 @@ channel_state_unref (gpointer data)
 }
 
 static inline ChannelState *
-channel_state_lookup (ValentMuxConnection  *self,
-                      const char           *uuid,
-                      GError              **error)
+channel_state_lookup (ValentBluezMuxer  *self,
+                      const char        *uuid,
+                      GError           **error)
 {
   ChannelState *state = NULL;
   ChannelState *ret = NULL;
@@ -325,12 +325,12 @@ unpack_header (const uint8_t *hdr,
  * Receive Helpers
  */
 static inline gboolean
-recv_header (ValentMuxConnection  *self,
-             MessageType          *type,
-             uint16_t             *size,
-             char                 *uuid,
-             GCancellable         *cancellable,
-             GError              **error)
+recv_header (ValentBluezMuxer  *self,
+             MessageType       *type,
+             uint16_t          *size,
+             char              *uuid,
+             GCancellable      *cancellable,
+             GError           **error)
 {
   uint8_t hdr[HEADER_SIZE] = { 0, };
   gboolean ret;
@@ -348,9 +348,9 @@ recv_header (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-recv_protocol_version (ValentMuxConnection  *self,
-                       GCancellable         *cancellable,
-                       GError              **error)
+recv_protocol_version (ValentBluezMuxer  *self,
+                       GCancellable      *cancellable,
+                       GError           **error)
 {
   gboolean ret;
   uint16_t supported_versions[2] = { 0, };
@@ -384,10 +384,10 @@ recv_protocol_version (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-recv_open_channel (ValentMuxConnection  *self,
-                   const char           *uuid,
-                   GCancellable         *cancellable,
-                   GError              **error)
+recv_open_channel (ValentBluezMuxer  *self,
+                   const char        *uuid,
+                   GCancellable      *cancellable,
+                   GError           **error)
 {
   gboolean ret = TRUE;
 
@@ -406,7 +406,7 @@ recv_open_channel (ValentMuxConnection  *self,
       g_autoptr (ChannelState) state = NULL;
 
       /* NOTE: the initial MESSAGE_READ request will be sent by
-       *       valent_mux_connection_accept_channel()
+       *       valent_bluez_muxer_accept_channel()
        */
       state = channel_state_new (self, uuid);
       g_hash_table_replace (self->states,
@@ -419,10 +419,10 @@ recv_open_channel (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-recv_close_channel (ValentMuxConnection  *self,
-                    const char           *uuid,
-                    GCancellable         *cancellable,
-                    GError              **error)
+recv_close_channel (ValentBluezMuxer  *self,
+                    const char        *uuid,
+                    GCancellable      *cancellable,
+                    GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
 
@@ -442,10 +442,10 @@ recv_close_channel (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-recv_read (ValentMuxConnection  *self,
-           const char           *uuid,
-           GCancellable         *cancellable,
-           GError              **error)
+recv_read (ValentBluezMuxer  *self,
+           const char        *uuid,
+           GCancellable      *cancellable,
+           GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   uint16_t size_request;
@@ -473,11 +473,11 @@ recv_read (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-recv_write (ValentMuxConnection  *self,
-            const char           *uuid,
-            uint16_t              size,
-            GCancellable         *cancellable,
-            GError              **error)
+recv_write (ValentBluezMuxer  *self,
+            const char        *uuid,
+            uint16_t           size,
+            GCancellable      *cancellable,
+            GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   size_t tail_free;
@@ -531,9 +531,9 @@ recv_write (ValentMuxConnection  *self,
 }
 
 static gpointer
-valent_mux_connection_receive_loop (gpointer data)
+valent_bluez_muxer_receive_loop (gpointer data)
 {
-  g_autoptr (ValentMuxConnection) self = VALENT_MUX_CONNECTION (data);
+  g_autoptr (ValentBluezMuxer) self = VALENT_BLUEZ_MUXER (data);
   MessageType type;
   uint16_t size;
   char uuid[37] = { 0, };
@@ -580,15 +580,15 @@ valent_mux_connection_receive_loop (gpointer data)
 
 out:
   g_debug ("%s(): %s", G_STRFUNC, error->message);
-  valent_mux_connection_close (self, NULL, NULL);
+  valent_bluez_muxer_close (self, NULL, NULL);
 
   return NULL;
 }
 
 static inline gboolean
-send_protocol_version (ValentMuxConnection  *self,
-                       GCancellable         *cancellable,
-                       GError              **error)
+send_protocol_version (ValentBluezMuxer  *self,
+                       GCancellable      *cancellable,
+                       GError           **error)
 {
   uint8_t message[HEADER_SIZE + 4] = { 0, };
 
@@ -609,10 +609,10 @@ send_protocol_version (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-send_open_channel (ValentMuxConnection  *self,
-                   const char           *uuid,
-                   GCancellable         *cancellable,
-                   GError              **error)
+send_open_channel (ValentBluezMuxer  *self,
+                   const char        *uuid,
+                   GCancellable      *cancellable,
+                   GError           **error)
 {
   uint8_t message[HEADER_SIZE] = { 0, };
 
@@ -627,10 +627,10 @@ send_open_channel (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-send_close_channel (ValentMuxConnection  *self,
-                    const char           *uuid,
-                    GCancellable         *cancellable,
-                    GError              **error)
+send_close_channel (ValentBluezMuxer  *self,
+                    const char        *uuid,
+                    GCancellable      *cancellable,
+                    GError           **error)
 {
   uint8_t message[HEADER_SIZE] = { 0, };
 
@@ -645,11 +645,11 @@ send_close_channel (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-send_read (ValentMuxConnection  *self,
-           const char           *uuid,
-           uint16_t              size_request,
-           GCancellable         *cancellable,
-           GError              **error)
+send_read (ValentBluezMuxer  *self,
+           const char        *uuid,
+           uint16_t           size_request,
+           GCancellable      *cancellable,
+           GError           **error)
 {
   uint8_t message[HEADER_SIZE + 2] = { 0, };
 
@@ -668,12 +668,12 @@ send_read (ValentMuxConnection  *self,
 }
 
 static inline gboolean
-send_write (ValentMuxConnection  *self,
-            const char           *uuid,
-            uint16_t              size,
-            const void           *buffer,
-            GCancellable         *cancellable,
-            GError              **error)
+send_write (ValentBluezMuxer  *self,
+            const char        *uuid,
+            uint16_t           size,
+            const void        *buffer,
+            GCancellable      *cancellable,
+            GError           **error)
 {
   uint8_t message[HEADER_SIZE] = { 0, };
   gboolean ret;
@@ -701,13 +701,13 @@ send_write (ValentMuxConnection  *self,
  * ValentObject
  */
 static void
-valent_mux_connection_destroy (ValentObject *object)
+valent_bluez_muxer_destroy (ValentObject *object)
 {
-  ValentMuxConnection *self = VALENT_MUX_CONNECTION (object);
+  ValentBluezMuxer *self = VALENT_BLUEZ_MUXER (object);
 
-  valent_mux_connection_close (self, NULL, NULL);
+  valent_bluez_muxer_close (self, NULL, NULL);
 
-  VALENT_OBJECT_CLASS (valent_mux_connection_parent_class)->destroy (object);
+  VALENT_OBJECT_CLASS (valent_bluez_muxer_parent_class)->destroy (object);
 }
 
 /*
@@ -716,11 +716,11 @@ valent_mux_connection_destroy (ValentObject *object)
  * TODO: GAsyncInitable or merge with ValentMuxChannel
  */
 static void
-valent_mux_connection_constructed (GObject *object)
+valent_bluez_muxer_constructed (GObject *object)
 {
-  ValentMuxConnection *self = VALENT_MUX_CONNECTION (object);
+  ValentBluezMuxer *self = VALENT_BLUEZ_MUXER (object);
 
-  G_OBJECT_CLASS (valent_mux_connection_parent_class)->constructed (object);
+  G_OBJECT_CLASS (valent_bluez_muxer_parent_class)->constructed (object);
 
   valent_object_lock (VALENT_OBJECT (self));
   g_assert (G_IS_IO_STREAM (self->base_stream));
@@ -730,9 +730,9 @@ valent_mux_connection_constructed (GObject *object)
 }
 
 static void
-valent_mux_connection_finalize (GObject *object)
+valent_bluez_muxer_finalize (GObject *object)
 {
-  ValentMuxConnection *self = VALENT_MUX_CONNECTION (object);
+  ValentBluezMuxer *self = VALENT_BLUEZ_MUXER (object);
 
   valent_object_lock (VALENT_OBJECT (self));
   g_clear_object (&self->base_stream);
@@ -740,18 +740,18 @@ valent_mux_connection_finalize (GObject *object)
   g_clear_pointer (&self->states, g_hash_table_unref);
   valent_object_unlock (VALENT_OBJECT (self));
 
-  G_OBJECT_CLASS (valent_mux_connection_parent_class)->finalize (object);
+  G_OBJECT_CLASS (valent_bluez_muxer_parent_class)->finalize (object);
 }
 
 static void
-valent_mux_connection_get_property (GObject    *object,
-                                    guint       prop_id,
-                                    GValue     *value,
-                                    GParamSpec *pspec)
+valent_bluez_muxer_get_property (GObject    *object,
+                                 guint       prop_id,
+                                 GValue     *value,
+                                 GParamSpec *pspec)
 {
-  ValentMuxConnection *self = VALENT_MUX_CONNECTION (object);
+  ValentBluezMuxer *self = VALENT_BLUEZ_MUXER (object);
 
-  switch ((ValentMuxConnectionProperty)prop_id)
+  switch ((ValentBluezMuxerProperty)prop_id)
     {
     case PROP_BASE_STREAM:
       g_value_set_object (value, self->base_stream);
@@ -767,14 +767,14 @@ valent_mux_connection_get_property (GObject    *object,
 }
 
 static void
-valent_mux_connection_set_property (GObject      *object,
-                                    guint         prop_id,
-                                    const GValue *value,
-                                    GParamSpec   *pspec)
+valent_bluez_muxer_set_property (GObject      *object,
+                                 guint         prop_id,
+                                 const GValue *value,
+                                 GParamSpec   *pspec)
 {
-  ValentMuxConnection *self = VALENT_MUX_CONNECTION (object);
+  ValentBluezMuxer *self = VALENT_BLUEZ_MUXER (object);
 
-  switch ((ValentMuxConnectionProperty)prop_id)
+  switch ((ValentBluezMuxerProperty)prop_id)
     {
     case PROP_BASE_STREAM:
       self->base_stream = g_value_dup_object (value);
@@ -790,20 +790,20 @@ valent_mux_connection_set_property (GObject      *object,
 }
 
 static void
-valent_mux_connection_class_init (ValentMuxConnectionClass *klass)
+valent_bluez_muxer_class_init (ValentBluezMuxerClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   ValentObjectClass *vobject_class = VALENT_OBJECT_CLASS (klass);
 
-  object_class->constructed = valent_mux_connection_constructed;
-  object_class->finalize = valent_mux_connection_finalize;
-  object_class->get_property = valent_mux_connection_get_property;
-  object_class->set_property = valent_mux_connection_set_property;
+  object_class->constructed = valent_bluez_muxer_constructed;
+  object_class->finalize = valent_bluez_muxer_finalize;
+  object_class->get_property = valent_bluez_muxer_get_property;
+  object_class->set_property = valent_bluez_muxer_set_property;
 
-  vobject_class->destroy = valent_mux_connection_destroy;
+  vobject_class->destroy = valent_bluez_muxer_destroy;
 
   /**
-   * ValentMuxConnection:base-stream:
+   * ValentBluezMuxer:base-stream:
    *
    * The `GIOStream` being wrapped.
    */
@@ -816,7 +816,7 @@ valent_mux_connection_class_init (ValentMuxConnectionClass *klass)
                           G_PARAM_STATIC_STRINGS));
 
   /**
-   * ValentMuxConnection:buffer-size:
+   * ValentBluezMuxer:buffer-size:
    *
    * Size of the input buffer allocated to each multiplex channel.
    */
@@ -833,7 +833,7 @@ valent_mux_connection_class_init (ValentMuxConnectionClass *klass)
 }
 
 static void
-valent_mux_connection_init (ValentMuxConnection *self)
+valent_bluez_muxer_init (ValentBluezMuxer *self)
 {
   valent_object_lock (VALENT_OBJECT (self));
   self->cancellable = g_cancellable_new ();
@@ -846,24 +846,24 @@ valent_mux_connection_init (ValentMuxConnection *self)
 }
 
 /**
- * valent_mux_connection_new:
+ * valent_bluez_muxer_new:
  * @base_stream: (not nullable): The base stream to wrap
  *
- * Construct a new `ValentMuxConnection` for @base_stream.
+ * Construct a new `ValentBluezMuxer` for @base_stream.
  *
- * Returns: (transfer full): a `ValentMuxConnection`
+ * Returns: (transfer full): a `ValentBluezMuxer`
  */
-ValentMuxConnection *
-valent_mux_connection_new (GIOStream *base_stream)
+ValentBluezMuxer *
+valent_bluez_muxer_new (GIOStream *base_stream)
 {
-  return g_object_new (VALENT_TYPE_MUX_CONNECTION,
+  return g_object_new (VALENT_TYPE_BLUEZ_MUXER,
                        "base-stream", base_stream,
                        NULL);
 }
 
 /**
- * valent_mux_connection_close:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_close:
+ * @muxer: a `ValentBluezMuxer`
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
  *
@@ -872,9 +872,9 @@ valent_mux_connection_new (GIOStream *base_stream)
  * Returns: %TRUE if successful, or %FALSE with @error set
  */
 gboolean
-valent_mux_connection_close (ValentMuxConnection  *connection,
-                             GCancellable         *cancellable,
-                             GError              **error)
+valent_bluez_muxer_close (ValentBluezMuxer  *muxer,
+                          GCancellable      *cancellable,
+                          GError           **error)
 {
   GHashTableIter iter;
   ChannelState *state;
@@ -882,12 +882,12 @@ valent_mux_connection_close (ValentMuxConnection  *connection,
 
   VALENT_ENTRY;
 
-  g_assert (VALENT_IS_MUX_CONNECTION (connection));
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
 
-  valent_object_lock (VALENT_OBJECT (connection));
-  g_cancellable_cancel (connection->cancellable);
+  valent_object_lock (VALENT_OBJECT (muxer));
+  g_cancellable_cancel (muxer->cancellable);
 
-  g_hash_table_iter_init (&iter, connection->states);
+  g_hash_table_iter_init (&iter, muxer->states);
   while (g_hash_table_iter_next (&iter, NULL, (void **)&state))
     {
       g_hash_table_iter_steal (&iter);
@@ -895,8 +895,8 @@ valent_mux_connection_close (ValentMuxConnection  *connection,
       channel_state_unref (state);
     }
 
-  ret = g_io_stream_close (connection->base_stream, cancellable, error);
-  valent_object_unlock (VALENT_OBJECT (connection));
+  ret = g_io_stream_close (muxer->base_stream, cancellable, error);
+  valent_object_unlock (VALENT_OBJECT (muxer));
 
   VALENT_RETURN (ret);
 }
@@ -934,7 +934,7 @@ handshake_data_free (gpointer user_data)
 static void
 handshake_task_complete (GTask *task)
 {
-  ValentMuxConnection *self = g_task_get_source_object (task);
+  ValentBluezMuxer *self = g_task_get_source_object (task);
   HandshakeData *data = g_task_get_task_data (task);
   g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (GTlsCertificate) certificate = NULL;
@@ -1059,7 +1059,7 @@ handshake_protocol_task_cb (GObject      *object,
                             gpointer      user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  ValentMuxConnection *self = g_task_get_source_object (task);
+  ValentBluezMuxer *self = g_task_get_source_object (task);
   HandshakeData *data = g_task_get_task_data (task);
   GCancellable *cancellable = g_task_get_cancellable (task);
   g_autoptr (GIOStream) stream = NULL;
@@ -1073,8 +1073,8 @@ handshake_protocol_task_cb (GObject      *object,
       return;
     }
 
-  thread = g_thread_try_new ("valent-mux-connection",
-                             valent_mux_connection_receive_loop,
+  thread = g_thread_try_new ("valent-bluez-muxer",
+                             valent_bluez_muxer_receive_loop,
                              g_object_ref (self),
                              &error);
   if (thread == NULL)
@@ -1102,7 +1102,7 @@ handshake_protocol_task (GTask        *task,
                          gpointer      task_data,
                          GCancellable *cancellable)
 {
-  ValentMuxConnection *self = VALENT_MUX_CONNECTION (source_object);
+  ValentBluezMuxer *self = VALENT_BLUEZ_MUXER (source_object);
   ChannelState *state = (ChannelState *)task_data;
   g_autoptr (GIOStream) base_stream = NULL;
   GError *error = NULL;
@@ -1138,84 +1138,83 @@ handshake_protocol_task (GTask        *task,
 }
 
 /**
- * valent_mux_connection_handshake:
- * @connection: a `ValentMuxConnection`
- * @identity: a `JsonNode`
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_handshake:
+ * @muxer: a `ValentBluezMuxer`
+ * @identity: a KDE Connect identity packet
  * @cancellable: (nullable): a `GCancellable`
  * @callback: (scope async): a `GAsyncReadyCallback`
  * @user_data: user supplied data
  *
- * Attempt to negotiate a multiplex channel on @connection. This is a two-part
+ * Attempt to negotiate a multiplex channel on @muxer. This is a two-part
  * process involving negotiating the protocol version (currently only version 1)
  * and exchanging identity packets.
  *
- * Call [class@Valent.MuxConnection.handshake_finish] to get the result.
+ * Call [class@Valent.BluezMuxer.handshake_finish] to get the result.
  *
  * Returns: (transfer full): a `ValentChannel`
  */
 void
-valent_mux_connection_handshake (ValentMuxConnection *connection,
-                                 JsonNode            *identity,
-                                 GCancellable        *cancellable,
-                                 GAsyncReadyCallback  callback,
-                                 gpointer             user_data)
+valent_bluez_muxer_handshake (ValentBluezMuxer    *muxer,
+                              JsonNode            *identity,
+                              GCancellable        *cancellable,
+                              GAsyncReadyCallback  callback,
+                              gpointer             user_data)
 {
   g_autoptr (ChannelState) state = NULL;
   g_autoptr (GTask) protocol = NULL;
   g_autoptr (GTask) task = NULL;
   HandshakeData *data = NULL;
 
-  g_return_if_fail (VALENT_IS_MUX_CONNECTION (connection));
+  g_return_if_fail (VALENT_IS_BLUEZ_MUXER (muxer));
   g_return_if_fail (VALENT_IS_PACKET (identity));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
 
-  valent_object_lock (VALENT_OBJECT (connection));
-  state = channel_state_new (connection, PRIMARY_UUID);
-  g_hash_table_replace (connection->states,
+  valent_object_lock (VALENT_OBJECT (muxer));
+  state = channel_state_new (muxer, PRIMARY_UUID);
+  g_hash_table_replace (muxer->states,
                         state->uuid,
                         g_atomic_rc_box_acquire (state));
-  valent_object_unlock (VALENT_OBJECT (connection));
+  valent_object_unlock (VALENT_OBJECT (muxer));
 
   data = g_new0 (HandshakeData, 1);
   data->identity = json_node_ref (identity);
   data->flags |= HANDSHAKE_ENCRYPTED;
 
-  task = g_task_new (connection, cancellable, callback, user_data);
-  g_task_set_source_tag (task, valent_mux_connection_handshake);
+  task = g_task_new (muxer, cancellable, callback, user_data);
+  g_task_set_source_tag (task, valent_bluez_muxer_handshake);
   g_task_set_task_data (task, g_steal_pointer (&data), handshake_data_free);
 
-  protocol = g_task_new (connection, cancellable, handshake_protocol_task_cb, g_object_ref (task));
+  protocol = g_task_new (muxer, cancellable, handshake_protocol_task_cb, g_object_ref (task));
   g_task_set_source_tag (protocol, handshake_protocol_task);
   g_task_set_task_data (protocol, g_steal_pointer (&state), channel_state_unref);
   g_task_run_in_thread (protocol, handshake_protocol_task);
 }
 
 /**
- * valent_mux_connection_handshake_finish:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_handshake_finish:
+ * @muxer: a `ValentBluezMuxer`
  * @result: a `GAsyncResult`
  * @error: (nullable): a `GError`
  *
- * Finishes an operation started by [class@Valent.MuxConnection.handshake].
+ * Finishes an operation started by [class@Valent.BluezMuxer.handshake].
  *
  * Returns: (transfer full): a `ValentChannel`
  */
 ValentChannel *
-valent_mux_connection_handshake_finish (ValentMuxConnection  *connection,
-                                        GAsyncResult         *result,
-                                        GError              **error)
+valent_bluez_muxer_handshake_finish (ValentBluezMuxer  *muxer,
+                                     GAsyncResult      *result,
+                                     GError           **error)
 {
-  g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), NULL);
-  g_return_val_if_fail (g_task_is_valid (result, connection), NULL);
+  g_return_val_if_fail (VALENT_IS_BLUEZ_MUXER (muxer), NULL);
+  g_return_val_if_fail (g_task_is_valid (result, muxer), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 /**
- * valent_mux_connection_accept_channel:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_accept_channel:
+ * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
@@ -1225,15 +1224,15 @@ valent_mux_connection_handshake_finish (ValentMuxConnection  *connection,
  * Returns: (transfer full): a `GIOStream`
  */
 GIOStream *
-valent_mux_connection_accept_channel (ValentMuxConnection  *connection,
-                                      const char           *uuid,
-                                      GCancellable         *cancellable,
-                                      GError              **error)
+valent_bluez_muxer_accept_channel (ValentBluezMuxer  *muxer,
+                                   const char        *uuid,
+                                   GCancellable      *cancellable,
+                                   GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   GIOStream *ret = NULL;
 
-  g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), NULL);
+  g_return_val_if_fail (VALENT_IS_BLUEZ_MUXER (muxer), NULL);
   g_return_val_if_fail (uuid != NULL, NULL);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
@@ -1242,11 +1241,11 @@ valent_mux_connection_accept_channel (ValentMuxConnection  *connection,
    */
   while (!g_cancellable_set_error_if_cancelled (cancellable, error))
     {
-      state = channel_state_lookup (connection, uuid, NULL);
+      state = channel_state_lookup (muxer, uuid, NULL);
       if (state != NULL)
         {
           g_mutex_lock (&state->mutex);
-          if (send_read (connection, uuid, state->size, cancellable, error))
+          if (send_read (muxer, uuid, state->size, cancellable, error))
             {
               state->read_free += state->size;
               ret = g_object_ref (state->stream);
@@ -1262,8 +1261,8 @@ valent_mux_connection_accept_channel (ValentMuxConnection  *connection,
 }
 
 /**
- * valent_mux_connection_close_channel:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_close_channel:
+ * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
@@ -1273,40 +1272,40 @@ valent_mux_connection_accept_channel (ValentMuxConnection  *connection,
  * Returns: the protocol version
  */
 gboolean
-valent_mux_connection_close_channel (ValentMuxConnection  *connection,
-                                     const char           *uuid,
-                                     GCancellable         *cancellable,
-                                     GError              **error)
+valent_bluez_muxer_close_channel (ValentBluezMuxer  *muxer,
+                                  const char        *uuid,
+                                  GCancellable      *cancellable,
+                                  GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   gboolean ret = TRUE;
 
-  g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), FALSE);
+  g_return_val_if_fail (VALENT_IS_BLUEZ_MUXER (muxer), FALSE);
 
-  valent_object_lock (VALENT_OBJECT (connection));
-  g_hash_table_steal_extended (connection->states, uuid, NULL, (void **)&state);
-  valent_object_unlock (VALENT_OBJECT (connection));
+  valent_object_lock (VALENT_OBJECT (muxer));
+  g_hash_table_steal_extended (muxer->states, uuid, NULL, (void **)&state);
+  valent_object_unlock (VALENT_OBJECT (muxer));
   if (state != NULL)
     {
       g_mutex_lock (&state->mutex);
       if ((state->condition & G_IO_HUP) == 0)
         {
-          valent_object_lock (VALENT_OBJECT (connection));
-          send_close_channel (connection, uuid, cancellable, NULL);
+          valent_object_lock (VALENT_OBJECT (muxer));
+          send_close_channel (muxer, uuid, cancellable, NULL);
           state->condition = G_IO_HUP;
-          valent_object_unlock (VALENT_OBJECT (connection));
+          valent_object_unlock (VALENT_OBJECT (muxer));
         }
       ret = channel_state_notify_unlocked (state, NULL);
       g_mutex_unlock (&state->mutex);
     }
-  valent_object_unlock (VALENT_OBJECT (connection));
+  valent_object_unlock (VALENT_OBJECT (muxer));
 
   return ret;
 }
 
 /**
- * valent_mux_connection_close_stream:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_close_stream:
+ * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @condition: a `GIOCondition`
  * @cancellable: (nullable): a `GCancellable`
@@ -1318,20 +1317,20 @@ valent_mux_connection_close_channel (ValentMuxConnection  *connection,
  * Returns: %TRUE, or %FALSE with @error set
  */
 gboolean
-valent_mux_connection_close_stream (ValentMuxConnection  *connection,
-                                    const char           *uuid,
-                                    GIOCondition          condition,
-                                    GCancellable         *cancellable,
-                                    GError              **error)
+valent_bluez_muxer_close_stream (ValentBluezMuxer  *muxer,
+                                 const char        *uuid,
+                                 GIOCondition       condition,
+                                 GCancellable      *cancellable,
+                                 GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   gboolean ret;
 
-  g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), FALSE);
+  g_return_val_if_fail (VALENT_IS_BLUEZ_MUXER (muxer), FALSE);
   g_return_val_if_fail (uuid != NULL && *uuid != '\0', FALSE);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), TRUE);
 
-  state = channel_state_lookup (connection, uuid, error);
+  state = channel_state_lookup (muxer, uuid, error);
   if (state == NULL)
     return FALSE;
 
@@ -1342,10 +1341,10 @@ valent_mux_connection_close_stream (ValentMuxConnection  *connection,
   state->condition &= ~condition;
   if ((state->condition & G_IO_HUP) == 0)
     {
-      valent_object_lock (VALENT_OBJECT (connection));
-      if (send_close_channel (connection, uuid, cancellable, error))
+      valent_object_lock (VALENT_OBJECT (muxer));
+      if (send_close_channel (muxer, uuid, cancellable, error))
         state->condition |= G_IO_HUP;
-      valent_object_unlock (VALENT_OBJECT (connection));
+      valent_object_unlock (VALENT_OBJECT (muxer));
     }
   ret = channel_state_notify_unlocked (state, error);
   g_mutex_unlock (&state->mutex);
@@ -1354,8 +1353,8 @@ valent_mux_connection_close_stream (ValentMuxConnection  *connection,
 }
 
 /**
- * valent_mux_connection_flush_stream:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_flush_stream:
+ * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
@@ -1366,19 +1365,19 @@ valent_mux_connection_close_stream (ValentMuxConnection  *connection,
  * Returns: %TRUE, or %FALSE with @error set
  */
 gboolean
-valent_mux_connection_flush_stream (ValentMuxConnection  *connection,
-                                    const char           *uuid,
-                                    GCancellable         *cancellable,
-                                    GError              **error)
+valent_bluez_muxer_flush_stream (ValentBluezMuxer  *muxer,
+                                 const char        *uuid,
+                                 GCancellable      *cancellable,
+                                 GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   gboolean ret;
 
-  g_return_val_if_fail (VALENT_IS_MUX_CONNECTION (connection), FALSE);
+  g_return_val_if_fail (VALENT_IS_BLUEZ_MUXER (muxer), FALSE);
   g_return_val_if_fail (uuid != NULL && *uuid != '\0', FALSE);
   g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), TRUE);
 
-  state = channel_state_lookup (connection, uuid, error);
+  state = channel_state_lookup (muxer, uuid, error);
   if (state == NULL)
     return FALSE;
 
@@ -1390,8 +1389,8 @@ valent_mux_connection_flush_stream (ValentMuxConnection  *connection,
 }
 
 /**
- * valent_mux_connection_open_channel:
- * @muxer: a `ValentMuxConnection`
+ * valent_bluez_muxer_open_channel:
+ * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
@@ -1401,14 +1400,14 @@ valent_mux_connection_flush_stream (ValentMuxConnection  *connection,
  * Returns: (transfer full): a `GIOStream`
  */
 GIOStream *
-valent_mux_connection_open_channel (ValentMuxConnection  *muxer,
-                                    const char           *uuid,
-                                    GCancellable         *cancellable,
-                                    GError              **error)
+valent_bluez_muxer_open_channel (ValentBluezMuxer  *muxer,
+                                 const char        *uuid,
+                                 GCancellable      *cancellable,
+                                 GError           **error)
 {
   GIOStream *ret = NULL;
 
-  g_assert (VALENT_IS_MUX_CONNECTION (muxer));
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
   g_assert (g_uuid_string_is_valid (uuid));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
@@ -1446,8 +1445,8 @@ valent_mux_connection_open_channel (ValentMuxConnection  *muxer,
 }
 
 /**
- * valent_mux_connection_read:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_read:
+ * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @buffer: a buffer to read data into
  * @count: the number of bytes that will be read from the stream
@@ -1466,24 +1465,24 @@ valent_mux_connection_open_channel (ValentMuxConnection  *muxer,
  * Returns: number of bytes read, or -1 on error, or 0 on end of file
  */
 gssize
-valent_mux_connection_read (ValentMuxConnection  *connection,
-                            const char           *uuid,
-                            void                 *buffer,
-                            size_t                count,
-                            gboolean              blocking,
-                            GCancellable         *cancellable,
-                            GError              **error)
+valent_bluez_muxer_read (ValentBluezMuxer  *muxer,
+                         const char        *uuid,
+                         void              *buffer,
+                         size_t             count,
+                         gboolean           blocking,
+                         GCancellable      *cancellable,
+                         GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   gssize read;
   uint16_t size_request = 0;
 
-  g_assert (VALENT_IS_MUX_CONNECTION (connection));
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
   g_assert (g_uuid_string_is_valid (uuid));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  state = channel_state_lookup (connection, uuid, error);
+  state = channel_state_lookup (muxer, uuid, error);
   if (state == NULL)
     return -1;
 
@@ -1559,7 +1558,7 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
    */
   if (size_request > 0)
     {
-      if (send_read (connection, uuid, size_request, cancellable, error))
+      if (send_read (muxer, uuid, size_request, cancellable, error))
         {
           g_mutex_lock (&state->mutex);
           state->read_free += size_request;
@@ -1571,8 +1570,8 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
 }
 
 /**
- * valent_mux_connection_write:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_write:
+ * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @buffer: data to write
  * @count: size of the write
@@ -1590,23 +1589,23 @@ valent_mux_connection_read (ValentMuxConnection  *connection,
  * Returns: number of bytes written, or -1 with @error set
  */
 gssize
-valent_mux_connection_write (ValentMuxConnection  *connection,
-                             const char           *uuid,
-                             const void           *buffer,
-                             size_t                count,
-                             gboolean              blocking,
-                             GCancellable         *cancellable,
-                             GError              **error)
+valent_bluez_muxer_write (ValentBluezMuxer  *muxer,
+                          const char        *uuid,
+                          const void        *buffer,
+                          size_t             count,
+                          gboolean           blocking,
+                          GCancellable      *cancellable,
+                          GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   gssize written;
 
-  g_assert (VALENT_IS_MUX_CONNECTION (connection));
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
   g_assert (g_uuid_string_is_valid (uuid));
   g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
   g_assert (error == NULL || *error == NULL);
 
-  state = channel_state_lookup (connection, uuid, error);
+  state = channel_state_lookup (muxer, uuid, error);
   if (state == NULL)
     return -1;
 
@@ -1647,7 +1646,7 @@ valent_mux_connection_write (ValentMuxConnection  *connection,
     }
 
   written = MIN (count, state->write_free);
-  if (send_write (connection, uuid, written, buffer, cancellable, error))
+  if (send_write (muxer, uuid, written, buffer, cancellable, error))
     {
       state->write_free -= written;
     }
@@ -1783,8 +1782,8 @@ static GSourceFuncs muxer_stream_source_funcs =
 };
 
 /**
- * valent_mux_connection_create_source:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_create_source:
+ * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @condition: a `GIOCondition`
  *
@@ -1793,18 +1792,18 @@ static GSourceFuncs muxer_stream_source_funcs =
  * Returns: (transfer full) (nullable): a new `GSource`
  */
 GSource *
-valent_mux_connection_create_source (ValentMuxConnection *connection,
-                                     const char          *uuid,
-                                     GIOCondition         condition)
+valent_bluez_muxer_create_source (ValentBluezMuxer *muxer,
+                                  const char       *uuid,
+                                  GIOCondition      condition)
 {
   g_autoptr (ChannelState) state = NULL;
   GSource *source = NULL;
   ValentMuxerSource *stream_source;
 
-  g_assert (VALENT_IS_MUX_CONNECTION (connection));
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
   g_assert (g_uuid_string_is_valid (uuid));
 
-  state = channel_state_lookup (connection, uuid, NULL);
+  state = channel_state_lookup (muxer, uuid, NULL);
   if (state == NULL)
     return g_source_new (&broken_funcs, sizeof (GSource));
 
@@ -1822,8 +1821,8 @@ valent_mux_connection_create_source (ValentMuxConnection *connection,
 }
 
 /**
- * valent_mux_connection_condition_check:
- * @connection: a `ValentMuxConnection`
+ * valent_bluez_muxer_condition_check:
+ * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @condition: a `GIOCondition` mask to check
  *
@@ -1839,17 +1838,17 @@ valent_mux_connection_create_source (ValentMuxConnection *connection,
  * Returns: the @GIOCondition mask of the current state
  */
 GIOCondition
-valent_mux_connection_condition_check (ValentMuxConnection *connection,
-                                       const char          *uuid,
-                                       GIOCondition         condition)
+valent_bluez_muxer_condition_check (ValentBluezMuxer *muxer,
+                                    const char       *uuid,
+                                    GIOCondition      condition)
 {
   g_autoptr (ChannelState) state = NULL;
   GIOCondition ret = 0;
 
-  g_assert (VALENT_IS_MUX_CONNECTION (connection));
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
   g_assert (g_uuid_string_is_valid (uuid));
 
-  state = channel_state_lookup (connection, uuid, NULL);
+  state = channel_state_lookup (muxer, uuid, NULL);
   if (state == NULL)
     return G_IO_ERR;
 
@@ -1870,3 +1869,4 @@ valent_mux_connection_condition_check (ValentMuxConnection *connection,
 
   return ret;
 }
+
