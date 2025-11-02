@@ -5,7 +5,7 @@
 
 #include <gio/gio.h>
 
-#include "valent-mux-connection.h"
+#include "valent-bluez-muxer.h"
 
 G_BEGIN_DECLS
 
@@ -13,8 +13,8 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentMuxIOStream, valent_mux_io_stream, VALENT, MUX_IO_STREAM, GIOStream)
 
-GIOStream  * valent_mux_io_stream_new      (ValentMuxConnection *muxer,
-                                            const char          *uuid);
+GIOStream * valent_mux_io_stream_new (ValentBluezMuxer *muxer,
+                                      const char       *uuid);
 
 G_END_DECLS
 

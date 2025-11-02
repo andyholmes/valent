@@ -7,10 +7,11 @@
 
 #include <valent.h>
 
-#include "valent-bluez-channel-service.h"
 #include "valent-bluez-device.h"
+#include "valent-bluez-muxer.h"
 #include "valent-bluez-profile.h"
-#include "valent-mux-connection.h"
+
+#include "valent-bluez-channel-service.h"
 
 #define DEFAULT_BUFFER_SIZE 4096
 
@@ -31,12 +32,12 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (ValentBluezChannelService, valent_bluez_channel_s
                                G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE, g_async_initable_iface_init))
 
 /*
- * ValentMuxConnection Callbacks
+ * ValentBluezProfile Callbacks
  */
 static void
-valent_mux_connection_handshake_cb (ValentMuxConnection *muxer,
-                                    GAsyncResult        *result,
-                                    gpointer             user_data)
+valent_bluez_muxer_handshake_cb (ValentBluezMuxer *muxer,
+                                 GAsyncResult     *result,
+                                 gpointer          user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   ValentBluezChannelService *self = g_task_get_source_object (task);
@@ -44,7 +45,7 @@ valent_mux_connection_handshake_cb (ValentMuxConnection *muxer,
   g_autoptr (ValentChannel) channel = NULL;
   g_autoptr (GError) error = NULL;
 
-  channel = valent_mux_connection_handshake_finish (muxer, result, &error);
+  channel = valent_bluez_muxer_handshake_finish (muxer, result, &error);
   if (channel != NULL)
     {
       g_hash_table_replace (self->muxers,
@@ -60,9 +61,6 @@ valent_mux_connection_handshake_cb (ValentMuxConnection *muxer,
   g_task_return_boolean (task, TRUE);
 }
 
-/*
- * ValentBluezProfile Callbacks
- */
 static void
 on_connection_opened (ValentBluezProfile *profile,
                       GSocketConnection  *connection,
@@ -70,7 +68,7 @@ on_connection_opened (ValentBluezProfile *profile,
                       gpointer            user_data)
 {
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (user_data);
-  g_autoptr (ValentMuxConnection) muxer = NULL;
+  g_autoptr (ValentBluezMuxer) muxer = NULL;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (GTask) task = NULL;
   g_autoptr (GCancellable) cancellable = NULL;
@@ -85,15 +83,15 @@ on_connection_opened (ValentBluezProfile *profile,
 
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
-  muxer = g_object_new (VALENT_TYPE_MUX_CONNECTION,
+  muxer = g_object_new (VALENT_TYPE_BLUEZ_MUXER,
                         "base-stream", connection,
                         "buffer-size", DEFAULT_BUFFER_SIZE,
                         NULL);
-  valent_mux_connection_handshake (muxer,
-                                   identity,
-                                   cancellable,
-                                   (GAsyncReadyCallback)valent_mux_connection_handshake_cb,
-                                   g_object_ref (task));
+  valent_bluez_muxer_handshake (muxer,
+                                identity,
+                                cancellable,
+                                (GAsyncReadyCallback)valent_bluez_muxer_handshake_cb,
+                                g_object_ref (task));
 }
 
 static void
@@ -109,7 +107,7 @@ on_connection_closed (ValentBluezProfile *profile,
 
   if (g_hash_table_steal_extended (self->muxers, object_path, &key, &value))
     {
-      valent_mux_connection_close (value, NULL, NULL);
+      valent_bluez_muxer_close (value, NULL, NULL);
       g_free (key);
       g_object_unref (value);
     }
@@ -163,7 +161,7 @@ on_interfaces_removed (ValentBluezChannelService  *self,
 
   if (g_hash_table_steal_extended (self->muxers, object_path, &key, &value))
     {
-      valent_mux_connection_close (value, NULL, NULL);
+      valent_bluez_muxer_close (value, NULL, NULL);
       g_free (key);
       g_object_unref (value);
     }
@@ -311,12 +309,12 @@ on_name_owner_changed (GDBusProxy                *proxy,
   else
     {
       GHashTableIter iter;
-      ValentMuxConnection *connection;
+      ValentBluezMuxer *connection;
 
       g_hash_table_iter_init (&iter, self->muxers);
       while (g_hash_table_iter_next (&iter, NULL, (void **)&connection))
         {
-          valent_mux_connection_close (connection, NULL, NULL);
+          valent_bluez_muxer_close (connection, NULL, NULL);
           g_hash_table_iter_remove (&iter);
         }
 

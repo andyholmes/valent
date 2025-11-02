@@ -7,16 +7,17 @@
 
 #include <gio/gio.h>
 
-#include "valent-mux-connection.h"
+#include "valent-bluez-muxer.h"
+
 #include "valent-mux-input-stream.h"
 
 
 struct _ValentMuxInputStream
 {
-  GInputStream         parent_instance;
+  GInputStream      parent_instance;
 
-  ValentMuxConnection *muxer;
-  char                *uuid;
+  ValentBluezMuxer *muxer;
+  char             *uuid;
 };
 
 static void   g_pollable_input_stream_iface_init (GPollableInputStreamInterface *iface);
@@ -40,9 +41,9 @@ valent_mux_input_stream_is_readable (GPollableInputStream *pollable)
   ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (pollable);
   GIOCondition condition;
 
-  condition = valent_mux_connection_condition_check (self->muxer,
-                                                     self->uuid,
-                                                     G_IO_IN);
+  condition = valent_bluez_muxer_condition_check (self->muxer,
+                                                  self->uuid,
+                                                  G_IO_IN);
 
   return (condition & G_IO_IN) != 0;
 }
@@ -54,9 +55,9 @@ valent_mux_input_stream_create_source (GPollableInputStream *pollable,
   ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (pollable);
   g_autoptr (GSource) muxer_source = NULL;
 
-  muxer_source = valent_mux_connection_create_source (self->muxer,
-                                                      self->uuid,
-                                                      G_IO_IN);
+  muxer_source = valent_bluez_muxer_create_source (self->muxer,
+                                                   self->uuid,
+                                                   G_IO_IN);
 
   return g_pollable_source_new_full (pollable, muxer_source, cancellable);
 }
@@ -72,13 +73,13 @@ valent_mux_input_stream_read_nonblocking (GPollableInputStream  *pollable,
 
   VALENT_ENTRY;
 
-  ret = valent_mux_connection_read (self->muxer,
-                                    self->uuid,
-                                    buffer,
-                                    count,
-                                    FALSE,
-                                    NULL,
-                                    error);
+  ret = valent_bluez_muxer_read (self->muxer,
+                                 self->uuid,
+                                 buffer,
+                                 count,
+                                 FALSE,
+                                 NULL,
+                                 error);
 
   VALENT_RETURN (ret);
 }
@@ -106,11 +107,11 @@ valent_mux_input_stream_close (GInputStream  *stream,
 
   g_assert (VALENT_IS_MUX_INPUT_STREAM (stream));
 
-  ret = valent_mux_connection_close_stream (self->muxer,
-                                            self->uuid,
-                                            G_IO_IN,
-                                            cancellable,
-                                            error);
+  ret = valent_bluez_muxer_close_stream (self->muxer,
+                                         self->uuid,
+                                         G_IO_IN,
+                                         cancellable,
+                                         error);
 
   VALENT_RETURN (ret);
 }
@@ -129,13 +130,13 @@ valent_mux_input_stream_read (GInputStream  *stream,
 
   g_assert (VALENT_IS_MUX_INPUT_STREAM (stream));
 
-  ret = valent_mux_connection_read (self->muxer,
-                                    self->uuid,
-                                    buffer,
-                                    count,
-                                    TRUE,
-                                    cancellable,
-                                    error);
+  ret = valent_bluez_muxer_read (self->muxer,
+                                 self->uuid,
+                                 buffer,
+                                 count,
+                                 TRUE,
+                                 cancellable,
+                                 error);
 
   VALENT_RETURN (ret);
 }
@@ -215,7 +216,7 @@ valent_mux_input_stream_class_init (ValentMuxInputStreamClass *klass)
 
   properties [PROP_MUXER] =
     g_param_spec_object ("muxer", NULL, NULL,
-                         VALENT_TYPE_MUX_CONNECTION,
+                         VALENT_TYPE_BLUEZ_MUXER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |

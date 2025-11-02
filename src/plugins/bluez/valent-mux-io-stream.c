@@ -7,7 +7,7 @@
 
 #include <gio/gio.h>
 
-#include "valent-mux-connection.h"
+#include "valent-bluez-muxer.h"
 #include "valent-mux-input-stream.h"
 #include "valent-mux-output-stream.h"
 
@@ -15,13 +15,13 @@
 
 struct _ValentMuxIOStream
 {
-  GIOStream            parent_instance;
+  GIOStream         parent_instance;
 
-  ValentMuxConnection *muxer;
-  char                *uuid;
+  ValentBluezMuxer *muxer;
+  char             *uuid;
 
-  GInputStream        *input_stream;
-  GOutputStream       *output_stream;
+  GInputStream     *input_stream;
+  GOutputStream    *output_stream;
 };
 
 G_DEFINE_FINAL_TYPE (ValentMuxIOStream, valent_mux_io_stream, G_TYPE_IO_STREAM)
@@ -70,10 +70,10 @@ valent_mux_io_stream_close_fn (GIOStream     *stream,
   if (error != NULL && *error != NULL)
     error = NULL;
 
-  ret &= valent_mux_connection_close_channel (self->muxer,
-                                              self->uuid,
-                                              cancellable,
-                                              error);
+  ret &= valent_bluez_muxer_close_channel (self->muxer,
+                                           self->uuid,
+                                           cancellable,
+                                           error);
 
   VALENT_RETURN (ret);
 }
@@ -88,7 +88,7 @@ valent_mux_io_stream_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_mux_io_stream_parent_class)->constructed (object);
 
-  g_assert (VALENT_IS_MUX_CONNECTION (self->muxer));
+  g_assert (VALENT_IS_BLUEZ_MUXER (self->muxer));
   g_assert (g_uuid_string_is_valid (self->uuid));
 
   self->input_stream = g_object_new (VALENT_TYPE_MUX_INPUT_STREAM,
@@ -177,7 +177,7 @@ valent_mux_io_stream_class_init (ValentMuxIOStreamClass *klass)
 
   properties [PROP_MUXER] =
     g_param_spec_object ("muxer", NULL, NULL,
-                         VALENT_TYPE_MUX_CONNECTION,
+                         VALENT_TYPE_BLUEZ_MUXER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |

@@ -8,14 +8,14 @@
 #include <valent.h>
 
 #include "valent-bluez-channel.h"
-#include "valent-mux-connection.h"
+#include "valent-bluez-muxer.h"
 
 
 struct _ValentBluezChannel
 {
-  ValentChannel        parent_instance;
+  ValentChannel     parent_instance;
 
-  ValentMuxConnection *muxer;
+  ValentBluezMuxer *muxer;
 };
 
 G_DEFINE_FINAL_TYPE (ValentBluezChannel, valent_bluez_channel, VALENT_TYPE_CHANNEL)
@@ -66,10 +66,10 @@ valent_bluez_channel_download_task (GTask        *task,
   /* Open a new channel
    */
   valent_object_lock (VALENT_OBJECT (self));
-  stream = valent_mux_connection_accept_channel (self->muxer,
-                                                 uuid,
-                                                 cancellable,
-                                                 &error);
+  stream = valent_bluez_muxer_accept_channel (self->muxer,
+                                              uuid,
+                                              cancellable,
+                                              &error);
   valent_object_unlock (VALENT_OBJECT (self));
   if (stream == NULL)
     {
@@ -124,10 +124,10 @@ valent_bluez_channel_upload_task (GTask        *task,
   /* Open a new channel
    */
   valent_object_lock (VALENT_OBJECT (self));
-  stream = valent_mux_connection_open_channel (self->muxer,
-                                               uuid,
-                                               cancellable,
-                                               &error);
+  stream = valent_bluez_muxer_open_channel (self->muxer,
+                                            uuid,
+                                            cancellable,
+                                            &error);
   valent_object_unlock (VALENT_OBJECT (self));
   if (stream == NULL)
     {
@@ -239,11 +239,11 @@ valent_bluez_channel_class_init (ValentBluezChannelClass *klass)
   /**
    * ValentBluezChannel:muxer:
    *
-   * The `ValentMuxConnection` responsible for muxing and demuxing data.
+   * The [class@Valent.BluezMuxer] responsible for muxing and demuxing data.
    */
   properties [PROP_MUXER] =
     g_param_spec_object ("muxer", NULL, NULL,
-                         VALENT_TYPE_MUX_CONNECTION,
+                         VALENT_TYPE_BLUEZ_MUXER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |

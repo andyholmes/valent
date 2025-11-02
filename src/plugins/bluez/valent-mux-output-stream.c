@@ -7,16 +7,17 @@
 
 #include <gio/gio.h>
 
-#include "valent-mux-connection.h"
+#include "valent-bluez-muxer.h"
+
 #include "valent-mux-output-stream.h"
 
 
 struct _ValentMuxOutputStream
 {
-  GOutputStream        parent_instance;
+  GOutputStream     parent_instance;
 
-  ValentMuxConnection *muxer;
-  char                *uuid;
+  ValentBluezMuxer *muxer;
+  char             *uuid;
 };
 
 static void   g_pollable_output_stream_iface_init (GPollableOutputStreamInterface *iface);
@@ -40,9 +41,9 @@ valent_mux_output_stream_is_writable (GPollableOutputStream *pollable)
   ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (pollable);
   GIOCondition condition;
 
-  condition = valent_mux_connection_condition_check (self->muxer,
-                                                     self->uuid,
-                                                     G_IO_OUT);
+  condition = valent_bluez_muxer_condition_check (self->muxer,
+                                                  self->uuid,
+                                                  G_IO_OUT);
 
   return (condition & G_IO_OUT) != 0;
 }
@@ -58,13 +59,13 @@ valent_mux_output_stream_write_nonblocking (GPollableOutputStream  *pollable,
 
   VALENT_ENTRY;
 
-  ret = valent_mux_connection_write (self->muxer,
-                                     self->uuid,
-                                     buffer,
-                                     count,
-                                     FALSE,
-                                     NULL,
-                                     error);
+  ret = valent_bluez_muxer_write (self->muxer,
+                                  self->uuid,
+                                  buffer,
+                                  count,
+                                  FALSE,
+                                  NULL,
+                                  error);
 
   VALENT_RETURN (ret);
 }
@@ -76,9 +77,9 @@ valent_mux_output_stream_create_source (GPollableOutputStream *pollable,
   ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (pollable);
   g_autoptr (GSource) muxer_source = NULL;
 
-  muxer_source = valent_mux_connection_create_source (self->muxer,
-                                                      self->uuid,
-                                                      G_IO_OUT);
+  muxer_source = valent_bluez_muxer_create_source (self->muxer,
+                                                   self->uuid,
+                                                   G_IO_OUT);
 
   return g_pollable_source_new_full (pollable, muxer_source, cancellable);
 }
@@ -106,11 +107,11 @@ valent_mux_output_stream_close (GOutputStream  *stream,
 
   g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
 
-  ret = valent_mux_connection_close_stream (self->muxer,
-                                            self->uuid,
-                                            G_IO_OUT,
-                                            cancellable,
-                                            error);
+  ret = valent_bluez_muxer_close_stream (self->muxer,
+                                         self->uuid,
+                                         G_IO_OUT,
+                                         cancellable,
+                                         error);
 
   VALENT_RETURN (ret);
 }
@@ -127,10 +128,10 @@ valent_mux_output_stream_flush (GOutputStream  *stream,
 
   g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
 
-  ret = valent_mux_connection_flush_stream (self->muxer,
-                                            self->uuid,
-                                            cancellable,
-                                            error);
+  ret = valent_bluez_muxer_flush_stream (self->muxer,
+                                         self->uuid,
+                                         cancellable,
+                                         error);
 
   VALENT_RETURN (ret);
 }
@@ -149,13 +150,13 @@ valent_mux_output_stream_write (GOutputStream  *stream,
 
   g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
 
-  ret = valent_mux_connection_write (self->muxer,
-                                     self->uuid,
-                                     buffer,
-                                     count,
-                                     TRUE,
-                                     cancellable,
-                                     error);
+  ret = valent_bluez_muxer_write (self->muxer,
+                                  self->uuid,
+                                  buffer,
+                                  count,
+                                  TRUE,
+                                  cancellable,
+                                  error);
 
   VALENT_RETURN (ret);
 }
@@ -236,7 +237,7 @@ valent_mux_output_stream_class_init (ValentMuxOutputStreamClass *klass)
 
   properties [PROP_MUXER] =
     g_param_spec_object ("muxer", NULL, NULL,
-                         VALENT_TYPE_MUX_CONNECTION,
+                         VALENT_TYPE_BLUEZ_MUXER,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
