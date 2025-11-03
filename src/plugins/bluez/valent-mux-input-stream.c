@@ -35,19 +35,6 @@ static GParamSpec *properties[PROP_UUID + 1] = { NULL, };
 /*
  * GPollableInputStream
  */
-static gboolean
-valent_mux_input_stream_is_readable (GPollableInputStream *pollable)
-{
-  ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (pollable);
-  GIOCondition condition;
-
-  condition = valent_bluez_muxer_condition_check (self->muxer,
-                                                  self->uuid,
-                                                  G_IO_IN);
-
-  return (condition & G_IO_IN) != 0;
-}
-
 static GSource *
 valent_mux_input_stream_create_source (GPollableInputStream *pollable,
                                        GCancellable         *cancellable)
@@ -57,9 +44,19 @@ valent_mux_input_stream_create_source (GPollableInputStream *pollable,
 
   muxer_source = valent_bluez_muxer_create_source (self->muxer,
                                                    self->uuid,
-                                                   G_IO_IN);
+                                                   (G_IO_IN | G_IO_HUP));
 
   return g_pollable_source_new_full (pollable, muxer_source, cancellable);
+}
+
+static gboolean
+valent_mux_input_stream_is_readable (GPollableInputStream *pollable)
+{
+  ValentMuxInputStream *self = VALENT_MUX_INPUT_STREAM (pollable);
+
+  return valent_bluez_muxer_condition_check (self->muxer,
+                                             self->uuid,
+                                             (G_IO_IN | G_IO_HUP));
 }
 
 static gssize
@@ -87,8 +84,8 @@ valent_mux_input_stream_read_nonblocking (GPollableInputStream  *pollable,
 static void
 g_pollable_input_stream_iface_init (GPollableInputStreamInterface *iface)
 {
-  iface->is_readable = valent_mux_input_stream_is_readable;
   iface->create_source = valent_mux_input_stream_create_source;
+  iface->is_readable = valent_mux_input_stream_is_readable;
   iface->read_nonblocking = valent_mux_input_stream_read_nonblocking;
 }
 
