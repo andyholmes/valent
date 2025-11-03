@@ -107,11 +107,11 @@ valent_mux_input_stream_close (GInputStream  *stream,
 
   g_assert (VALENT_IS_MUX_INPUT_STREAM (stream));
 
-  ret = valent_bluez_muxer_close_stream (self->muxer,
-                                         self->uuid,
-                                         G_IO_IN,
-                                         cancellable,
-                                         error);
+  ret = valent_bluez_muxer_channel_close (self->muxer,
+                                          self->uuid,
+                                          G_IO_IN,
+                                          cancellable,
+                                          error);
 
   VALENT_RETURN (ret);
 }

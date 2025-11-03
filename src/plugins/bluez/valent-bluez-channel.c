@@ -66,7 +66,7 @@ valent_bluez_channel_download_task (GTask        *task,
   /* Open a new channel
    */
   valent_object_lock (VALENT_OBJECT (self));
-  stream = valent_bluez_muxer_accept_channel (self->muxer,
+  stream = valent_bluez_muxer_channel_accept (self->muxer,
                                               uuid,
                                               cancellable,
                                               &error);
@@ -124,7 +124,7 @@ valent_bluez_channel_upload_task (GTask        *task,
   /* Open a new channel
    */
   valent_object_lock (VALENT_OBJECT (self));
-  stream = valent_bluez_muxer_open_channel (self->muxer,
+  stream = valent_bluez_muxer_channel_open (self->muxer,
                                             uuid,
                                             cancellable,
                                             &error);
