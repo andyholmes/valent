@@ -1641,7 +1641,7 @@ muxer_stream_source_prepare (GSource *source,
 
   g_mutex_lock (&state->mutex);
   if ((stream_source->condition & G_IO_HUP) != 0)
-    ret |= TRUE;
+    ret |= (state->condition & G_IO_HUP) != 0;
 
   if ((stream_source->condition & G_IO_IN) != 0)
     ret |= (state->count > 0);
@@ -1665,8 +1665,8 @@ muxer_stream_source_check (GSource *source)
   uint64_t buf;
 
   g_mutex_lock (&state->mutex);
-  if ((state->condition & G_IO_HUP) != 0)
-    ret = TRUE;
+  if ((stream_source->condition & G_IO_HUP) != 0)
+    ret |= (state->condition & G_IO_HUP) != 0;
 
   if ((stream_source->condition & G_IO_IN) != 0)
     ret |= (state->count > 0);
@@ -1803,8 +1803,8 @@ valent_bluez_muxer_condition_check (ValentBluezMuxer *muxer,
     return G_IO_ERR;
 
   g_mutex_lock (&state->mutex);
-  if ((state->condition & G_IO_HUP) != 0)
-    ret |= G_IO_HUP;
+  if ((condition & G_IO_HUP) != 0)
+    ret |= (state->condition & G_IO_HUP);
 
   if ((condition & G_IO_IN) != 0 && (state->count > 0))
     ret |= G_IO_IN;
