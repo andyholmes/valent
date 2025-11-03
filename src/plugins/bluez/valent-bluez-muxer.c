@@ -45,6 +45,7 @@ struct _ValentBluezMuxer
   GCancellable  *cancellable;
   unsigned int   protocol_version;
 
+  GThread       *input_thread;
   GInputStream  *input_stream;
   GOutputStream *output_stream;
 };
@@ -563,7 +564,8 @@ valent_bluez_muxer_receive_loop (gpointer data)
 
 out:
   g_debug ("%s(): %s", G_STRFUNC, error->message);
-  valent_bluez_muxer_close (self, NULL, NULL);
+  if (!g_cancellable_is_cancelled (self->cancellable))
+    valent_bluez_muxer_close (self, NULL, NULL);
 
   return NULL;
 }
@@ -861,26 +863,30 @@ valent_bluez_muxer_close (ValentBluezMuxer  *muxer,
 {
   GHashTableIter iter;
   ChannelState *state;
-  gboolean ret;
+  gboolean ret = TRUE;
 
   VALENT_ENTRY;
 
   g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
 
   valent_object_lock (VALENT_OBJECT (muxer));
-  g_cancellable_cancel (muxer->cancellable);
-
-  g_hash_table_iter_init (&iter, muxer->states);
-  while (g_hash_table_iter_next (&iter, NULL, (void **)&state))
+  if (!g_cancellable_is_cancelled (muxer->cancellable))
     {
-      g_mutex_lock (&state->mutex);
-      state->condition |= G_IO_HUP;
-      channel_state_notify_unlocked (state, NULL);
-      g_mutex_unlock (&state->mutex);
-      g_hash_table_iter_remove (&iter);
-    }
+      g_cancellable_cancel (muxer->cancellable);
 
-  ret = g_io_stream_close (muxer->base_stream, cancellable, error);
+      g_hash_table_iter_init (&iter, muxer->states);
+      while (g_hash_table_iter_next (&iter, NULL, (void **)&state))
+        {
+          g_mutex_lock (&state->mutex);
+          state->condition |= G_IO_HUP;
+          channel_state_notify_unlocked (state, NULL);
+          g_mutex_unlock (&state->mutex);
+          g_hash_table_iter_remove (&iter);
+        }
+
+      g_thread_join (g_steal_pointer (&muxer->input_thread));
+      ret = g_io_stream_close (muxer->base_stream, cancellable, error);
+    }
   valent_object_unlock (VALENT_OBJECT (muxer));
 
   VALENT_RETURN (ret);
@@ -1048,7 +1054,6 @@ handshake_protocol_task_cb (GObject      *object,
   HandshakeData *data = g_task_get_task_data (task);
   GCancellable *cancellable = g_task_get_cancellable (task);
   g_autoptr (GIOStream) stream = NULL;
-  g_autoptr (GThread) thread = NULL;
   GError *error = NULL;
 
   stream = g_task_propagate_pointer (G_TASK (result), &error);
@@ -1058,11 +1063,12 @@ handshake_protocol_task_cb (GObject      *object,
       return;
     }
 
-  thread = g_thread_try_new ("valent-bluez-muxer",
-                             valent_bluez_muxer_receive_loop,
-                             g_object_ref (self),
-                             &error);
-  if (thread == NULL)
+
+  self->input_thread = g_thread_try_new ("valent-bluez-muxer",
+                                         valent_bluez_muxer_receive_loop,
+                                         g_object_ref (self),
+                                         &error);
+  if (self->input_thread == NULL)
     {
       g_task_return_error (task, g_steal_pointer (&error));
       return;
