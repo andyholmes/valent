@@ -70,8 +70,9 @@ valent_mux_io_stream_close_fn (GIOStream     *stream,
   if (error != NULL && *error != NULL)
     error = NULL;
 
-  ret &= valent_bluez_muxer_close_channel (self->muxer,
+  ret &= valent_bluez_muxer_channel_close (self->muxer,
                                            self->uuid,
+                                           (G_IO_IN | G_IO_OUT),
                                            cancellable,
                                            error);
 

@@ -107,11 +107,11 @@ valent_mux_output_stream_close (GOutputStream  *stream,
 
   g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
 
-  ret = valent_bluez_muxer_close_stream (self->muxer,
-                                         self->uuid,
-                                         G_IO_OUT,
-                                         cancellable,
-                                         error);
+  ret = valent_bluez_muxer_channel_close (self->muxer,
+                                          self->uuid,
+                                          G_IO_OUT,
+                                          cancellable,
+                                          error);
 
   VALENT_RETURN (ret);
 }
@@ -128,10 +128,10 @@ valent_mux_output_stream_flush (GOutputStream  *stream,
 
   g_assert (VALENT_IS_MUX_OUTPUT_STREAM (stream));
 
-  ret = valent_bluez_muxer_flush_stream (self->muxer,
-                                         self->uuid,
-                                         cancellable,
-                                         error);
+  ret = valent_bluez_muxer_channel_flush (self->muxer,
+                                          self->uuid,
+                                          cancellable,
+                                          error);
 
   VALENT_RETURN (ret);
 }
