@@ -151,12 +151,6 @@ channel_state_new (ValentBluezMuxer *muxer,
   return state;
 }
 
-static inline size_t
-channel_state_get_writable (ChannelState *state)
-{
-  return state->size - state->count;
-}
-
 static void
 channel_state_free (gpointer data)
 {
@@ -1504,8 +1498,8 @@ valent_bluez_muxer_read (ValentBluezMuxer  *muxer,
     }
 
   read = channel_state_read_unlocked (state, buffer, count);
-  size_request = channel_state_get_writable (state) - state->read_free;
-  if ((double)size_request / (double)state->size < 0.5)
+  size_request = (state->size - state->count) - state->read_free;
+  if ((double)size_request < state->size * 0.5)
     size_request = 0;
   g_mutex_unlock (&state->mutex);
 
