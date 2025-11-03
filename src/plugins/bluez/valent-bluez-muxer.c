@@ -82,26 +82,35 @@ typedef enum
  * ChannelState:
  * @uuid: the channel UUID
  * @mutex: a lock for changes to the state
- * @cond: a `GCond` triggered when data can be read/written
+ * @cond: a `GCond` for blocking threads
+ * @eventfd: a file descriptor for pollable sources
+ * @condition: the `GIOCondition`
  * @stream: a `GIOStream`
  * @buffer: an input buffer
  * @size: size of the input buffer
  * @head: data start
  * @tail: data end
+ * @count: bytes in the buffer
  * @read_free: free space in the input buffer
  * @write_free: amount of bytes that can be written
- * @eventfd: a file descriptor for notifying IO state
  *
- * A thread-safe info struct to track the state of a multiplex channel.
+ * A thread-safe struct, with a ring buffer, for tracking a multiplex channel.
  *
- * Each virtual multiplex channel is tracked by the real
- * `ValentBluezMuxer` as a `ChannelState`.
+ * The @head and @tail offsets refer to the read and write positions,
+ * respectively, while @count indicates bytes in the buffer waiting to be read.
+ *
+ * @read_free is the amount of free space in the buffer for which a
+ * %MESSAGE_READ request has not been sent (i.e. @read_free <= @size - @count),
+ * while @write_free is the amount of bytes that can be written until another
+ * %MESSAGE_READ request is received.
  */
 typedef struct
 {
   char         *uuid;
   GMutex        mutex;
   GCond         cond;
+  int           eventfd;
+  GIOCondition  condition;
   GIOStream    *stream;
 
   /* Input Buffer */
@@ -111,11 +120,9 @@ typedef struct
   size_t        tail;
   size_t        count;
 
-  /* I/O State */
+  /* Muxer State */
   uint16_t      read_free;
   uint16_t      write_free;
-  int           eventfd;
-  GIOCondition  condition;
 } ChannelState;
 
 static ChannelState *
