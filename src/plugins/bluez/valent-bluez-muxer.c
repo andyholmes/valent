@@ -1640,14 +1640,14 @@ muxer_stream_source_prepare (GSource *source,
   gboolean ret = FALSE;
 
   g_mutex_lock (&state->mutex);
-  if ((stream_source->condition & G_IO_OUT) != 0)
+  if ((stream_source->condition & G_IO_HUP) != 0)
     ret |= TRUE;
-
-  if ((stream_source->condition & G_IO_OUT) != 0)
-    ret |= (state->write_free > 0);
 
   if ((stream_source->condition & G_IO_IN) != 0)
     ret |= (state->count > 0);
+
+  if ((stream_source->condition & G_IO_OUT) != 0)
+    ret |= (state->write_free > 0);
   g_mutex_unlock (&state->mutex);
 
   if (ret)
