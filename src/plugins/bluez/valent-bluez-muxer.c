@@ -172,32 +172,6 @@ channel_state_unref (gpointer data)
   g_atomic_rc_box_release_full (data, channel_state_free);
 }
 
-static inline ChannelState *
-channel_state_lookup (ValentBluezMuxer  *self,
-                      const char        *uuid,
-                      GError           **error)
-{
-  ChannelState *state = NULL;
-  ChannelState *ret = NULL;
-
-  valent_object_lock (VALENT_OBJECT (self));
-  state = g_hash_table_lookup (self->states, uuid);
-  if (state == NULL)
-    {
-      g_set_error_literal (error,
-                           G_IO_ERROR,
-                           G_IO_ERROR_CLOSED,
-                           g_strerror (EPIPE));
-    }
-  else
-    {
-      ret = g_atomic_rc_box_acquire (state);
-    }
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  return ret;
-}
-
 static inline gboolean
 channel_state_notify_unlocked (ChannelState  *state,
                                GError       **error)
@@ -237,6 +211,32 @@ channel_state_read_unlocked (ChannelState *state,
   state->count -= count;
 
   return count;
+}
+
+static inline ChannelState *
+channel_state_lookup (ValentBluezMuxer  *self,
+                      const char        *uuid,
+                      GError           **error)
+{
+  ChannelState *state = NULL;
+  ChannelState *ret = NULL;
+
+  valent_object_lock (VALENT_OBJECT (self));
+  state = g_hash_table_lookup (self->states, uuid);
+  if (state == NULL)
+    {
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_CLOSED,
+                           g_strerror (EPIPE));
+    }
+  else
+    {
+      ret = g_atomic_rc_box_acquire (state);
+    }
+  valent_object_unlock (VALENT_OBJECT (self));
+
+  return ret;
 }
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (ChannelState, channel_state_unref)
@@ -672,15 +672,17 @@ send_write (ValentBluezMuxer  *self,
                                    NULL,
                                    cancellable,
                                    error);
-  if (!ret)
-    return FALSE;
+  if (ret)
+    {
+      ret = g_output_stream_write_all (self->output_stream,
+                                       buffer,
+                                       size,
+                                       NULL,
+                                       cancellable,
+                                       error);
+    }
 
-  return g_output_stream_write_all (self->output_stream,
-                                    buffer,
-                                    size,
-                                    NULL,
-                                    cancellable,
-                                    error);
+  return ret;
 }
 
 /*
@@ -1712,9 +1714,7 @@ muxer_stream_source_closure_callback (gpointer data)
   gboolean result;
 
   g_value_init (&result_value, G_TYPE_BOOLEAN);
-
   g_closure_invoke (closure, &result_value, 0, NULL, NULL);
-
   result = g_value_get_boolean (&result_value);
   g_value_unset (&result_value);
 
