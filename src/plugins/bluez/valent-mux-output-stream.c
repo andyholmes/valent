@@ -35,17 +35,28 @@ static GParamSpec *properties[PROP_UUID + 1] = { NULL, };
 /*
  * GPollableOutputStream
  */
+static GSource *
+valent_mux_output_stream_create_source (GPollableOutputStream *pollable,
+                                        GCancellable          *cancellable)
+{
+  ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (pollable);
+  g_autoptr (GSource) muxer_source = NULL;
+
+  muxer_source = valent_bluez_muxer_create_source (self->muxer,
+                                                   self->uuid,
+                                                   (G_IO_OUT | G_IO_HUP));
+
+  return g_pollable_source_new_full (pollable, muxer_source, cancellable);
+}
+
 static gboolean
 valent_mux_output_stream_is_writable (GPollableOutputStream *pollable)
 {
   ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (pollable);
-  GIOCondition condition;
 
-  condition = valent_bluez_muxer_condition_check (self->muxer,
-                                                  self->uuid,
-                                                  G_IO_OUT);
-
-  return (condition & G_IO_OUT) != 0;
+  return valent_bluez_muxer_condition_check (self->muxer,
+                                             self->uuid,
+                                             (G_IO_OUT | G_IO_HUP));
 }
 
 static gssize
@@ -70,25 +81,11 @@ valent_mux_output_stream_write_nonblocking (GPollableOutputStream  *pollable,
   VALENT_RETURN (ret);
 }
 
-static GSource *
-valent_mux_output_stream_create_source (GPollableOutputStream *pollable,
-                                        GCancellable          *cancellable)
-{
-  ValentMuxOutputStream *self = VALENT_MUX_OUTPUT_STREAM (pollable);
-  g_autoptr (GSource) muxer_source = NULL;
-
-  muxer_source = valent_bluez_muxer_create_source (self->muxer,
-                                                   self->uuid,
-                                                   G_IO_OUT);
-
-  return g_pollable_source_new_full (pollable, muxer_source, cancellable);
-}
-
 static void
 g_pollable_output_stream_iface_init (GPollableOutputStreamInterface *iface)
 {
-  iface->is_writable = valent_mux_output_stream_is_writable;
   iface->create_source = valent_mux_output_stream_create_source;
+  iface->is_writable = valent_mux_output_stream_is_writable;
   iface->write_nonblocking = valent_mux_output_stream_write_nonblocking;
 }
 
