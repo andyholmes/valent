@@ -1177,20 +1177,26 @@ handshake_protocol_task (GTask        *task,
  * Returns: (transfer full): a `ValentChannel`
  */
 void
-valent_bluez_muxer_handshake (ValentBluezMuxer    *muxer,
+valent_bluez_muxer_handshake (GIOStream           *base_stream,
                               JsonNode            *identity,
                               GCancellable        *cancellable,
                               GAsyncReadyCallback  callback,
                               gpointer             user_data)
 {
+  g_autoptr (ValentBluezMuxer) muxer = NULL;
   g_autoptr (ChannelState) state = NULL;
   g_autoptr (GTask) protocol = NULL;
   g_autoptr (GTask) task = NULL;
   HandshakeData *data = NULL;
 
-  g_return_if_fail (VALENT_IS_BLUEZ_MUXER (muxer));
+  g_return_if_fail (G_IS_IO_STREAM (base_stream));
   g_return_if_fail (VALENT_IS_PACKET (identity));
   g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  muxer = g_object_new (VALENT_TYPE_BLUEZ_MUXER,
+                        "base-stream", base_stream,
+                        "buffer-size", DEFAULT_BUFFER_SIZE,
+                        NULL);
 
   valent_object_lock (VALENT_OBJECT (muxer));
   state = channel_state_new (muxer, PRIMARY_UUID);

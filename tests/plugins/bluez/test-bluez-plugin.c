@@ -295,7 +295,6 @@ test_bluez_service_new_connection (BluezTestFixture *fixture,
 {
   g_autoptr (GSocket) socket = NULL;
   g_autoptr (GSocketConnection) connection = NULL;
-  g_autoptr (ValentBluezMuxer) muxer = NULL;
   GError *error = NULL;
 
   VALENT_TEST_CHECK ("The service can be initialized");
@@ -319,10 +318,9 @@ test_bluez_service_new_connection (BluezTestFixture *fixture,
   connection = g_object_new (G_TYPE_SOCKET_CONNECTION,
                              "socket", socket,
                              NULL);
-  muxer = valent_bluez_muxer_new (G_IO_STREAM (connection));
 
   dbusmock_new_connection (fixture);
-  valent_bluez_muxer_handshake (muxer,
+  valent_bluez_muxer_handshake (G_IO_STREAM (connection),
                                 fixture->peer_identity,
                                 NULL,
                                 (GAsyncReadyCallback)handshake_cb,
