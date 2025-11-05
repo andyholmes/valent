@@ -593,9 +593,11 @@ valent_bluez_muxer_receive_loop (gpointer data)
     }
 
 out:
-  g_debug ("%s(): %s", G_STRFUNC, error->message);
-  if (!g_cancellable_is_cancelled (self->cancellable))
-    valent_bluez_muxer_close (self, NULL, NULL);
+  if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    {
+      g_debug ("%s(): %s", G_STRFUNC, error->message);
+      valent_bluez_muxer_close (self, NULL, NULL);
+    }
 
   return NULL;
 }
@@ -902,9 +904,11 @@ valent_bluez_muxer_close (ValentBluezMuxer  *muxer,
   g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
 
   valent_object_lock (VALENT_OBJECT (muxer));
-  if (!g_cancellable_is_cancelled (muxer->cancellable))
+  ret = g_io_stream_close (muxer->base_stream, cancellable, error);
+  if (muxer->input_thread != NULL && muxer->input_thread != g_thread_self ())
     {
       g_cancellable_cancel (muxer->cancellable);
+      g_thread_join (g_steal_pointer (&muxer->input_thread));
 
       g_hash_table_iter_init (&iter, muxer->states);
       while (g_hash_table_iter_next (&iter, NULL, (void **)&state))
@@ -916,9 +920,6 @@ valent_bluez_muxer_close (ValentBluezMuxer  *muxer,
           g_mutex_unlock (&state->mutex);
           g_hash_table_iter_remove (&iter);
         }
-
-      g_thread_join (g_steal_pointer (&muxer->input_thread));
-      ret = g_io_stream_close (muxer->base_stream, cancellable, error);
     }
   valent_object_unlock (VALENT_OBJECT (muxer));
 
