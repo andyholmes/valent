@@ -106,7 +106,6 @@ valent_mux_input_stream_close (GInputStream  *stream,
 
   ret = valent_bluez_muxer_channel_close (self->muxer,
                                           self->uuid,
-                                          G_IO_IN,
                                           cancellable,
                                           error);
 
