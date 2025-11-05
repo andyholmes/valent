@@ -138,7 +138,6 @@ channel_state_new (ValentBluezMuxer *muxer,
   state->uuid = g_strdup (uuid);
   state->size = muxer->buffer_size;
   state->buffer = g_malloc0 (state->size);
-  state->condition = (G_IO_IN | G_IO_OUT);
   state->stream = g_object_new (VALENT_TYPE_MUX_IO_STREAM,
                                 "muxer", muxer,
                                 "uuid",  uuid,
@@ -191,16 +190,41 @@ channel_state_notify_unlocked (ChannelState  *state,
   return TRUE;
 }
 
-static inline size_t
-channel_state_read_unlocked (ChannelState *state,
-                             uint8_t      *buffer,
-                             size_t        count)
+static inline gssize
+channel_state_read_unlocked (ChannelState  *state,
+                             uint8_t       *buffer,
+                             size_t         count,
+                             GError       **error)
 {
   size_t tail_chunk;
 
+  if ((state->condition & G_IO_ERR) != 0)
+    {
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_CLOSED,
+                           g_strerror (EPIPE));
+      return -1;
+    }
+
   count = MIN (count, state->count);
   if (count == 0)
-    return 0;
+    {
+      /* If the buffer has been emptied and the channel is marked closed,
+       * simulate EOF and set the error condition on the channel state
+       */
+      if ((state->condition & G_IO_HUP) != 0)
+        {
+          state->condition |= G_IO_ERR;
+          return 0;
+        }
+
+      g_set_error_literal (error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_WOULD_BLOCK,
+                           g_strerror (EAGAIN));
+      return -1;
+    }
 
   tail_chunk = MIN (state->size - state->head, count);
   memcpy (buffer, state->buffer + state->head, tail_chunk);
@@ -209,6 +233,9 @@ channel_state_read_unlocked (ChannelState *state,
 
   state->head = (state->head + count) % state->size;
   state->count -= count;
+
+  if (state->count == 0)
+    state->condition &= ~G_IO_IN;
 
   return count;
 }
@@ -410,6 +437,7 @@ recv_close_channel (ValentBluezMuxer  *self,
                     GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
+  gboolean ret;
 
   state = channel_state_lookup (self, uuid, NULL);
   if (state == NULL)
@@ -419,11 +447,12 @@ recv_close_channel (ValentBluezMuxer  *self,
    * to allow any pending readers to empty the buffer.
    */
   g_mutex_lock (&state->mutex);
+  state->condition &= ~(G_IO_IN | G_IO_OUT);
   state->condition |= G_IO_HUP;
-  channel_state_notify_unlocked (state, NULL);
+  ret = channel_state_notify_unlocked (state, error);
   g_mutex_unlock (&state->mutex);
 
-  return TRUE;
+  return ret;
 }
 
 static inline gboolean
@@ -450,6 +479,7 @@ recv_read (ValentBluezMuxer  *self,
     {
       g_mutex_lock (&state->mutex);
       state->write_free += GUINT16_FROM_BE (size_request);
+      state->condition |= G_IO_OUT;
       ret = channel_state_notify_unlocked (state, error);
       g_mutex_unlock (&state->mutex);
     }
@@ -466,7 +496,6 @@ recv_write (ValentBluezMuxer  *self,
 {
   g_autoptr (ChannelState) state = NULL;
   size_t tail_free;
-  size_t n_read;
   gboolean ret;
 
   state = channel_state_lookup (self, uuid, error);
@@ -489,7 +518,7 @@ recv_write (ValentBluezMuxer  *self,
   ret = g_input_stream_read_all (self->input_stream,
                                  &state->buffer[state->tail],
                                  tail_free,
-                                 &n_read,
+                                 NULL,
                                  cancellable,
                                  error);
   if (ret && size > tail_free)
@@ -497,17 +526,17 @@ recv_write (ValentBluezMuxer  *self,
       ret = g_input_stream_read_all (self->input_stream,
                                      &state->buffer[0],
                                      size - tail_free,
-                                     &n_read,
+                                     NULL,
                                      cancellable,
                                      error);
-      n_read += tail_free;
     }
 
   if (ret)
     {
-      state->tail = (state->tail + n_read) % state->size;
-      state->count += n_read;
-      state->read_free -= n_read;
+      state->tail = (state->tail + size) % state->size;
+      state->count += size;
+      state->read_free -= size;
+      state->condition |= G_IO_IN;
       ret = channel_state_notify_unlocked (state, error);
     }
   g_mutex_unlock (&state->mutex);
@@ -881,6 +910,7 @@ valent_bluez_muxer_close (ValentBluezMuxer  *muxer,
       while (g_hash_table_iter_next (&iter, NULL, (void **)&state))
         {
           g_mutex_lock (&state->mutex);
+          state->condition &= ~(G_IO_IN | G_IO_OUT);
           state->condition |= G_IO_HUP;
           channel_state_notify_unlocked (state, NULL);
           g_mutex_unlock (&state->mutex);
@@ -1102,8 +1132,7 @@ handshake_protocol_task (GTask        *task,
   GError *error = NULL;
 
   /* First send the protocol version, then request data for
-   * the primary
-   * multiplexed channel for the identity exchange
+   * the primary multiplexed channel for the identity exchange
    */
   valent_object_lock (VALENT_OBJECT (self));
   if (!send_protocol_version (self, cancellable, &error))
@@ -1258,7 +1287,6 @@ valent_bluez_muxer_channel_accept (ValentBluezMuxer  *muxer,
  * valent_bluez_muxer_channel_close:
  * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
- * @condition: a `GIOCondition`
  * @cancellable: (nullable): a `GCancellable`
  * @error: (nullable): a `GError`
  *
@@ -1270,7 +1298,6 @@ valent_bluez_muxer_channel_accept (ValentBluezMuxer  *muxer,
 gboolean
 valent_bluez_muxer_channel_close (ValentBluezMuxer  *muxer,
                                   const char        *uuid,
-                                  GIOCondition       condition,
                                   GCancellable      *cancellable,
                                   GError           **error)
 {
@@ -1289,12 +1316,12 @@ valent_bluez_muxer_channel_close (ValentBluezMuxer  *muxer,
    * and ensure the peer is notified of the closure
    */
   g_mutex_lock (&state->mutex);
-  state->condition &= ~condition;
-  if ((state->condition & G_IO_HUP) == 0)
+  if ((state->condition & (G_IO_HUP | G_IO_ERR)) == 0)
     {
       valent_object_lock (VALENT_OBJECT (muxer));
       send_close_channel (muxer, uuid, cancellable, NULL);
       valent_object_unlock (VALENT_OBJECT (muxer));
+      state->condition &= ~(G_IO_IN | G_IO_OUT);
       state->condition |= G_IO_HUP;
       ret = channel_state_notify_unlocked (state, error);
     }
@@ -1438,58 +1465,19 @@ valent_bluez_muxer_read (ValentBluezMuxer  *muxer,
     return -1;
 
   g_mutex_lock (&state->mutex);
-  if ((state->condition & G_IO_IN) == 0)
+  if ((state->condition & (G_IO_HUP | G_IO_ERR)) != 0)
     {
-      g_set_error_literal (error,
-                           G_IO_ERROR,
-                           G_IO_ERROR_CLOSED,
-                           g_strerror (EPIPE));
+      read = channel_state_read_unlocked (state, buffer, count, error);
       g_mutex_unlock (&state->mutex);
-      return -1;
-    }
-
-  if ((state->condition & G_IO_HUP) != 0)
-    {
-      /* Return buffer contents before signaling EOF
-       */
-      if (state->count > 0)
-        {
-          read = channel_state_read_unlocked (state, buffer, count);
-          g_mutex_unlock (&state->mutex);
-          return read;
-        }
-
-      /* Signal EOF and mark as closed
-       */
-      state->condition &= ~G_IO_IN;
-      g_mutex_unlock (&state->mutex);
-      return 0;
+      return read;
     }
 
   if (blocking)
     {
-      while ((state->condition & G_IO_HUP) == 0 && state->count == 0)
+      while ((state->condition & (G_IO_IN | G_IO_HUP | G_IO_ERR)) == 0)
         g_cond_wait (&state->cond, &state->mutex);
-
-      if ((state->condition & G_IO_HUP) != 0)
-        {
-          /* Return the contents of the before signaling EOF
-           */
-          if (state->count > 0)
-            {
-              read = channel_state_read_unlocked (state, buffer, count);
-              g_mutex_unlock (&state->mutex);
-              return read;
-            }
-
-          /* Signal EOF and mark as closed
-           */
-          state->condition &= ~G_IO_IN;
-          g_mutex_unlock (&state->mutex);
-          return 0;
-        }
     }
-  else if (state->count == 0)
+  else if ((state->condition & G_IO_IN) == 0)
     {
       g_set_error_literal (error,
                            G_IO_ERROR,
@@ -1499,7 +1487,13 @@ valent_bluez_muxer_read (ValentBluezMuxer  *muxer,
       return -1;
     }
 
-  read = channel_state_read_unlocked (state, buffer, count);
+  read = channel_state_read_unlocked (state, buffer, count, error);
+  if (read < 1)
+    {
+      g_mutex_unlock (&state->mutex);
+      return read;
+    }
+
   size_request = (state->size - state->count) - state->read_free;
   if ((double)size_request < state->size * 0.5)
     size_request = 0;
@@ -1514,6 +1508,11 @@ valent_bluez_muxer_read (ValentBluezMuxer  *muxer,
           g_mutex_lock (&state->mutex);
           state->read_free += size_request;
           g_mutex_unlock (&state->mutex);
+        }
+      else
+        {
+          valent_bluez_muxer_close (muxer, NULL, NULL);
+          read = -1;
         }
     }
 
@@ -1561,7 +1560,7 @@ valent_bluez_muxer_write (ValentBluezMuxer  *muxer,
     return -1;
 
   g_mutex_lock (&state->mutex);
-  if ((state->condition & G_IO_OUT) == 0)
+  if ((state->condition & (G_IO_HUP | G_IO_ERR)) != 0)
     {
       g_set_error_literal (error,
                            G_IO_ERROR,
@@ -1573,10 +1572,10 @@ valent_bluez_muxer_write (ValentBluezMuxer  *muxer,
 
   if (blocking)
     {
-      while ((state->condition & G_IO_HUP) == 0 && state->write_free == 0)
+      while ((state->condition & (G_IO_OUT | G_IO_HUP | G_IO_ERR)) == 0)
         g_cond_wait (&state->cond, &state->mutex);
 
-      if ((state->condition & G_IO_OUT) == 0)
+      if ((state->condition & (G_IO_HUP | G_IO_ERR)) != 0)
         {
           g_set_error_literal (error,
                                G_IO_ERROR,
@@ -1586,7 +1585,7 @@ valent_bluez_muxer_write (ValentBluezMuxer  *muxer,
           return -1;
         }
     }
-  else if (state->write_free == 0)
+  else if ((state->condition & G_IO_OUT) == 0)
     {
       g_set_error_literal (error,
                            G_IO_ERROR,
@@ -1600,9 +1599,12 @@ valent_bluez_muxer_write (ValentBluezMuxer  *muxer,
   if (send_write (muxer, uuid, written, buffer, cancellable, error))
     {
       state->write_free -= written;
+      if (state->write_free == 0)
+        state->condition &= ~G_IO_OUT;
     }
   else
     {
+      valent_bluez_muxer_close (muxer, NULL, NULL);
       written = -1;
     }
   g_mutex_unlock (&state->mutex);
@@ -1640,14 +1642,7 @@ muxer_stream_source_prepare (GSource *source,
   gboolean ret = FALSE;
 
   g_mutex_lock (&state->mutex);
-  if ((stream_source->condition & G_IO_HUP) != 0)
-    ret |= (state->condition & G_IO_HUP) != 0;
-
-  if ((stream_source->condition & G_IO_IN) != 0)
-    ret |= (state->count > 0);
-
-  if ((stream_source->condition & G_IO_OUT) != 0)
-    ret |= (state->write_free > 0);
+  ret = (state->condition & stream_source->condition) != 0;
   g_mutex_unlock (&state->mutex);
 
   if (ret)
@@ -1665,15 +1660,7 @@ muxer_stream_source_check (GSource *source)
   uint64_t buf;
 
   g_mutex_lock (&state->mutex);
-  if ((stream_source->condition & G_IO_HUP) != 0)
-    ret |= (state->condition & G_IO_HUP) != 0;
-
-  if ((stream_source->condition & G_IO_IN) != 0)
-    ret |= (state->count > 0);
-
-  if ((stream_source->condition & G_IO_OUT) != 0)
-    ret |= (state->write_free > 0);
-
+  ret = (state->condition & stream_source->condition) != 0;
   if (read (state->eventfd, &buf, sizeof (uint64_t)) == -1)
     {
       if (errno != EAGAIN && errno != EWOULDBLOCK)
@@ -1780,12 +1767,7 @@ valent_bluez_muxer_create_source (ValentBluezMuxer *muxer,
  * operations specified in @condition are checked for and masked against the
  * currently-satisfied conditions.
  *
- * It is meaningless to specify %G_IO_ERR or %G_IO_HUP in condition;
- * these conditions will always be set in the output if they are true.
- *
- * This call never blocks.
- *
- * Returns: the @GIOCondition mask of the current state
+ * Returns: the `GIOCondition` mask of the current state
  */
 GIOCondition
 valent_bluez_muxer_condition_check (ValentBluezMuxer *muxer,
@@ -1803,14 +1785,7 @@ valent_bluez_muxer_condition_check (ValentBluezMuxer *muxer,
     return G_IO_ERR;
 
   g_mutex_lock (&state->mutex);
-  if ((condition & G_IO_HUP) != 0)
-    ret |= (state->condition & G_IO_HUP);
-
-  if ((condition & G_IO_IN) != 0 && (state->count > 0))
-    ret |= G_IO_IN;
-
-  if ((condition & G_IO_OUT) != 0 && state->write_free > 0)
-    ret |= G_IO_OUT;
+  ret = state->condition & condition;
   g_mutex_unlock (&state->mutex);
 
   return ret;

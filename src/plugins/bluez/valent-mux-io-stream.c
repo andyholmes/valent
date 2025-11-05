@@ -52,33 +52,6 @@ valent_mux_io_stream_get_output_stream (GIOStream *stream)
   return self->output_stream;
 }
 
-static gboolean
-valent_mux_io_stream_close_fn (GIOStream     *stream,
-                               GCancellable  *cancellable,
-                               GError       **error)
-{
-  ValentMuxIOStream *self = VALENT_MUX_IO_STREAM (stream);
-  gboolean ret;
-
-  VALENT_ENTRY;
-
-  ret = g_output_stream_close (self->output_stream, cancellable, error);
-  if (error != NULL && *error != NULL)
-    error = NULL;
-
-  ret &= g_input_stream_close (self->input_stream, cancellable, error);
-  if (error != NULL && *error != NULL)
-    error = NULL;
-
-  ret &= valent_bluez_muxer_channel_close (self->muxer,
-                                           self->uuid,
-                                           (G_IO_IN | G_IO_OUT),
-                                           cancellable,
-                                           error);
-
-  VALENT_RETURN (ret);
-}
-
 /*
  * GObject
  */
@@ -172,7 +145,6 @@ valent_mux_io_stream_class_init (ValentMuxIOStreamClass *klass)
   object_class->get_property = valent_mux_io_stream_get_property;
   object_class->set_property = valent_mux_io_stream_set_property;
 
-  stream_class->close_fn = valent_mux_io_stream_close_fn;
   stream_class->get_input_stream = valent_mux_io_stream_get_input_stream;
   stream_class->get_output_stream = valent_mux_io_stream_get_output_stream;
 

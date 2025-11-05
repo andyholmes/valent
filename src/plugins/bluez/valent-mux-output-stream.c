@@ -44,7 +44,7 @@ valent_mux_output_stream_create_source (GPollableOutputStream *pollable,
 
   muxer_source = valent_bluez_muxer_create_source (self->muxer,
                                                    self->uuid,
-                                                   (G_IO_OUT | G_IO_HUP));
+                                                   (G_IO_OUT | G_IO_HUP |G_IO_ERR));
 
   return g_pollable_source_new_full (pollable, muxer_source, cancellable);
 }
@@ -56,7 +56,7 @@ valent_mux_output_stream_is_writable (GPollableOutputStream *pollable)
 
   return valent_bluez_muxer_condition_check (self->muxer,
                                              self->uuid,
-                                             (G_IO_OUT | G_IO_HUP));
+                                             (G_IO_OUT | G_IO_HUP | G_IO_ERR));
 }
 
 static gssize
@@ -106,7 +106,6 @@ valent_mux_output_stream_close (GOutputStream  *stream,
 
   ret = valent_bluez_muxer_channel_close (self->muxer,
                                           self->uuid,
-                                          G_IO_OUT,
                                           cancellable,
                                           error);
 

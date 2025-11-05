@@ -39,7 +39,6 @@ gssize             valent_bluez_muxer_write            (ValentBluezMuxer     *mu
                                                         GError              **error);
 gboolean           valent_bluez_muxer_channel_close    (ValentBluezMuxer     *muxer,
                                                         const char           *uuid,
-                                                        GIOCondition          condition,
                                                         GCancellable         *cancellable,
                                                         GError              **error);
 gboolean           valent_bluez_muxer_channel_flush    (ValentBluezMuxer     *muxer,
