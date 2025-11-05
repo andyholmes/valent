@@ -23,18 +23,8 @@ ValentChannel    * valent_bluez_muxer_handshake_finish (ValentBluezMuxer     *mu
 gboolean           valent_bluez_muxer_close            (ValentBluezMuxer     *muxer,
                                                         GCancellable         *cancellable,
                                                         GError              **error);
-gssize             valent_bluez_muxer_read             (ValentBluezMuxer     *muxer,
+GIOStream        * valent_bluez_muxer_channel_accept   (ValentBluezMuxer     *muxer,
                                                         const char           *uuid,
-                                                        void                 *buffer,
-                                                        size_t                count,
-                                                        gboolean              blocking,
-                                                        GCancellable         *cancellable,
-                                                        GError              **error);
-gssize             valent_bluez_muxer_write            (ValentBluezMuxer     *muxer,
-                                                        const char           *uuid,
-                                                        const void           *buffer,
-                                                        size_t                count,
-                                                        gboolean              blocking,
                                                         GCancellable         *cancellable,
                                                         GError              **error);
 gboolean           valent_bluez_muxer_channel_close    (ValentBluezMuxer     *muxer,
@@ -49,8 +39,18 @@ GIOStream        * valent_bluez_muxer_channel_open     (ValentBluezMuxer     *mu
                                                         const char           *uuid,
                                                         GCancellable         *cancellable,
                                                         GError              **error);
-GIOStream        * valent_bluez_muxer_channel_accept   (ValentBluezMuxer     *muxer,
+gssize             valent_bluez_muxer_channel_read     (ValentBluezMuxer     *muxer,
                                                         const char           *uuid,
+                                                        void                 *buffer,
+                                                        size_t                count,
+                                                        gboolean              blocking,
+                                                        GCancellable         *cancellable,
+                                                        GError              **error);
+gssize             valent_bluez_muxer_channel_write    (ValentBluezMuxer     *muxer,
+                                                        const char           *uuid,
+                                                        const void           *buffer,
+                                                        size_t                count,
+                                                        gboolean              blocking,
                                                         GCancellable         *cancellable,
                                                         GError              **error);
 GSource          * valent_bluez_muxer_create_source    (ValentBluezMuxer     *muxer,
