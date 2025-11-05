@@ -865,66 +865,6 @@ valent_bluez_muxer_init (ValentBluezMuxer *self)
   valent_object_unlock (VALENT_OBJECT (self));
 }
 
-/**
- * valent_bluez_muxer_new:
- * @base_stream: (not nullable): The base stream to wrap
- *
- * Construct a new `ValentBluezMuxer` for @base_stream.
- *
- * Returns: (transfer full): a `ValentBluezMuxer`
- */
-ValentBluezMuxer *
-valent_bluez_muxer_new (GIOStream *base_stream)
-{
-  return g_object_new (VALENT_TYPE_BLUEZ_MUXER,
-                       "base-stream", base_stream,
-                       NULL);
-}
-
-/**
- * valent_bluez_muxer_close:
- * @muxer: a `ValentBluezMuxer`
- * @cancellable: (nullable): a `GCancellable`
- * @error: (nullable): a `GError`
- *
- * Close the multiplex connection.
- *
- * Returns: %TRUE if successful, or %FALSE with @error set
- */
-gboolean
-valent_bluez_muxer_close (ValentBluezMuxer  *muxer,
-                          GCancellable      *cancellable,
-                          GError           **error)
-{
-  GHashTableIter iter;
-  ChannelState *state;
-  gboolean ret = TRUE;
-
-  VALENT_ENTRY;
-
-  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
-
-  valent_object_lock (VALENT_OBJECT (muxer));
-  ret = g_io_stream_close (muxer->base_stream, cancellable, error);
-  if (muxer->input_thread != NULL && muxer->input_thread != g_thread_self ())
-    {
-      g_cancellable_cancel (muxer->cancellable);
-      g_thread_join (g_steal_pointer (&muxer->input_thread));
-
-      g_hash_table_iter_init (&iter, muxer->states);
-      while (g_hash_table_iter_next (&iter, NULL, (void **)&state))
-        {
-          g_mutex_lock (&state->mutex);
-          channel_state_close_unlocked (state, NULL);
-          g_mutex_unlock (&state->mutex);
-          g_hash_table_iter_remove (&iter);
-        }
-    }
-  valent_object_unlock (VALENT_OBJECT (muxer));
-
-  VALENT_RETURN (ret);
-}
-
 typedef enum
 {
   HANDSHAKE_ENCRYPTED =     (1 << 0),
@@ -1239,6 +1179,50 @@ valent_bluez_muxer_handshake_finish (ValentBluezMuxer  *muxer,
   g_return_val_if_fail (error == NULL || *error == NULL, NULL);
 
   return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+/**
+ * valent_bluez_muxer_close:
+ * @muxer: a `ValentBluezMuxer`
+ * @cancellable: (nullable): a `GCancellable`
+ * @error: (nullable): a `GError`
+ *
+ * Close the multiplex connection.
+ *
+ * Returns: %TRUE if successful, or %FALSE with @error set
+ */
+gboolean
+valent_bluez_muxer_close (ValentBluezMuxer  *muxer,
+                          GCancellable      *cancellable,
+                          GError           **error)
+{
+  GHashTableIter iter;
+  ChannelState *state;
+  gboolean ret = TRUE;
+
+  VALENT_ENTRY;
+
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
+
+  valent_object_lock (VALENT_OBJECT (muxer));
+  ret = g_io_stream_close (muxer->base_stream, cancellable, error);
+  if (muxer->input_thread != NULL && muxer->input_thread != g_thread_self ())
+    {
+      g_cancellable_cancel (muxer->cancellable);
+      g_thread_join (g_steal_pointer (&muxer->input_thread));
+
+      g_hash_table_iter_init (&iter, muxer->states);
+      while (g_hash_table_iter_next (&iter, NULL, (void **)&state))
+        {
+          g_mutex_lock (&state->mutex);
+          channel_state_close_unlocked (state, NULL);
+          g_mutex_unlock (&state->mutex);
+          g_hash_table_iter_remove (&iter);
+        }
+    }
+  valent_object_unlock (VALENT_OBJECT (muxer));
+
+  VALENT_RETURN (ret);
 }
 
 /**
