@@ -1477,7 +1477,15 @@ valent_bluez_muxer_channel_read (ValentBluezMuxer  *muxer,
   if (blocking)
     {
       while ((state->condition & (G_IO_IN | G_IO_HUP | G_IO_ERR)) == 0)
-        g_cond_wait (&state->cond, &state->mutex);
+        {
+          if (g_cancellable_set_error_if_cancelled (cancellable, error))
+            {
+              g_mutex_unlock (&state->mutex);
+              return -1;
+            }
+
+          g_cond_wait (&state->cond, &state->mutex);
+        }
     }
   else if ((state->condition & G_IO_IN) == 0)
     {
@@ -1575,7 +1583,15 @@ valent_bluez_muxer_channel_write (ValentBluezMuxer  *muxer,
   if (blocking)
     {
       while ((state->condition & (G_IO_OUT | G_IO_HUP | G_IO_ERR)) == 0)
-        g_cond_wait (&state->cond, &state->mutex);
+        {
+          if (g_cancellable_set_error_if_cancelled (cancellable, error))
+            {
+              g_mutex_unlock (&state->mutex);
+              return -1;
+            }
+
+          g_cond_wait (&state->cond, &state->mutex);
+        }
 
       if ((state->condition & (G_IO_HUP | G_IO_ERR)) != 0)
         {
