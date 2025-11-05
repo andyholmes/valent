@@ -308,8 +308,6 @@ pack_header (uint8_t     *hdr,
 
       hdr[3 + i] = (hi << 4) | lo;
     }
-
-  VALENT_NOTE ("UUID: %s, TYPE: %u, SIZE: %u", uuid, type, size);
 }
 
 /**
@@ -339,8 +337,6 @@ unpack_header (const uint8_t *hdr,
               hdr[3], hdr[4], hdr[5], hdr[6],
               hdr[7], hdr[8], hdr[9], hdr[10], hdr[11], hdr[12],
               hdr[13], hdr[14], hdr[15], hdr[16], hdr[17], hdr[18]);
-
-  VALENT_NOTE ("UUID: %s, TYPE: %u, SIZE: %u", uuid, *type, *size);
 }
 
 /*
