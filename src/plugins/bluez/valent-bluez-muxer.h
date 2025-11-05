@@ -11,8 +11,7 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentBluezMuxer, valent_bluez_muxer, VALENT, BLUEZ_MUXER, ValentObject)
 
-ValentBluezMuxer * valent_bluez_muxer_new              (GIOStream            *base_stream);
-void               valent_bluez_muxer_handshake        (ValentBluezMuxer     *muxer,
+void               valent_bluez_muxer_handshake        (GIOStream            *base_stream,
                                                         JsonNode             *identity,
                                                         GCancellable         *cancellable,
                                                         GAsyncReadyCallback   callback,

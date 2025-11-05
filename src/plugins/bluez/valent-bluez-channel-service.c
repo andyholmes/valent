@@ -68,7 +68,6 @@ on_connection_opened (ValentBluezProfile *profile,
                       gpointer            user_data)
 {
   ValentBluezChannelService *self = VALENT_BLUEZ_CHANNEL_SERVICE (user_data);
-  g_autoptr (ValentBluezMuxer) muxer = NULL;
   g_autoptr (JsonNode) identity = NULL;
   g_autoptr (GTask) task = NULL;
   g_autoptr (GCancellable) cancellable = NULL;
@@ -83,11 +82,7 @@ on_connection_opened (ValentBluezProfile *profile,
 
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   identity = valent_channel_service_ref_identity (VALENT_CHANNEL_SERVICE (self));
-  muxer = g_object_new (VALENT_TYPE_BLUEZ_MUXER,
-                        "base-stream", connection,
-                        "buffer-size", DEFAULT_BUFFER_SIZE,
-                        NULL);
-  valent_bluez_muxer_handshake (muxer,
+  valent_bluez_muxer_handshake (G_IO_STREAM (connection),
                                 identity,
                                 cancellable,
                                 (GAsyncReadyCallback)valent_bluez_muxer_handshake_cb,
