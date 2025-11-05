@@ -70,13 +70,13 @@ valent_mux_input_stream_read_nonblocking (GPollableInputStream  *pollable,
 
   VALENT_ENTRY;
 
-  ret = valent_bluez_muxer_read (self->muxer,
-                                 self->uuid,
-                                 buffer,
-                                 count,
-                                 FALSE,
-                                 NULL,
-                                 error);
+  ret = valent_bluez_muxer_channel_read (self->muxer,
+                                         self->uuid,
+                                         buffer,
+                                         count,
+                                         FALSE,
+                                         NULL,
+                                         error);
 
   VALENT_RETURN (ret);
 }
@@ -126,13 +126,13 @@ valent_mux_input_stream_read (GInputStream  *stream,
 
   g_assert (VALENT_IS_MUX_INPUT_STREAM (stream));
 
-  ret = valent_bluez_muxer_read (self->muxer,
-                                 self->uuid,
-                                 buffer,
-                                 count,
-                                 TRUE,
-                                 cancellable,
-                                 error);
+  ret = valent_bluez_muxer_channel_read (self->muxer,
+                                         self->uuid,
+                                         buffer,
+                                         count,
+                                         TRUE,
+                                         cancellable,
+                                         error);
 
   VALENT_RETURN (ret);
 }

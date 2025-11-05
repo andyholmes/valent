@@ -1255,10 +1255,10 @@ valent_bluez_muxer_channel_accept (ValentBluezMuxer  *muxer,
   g_autoptr (ChannelState) state = NULL;
   GIOStream *ret = NULL;
 
-  g_return_val_if_fail (VALENT_IS_BLUEZ_MUXER (muxer), NULL);
-  g_return_val_if_fail (uuid != NULL, NULL);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
+  g_assert (g_uuid_string_is_valid (uuid));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
 
   /* HACK: Loop every second and check for the channel
    */
@@ -1304,9 +1304,10 @@ valent_bluez_muxer_channel_close (ValentBluezMuxer  *muxer,
   g_autoptr (ChannelState) state = NULL;
   gboolean ret = TRUE;
 
-  g_return_val_if_fail (VALENT_IS_BLUEZ_MUXER (muxer), FALSE);
-  g_return_val_if_fail (uuid != NULL && *uuid != '\0', FALSE);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), TRUE);
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
+  g_assert (g_uuid_string_is_valid (uuid));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
 
   state = channel_state_lookup (muxer, uuid, error);
   if (state == NULL)
@@ -1351,9 +1352,10 @@ valent_bluez_muxer_channel_flush (ValentBluezMuxer  *muxer,
   g_autoptr (ChannelState) state = NULL;
   gboolean ret;
 
-  g_return_val_if_fail (VALENT_IS_BLUEZ_MUXER (muxer), FALSE);
-  g_return_val_if_fail (uuid != NULL && *uuid != '\0', FALSE);
-  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), TRUE);
+  g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
+  g_assert (g_uuid_string_is_valid (uuid));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_assert (error == NULL || *error == NULL);
 
   state = channel_state_lookup (muxer, uuid, error);
   if (state == NULL)
@@ -1423,7 +1425,7 @@ valent_bluez_muxer_channel_open (ValentBluezMuxer  *muxer,
 }
 
 /**
- * valent_bluez_muxer_read:
+ * valent_bluez_muxer_channel_read:
  * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @buffer: a buffer to read data into
@@ -1443,13 +1445,13 @@ valent_bluez_muxer_channel_open (ValentBluezMuxer  *muxer,
  * Returns: number of bytes read, or -1 on error, or 0 on end of file
  */
 gssize
-valent_bluez_muxer_read (ValentBluezMuxer  *muxer,
-                         const char        *uuid,
-                         void              *buffer,
-                         size_t             count,
-                         gboolean           blocking,
-                         GCancellable      *cancellable,
-                         GError           **error)
+valent_bluez_muxer_channel_read (ValentBluezMuxer  *muxer,
+                                 const char        *uuid,
+                                 void              *buffer,
+                                 size_t             count,
+                                 gboolean           blocking,
+                                 GCancellable      *cancellable,
+                                 GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   gssize read;
@@ -1520,7 +1522,7 @@ valent_bluez_muxer_read (ValentBluezMuxer  *muxer,
 }
 
 /**
- * valent_bluez_muxer_write:
+ * valent_bluez_muxer_channel_write:
  * @muxer: a `ValentBluezMuxer`
  * @uuid: a channel UUID
  * @buffer: data to write
@@ -1539,13 +1541,13 @@ valent_bluez_muxer_read (ValentBluezMuxer  *muxer,
  * Returns: number of bytes written, or -1 with @error set
  */
 gssize
-valent_bluez_muxer_write (ValentBluezMuxer  *muxer,
-                          const char        *uuid,
-                          const void        *buffer,
-                          size_t             count,
-                          gboolean           blocking,
-                          GCancellable      *cancellable,
-                          GError           **error)
+valent_bluez_muxer_channel_write (ValentBluezMuxer  *muxer,
+                                  const char        *uuid,
+                                  const void        *buffer,
+                                  size_t             count,
+                                  gboolean           blocking,
+                                  GCancellable      *cancellable,
+                                  GError           **error)
 {
   g_autoptr (ChannelState) state = NULL;
   gssize written;
