@@ -1036,7 +1036,6 @@ handshake_protocol_task_cb (GObject      *object,
       return;
     }
 
-
   self->input_thread = g_thread_try_new ("valent-bluez-muxer",
                                          valent_bluez_muxer_receive_loop,
                                          g_object_ref (self),
@@ -1068,36 +1067,29 @@ handshake_protocol_task (GTask        *task,
 {
   ValentBluezMuxer *self = VALENT_BLUEZ_MUXER (source_object);
   ChannelState *state = (ChannelState *)task_data;
-  g_autoptr (GIOStream) base_stream = NULL;
+  g_autoptr (GIOStream) ret = NULL;
+  uint16_t size_request;
   GError *error = NULL;
 
-  /* First send the protocol version, then request data for
-   * the primary multiplexed channel for the identity exchange
-   */
-  valent_object_lock (VALENT_OBJECT (self));
-  if (!send_protocol_version (self, cancellable, &error))
-    {
-      valent_object_unlock (VALENT_OBJECT (self));
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
   g_mutex_lock (&state->mutex);
-  if (send_read (self, state->uuid, state->size, cancellable, &error))
-    {
-      state->read_free = state->size;
-      base_stream = g_object_ref (state->stream);
-    }
+  state->read_free += state->size;
+  size_request = state->size;
+  ret = g_object_ref (state->stream);
   g_mutex_unlock (&state->mutex);
+
+  valent_object_lock (VALENT_OBJECT (self));
+  if (!send_protocol_version (self, cancellable, &error) ||
+      !send_read (self, PRIMARY_UUID, size_request, cancellable, &error))
+    {
+      g_clear_object (&ret);
+      valent_bluez_muxer_close (self, NULL, NULL);
+    }
   valent_object_unlock (VALENT_OBJECT (self));
 
-  if (error != NULL)
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  g_task_return_pointer (task, g_object_ref (base_stream), g_object_unref);
+  if (ret != NULL)
+    g_task_return_pointer (task, g_object_ref (ret), g_object_unref);
+  else
+    g_task_return_error (task, g_steal_pointer (&error));
 }
 
 /**
@@ -1257,13 +1249,21 @@ valent_bluez_muxer_channel_accept (ValentBluezMuxer  *muxer,
       state = channel_state_lookup (muxer, uuid, NULL);
       if (state != NULL)
         {
+          uint16_t size_request;
+
           g_mutex_lock (&state->mutex);
-          if (send_read (muxer, uuid, state->size, cancellable, error))
-            {
-              state->read_free += state->size;
-              ret = g_object_ref (state->stream);
-            }
+          state->read_free += state->size;
+          size_request = state->size;
+          ret = g_object_ref (state->stream);
           g_mutex_unlock (&state->mutex);
+
+          valent_object_lock (VALENT_OBJECT (muxer));
+          if (!send_read (muxer, uuid, size_request, cancellable, error))
+            {
+              g_clear_object (&ret);
+              valent_bluez_muxer_close (muxer, NULL, NULL);
+            }
+          valent_object_unlock (VALENT_OBJECT (muxer));
           break;
         }
 
@@ -1303,16 +1303,16 @@ valent_bluez_muxer_channel_close (ValentBluezMuxer  *muxer,
   if (state == NULL)
     return FALSE;
 
-  /* When `close()` is called on a substream unset the condition flag
-   * and ensure the peer is notified of the closure
-   */
+  valent_object_lock (VALENT_OBJECT (muxer));
+  ret = send_close_channel (muxer, uuid, cancellable, error);
+  if (error != NULL && *error != NULL)
+    error = NULL;
+  valent_object_unlock (VALENT_OBJECT (muxer));
+
   g_mutex_lock (&state->mutex);
   if ((state->condition & (G_IO_HUP | G_IO_ERR)) == 0)
     {
-      valent_object_lock (VALENT_OBJECT (muxer));
-      send_close_channel (muxer, uuid, cancellable, NULL);
-      valent_object_unlock (VALENT_OBJECT (muxer));
-      ret = channel_state_close_unlocked (state, error);
+      ret |= channel_state_close_unlocked (state, error);
     }
   g_mutex_unlock (&state->mutex);
 
@@ -1373,6 +1373,8 @@ valent_bluez_muxer_channel_open (ValentBluezMuxer  *muxer,
                                  GCancellable      *cancellable,
                                  GError           **error)
 {
+  g_autoptr (ChannelState) state = NULL;
+  uint16_t size_request;
   GIOStream *ret = NULL;
 
   g_assert (VALENT_IS_BLUEZ_MUXER (muxer));
@@ -1391,21 +1393,23 @@ valent_bluez_muxer_channel_open (ValentBluezMuxer  *muxer,
     }
   else
     {
-      g_autoptr (ChannelState) state = NULL;
-
       state = channel_state_new (muxer, uuid);
       g_hash_table_replace (muxer->states,
                             state->uuid,
                             g_atomic_rc_box_acquire (state));
 
       g_mutex_lock (&state->mutex);
-      if (send_open_channel (muxer, uuid, cancellable, error) &&
-          send_read (muxer, uuid, state->size, cancellable, error))
-        {
-          state->read_free = state->size;
-          ret = g_object_ref (state->stream);
-        }
+      state->read_free += state->size;
+      size_request = state->size;
+      ret = g_object_ref (state->stream);
       g_mutex_unlock (&state->mutex);
+
+      if (!send_open_channel (muxer, uuid, cancellable, error) ||
+          !send_read (muxer, uuid, size_request, cancellable, error))
+        {
+          g_clear_object (&ret);
+          valent_bluez_muxer_close (muxer, NULL, NULL);
+        }
     }
   valent_object_unlock (VALENT_OBJECT (muxer));
 
@@ -1495,23 +1499,19 @@ valent_bluez_muxer_channel_read (ValentBluezMuxer  *muxer,
   size_request = (state->size - state->count) - state->read_free;
   if ((double)size_request < state->size * 0.5)
     size_request = 0;
+  else
+    state->read_free += size_request;
   g_mutex_unlock (&state->mutex);
 
-  /* Request more bytes
+  /* Any failure sending a multiplex message closes the connection,
+   * but the buffer may be emptied after G_IO_HUP
    */
   if (size_request > 0)
     {
-      if (send_read (muxer, uuid, size_request, cancellable, error))
-        {
-          g_mutex_lock (&state->mutex);
-          state->read_free += size_request;
-          g_mutex_unlock (&state->mutex);
-        }
-      else
-        {
-          valent_bluez_muxer_close (muxer, NULL, NULL);
-          read = -1;
-        }
+      valent_object_lock (VALENT_OBJECT (muxer));
+      if (!send_read (muxer, uuid, size_request, cancellable, error))
+        valent_bluez_muxer_close (muxer, NULL, NULL);
+      valent_object_unlock (VALENT_OBJECT (muxer));
     }
 
   return read;
@@ -1602,18 +1602,20 @@ valent_bluez_muxer_channel_write (ValentBluezMuxer  *muxer,
     }
 
   written = MIN (count, state->write_free);
-  if (send_write (muxer, uuid, written, buffer, cancellable, error))
-    {
-      state->write_free -= written;
-      if (state->write_free == 0)
-        state->condition &= ~G_IO_OUT;
-    }
-  else
+  state->write_free -= written;
+  if (state->write_free == 0)
+    state->condition &= ~G_IO_OUT;
+  g_mutex_unlock (&state->mutex);
+
+  /* Any failure sending a multiplex message closes the connection
+   */
+  valent_object_lock (VALENT_OBJECT (muxer));
+  if (!send_write (muxer, uuid, written, buffer, cancellable, error))
     {
       valent_bluez_muxer_close (muxer, NULL, NULL);
       written = -1;
     }
-  g_mutex_unlock (&state->mutex);
+  valent_object_unlock (VALENT_OBJECT (muxer));
 
   return written;
 }
