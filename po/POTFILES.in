@@ -2,7 +2,6 @@
 # SPDX-FileCopyrightText: No rights reserved
 
 data/ca.andyholmes.Valent.desktop.in.in
-data/gsettings/ca.andyholmes.Valent.Device.gschema.xml
 data/gsettings/ca.andyholmes.Valent.gschema.xml
 data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml
 data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in
