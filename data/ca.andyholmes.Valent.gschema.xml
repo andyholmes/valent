@@ -4,6 +4,18 @@
 <!-- SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com> -->
 
 <schemalist gettext-domain="valent">
+  <schema id="ca.andyholmes.Valent" path="/ca/andyholmes/valent/">
+    <key name="name" type="s">
+      <default>""</default>
+      <summary>Name</summary>
+      <description>The display name for the local device.</description>
+    </key>
+    <key name="device-addresses" type="as">
+      <default>[]</default>
+      <summary>Device Addresses</summary>
+      <description>Add devices by hostname or IP address</description>
+    </key>
+  </schema>
   <schema id="ca.andyholmes.Valent.Plugin">
     <key name="enabled" type="b">
       <default>true</default>
@@ -12,3 +24,4 @@
     </key>
   </schema>
 </schemalist>
+

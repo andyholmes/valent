@@ -2,8 +2,7 @@
 # SPDX-FileCopyrightText: No rights reserved
 
 data/ca.andyholmes.Valent.desktop.in.in
-data/gsettings/ca.andyholmes.Valent.gschema.xml
-data/gsettings/ca.andyholmes.Valent.Plugin.gschema.xml
+data/ca.andyholmes.Valent.gschema.xml
 data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in
 src/libvalent/device/valent-device.c
 src/plugins/battery/battery.plugin.desktop.in
