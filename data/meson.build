@@ -1,8 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: Andy Holmes <andrew.g.r.holmes@gmail.com>
 
-subdir('gsettings')
 subdir('metainfo')
+
+# GSettings
+install_data('ca.andyholmes.Valent.gschema.xml',
+  install_dir: schemadir
+)
 
 
 # Desktop Files
