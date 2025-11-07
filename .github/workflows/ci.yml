@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: read
+  checks: write
 
 jobs:
   cspell:
@@ -212,6 +213,18 @@ jobs:
         with:
           name: Tests (coverage)
           path: ${{ steps.test.outputs.coverage-html }}
+
+      - name: JUnit Report
+        if: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: '_build/meson-logs/testlog.junit.xml'
+
+      - name: Test Summary
+        if: ${{ matrix.compiler == 'gcc' && matrix.suite == 'test' }}
+        uses: test-summary/action@v2
+        with:
+          paths: '_build/meson-logs/testlog.junit.xml'
 
   installed-tests:
     name: Tests (Installed)
