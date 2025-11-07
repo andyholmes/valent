@@ -55,7 +55,6 @@ struct _ValentDevice
   ValentResource   parent_instance;
 
   ValentContext   *context;
-  GSettings       *settings;
 
   /* Properties */
   char            *icon_name;
@@ -710,7 +709,6 @@ valent_device_set_paired (ValentDevice *self,
     }
 
   self->paired = paired;
-  g_settings_set_boolean (self->settings, "paired", self->paired);
 
   valent_device_reset_pair (self);
   valent_device_update_plugins (self);
@@ -1125,6 +1123,7 @@ static void
 valent_device_constructed (GObject *object)
 {
   ValentDevice *self = VALENT_DEVICE (object);
+  g_autoptr (GFile) certificate_file = NULL;
   g_autofree char *path = NULL;
   unsigned int n_plugins = 0;
 
@@ -1137,8 +1136,9 @@ valent_device_constructed (GObject *object)
     self->context = valent_context_new (NULL, "device", self->id);
 
   path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/", self->id);
-  self->settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", path);
-  self->paired = g_settings_get_boolean (self->settings, "paired");
+  certificate_file = valent_context_get_config_file (self->context,
+                                                     "certificate.pem");
+  self->paired = g_file_query_exists (certificate_file, NULL);
 
   self->engine = valent_get_plugin_engine ();
   g_signal_connect_object (self->engine,
@@ -1170,7 +1170,6 @@ valent_device_finalize (GObject *object)
   ValentDevice *self = VALENT_DEVICE (object);
 
   g_clear_object (&self->context);
-  g_clear_object (&self->settings);
 
   /* Properties */
   g_clear_pointer (&self->icon_name, g_free);

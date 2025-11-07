@@ -52,8 +52,6 @@ valent_test_fixture_init (ValentTestFixture *fixture,
   g_autoptr (GTlsCertificate) peer_certificate = NULL;
   const char *common_name = NULL;
   g_autofree char *certificate_pem = NULL;
-  g_autoptr (GSettings) settings = NULL;
-  g_autofree char *spath = NULL;
 
   g_assert (path != NULL && *path != '\0');
 
@@ -86,10 +84,6 @@ valent_test_fixture_init (ValentTestFixture *fixture,
                            NULL,  /* etag (out) */
                            NULL,
                            NULL);
-
-  spath = g_strdup_printf ("/ca/andyholmes/valent/device/%s/", common_name);
-  settings = g_settings_new_with_path ("ca.andyholmes.Valent.Device", spath);
-  g_settings_set_boolean (settings, "paired", TRUE);
 
   /* Setup device plugin settings
    */
