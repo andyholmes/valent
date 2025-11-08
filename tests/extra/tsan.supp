@@ -13,6 +13,7 @@ race:valent_object_finalizer_source_dispatch
 
 # GLib
 race:g_markup_error_quark
+race:g_resource_file_query_info
 race:g_resources_lookup_data
 race:g_test_print_handler_full
 
