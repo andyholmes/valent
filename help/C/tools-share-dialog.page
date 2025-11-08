@@ -1,0 +1,111 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="task"
+      id="tools-share-dialog">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="index#tools"/>
+    <keywords>share, send, file, link, text, url, open</keywords>
+
+    <title type="text">Sharing</title>
+    <desc>Directly share files, links and text.</desc>
+  </info>
+
+  <title>Sharing</title>
+  <p>
+    A dialog is available for sharing files, links and text with other devices.
+
+    To share files, links and text, start by opening the
+    <gui xref="introduction#main-window">Main Window</gui>.
+  </p>
+
+  <section id="share-files">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+      <keywords>share, files, file, browser, nautilus</keywords>
+
+      <title type="text">Send files from the file browser</title>
+      <desc>How to send files to a device from the file browser.</desc>
+    </info>
+
+    <title>Send files from the file browser</title>
+    <p>
+      The <link xref="device-plugins#share"/> can be used to send files to a remote
+      device from the file browser.
+    </p>
+
+    <steps>
+      <item>
+        <p>
+          Select one or more files in the file browser.
+        </p>
+      </item>
+      <item>
+        <p>
+          Open the context menu and select <gui style="menuitem">Open with…</gui>.
+        </p>
+      </item>
+      <item>
+        <p>
+          Select <app>Valent</app> from the list of applications.
+        </p>
+      </item>
+      <item>
+        <p>
+          Select one or more devices from the list to send the files to.
+        </p>
+      </item>
+    </steps>
+  </section>
+
+  <section id="share-dialog">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+      <keywords>share, file, link, text</keywords>
+
+      <title type="text">Share files, links or text</title>
+      <desc>How to directly share files, links and text with other devices.</desc>
+    </info>
+
+    <title>Share files, links or text</title>
+    <p>
+      This guide will teach you how to send files, links and text to another
+      device.
+    </p>
+
+    <steps>
+      <item>
+        <p>
+          Open the main window.
+        </p>
+      </item>
+      <item>
+        <p>
+          Open the
+          <media style="button" its:translate="no" type="image" src="figures/open-menu-symbolic.svg">
+            <gui style="menu" its:translate="yes">Main Menu</gui>
+          </media>
+          menu and select <gui style="menuitem">Share…</gui>.
+        </p>
+      </item>
+      <item>
+        <p>
+          Select <gui style="button" its:translate="yes">Pick Files</gui> or
+          use the <gui style="input">Enter URL</gui> entry to share a link.
+        </p>
+      </item>
+      <item>
+        <p>
+          Select one or more devices from the list to send the selected files
+          and links.
+        </p>
+      </item>
+    </steps>
+  </section>
+</page>

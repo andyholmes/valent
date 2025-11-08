@@ -1,0 +1,52 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="task"
+      id="tools-input-remote">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="index#tools"/>
+    <keywords>input, remote</keywords>
+
+    <title type="text">Input Remote</title>
+    <desc>Control the mouse and keyboard.</desc>
+  </info>
+
+  <title>Input Remote</title>
+  <p>
+    To control the mouse and keyboard, start by opening the main window.
+  </p>
+
+  <steps>
+    <item>
+      <p>
+        Open the main window and select a device.
+      </p>
+    </item>
+    <item>
+      <p>
+        Open the
+        <media style="button" its:translate="no" type="image" src="figures/open-menu-symbolic.svg">
+          <gui style="menu" its:translate="yes">Device Menu</gui>
+        </media>
+        menu and select <gui style="menuitem">Input Remote</gui>.
+      </p>
+    </item>
+    <item>
+      <p>
+        Open the <gui style="menu" its:translate="yes">dropdown menu</gui> and
+        select a device.
+      </p>
+    </item>
+    <item>
+      <p>
+        Use the remote to control the mouse and keyboard.
+      </p>
+    </item>
+  </steps>
+</page>

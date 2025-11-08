@@ -9,6 +9,12 @@ option('documentation',
         value: false,
 )
 
+option('help',
+         type: 'boolean',
+        value: true,
+  description: 'Build help documentation',
+)
+
 option('introspection',
   description: 'Build introspection data',
          type: 'boolean',

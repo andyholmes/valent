@@ -1,0 +1,215 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="device-preferences-other">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <!-- <link type="guide" xref="device-preference-other"/> -->
+    <keywords>commands</keywords>
+
+    <title type="text">Miscellaneous Preferences</title>
+    <desc>Other types of plugins.</desc>
+  </info>
+
+  <section id="runcommand-preferences">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+      <keywords>command, commands, execute</keywords>
+
+      <title type="text">Commands</title>
+      <desc>Add, edit and remove executable commands.</desc>
+    </info>
+
+    <title>Commands</title>
+    <p>
+      The <link xref="device-plugins#runcommand"/> can be used to allow a remote device to
+      execute a predefined list of commands on the local device. This guide will
+      teach you how to add, edit and remove commands.
+    </p>
+
+    <links type="section"/>
+
+    <section id="adding-commands">
+      <title>Adding Commands</title>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Other</gui> in the view switcher, then
+            activate the <gui style="button">Add Command…</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Enter values into the <gui style="input">Name</gui> entry and
+            <gui style="input">Command Line</gui> entry, then press
+            <gui style="button">Save</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            The command will appear in the preferences, and on the remote
+            device.
+          </p>
+        </item>
+      </steps>
+    </section>
+
+    <section id="editing-commands">
+      <title>Editing Commands</title>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Other</gui> in the view switcher, then
+            activate the
+            <media style="button" its:translate="no" type="image" src="figures/document-edit-symbolic.svg"><gui style="button" its:translate="yes">Edit</gui></media>
+            button on the command's row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Enter new values into the <gui style="input">Name</gui> entry and
+            <gui style="input">Command Line</gui> entry, then press
+            <gui style="button">Save</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            The command will be updated in the preferences, and on the remote
+            device.
+          </p>
+        </item>
+      </steps>
+    </section>
+
+    <section id="removing-commands">
+      <title>Removing Commands</title>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Other</gui> in the view switcher, then
+            activate the
+            <media style="button" its:translate="no" type="image" src="figures/edit-delete-symbolic.svg"><gui style="button" its:translate="yes">Remove</gui></media>
+            button on the command's row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Enter values into the <gui style="input">Name</gui> entry and
+            <gui style="input">Command Line</gui> entry, then press
+            <gui style="button">Save</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            The command will be removed from the preferences, and the remote
+            device will no longer be able to execute the command.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+
+  <section id="share-preferences">
+    <info>
+      <title type="text">Direct Sharing</title>
+      <desc>Configure direct sharing of files, links and text.</desc>
+    </info>
+
+    <title>Direct Sharing</title>
+    <p>
+      The <link xref="device-plugins#share"/> can be used to share files, links and text
+      directly between devices. This guide will teach you how to configure where
+      received files are saved.
+    </p>
+
+    <links type="section"/>
+
+    <section id="received-files">
+      <title>Received Files</title>
+      <p>
+        To configure direct sharing, start by opening the main window and
+        selecting a device.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select the device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Other</gui> in the view switcher, then
+            activate the <gui style="button">Download directory</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Use the <gui>File Chooser</gui> dialog to navigate to a directory,
+            then press <gui style="button">Open</gui>.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+</page>

@@ -4,7 +4,7 @@
 [Plugin]
 Module=lock
 Name=Lock
-Description=Lock and unlock
+Description=Monitor session activity and lock state
 Icon=valent-lock-plugin-symbolic
 Builtin=true
 Embedded=valent_lock_plugin_register_types

@@ -1,0 +1,1959 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2024-04-09 22:40-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Put one translator per line, in the form NAME <EMAIL>, YEAR1, YEAR2
+msgctxt "_"
+msgid "translator-credits"
+msgstr ""
+
+#. (itstool) path: credit/name
+#: ../help/C/device-name.page:9
+#: ../help/C/device-setup.page:9
+#: ../help/C/device-unpair.page:9
+#: ../help/C/index.page:9
+#: ../help/C/introduction.page:10
+#: ../help/C/plugins.page:8
+#: ../help/C/plugins-battery.page:9
+#: ../help/C/plugins-clipboard.page:9
+#: ../help/C/plugins-connectivity_report.page:9
+#: ../help/C/plugins-contacts.page:9
+#: ../help/C/plugins-findmyphone.page:9
+#: ../help/C/plugins-lock.page:9
+#: ../help/C/plugins-mousepad.page:9
+#: ../help/C/plugins-mpris.page:9
+#: ../help/C/plugins-notification.page:9
+#: ../help/C/plugins-presenter.page:9
+#: ../help/C/plugins-runcommand.page:9
+#: ../help/C/plugins-sftp.page:9
+#: ../help/C/plugins-share.page:9
+#: ../help/C/plugins-sms.page:9
+#: ../help/C/plugins-systemvolume.page:9
+#: ../help/C/plugins-telephony.page:9
+#: ../help/C/tools-input-remote.page:9
+#: ../help/C/tools-media-remote.page:9
+#: ../help/C/troubleshooting-firewall.page:9
+msgid "Andy Holmes"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/device-name.page:15
+msgctxt "text"
+msgid "Change the device name"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/device-name.page:16
+msgid "How to set the device name."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/device-name.page:19
+msgid "Change the device name"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/device-name.page:20
+msgid "The device name is what other devices will see when connecting or pairing with your device. This name will be appear in the device list in the Android app an other <app>KDE Connect</app> clients."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-name.page:28
+msgid "Open the main window."
+msgstr ""
+
+#. (itstool) path: media/gui
+#. (itstool) path: gui/media
+#: ../help/C/device-name.page:36
+#: ../help/C/introduction.page:113
+msgid "Main Menu"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-name.page:33
+#: ../help/C/plugins-battery.page:78
+#: ../help/C/plugins-battery.page:115
+#: ../help/C/plugins-clipboard.page:84
+#: ../help/C/plugins-connectivity_report.page:75
+#: ../help/C/plugins-notification.page:81
+#: ../help/C/plugins-notification.page:130
+#: ../help/C/plugins-runcommand.page:69
+#: ../help/C/plugins-runcommand.page:109
+#: ../help/C/plugins-runcommand.page:151
+#: ../help/C/plugins-sftp.page:75
+#: ../help/C/plugins-share.page:79
+#: ../help/C/plugins-telephony.page:75
+#: ../help/C/plugins-telephony.page:122
+msgid "Open the <_:media-1/> menu and select <gui style=\"menuitem\">Preferences</gui>."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-name.page:42
+msgid "Select the <gui style=\"input\">Device Name</gui> entry."
+msgstr ""
+
+#. (itstool) path: media/gui
+#: ../help/C/device-name.page:50
+msgid "Apply"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-name.page:47
+msgid "Choose a new name for the device and press <key>Enter</key> or click the <_:media-1/> button."
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/device-name.page:58
+msgid "It may take time for other devices to display the new name."
+msgstr ""
+
+#. (itstool) path: info/link
+#: ../help/C/device-setup.page:15
+msgid "<title>KDE Connect — Pairing two devices together</title>"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/device-setup.page:19
+msgctxt "text"
+msgid "Setup a new device"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/device-setup.page:20
+msgid "Connect and configure a new device."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/device-setup.page:23
+msgid "Setup a new device"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/device-setup.page:24
+#: ../help/C/device-unpair.page:21
+msgid "Before starting, ensure that both devices you want to connect are on the same local network."
+msgstr ""
+
+#. (itstool) path: media/gui
+#: ../help/C/device-setup.page:36
+msgid "Refresh"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-setup.page:31
+msgid "Open the <gui xref=\"introduction#main-window\">Main Window</gui> and press the <_:media-1/> button."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-setup.page:42
+msgid "Wait up to 10 seconds for the device to appear in the device list. If your device does not appear, see <link xref=\"index#troubleshooting\"/> for possible solutions."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-setup.page:49
+msgid "Activate the device row to open the <gui xref=\"introduction#device-page\">Device Page</gui>. You may <link xref=\"introduction#device-preferences\">configure a device</link> before pairing to restrict its access."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-setup.page:58
+#: ../help/C/device-unpair.page:46
+msgid "Activate the <gui style=\"button\">Request Pairing</gui> button, then use the other device to confirm the verification key and accept the request."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-setup.page:64
+msgid "Once paired, the available actions and information will be revealed on the device page. To unpair the device, open the menu on the device page and select <gui style=\"menuitem\">Unpair</gui>."
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/device-setup.page:73
+#: ../help/C/device-unpair.page:54
+msgid "Information about connecting official <app>KDE Connect</app> clients can be found on the <link href=\"https://userbase.kde.org/KDEConnect\">KDE Connect Wiki</link>."
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/device-unpair.page:16
+msgctxt "text"
+msgid "Remove a device"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/device-unpair.page:17
+msgid "How to unpair and remove a device."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/device-unpair.page:20
+msgid "Remove a Device"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-unpair.page:28
+msgid "Open the <gui xref=\"introduction#main-window\">Main Window</gui>."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/device-unpair.page:33
+msgid "Activate the device row to open the <gui xref=\"introduction#device-page\">Device Page</gui>."
+msgstr ""
+
+#. (itstool) path: gui/media
+#. This is a reference to an external file such as an image or video. When
+#. the file changes, the md5 hash will change to let you know you need to
+#. update your localized copy. The msgstr is not used at all. Set it to
+#. whatever you like once you have updated your copy of the file.
+#: ../help/C/device-unpair.page:41
+#: ../help/C/introduction.page:158
+msgctxt "_"
+msgid "external ref='figures/view-more-symbolic.svg' md5='8bb83a3e075004164078064eab6c1a11'"
+msgstr ""
+
+#. (itstool) path: gui/media
+#. (itstool) path: media/gui
+#: ../help/C/device-unpair.page:41
+#: ../help/C/introduction.page:158
+#: ../help/C/plugins-battery.page:81
+#: ../help/C/plugins-battery.page:118
+#: ../help/C/plugins-clipboard.page:87
+#: ../help/C/plugins-connectivity_report.page:78
+#: ../help/C/plugins-notification.page:84
+#: ../help/C/plugins-notification.page:133
+#: ../help/C/plugins-runcommand.page:72
+#: ../help/C/plugins-runcommand.page:112
+#: ../help/C/plugins-runcommand.page:154
+#: ../help/C/plugins-sftp.page:78
+#: ../help/C/plugins-share.page:82
+#: ../help/C/plugins-telephony.page:78
+#: ../help/C/plugins-telephony.page:125
+#: ../help/C/tools-input-remote.page:35
+#: ../help/C/tools-media-remote.page:36
+msgid "Device Menu"
+msgstr ""
+
+#. (itstool) path: guiseq/gui
+#: ../help/C/device-unpair.page:43
+msgid "Unpair"
+msgstr ""
+
+#. (itstool) path: item/gui
+#. (itstool) path: section/title
+#. (itstool) path: media/p
+#: ../help/C/device-unpair.page:45
+#: ../help/C/introduction.page:131
+#: ../help/C/introduction.page:145
+msgid "Device Page"
+msgstr ""
+
+#. (itstool) path: steps/item
+#: ../help/C/device-unpair.page:38
+msgid "<_:guiseq-1/> in the <_:gui-2/>. <_:p-3/>"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/index.page:14
+msgctxt "link:guide"
+msgid "Valent"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/index.page:15
+msgctxt "link:trail"
+msgid "Valent"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/index.page:17
+msgctxt "text"
+msgid "Valent"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/index.page:18
+msgid "Connect, control and sync devices."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/index.page:21
+msgid "<_:media-1/> Valent Help"
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/index.page:27
+msgid "Getting Started"
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/index.page:31
+msgid "Troubleshooting"
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/index.page:35
+msgid "Tools"
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/index.page:39
+msgid "Common Tasks"
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/index.page:43
+msgid "Status Updates"
+msgstr ""
+
+#. (itstool) path: info/link
+#: ../help/C/introduction.page:15
+msgid "<title>KDE Connect Homepage</title>"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/introduction.page:19
+msgctxt "text"
+msgid "Introduction"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/introduction.page:20
+msgid "Learn about Valent."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/introduction.page:23
+msgid "Introduction"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/introduction.page:25
+msgid "<app>Valent</app> is an application for securely connecting devices, like smartphones and laptops, allowing them to sync data and be controlled remotely."
+msgstr ""
+
+#. (itstool) path: list/title
+#: ../help/C/introduction.page:33
+msgid "Common use cases…"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/introduction.page:37
+msgid "Use a smartphone to control the <link xref=\"plugin-mousepad#remote\">mouse and keyboard</link> on your desktop, or <link xref=\"plugin-mpris#remote\">music and video</link> on your media center."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/introduction.page:46
+msgid "Configure select notifications to be forwarded from your phone when it's locked or silent, and receive them on your active workstation."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/introduction.page:52
+msgid "Sync the clipboard between your devices to easily copy and paste one-time passwords (OTP) from SMS notifications."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/introduction.page:58
+msgid "Send, receive and search SMS messages from your desktop, via a smartphone running <app>Valent</app> or the <app>KDE Connect</app> app."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/introduction.page:64
+msgid "Select <app>Valent</app> in <gui>Open With…</gui> dialogs to easily send files and links to other devices."
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/introduction.page:71
+msgid "<app>Valent</app> is an implementation of the <app>KDE Connect</app> protocol and can connect to any other conforming implementation. The KDE Connect project has clients for Linux, Android, SailfishOS, macOs, Windows and more."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/introduction.page:79
+msgid "Visual Tour"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/introduction.page:80
+msgid "<app>Valent</app> has a limited user interface, usually preferring to integrate with the desktop environment when possible."
+msgstr ""
+
+#. (itstool) path: section/title
+#. (itstool) path: media/p
+#: ../help/C/introduction.page:88
+#: ../help/C/introduction.page:100
+msgid "Main Window"
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/introduction.page:90
+msgid "Open the <gui xref=\"introduction#main-window\">Main Window</gui> by activating the launcher or menu item for <app>Valent</app>."
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/introduction.page:95
+msgid "The <gui>Main Window</gui> is where other devices are listed, including trusted devices and <link xref=\"device-setup\">new devices</link>."
+msgstr ""
+
+#. (itstool) path: section/media
+#. This is a reference to an external file such as an image or video. When
+#. the file changes, the md5 hash will change to let you know you need to
+#. update your localized copy. The msgstr is not used at all. Set it to
+#. whatever you like once you have updated your copy of the file.
+#: ../help/C/introduction.page:99
+msgctxt "_"
+msgid "external ref='figures/screenshots/main-window.png' md5='6b5a9f7c9ec91d98200cfd265f2ee89d'"
+msgstr ""
+
+#. (itstool) path: section/title
+#. (itstool) path: media/p
+#: ../help/C/introduction.page:105
+#: ../help/C/introduction.page:126
+msgid "Main Preferences"
+msgstr ""
+
+#. (itstool) path: gui/media
+#. This is a reference to an external file such as an image or video. When
+#. the file changes, the md5 hash will change to let you know you need to
+#. update your localized copy. The msgstr is not used at all. Set it to
+#. whatever you like once you have updated your copy of the file.
+#: ../help/C/introduction.page:113
+msgctxt "_"
+msgid "external ref='figures/open-menu-symbolic.svg' md5='53c42fca9e64a93b4c572d5ba805fd4d'"
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/introduction.page:107
+msgid "Open the <gui xref=\"introduction#main-preferences\">Main Preferences</gui> by selecting <guiseq> <_:gui-1/> <gui style=\"menuitem\">Preferences</gui> </guiseq> in the <gui xref=\"introduction#main-window\">Main Window</gui>."
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/introduction.page:120
+msgid "The <gui>Main Preferences</gui> is where the <link xref=\"device-name\">device name</link> can be changed, and plugins that integrate with the desktop are configured."
+msgstr ""
+
+#. (itstool) path: section/media
+#. This is a reference to an external file such as an image or video. When
+#. the file changes, the md5 hash will change to let you know you need to
+#. update your localized copy. The msgstr is not used at all. Set it to
+#. whatever you like once you have updated your copy of the file.
+#: ../help/C/introduction.page:125
+msgctxt "_"
+msgid "external ref='figures/screenshots/main-preferences.png' md5='b043bc8c704224014024c5e194a2041d'"
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/introduction.page:133
+msgid "Open the <gui xref=\"introduction#device-page\">Device Page</gui> by activating the device row in the <gui xref=\"introduction#main-window\">Main Window</gui>."
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/introduction.page:139
+msgid "When paired, the device page has the status widgets like the battery level and the plugin actions like <gui>Send Files</gui>. New devices will display controls for <link xref=\"device-setup\">pairing</link>."
+msgstr ""
+
+#. (itstool) path: section/media
+#. This is a reference to an external file such as an image or video. When
+#. the file changes, the md5 hash will change to let you know you need to
+#. update your localized copy. The msgstr is not used at all. Set it to
+#. whatever you like once you have updated your copy of the file.
+#: ../help/C/introduction.page:144
+msgctxt "_"
+msgid "external ref='figures/screenshots/device-page.png' md5='ad3751ee81a7ec799e50ddfe31e13347'"
+msgstr ""
+
+#. (itstool) path: section/title
+#. (itstool) path: media/p
+#: ../help/C/introduction.page:150
+#: ../help/C/introduction.page:170
+msgid "Device Preferences"
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/introduction.page:152
+msgid "Open the <gui xref=\"introduction#device-preferences\">Device Preferences</gui> by selecting <guiseq> <_:gui-1/> <gui style=\"menuitem\">Preferences</gui> </guiseq> in the <gui xref=\"introduction#device-page\">Device Page</gui>."
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/introduction.page:165
+msgid "The devices preferences is where <link xref=\"plugins#device\"/> can be enabled, disabled and configured."
+msgstr ""
+
+#. (itstool) path: section/media
+#. This is a reference to an external file such as an image or video. When
+#. the file changes, the md5 hash will change to let you know you need to
+#. update your localized copy. The msgstr is not used at all. Set it to
+#. whatever you like once you have updated your copy of the file.
+#: ../help/C/introduction.page:169
+msgctxt "_"
+msgid "external ref='figures/screenshots/device-preferences.png' md5='237bc138bc517a9b5aeb06754d605c7b'"
+msgstr ""
+
+#. (itstool) path: p/link
+#: ../help/C/legal.xml:4
+msgid "Creative Commons Attribution-ShareAlike 4.0 International"
+msgstr ""
+
+#. (itstool) path: license/p
+#: ../help/C/legal.xml:3
+msgid "This work is licensed under a <_:link-1/> license."
+msgstr ""
+
+#. (itstool) path: info/link
+#: ../help/C/plugins.page:13
+msgid "<title>KDE Connect — Available Plugins</title>"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins.page:17
+msgctxt "text"
+msgid "Plugins"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins.page:18
+msgid "Extended Functionality."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins.page:22
+msgid "Plugins"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins.page:23
+msgid "<app>Valent</app> supports several types of plugins, with default plugins for features in <app>KDE Connect</app> and <link href=\"https://freedesktop.org\">freedesktop.org</link> interfaces."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins.page:30
+msgid "Device Plugins"
+msgstr ""
+
+#. (itstool) path: section/subtitle
+#: ../help/C/plugins.page:31
+msgid "Remote control and syncing capabilities"
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-battery.page:14
+msgid "battery, charge, charging, level, monitor, statistics"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-battery.page:16
+msgctxt "text"
+msgid "Battery Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-battery.page:17
+msgid "Monitor battery level and charging state."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-battery.page:20
+msgid "Battery Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-battery.page:21
+msgid "The Battery plugin allows devices to exchange information about their battery status, such as the level and charging state."
+msgstr ""
+
+#. (itstool) path: list/title
+#: ../help/C/plugins-battery.page:27
+#: ../help/C/plugins-clipboard.page:27
+#: ../help/C/plugins-connectivity_report.page:27
+#: ../help/C/plugins-contacts.page:27
+#: ../help/C/plugins-findmyphone.page:26
+#: ../help/C/plugins-lock.page:28
+#: ../help/C/plugins-mousepad.page:29
+#: ../help/C/plugins-mpris.page:27
+#: ../help/C/plugins-notification.page:29
+#: ../help/C/plugins-presenter.page:29
+#: ../help/C/plugins-runcommand.page:28
+#: ../help/C/plugins-sftp.page:27
+#: ../help/C/plugins-share.page:26
+#: ../help/C/plugins-sms.page:27
+#: ../help/C/plugins-systemvolume.page:27
+#: ../help/C/plugins-telephony.page:27
+msgid "Features"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-battery.page:29
+#: ../help/C/plugins-telephony.page:29
+msgid "Monitor remote battery level and charging state"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-battery.page:32
+#: ../help/C/plugins-connectivity_report.page:32
+#: ../help/C/plugins-telephony.page:32
+msgid "Configurable notifications for low battery and full charge."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-battery.page:35
+msgid "Report local battery level and charging status."
+msgstr ""
+
+#. (itstool) path: div/title
+#: ../help/C/plugins-battery.page:40
+#: ../help/C/plugins-clipboard.page:37
+#: ../help/C/plugins-connectivity_report.page:40
+#: ../help/C/plugins-contacts.page:40
+#: ../help/C/plugins-lock.page:38
+#: ../help/C/plugins-mousepad.page:43
+#: ../help/C/plugins-notification.page:42
+#: ../help/C/plugins-presenter.page:39
+#: ../help/C/plugins-sftp.page:37
+#: ../help/C/plugins-share.page:39
+#: ../help/C/plugins-sms.page:37
+#: ../help/C/plugins-systemvolume.page:37
+#: ../help/C/plugins-telephony.page:40
+msgid "Requirements"
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-battery.page:41
+msgid "To report local battery statistics to a remote device, a battery must be recognized by UPower. Consult the documentation for your distribution if your battery is not recognized."
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-battery.page:52
+msgctxt "text"
+msgid "Monitor the battery status"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-battery.page:53
+#: ../help/C/plugins-connectivity_report.page:53
+msgid "Configure status notifications."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-battery.page:56
+msgid "Monitor the battery status"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-battery.page:57
+msgid "This guide will teach you how to configure when notifications are shown for the battery level and status."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-battery.page:65
+msgid "Low Battery Notification"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-battery.page:66
+#: ../help/C/plugins-battery.page:103
+msgid "To change the battery notification level, start by opening the main window and selecting a device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-battery.page:73
+#: ../help/C/plugins-battery.page:110
+#: ../help/C/plugins-clipboard.page:79
+#: ../help/C/plugins-connectivity_report.page:70
+#: ../help/C/plugins-lock.page:66
+#: ../help/C/plugins-notification.page:76
+#: ../help/C/plugins-notification.page:125
+#: ../help/C/plugins-presenter.page:62
+#: ../help/C/plugins-runcommand.page:64
+#: ../help/C/plugins-runcommand.page:104
+#: ../help/C/plugins-runcommand.page:146
+#: ../help/C/plugins-sftp.page:70
+#: ../help/C/plugins-telephony.page:70
+#: ../help/C/plugins-telephony.page:117
+#: ../help/C/tools-input-remote.page:27
+#: ../help/C/tools-media-remote.page:28
+msgid "Open the main window and select a device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-battery.page:87
+msgid "Select <gui style=\"tab\">Status</gui> in the view switcher, then toggle the <gui style=\"button\">Low Battery Notification</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-battery.page:93
+#: ../help/C/plugins-battery.page:130
+msgid "Adjust the <gui style=\"input\">Level Threshold</gui> to control when the notification will be shown."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-battery.page:102
+msgid "Full Battery Notification"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-battery.page:124
+msgid "Select <gui style=\"tab\">Status</gui> in the view switcher, then toggle the <gui style=\"button\">Full Battery Notification</gui> row."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-clipboard.page:14
+msgid "clipboard, copy, paste, sync"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-clipboard.page:16
+msgctxt "text"
+msgid "Clipboard Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-clipboard.page:17
+msgid "Sync the clipboard between devices."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-clipboard.page:20
+msgid "Clipboard Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-clipboard.page:21
+msgid "The Clipboard plugin allows devices to sync clipboard content, allowing copy and paste to work across devices."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-clipboard.page:29
+msgid "Paste text copied on another device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-clipboard.page:32
+#: ../help/C/plugins-contacts.page:32
+msgid "Configure sync direction for each device."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-clipboard.page:38
+msgid "To access the clipboard used by other applications, <app>Valent</app> must be running in GNOME Shell or an X11 desktop. Other desktop environments may provide an adapter to support clipboard access."
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-clipboard.page:49
+msgctxt "text"
+msgid "Sync clipboard content"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-clipboard.page:50
+msgid "Configure how clipboard content is synced."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-clipboard.page:53
+msgid "Sync clipboard content"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-clipboard.page:54
+msgid "The <link xref=\"plugin-clipboard\"/> can be used to sync the clipboard between devices. This guide will teach you how to control the source and direction the content will be synced in."
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/plugins-clipboard.page:61
+msgid "When enabled, clipboard content will be synced without any consideration of security implications. This includes passwords and any other sensitive content."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-clipboard.page:71
+msgid "Clipboard Sync"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-clipboard.page:72
+msgid "To configure clipboard sync, start by opening the main window and selecting a device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-clipboard.page:93
+msgid "Select <gui style=\"tab\">Sync</gui> in the view switcher and navigate to the <gui>Clipboard</gui> preferences."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-clipboard.page:99
+msgid "To sync content from the remote device to the local clipboard, toggle the <gui>Remote Clipboard</gui> switch. When enabled, content in the remote clipboard can be pasted from the local clipboard."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-clipboard.page:104
+msgid "To sync content from local clipboard to the remote device, toggle the <gui>Local Clipboard</gui> switch. When enabled, content will be sent to the remote device when copied."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-connectivity_report.page:14
+msgid "connectivity, mobile, network, signal"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-connectivity_report.page:16
+msgctxt "text"
+msgid "Connectivity Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-connectivity_report.page:17
+msgid "Monitor mobile connectivity status."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-connectivity_report.page:20
+msgid "Connectivity Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-connectivity_report.page:21
+msgid "The connectivity plugin allows devices to exchange information about the connection strength and status of mobile networks."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-connectivity_report.page:29
+msgid "Monitor remote battery level and charging state."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-connectivity_report.page:35
+#: ../help/C/plugins-telephony.page:35
+msgid "Share local battery level and charging status."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-connectivity_report.page:41
+#: ../help/C/plugins-share.page:40
+#: ../help/C/plugins-telephony.page:41
+msgid "To report local battery statistics to a remote device, <app>Valent</app> needs a battery to be reported by UPower. Consult the documentation for your distribution if your battery is missing."
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-connectivity_report.page:52
+msgctxt "text"
+msgid "Monitor mobile connectivity"
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-connectivity_report.page:56
+msgid "Monitor mobile connectivity"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-connectivity_report.page:57
+msgid "The <link xref=\"plugin-connectivity_report\"/> monitors the signal strength and status of mobile connectivity. This guide will teach you how to configure when notifications are shown for the connection status."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-connectivity_report.page:66
+msgid "Connectivity Notification"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-connectivity_report.page:84
+msgid "Select <gui style=\"tab\">Status</gui> in the view switcher, then toggle the <gui style=\"button\">Remote Connectivity</gui> row."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-contacts.page:14
+msgid "contacts, addressbook"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-contacts.page:16
+msgctxt "text"
+msgid "Contacts Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-contacts.page:17
+msgid "Sync contacts between devices."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-contacts.page:20
+msgid "Contacts Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-contacts.page:21
+msgid "The contacts plugin allows devices to exchange contacts and sync address books."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-contacts.page:29
+msgid "Sync contacts and expose them to other applications."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-contacts.page:35
+msgid "Configure which address book to sync for each device."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-contacts.page:41
+msgid "To access contacts and share them with other applications, a source like <app>Evolution Data Server</app> must be available. Other sources may provide an adapter to support contact sharing."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-findmyphone.page:14
+msgid "find, locate, phone, ring"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-findmyphone.page:16
+msgctxt "text"
+msgid "Find My Phone Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-findmyphone.page:17
+msgid "Find a device by making it ring."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-findmyphone.page:20
+msgid "Find My Phone Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-findmyphone.page:21
+msgid "The Find My Phone plugin can help you to find a device by making it ring."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-findmyphone.page:28
+msgid "Activate ringer on remote devices."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-findmyphone.page:31
+msgid "Help locate the local device when requested."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-lock.page:14
+msgid "lock, unlock, session"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-lock.page:16
+msgctxt "text"
+msgid "Lock Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#. (itstool) path: item/p
+#: ../help/C/plugins-lock.page:17
+#: ../help/C/plugins-lock.page:30
+msgid "Monitor session activity and lock state."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-lock.page:20
+msgid "Lock Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-lock.page:21
+msgid "The Lock plugin allows devices to be locked and unlocked remotely."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-lock.page:33
+msgid "Lock and unlock a remote device."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-lock.page:39
+msgid "To report the session state to a remote device, <app>Valent</app> needs a session supporting <sys>logind</sys>. Consult the documentation for help."
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-lock.page:49
+msgctxt "text"
+msgid "Lock or unlock a device"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-lock.page:50
+msgid "How to check and control the device lock."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-lock.page:53
+msgid "Lock or unlock a device"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-lock.page:54
+msgid "This guide will teach you how to check if a remote device is locked, and how to lock or unlock it."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-lock.page:62
+msgid "Lock State"
+msgstr ""
+
+#. (itstool) path: media/gui
+#: ../help/C/plugins-lock.page:74
+#: ../help/C/plugins-lock.page:84
+msgid "Lock"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-lock.page:71
+msgid "Look for the <_:media-1/> button near the top of the <link xref=\"introduction#device-page\"/>. If the button is missing, the device may not support this feature."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-lock.page:81
+msgid "Toggle the <_:media-1/> button to lock or unlock the remote device."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-mousepad.page:14
+msgid "input, keyboard, mouse, mousepad, remote, touchpad"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-mousepad.page:16
+msgctxt "text"
+msgid "Mousepad Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-mousepad.page:17
+#: ../help/C/tools-input-remote.page:17
+msgid "Control the mouse and keyboard."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-mousepad.page:20
+msgid "Mousepad Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-mousepad.page:21
+msgid "The Mousepad plugin allows controlling the mouse and keyboard of another device remotely."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-mousepad.page:31
+msgid "Send mouse and keyboard events to remote devices."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-mousepad.page:36
+msgid "Receive events from remote devices and emulate mouse and keyboard input."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-mousepad.page:44
+msgid "To allow other devices to control the mouse and keyboard an interface such as the Remote Desktop portal must be available. Consult the documentation for your distribution for information about supported interfaces."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-mpris.page:14
+msgid "mpris, media, player, remote"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-mpris.page:16
+msgctxt "text"
+msgid "MPRIS Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-mpris.page:17
+msgid "Share control of media players."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-mpris.page:20
+msgid "MPRIS Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-mpris.page:21
+msgid "The MPRIS plugin allows devices to share control of media players, including track information and album art."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-mpris.page:29
+msgid "Simple remote for controlling remote media players."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-mpris.page:34
+msgid "Share control of local media players with other devices."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-mpris.page:39
+msgid "Integrate remote media players with the local desktop, allowing control from media notifications and other interfaces."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-notification.page:14
+#: ../help/C/plugins-notification.page:53
+msgid "notification, notifications, sync"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-notification.page:16
+msgctxt "text"
+msgid "Notification Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-notification.page:17
+msgid "Sync notifications between devices."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-notification.page:20
+msgid "Notification Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-notification.page:21
+msgid "The notification plugin allows devices to sync notifications between devices, including icons, actions, and quick reply messages. battery, such as the level and charging state."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-notification.page:31
+msgid "Common features including icons, actions and quick reply messages."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-notification.page:34
+msgid "Intelligent sync, forwards notifications to the active device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-notification.page:37
+msgid "Filter outgoing notifications."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-notification.page:43
+msgid "To share local notifications with a remote device, <app>Valent</app> needs access to the D-Bus session connection. Consult the documentation for your distribution if notifications aren't being synced."
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-notification.page:55
+msgctxt "text"
+msgid "Notification Forwarding"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-notification.page:56
+msgid "Configure notification sync."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-notification.page:59
+msgid "Notification Forwarding"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-notification.page:60
+msgid "This guide will teach you how to control notification forwarding and filtering by application."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-notification.page:68
+msgid "Intelligent Sync"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-notification.page:69
+msgid "Notifications can be configured to sync in a more intelligent way, by using the session state as a hint to which device is presently in use."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-notification.page:90
+#: ../help/C/plugins-notification.page:139
+msgid "Select <gui style=\"tab\">Sync</gui> in the view switcher, then expand the <gui style=\"button\">Local Notifications</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-notification.page:96
+msgid "Toggle the switch on the <gui style=\"button\">Intelligent Sync</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-notification.page:102
+msgid "When enabled, local notifications will only be forwarded if the local session is inactive, and only to remote devices that are active."
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/plugins-notification.page:108
+msgid "Connected devices are considered active by default."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-notification.page:117
+msgid "Filter Applications"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-notification.page:118
+msgid "Notifications can be filtered by application, to avoid excessive disturbances or leaking sensitive data."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-notification.page:145
+msgid "Activate the <gui style=\"button\">Filter by Application</gui> row."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-presenter.page:14
+msgid "battery, level, charge, statistics"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-presenter.page:16
+msgctxt "text"
+msgid "Presenter Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-presenter.page:17
+msgid "Control presentations."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-presenter.page:20
+msgid "Presenter Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-presenter.page:21
+msgid "The Presenter plugin allows controlling a presentation slideshow with a simple remote."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-presenter.page:31
+msgid "Upload and open presentations on remote devices."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-presenter.page:34
+msgid "Control presentations on remote devices."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-presenter.page:40
+msgid "To upload and open presentations on a remote device, the <link xref=\"plugin-share\"/> must be enabled."
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-presenter.page:50
+msgctxt "text"
+msgid "Presentation Remote"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-presenter.page:51
+msgid "Share and control presentations."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-presenter.page:54
+msgid "Presentation Remote"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-presenter.page:55
+msgid "To control a presentation, start by opening the main window and selecting a device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-presenter.page:67
+msgid "Activate the <gui style=\"button\">Presentation Remote</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-presenter.page:72
+msgid "Use the remote to control standard presentation software on other devices running a <app>KDE Connect</app> client."
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/plugins-presenter.page:77
+msgid "The <gui style=\"button\">Upload</gui> button can be used to open a presentation on a remote device and start controlling it."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-runcommand.page:14
+msgid "commands, level, charge, statistics"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-runcommand.page:16
+msgctxt "text"
+msgid "Commands Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-runcommand.page:17
+msgid "Execute commands on remote devices."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-runcommand.page:20
+msgid "Commands Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-runcommand.page:21
+msgid "The Commands plugin allows device to define commands that can be executed by other devices. Each device can be granted access to execute a unique list of commands and may not execute arbitrary commands or pass any input."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-runcommand.page:30
+msgid "Execute commands on the remote device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-runcommand.page:35
+msgid "Configure commands the remote device can execute on the local device."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-runcommand.page:44
+#: ../help/C/plugins-sftp.page:48
+msgid "command, commands, execute"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-runcommand.page:46
+msgctxt "text"
+msgid "Commands"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-runcommand.page:47
+msgid "Add, edit and remove executable commands."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-runcommand.page:50
+msgid "Commands"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-runcommand.page:51
+msgid "The <link xref=\"plugin-runcommand\"/> can be used to allow a remote device to execute a predefined list of commands on the local device. This guide will teach you how to add, edit and remove commands."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-runcommand.page:60
+msgid "Adding Commands"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-runcommand.page:78
+msgid "Select <gui style=\"tab\">Other</gui> in the view switcher, then activate the <gui style=\"button\">Add Command…</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-runcommand.page:84
+#: ../help/C/plugins-runcommand.page:168
+msgid "Enter values into the <gui style=\"input\">Name</gui> entry and <gui style=\"input\">Command Line</gui> entry, then press <gui style=\"button\">Save</gui>."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-runcommand.page:91
+msgid "The command will appear in the preferences, and on the remote device."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-runcommand.page:100
+msgid "Editing Commands"
+msgstr ""
+
+#. (itstool) path: media/gui
+#: ../help/C/plugins-runcommand.page:121
+msgid "Edit"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-runcommand.page:118
+#: ../help/C/plugins-runcommand.page:160
+msgid "Select <gui style=\"tab\">Other</gui> in the view switcher, then activate the <_:media-1/> button on the command's row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-runcommand.page:126
+msgid "Enter new values into the <gui style=\"input\">Name</gui> entry and <gui style=\"input\">Command Line</gui> entry, then press <gui style=\"button\">Save</gui>."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-runcommand.page:133
+msgid "The command will be updated in the preferences, and on the remote device."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-runcommand.page:142
+msgid "Removing Commands"
+msgstr ""
+
+#. (itstool) path: media/gui
+#: ../help/C/plugins-runcommand.page:163
+msgid "Remove"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-runcommand.page:175
+msgid "The command will be removed from the preferences, and the remote device will no longer be able to execute the command."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-sftp.page:14
+msgid "files, share, sharing, sftp"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-sftp.page:16
+msgctxt "text"
+msgid "Files Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-sftp.page:17
+msgid "Share files and directories with SFTP."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-sftp.page:20
+msgid "Files Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-sftp.page:21
+msgid "The Files plugin allows devices to securely share files and directories with the SFTP protocol."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-sftp.page:29
+msgid "Automatically mount remote folders"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-sftp.page:32
+msgid "Share local SFTP server details."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-sftp.page:38
+msgid "To share files and folders, a SFTP server like <cmd>sshd</cmd> must be running. Consult the documentation for your distribution for help setting up an SFTP server."
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-sftp.page:50
+msgctxt "text"
+msgid "File Sharing"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-sftp.page:51
+msgid "Configure file sharing."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-sftp.page:54
+msgid "File Sharing"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-sftp.page:55
+msgid "This guide will teach you how to configure a local <sys>SFTP</sys> server to integrate with <app>Valent</app>."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-sftp.page:63
+msgid "SFTP Server"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-sftp.page:64
+msgid "..."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-sftp.page:84
+msgid "Select <gui style=\"tab\">Sync</gui> in the view switcher, then navigate to the <gui>Files</gui> group."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-sftp.page:90
+msgid "To enable file sharing, toggle the switch on the <gui>Local Files</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-sftp.page:96
+msgid "Set the value in the <gui style=\"input\">Port</gui> entry to match the SFTP server."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-sftp.page:102
+msgid "The remote device will now be informed of the address and port of the SFTP server."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-share.page:14
+msgid "share, sharing, file, link, text, url"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-share.page:16
+msgctxt "text"
+msgid "Share Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-share.page:17
+msgid "Direct file, link and text sharing."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-share.page:20
+msgid "Share Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-share.page:21
+msgid "The Share plugin allows devices to directly share files, links and text."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-share.page:28
+msgid "Upload files to paired devices."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-share.page:31
+msgid "Open links on other devices."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-share.page:34
+msgid "Share text with embedded markup."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-share.page:50
+msgid "share, file, files, link, url, text"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-share.page:52
+msgctxt "text"
+msgid "Direct Sharing"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-share.page:53
+msgid "Configure direct sharing of files, links and text."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-share.page:56
+msgid "Direct Sharing"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-share.page:57
+msgid "The <link xref=\"plugin-share\"/> can be used to share files, links and text directly between devices. This guide will teach you how to configure where received files are saved."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-share.page:66
+msgid "Received Files"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-share.page:67
+msgid "To configure direct sharing, start by opening the main window and selecting a device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-share.page:74
+msgid "Open the main window and select the device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-share.page:88
+msgid "Select <gui style=\"tab\">Other</gui> in the view switcher, then activate the <gui style=\"button\">Download directory</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-share.page:94
+msgid "Use the <gui>File Chooser</gui> dialog to navigate to a directory, then press <gui style=\"button\">Open</gui>."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-sms.page:14
+msgid "sms, message, messaging, mms, text"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-sms.page:16
+msgctxt "text"
+msgid "SMS Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-sms.page:17
+msgid "Send and receive SMS messages."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-sms.page:20
+msgid "SMS Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-sms.page:21
+msgid "The SMS plugin allows sending, receiving and searching messages on a remote device."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-sms.page:29
+msgid "Messaging window with history and search."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-sms.page:32
+msgid "Send and receive text and media attachments."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-sms.page:38
+msgid "To use SMS messaging, the remote device must have an active account with a service provider. <app>Valent</app> does not support sending or receiving messages with online services."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-systemvolume.page:14
+msgid "volume, level, microphone, pipewire, pulseaudio"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-systemvolume.page:16
+msgctxt "text"
+msgid "System Volume Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-systemvolume.page:17
+msgid "Monitor volume levels and mircphones."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-systemvolume.page:20
+msgid "System Volume Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-systemvolume.page:21
+msgid "The System Volume plugin allows devices to monitor and control the volume on remote devices."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-systemvolume.page:29
+msgid "Monitor remote volume level and microphones."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-systemvolume.page:32
+msgid "Change audio output device."
+msgstr ""
+
+#. (itstool) path: div/p
+#: ../help/C/plugins-systemvolume.page:38
+msgid "To report local volume and audio devices to a remote device, the system must support <app>PulseAudio</app> or <app>PipeWire</app>. Consult the documentation for your distribution if your volume is not reported."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-telephony.page:14
+msgid "telephony, telephone, phone, ring"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-telephony.page:16
+msgctxt "text"
+msgid "Telephony Plugin"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-telephony.page:17
+msgid "Be notified of incoming and ongoing calls."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/plugins-telephony.page:20
+msgid "Telephony Plugin"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/plugins-telephony.page:21
+msgid "The Telephony plugin allows devices to notify of incoming and ongoing telephone calls."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/plugins-telephony.page:51
+msgid "telephony, phone, call, ring"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/plugins-telephony.page:53
+msgctxt "text"
+msgid "Phone Call Notification"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/plugins-telephony.page:54
+msgid "Lower the volume and pause media while on the phone."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-telephony.page:57
+msgid "Phone Call Notification"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/plugins-telephony.page:58
+msgid "The <link xref=\"plugin-telephony\"/> handles phone call notification. This guide will teach you how configure responses to incoming and ongoing calls."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-telephony.page:66
+msgid "Incoming Calls"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-telephony.page:84
+#: ../help/C/plugins-telephony.page:131
+msgid "Select <gui style=\"tab\">Other</gui> in the view switcher, then expand the <gui style=\"button\">Incoming Calls</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-telephony.page:90
+#: ../help/C/plugins-telephony.page:137
+msgid "Activate the <gui style=\"button\">Volume</gui> row and select from <gui style=\"menuitem\">Nothing</gui>, <gui style=\"menuitem\">Lower</gui> and <gui style=\"menuitem\">Mute</gui>."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-telephony.page:95
+#: ../help/C/plugins-telephony.page:142
+msgid "When the phone rings, the system volume will be adjusted according to this setting."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-telephony.page:101
+#: ../help/C/plugins-telephony.page:158
+msgid "Toggle the switch on the <gui style=\"button\">Pause Media</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-telephony.page:104
+#: ../help/C/plugins-telephony.page:161
+msgid "When the phone rings, supported media players will be paused until the call ends, if enabled."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/plugins-telephony.page:113
+msgid "Ongoing Calls"
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-telephony.page:148
+msgid "Toggle the switch on the <gui style=\"button\">Mute Microphone</gui> row."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/plugins-telephony.page:152
+msgid "When the phone rings, the microphone will be muted until the call ends, if enabled."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/tools-input-remote.page:14
+msgid "input, remote"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/tools-input-remote.page:16
+msgctxt "text"
+msgid "Input Remote"
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/tools-input-remote.page:20
+msgid "Input Remote"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/tools-input-remote.page:21
+msgid "To control the mouse and keyboard, start by opening the main window."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/tools-input-remote.page:32
+msgid "Open the <_:media-1/> menu and select <gui style=\"menuitem\">Input Remote</gui>."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/tools-input-remote.page:41
+msgid "Open the dropdown menu to select from the available devices."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/tools-input-remote.page:46
+msgid "Use the remote to control the mouse and keyboard."
+msgstr ""
+
+#. (itstool) path: info/keywords
+#: ../help/C/tools-media-remote.page:14
+msgid "media, remote"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/tools-media-remote.page:16
+msgctxt "text"
+msgid "Media Remote"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/tools-media-remote.page:17
+msgid "Control media players and volume."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/tools-media-remote.page:20
+msgid "Media Remote"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/tools-media-remote.page:21
+msgid "To control a media player, start by opening the <gui xref=\"introduction#main-window\">Main Window</gui>."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/tools-media-remote.page:33
+msgid "Open the <_:media-1/> menu and select <gui style=\"menuitem\">Media Remote</gui>."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/tools-media-remote.page:42
+msgid "Open the dropdown menu to select from the available media players."
+msgstr ""
+
+#. (itstool) path: item/p
+#: ../help/C/tools-media-remote.page:47
+msgid "Use the remote to control the media player and volume."
+msgstr ""
+
+#. (itstool) path: info/link
+#: ../help/C/troubleshooting-firewall.page:14
+msgid "<title>KDE Connect — Troubleshooting</title>"
+msgstr ""
+
+#. (itstool) path: info/title
+#: ../help/C/troubleshooting-firewall.page:18
+msgctxt "text"
+msgid "Firewall"
+msgstr ""
+
+#. (itstool) path: info/desc
+#: ../help/C/troubleshooting-firewall.page:19
+msgid "How to configure a firewall."
+msgstr ""
+
+#. (itstool) path: page/title
+#: ../help/C/troubleshooting-firewall.page:22
+msgid "Firewall"
+msgstr ""
+
+#. (itstool) path: page/p
+#: ../help/C/troubleshooting-firewall.page:24
+msgid "Valent implements the KDE Connect protocol, which usually connects devices on a local network (LAN). If you are having trouble connecting to a device, you may need to configure your firewall."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/troubleshooting-firewall.page:31
+msgid "General Information"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/troubleshooting-firewall.page:32
+msgid "Devices are discovered using mDNS or, for older clients, UDP broadcasts on port <sys>1716</sys>. TCP connections use ports <sys>1716–1764</sys>."
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/troubleshooting-firewall.page:36
+msgid "If you are unsure which firewall you have, you can use this information to get help for your distribution."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/troubleshooting-firewall.page:43
+msgid "Configuring <sys>firewalld</sys>"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/troubleshooting-firewall.page:45
+msgid "<sys>firewalld</sys> is a network firewall commonly used in Fedora. It ships with a prefined <sys>kdeconnect</sys> service that can be easily enabled."
+msgstr ""
+
+#. (itstool) path: note/p
+#: ../help/C/troubleshooting-firewall.page:60
+msgid "You may use <sys>firewall-config</sys> to configure <sys>firewalld</sys> with a graphical interface."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/troubleshooting-firewall.page:68
+msgid "Configuring <sys>ufw</sys>"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/troubleshooting-firewall.page:70
+msgid "<sys>ufw</sys> is a network firewall commonly used in Ubuntu and related distributions."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/troubleshooting-firewall.page:82
+msgid "Advanced Configuration"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/troubleshooting-firewall.page:84
+msgid "If you are using custom firewall rules, you may need to configure <sys>nftables</sys> or <sys>iptables</sys> manually. If unsure, consult the documentation for your distribution."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/troubleshooting-firewall.page:91
+msgid "Configuring <sys>nftables</sys>"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/troubleshooting-firewall.page:92
+msgid "<sys>nftables</sys> is a newer firewall subsystem for Linux, replacing <sys>iptables</sys>. You may add the following rules to the beginning of the \"input\" chain in <file>/etc/nftables.conf</file>."
+msgstr ""
+
+#. (itstool) path: section/title
+#: ../help/C/troubleshooting-firewall.page:104
+msgid "Configuring <sys>iptables</sys>"
+msgstr ""
+
+#. (itstool) path: section/p
+#: ../help/C/troubleshooting-firewall.page:105
+msgid "<sys>iptables</sys> is a subsystem of the Linux kernel."
+msgstr ""
+

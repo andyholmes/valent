@@ -13,6 +13,12 @@
         <property name="scope">global</property>
         <child>
           <object class="GtkShortcut">
+            <property name="trigger">F1</property>
+            <property name="action">action(win.help)</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcut">
             <property name="trigger">&lt;Control&gt;comma</property>
             <property name="action">action(win.preferences)</property>
           </object>
@@ -141,6 +147,10 @@
       <item>
         <attribute name="label" translatable="yes">Preferences</attribute>
         <attribute name="action">win.preferences</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Help</attribute>
+        <attribute name="action">win.help</attribute>
       </item>
       <item>
         <attribute name="label" translatable="yes">About Valent</attribute>

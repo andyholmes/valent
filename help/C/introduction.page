@@ -1,0 +1,174 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:if="http://projectmallard.org/if/1.0/"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic"
+      id="introduction">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="index"/>
+    <link type="seealso" href="https://kdeconnect.kde.org">
+      <title>KDE Connect Homepage</title>
+    </link>
+
+    <title type="text">Introduction</title>
+    <desc>Learn about Valent.</desc>
+  </info>
+
+  <title>Introduction</title>
+
+  <p>
+    <app>Valent</app> is an application for securely connecting devices, like
+    smartphones and laptops, allowing them to sync data and be controlled
+    remotely.
+  </p>
+
+  <!-- TODO: xref these user stories to guides -->
+  <list>
+    <title>Common use cases…</title>
+    <item>
+      <p>
+      </p>
+      <p>
+        Use a smartphone to control the
+        <link xref="tools-input-remote">mouse and keyboard</link>
+        on your desktop, or
+        <link xref="tools-media-remote">music and video</link>
+        on your media center.
+      </p>
+    </item>
+    <item>
+      <p>
+        Configure select notifications to be forwarded from your phone when it's
+        locked or silent, and receive them on your active workstation.
+      </p>
+    </item>
+    <item>
+      <p>
+        Sync the clipboard between your devices to easily copy and paste
+        one-time passwords (OTP) from SMS notifications.
+      </p>
+    </item>
+    <item>
+      <p>
+        Send, receive and search SMS messages from your desktop, via a
+        smartphone running <app>Valent</app> or the <app>KDE Connect</app> app.
+      </p>
+    </item>
+    <item>
+      <p>
+        Select <app>Valent</app> in <gui>Open With…</gui> dialogs to easily
+        send files and links to other devices.
+      </p>
+    </item>
+  </list>
+
+  <p>
+    <app>Valent</app> is an implementation of the <app>KDE Connect</app>
+    protocol and can connect to any other conforming implementation. The KDE
+    Connect project has clients for Linux, Android, SailfishOS, iOS, macOS,
+    Windows and more.
+  </p>
+
+  <section id="tour">
+    <title>Visual Tour</title>
+    <p>
+      <app>Valent</app> has a limited user interface, usually preferring to
+      integrate with the desktop environment when possible.
+    </p>
+
+    <links type="section"/>
+
+    <section id="main-window">
+      <title>Main Window</title>
+      <note style="tip">
+        <p>
+          Open the <gui xref="introduction#main-window">Main Window</gui> by
+          activating the launcher or menu item for <app>Valent</app>.
+        </p>
+      </note>
+      <p>
+        The <gui>Main Window</gui> is where other devices are listed, including
+        trusted devices and <link xref="device-setup">new devices</link>.
+      </p>
+      <media type="image" src="figures/screenshots/main-window.png" if:test="!target:mobile">
+        <p>Main Window</p>
+      </media>
+    </section>
+
+    <section id="main-preferences">
+      <title>Main Preferences</title>
+      <note style="tip">
+        <p>
+          Open the
+          <gui xref="introduction#main-preferences">Main Preferences</gui>
+          by selecting
+          <guiseq>
+            <gui style="menu" its:translate="no">
+              <media style="button" its:translate="yes" type="image" src="figures/open-menu-symbolic.svg">Main Menu</media>
+            </gui>
+            <gui style="menuitem">Preferences</gui>
+          </guiseq>
+          in the <gui xref="introduction#main-window">Main Window</gui>.
+        </p>
+      </note>
+      <p>
+        The <gui>Main Preferences</gui> is where the
+        <link xref="device-name">device name</link> can be changed, and
+        plugins that integrate with the desktop are configured.
+      </p>
+      <media type="image" src="figures/screenshots/main-preferences.png" if:test="!target:mobile">
+        <p>Main Preferences</p>
+      </media>
+    </section>
+
+    <section id="device-page">
+      <title>Device Page</title>
+      <note style="tip">
+        <p>
+          Open the <gui xref="introduction#device-page">Device Page</gui> by
+          activating the device row in the
+          <gui xref="introduction#main-window">Main Window</gui>.
+        </p>
+      </note>
+      <p>
+        When paired, the device page has the status widgets like the battery
+        level and the plugin actions like <gui>Send Files</gui>. New devices
+        will display controls for <link xref="device-setup">pairing</link>.
+      </p>
+      <media type="image" src="figures/screenshots/device-page.png" if:test="!target:mobile">
+        <p>Device Page</p>
+      </media>
+    </section>
+
+    <section id="device-preferences">
+      <title>Device Preferences</title>
+      <note style="tip">
+        <p>
+          Open the
+          <gui xref="introduction#device-preferences">Device Preferences</gui>
+          by selecting
+          <guiseq>
+            <gui style="menu" its:translate="no">
+              <media style="button" its:translate="yes" type="image" src="figures/view-more-symbolic.svg">Device Menu</media>
+            </gui>
+            <gui style="menuitem">Preferences</gui>
+          </guiseq>
+          in the <gui xref="introduction#device-page">Device Page</gui>.
+        </p>
+      </note>
+      <p>
+        The devices preferences is where <link xref="plugins#device"/> can be
+        enabled, disabled and configured.
+      </p>
+      <media type="image" src="figures/screenshots/device-preferences.png" if:test="!target:mobile">
+        <p>Device Preferences</p>
+      </media>
+    </section>
+  </section>
+</page>
