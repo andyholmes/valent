@@ -9,9 +9,6 @@
     <file alias="graph-contacts.turtle">data/graph-contacts.turtle</file>
     <file alias="graph-messages.turtle">data/graph-messages.turtle</file>
   </gresource>
-  <gresource prefix="/plugins/packetless">
-    <file>packetless.plugin</file>
-  </gresource>
   <gresource prefix="/tests">
     <file alias="contact.vcf">data/contact.vcf</file>
     <file alias="contact2.vcf">data/contact2.vcf</file>

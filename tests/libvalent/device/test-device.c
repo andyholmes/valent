@@ -394,7 +394,7 @@ test_device_actions (DeviceFixture *fixture,
   device_fixture_set_paired (fixture, TRUE);
 
   action_names = g_action_group_list_actions (actions);
-  g_assert_cmpuint (g_strv_length (action_names), ==, 5);
+  g_assert_cmpuint (g_strv_length (action_names), ==, 4);
 
   valent_test_watch_signal (actions, "action-added", &watch);
   valent_test_watch_signal (actions, "action-enabled-changed", &watch);
@@ -446,14 +446,14 @@ test_device_actions (DeviceFixture *fixture,
 
   /* Add/Remove */
   plugin_info = peas_engine_get_plugin_info (valent_get_plugin_engine (),
-                                             "packetless");
+                                             "mock");
 
   peas_engine_unload_plugin (valent_get_plugin_engine (), plugin_info);
-  g_assert_false (g_action_group_has_action (actions, "packetless.action"));
+  g_assert_false (g_action_group_has_action (actions, "mock.echo"));
   valent_test_await_boolean (&watch);
 
   peas_engine_load_plugin (valent_get_plugin_engine (), plugin_info);
-  g_assert_true (g_action_group_has_action (actions, "packetless.action"));
+  g_assert_true (g_action_group_has_action (actions, "mock.echo"));
   valent_test_await_boolean (&watch);
 
   valent_test_watch_clear (actions, &watch);
