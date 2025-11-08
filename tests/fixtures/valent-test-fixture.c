@@ -99,8 +99,7 @@ valent_test_fixture_init (ValentTestFixture *fixture,
         continue;
 
       module_name = peas_plugin_info_get_module_name (plugin_info);
-      if (g_str_equal (module_name, "mock") ||
-          g_str_equal (module_name, "packetless"))
+      if (g_str_equal (module_name, "mock"))
         continue;
 
       plugin_context = valent_context_get_plugin_context (context, plugin_info);
