@@ -31,7 +31,7 @@
  * Returns: (transfer full) (nullable): a new certificate,
  *   or %NULL with @error set
  */
-GTlsCertificate *
+static GTlsCertificate *
 valent_certificate_generate (const char  *common_name,
                              GError     **error)
 {
