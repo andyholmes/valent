@@ -1124,7 +1124,6 @@ valent_device_constructed (GObject *object)
 {
   ValentDevice *self = VALENT_DEVICE (object);
   g_autoptr (GFile) certificate_file = NULL;
-  g_autofree char *path = NULL;
   unsigned int n_plugins = 0;
 
   G_OBJECT_CLASS (valent_device_parent_class)->constructed (object);
@@ -1135,7 +1134,6 @@ valent_device_constructed (GObject *object)
   if (self->context == NULL)
     self->context = valent_context_new (NULL, "device", self->id);
 
-  path = g_strdup_printf ("/ca/andyholmes/valent/device/%s/", self->id);
   certificate_file = valent_context_get_config_file (self->context,
                                                      "certificate.pem");
   self->paired = g_file_query_exists (certificate_file, NULL);
