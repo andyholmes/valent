@@ -968,8 +968,6 @@ cursor_get_timestamp_cb (TrackerSparqlCursor *cursor,
     g_task_return_pointer (task, g_steal_pointer (&timestamp), g_free);
   else
     g_task_return_error (task, g_steal_pointer (&error));
-
-  g_free (timestamp);
 }
 
 static void
