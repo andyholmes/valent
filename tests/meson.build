@@ -73,9 +73,18 @@ installed_tests_tmpl = join_paths(meson.current_source_dir(), 'extra',
   'template.test.in')
 
 # Instrumented Libraries
-if get_option('tests_libdir') != ''
-  tests_env += 'LD_LIBRARY_PATH=@0@'.format(get_option('tests_libdir'))
-  installed_tests_env += 'LD_LIBRARY_PATH=@0@'.format(get_option('tests_libdir'))
+tests_libdir = get_option('tests_libdir')
+if tests_libdir != ''
+  printenv = find_program('printenv', required: false)
+  if printenv.found()
+    res = run_command(printenv, 'LD_LIBRARY_PATH')
+    if res.returncode() == 0
+      tests_libdir = '@0@:@1@'.format(tests_libdir, res.stdout().strip())
+    endif
+  endif
+
+  tests_env += 'LD_LIBRARY_PATH=@0@'.format(tests_libdir)
+  installed_tests_env += 'LD_LIBRARY_PATH=@0@'.format(tests_libdir)
 endif
 
 # Optional dependencies
