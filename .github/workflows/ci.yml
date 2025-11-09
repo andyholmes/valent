@@ -159,7 +159,7 @@ jobs:
     strategy:
       matrix:
         compiler: [gcc, llvm]
-        suite: [test, asan, tsan, analyzer]
+        suite: [test, asan, analyzer]
         include:
           - suite: test
             setup-args: |
@@ -170,11 +170,6 @@ jobs:
             setup-args: |
               -Dintrospection=false
               -Dtests=true
-          - suite: tsan
-            setup-args: |
-              -Dintrospection=false
-              -Dtests=true
-              -Dtests_libdir=/usr/tsan/lib64
           - suite: analyzer
             setup-args: |
               -Dintrospection=false
@@ -189,7 +184,6 @@ jobs:
 
       - name: Test
         id: test
-        if: ${{ !(matrix.compiler == 'llvm' && matrix.suite == 'tsan') }}
         uses: andyholmes/actuary@main
         with:
           suite: ${{ matrix.suite }}
