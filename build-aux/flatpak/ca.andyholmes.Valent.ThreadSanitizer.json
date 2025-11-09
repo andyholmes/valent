@@ -1,0 +1,43 @@
+{
+    "name": "ca.andyholmes.Valent.ThreadSanitizer",
+    "buildsystem": "simple",
+    "build-commands": [],
+    "modules": [
+        {
+            "name": "glib",
+            "buildsystem": "meson",
+            "config-opts": [
+                "--prefix=/app/tsan",
+                "--libdir=lib/",
+                "-Db_sanitize=thread",
+                "-Dintrospection=disabled",
+                "-Dtests=false",
+                "-Dwerror=false"
+            ],
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://gitlab.gnome.org/GNOME/glib.git",
+                    "branch": "glib-2-86"
+                }
+            ]
+        },
+        {
+            "name": "glib-networking",
+            "buildsystem": "meson",
+            "config-opts": [
+                "--prefix=/app/tsan",
+                "--libdir=lib/",
+                "-Db_sanitize=thread",
+                "-Dwerror=false"
+            ],
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://gitlab.gnome.org/GNOME/glib-networking.git",
+                    "branch": "glib-2-80"
+                }
+            ]
+        }
+    ]
+}
