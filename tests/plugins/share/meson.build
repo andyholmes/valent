@@ -31,6 +31,7 @@ foreach test : plugin_runcommand_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'share'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

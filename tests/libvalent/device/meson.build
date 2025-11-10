@@ -31,6 +31,7 @@ foreach test : libvalent_device_tests
             env: tests_env,
     is_parallel: false,
           suite: ['libvalent', 'device'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

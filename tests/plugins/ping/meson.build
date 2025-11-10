@@ -29,6 +29,7 @@ foreach test : plugin_ping_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'ping'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

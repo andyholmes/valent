@@ -27,6 +27,7 @@ foreach test : libvalent_notifications_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['libvalent', 'notifications'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

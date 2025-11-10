@@ -42,6 +42,7 @@ foreach test, test_wrapper : plugin_battery_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'battery'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

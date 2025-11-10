@@ -27,6 +27,7 @@ foreach test : libvalent_media_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['libvalent', 'media'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

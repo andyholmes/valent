@@ -29,6 +29,7 @@ foreach test : plugin_telephony_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'telephony'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

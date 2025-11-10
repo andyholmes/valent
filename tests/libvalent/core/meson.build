@@ -32,6 +32,7 @@ foreach test : libvalent_core_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['libvalent', 'core'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

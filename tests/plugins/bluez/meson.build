@@ -41,6 +41,7 @@ foreach test, test_wrapper : plugin_bluez_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'bluez'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

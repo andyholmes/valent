@@ -27,6 +27,7 @@ foreach test : libvalent_clipboard_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['libvalent', 'clipboard'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

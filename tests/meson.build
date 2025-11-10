@@ -50,6 +50,11 @@ test_c_args = [
 test_link_args = [
 ]
 
+tests_timeout = 30
+if get_option('b_sanitize') != 'none'
+  tests_timeout = tests_timeout * 3
+endif
+
 installed_tests_plan = []
 installed_tests_wrappers = []
 installed_tests_execdir = join_paths(libexecdir, 'installed-tests', libvalent_api_name)

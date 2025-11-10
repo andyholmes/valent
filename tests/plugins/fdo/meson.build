@@ -43,6 +43,7 @@ foreach test, test_wrapper : plugin_fdo_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'fdo'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

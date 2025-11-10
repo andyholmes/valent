@@ -29,6 +29,7 @@ foreach test : plugin_sftp_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'sftp'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

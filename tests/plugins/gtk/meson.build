@@ -46,6 +46,7 @@ foreach test, test_wrapper : plugin_gtk_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'gtk'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{
