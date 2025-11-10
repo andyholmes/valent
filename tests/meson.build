@@ -108,7 +108,31 @@ test('Validate GSchema files', find_program('glib-compile-schemas'),
   is_parallel: false,
 )
 
+# Help Tests
+yelp_check = find_program('yelp-check', required: false)
 
+if yelp_check.found()
+  help_path = join_paths(meson.project_source_root(), 'help', 'C')
+  help_tests = [
+    # See: https://gitlab.gnome.org/GNOME/yelp-tools/-/merge_requests/11
+    # 'hrefs',
+    'ids',
+    'links',
+    'media',
+    'orphans',
+    'validate',
+  ]
+
+  foreach test : help_tests
+    test('yelp-check @0@'.format(test), yelp_check,
+       args: [test, help_path],
+      suite: ['help'],
+    )
+  endforeach
+endif
+
+
+# Uninstalled Tests
 subdir('fixtures')
 subdir('libvalent')
 subdir('plugins')

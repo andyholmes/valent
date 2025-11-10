@@ -1,0 +1,114 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="problem"
+      id="troubleshooting-firewall">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="index#troubleshooting"/>
+    <link type="seealso" href="https://userbase.kde.org/KDEConnect#Troubleshooting">
+      <title>KDE Connect — Troubleshooting</title>
+    </link>
+
+    <title type="text">Firewall</title>
+    <desc>How to configure a firewall.</desc>
+  </info>
+
+  <title>Firewall</title>
+
+  <p>
+    Valent implements the KDE Connect protocol, which usually connects devices
+    on a local network (LAN). If you are having trouble connecting to a device,
+    you may need to configure your firewall.
+  </p>
+
+  <section>
+    <title>General Information</title>
+    <p>
+      Devices are discovered using mDNS or, for older clients, UDP broadcasts
+      on port <sys>1716</sys>. TCP connections use ports <sys>1716–1764</sys>.
+    </p>
+    <p>
+      If you are unsure which firewall you have, you can use this information to
+      get help for your distribution.
+    </p>
+  </section>
+
+  <section>
+    <title>Configuring <sys>firewalld</sys></title>
+
+    <p>
+      <sys>firewalld</sys> is a network firewall commonly used in Fedora. It
+      ships with a configuration for KDE Connect that can be easily enabled.
+    </p>
+
+    <screen its:translate="no">
+<output style="prompt">$ </output><input>firewall-cmd --permanent --add-service=kdeconnect</input>
+<output>success</output>
+<output style="prompt">$ </output><input>firewall-cmd --reload</input>
+<output>success</output></screen>
+
+    <note style="tip">
+      <p>
+        You may use <sys>firewall-config</sys> to configure <sys>firewalld</sys>
+        with a graphical interface.
+      </p>
+    </note>
+  </section>
+
+  <section>
+    <title>Configuring <sys>ufw</sys></title>
+
+    <p>
+      <sys>ufw</sys> is a network firewall commonly used in Ubuntu and
+      related distributions.
+    </p>
+
+    <screen its:translate="no">
+<output style="prompt"># </output><input>ufw allow 1716/udp</input>
+<output style="prompt"># </output><input>ufw allow 1716:1764/tcp</input>
+<output style="prompt"># </output><input>ufw reload</input></screen>
+  </section>
+
+  <section>
+    <title>Configuring <sys>nftables</sys></title>
+    <p>
+      <sys>nftables</sys> is a newer firewall subsystem for Linux, replacing
+      <sys>iptables</sys>. The configuration below may be saved as
+      <file>/etc/nftables.d/50_kdeconnect.nft</file> if the directory exists,
+      otherwise the rules can be added to <file>/etc/nftables.nft</file>
+    </p>
+
+    <code style="nftables" its:translate="no">
+#!/usr/sbin/nft -f
+
+table inet filter {
+  chain input {
+    udp dport 1716 accept comment "KDE Connect"
+    tcp dport 1716-1764 accept comment "KDE Connect"
+  }
+}</code>
+  </section>
+
+  <section>
+    <title>Configuring <sys>iptables</sys></title>
+    <p>
+      <sys>iptables</sys> is a subsystem of the Linux kernel.
+    </p>
+
+    <screen its:translate="no">
+<output style="prompt"># </output><input>iptables -I INPUT -i &lt;iface&gt; \
+           -p udp --dport 1716 \
+           -m state --state NEW,ESTABLISHED \
+           -j ACCEPT</input>
+<output style="prompt"># </output><input>iptables -I INPUT -i &lt;iface&gt; \
+           -p tcp --dport 1716:1764 \
+           -m state --state NEW,ESTABLISHED \
+           -j ACCEPT</input></screen>
+  </section>
+</page>

@@ -1,0 +1,257 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="device-preferences-sync">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <!-- <link type="guide" xref="device-preference-other"/> -->
+    <keywords>battery, charge, charging, connectivity, level, monitor, statistics</keywords>
+
+    <title type="text">Device Preferences (Sync)</title>
+    <desc>Other types of plugins.</desc>
+  </info>
+
+  <section id="clipboard-preferences">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+
+      <title type="text">Sync clipboard content</title>
+      <desc>Configure how clipboard content is synced.</desc>
+    </info>
+
+    <title>Sync clipboard content</title>
+    <p>
+      The <link xref="device-plugins#clipboard"/> can be used to sync the clipboard
+      between devices. This guide will teach you how to control the source and
+      direction the content will be synced in.
+    </p>
+
+    <note style="warning">
+      <p>
+        When enabled, clipboard content will be synced without any consideration
+        of security implications. This includes passwords and any other
+        sensitive content.
+      </p>
+    </note>
+
+    <links type="section"/>
+
+    <section id="sync">
+      <title>Clipboard Sync</title>
+      <p>
+        To configure clipboard sync, start by opening the main window and
+        selecting a device.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Sync</gui> in the view switcher and
+            navigate to the <gui>Clipboard</gui> preferences.
+          </p>
+        </item>
+        <item>
+          <p>
+            To sync content from the remote device to the local clipboard,
+            toggle the <gui>Remote Clipboard</gui> switch. When enabled, content
+            in the remote clipboard can be pasted from the local clipboard.
+          </p>
+          <p>
+            To sync content from local clipboard to the remote device, toggle
+            the <gui>Local Clipboard</gui> switch. When enabled, content will be
+            sent to the remote device when copied.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+
+  <section id="notification-preferences">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+      <keywords>notification, notifications, sync</keywords>
+
+      <title type="text">Notification Forwarding</title>
+      <desc>Configure notification sync.</desc>
+    </info>
+
+    <title>Notification Forwarding</title>
+    <p>
+      This guide will teach you how to control notification forwarding and
+      filtering by application.
+    </p>
+
+    <links type="section"/>
+
+    <section id="intelligent-sync">
+      <title>Intelligent Sync</title>
+      <p>
+        Notifications can be configured to sync in a more intelligent way, by
+        using the session state as a hint to which device is presently in use.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Sync</gui> in the view switcher, then
+            expand the <gui style="button">Local Notifications</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Toggle the switch on the <gui style="button">Intelligent Sync</gui>
+            row.
+          </p>
+        </item>
+        <item>
+          <p>
+            When enabled, local notifications will only be forwarded if the
+            local session is inactive, and only to remote devices that are
+            active.
+          </p>
+          <note style="important">
+            <p>
+              Connected devices are considered active by default.
+            </p>
+          </note>
+        </item>
+      </steps>
+    </section>
+
+    <section id="filter-applications">
+      <title>Filter Applications</title>
+      <p>
+        Notifications can be filtered by application, to avoid excessive
+        disturbances or leaking sensitive data.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Sync</gui> in the view switcher, then
+            expand the <gui style="button">Local Notifications</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Activate the <gui style="button">Filter by Application</gui> row.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+
+  <section id="sftp-preferences">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+      <keywords>command, commands, execute</keywords>
+
+      <title type="text">File Sharing</title>
+      <desc>Configure file sharing.</desc>
+    </info>
+
+    <title>File Sharing</title>
+    <p>
+      This guide will teach you how to configure a local <sys>SFTP</sys> server
+      to integrate with <app>Valent</app>.
+    </p>
+
+    <links type="section"/>
+
+    <section id="sftp-server">
+      <title>SFTP Server</title>
+      <p>
+        ...
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Sync</gui> in the view switcher, then
+            navigate to the <gui>Files</gui> group.
+          </p>
+        </item>
+        <item>
+          <p>
+            To enable file sharing, toggle the switch on the
+            <gui>Local Files</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Set the value in the <gui style="input">Port</gui> entry to match
+            the SFTP server.
+          </p>
+        </item>
+        <item>
+          <p>
+            The remote device will now be informed of the address and port of
+            the SFTP server.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+</page>

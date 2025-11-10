@@ -277,6 +277,10 @@ if get_option('documentation')
   subdir('doc/sdk')
 endif
 
+if get_option('help')
+  subdir('help')
+endif
+
 if get_option('tests')
   subdir('tests')
 endif
@@ -293,6 +297,7 @@ gnome.post_install(
 #
 summary({
   'Documentation': get_option('documentation'),
+  'Help':          get_option('help'),
   'Introspection': get_option('introspection'),
   'VAPI':          get_option('vapi'),
   'Optimization':  get_option('optimization'),

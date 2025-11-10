@@ -1,0 +1,135 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="task"
+      id="device-setup">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <title type="text">Device Setup</title>
+    <desc>Manage and configure trusted devices.</desc>
+  </info>
+
+  <title>Device Setup</title>
+  <p>
+    Device plugins...
+  </p>
+
+  <section id="device-pair">
+    <info>
+      <link type="guide" xref="index#getting-started"/>
+      <link type="seealso" xref="troubleshooting-firewall"/>
+      <link type="seealso" href="https://userbase.kde.org/KDEConnect#Pairing_two_devices_together">
+        <title>KDE Connect — Pairing two devices together</title>
+      </link>
+
+      <title type="text">Setup a new device</title>
+      <desc>Connect and configure a new device.</desc>
+    </info>
+
+    <title>Setup a new device</title>
+    <p>
+      Before starting, ensure that both devices you want to connect are on the
+      same local network.
+    </p>
+
+    <steps>
+      <item>
+        <p>
+          Open the
+          <gui xref="introduction#main-window">Main Window</gui>
+          and press the
+          <media style="button" its:translate="no" type="image" src="figures/view-refresh-symbolic.svg">
+            <gui style="button" its:translate="yes">Refresh</gui>
+          </media>
+          button.
+        </p>
+      </item>
+      <item>
+        <p>
+          Wait up to 10 seconds for the device to appear in the device list. If
+          your device does not appear, see <link xref="index#troubleshooting"/>
+          for possible solutions.
+        </p>
+      </item>
+      <item>
+        <p>
+          Activate the device row to open the
+          <gui xref="introduction#device-page">Device Page</gui>.
+          You may
+          <link xref="introduction#device-preferences">configure a device</link>
+          before pairing to restrict its access.
+        </p>
+      </item>
+      <item>
+        <p>
+          Activate the <gui style="button">Request Pairing</gui> button, then use
+          the other device to confirm the verification key and accept the request.
+        </p>
+      </item>
+      <item>
+        <p>
+          Once paired, the available actions and information will be revealed on
+          the device page. To unpair the device, open the menu on the device page
+          and select <gui style="menuitem">Unpair</gui>.
+        </p>
+      </item>
+    </steps>
+
+    <note style="tip">
+      <p>
+        Information about connecting official <app>KDE Connect</app> clients can
+        be found on the
+        <link href="https://userbase.kde.org/KDEConnect">KDE Connect Wiki</link>.
+      </p>
+    </note>
+  </section>
+
+  <section id="device-unpair">
+    <info>
+      <link type="guide" xref="index#common-tasks"/>
+      <!-- <link type="seealso" xref="device-setup"/> -->
+      <!-- <keywords>share, files, file, browser, nautilus</keywords> -->
+
+      <title type="text">Remove a device</title>
+      <desc>How to unpair and remove a device.</desc>
+    </info>
+
+    <title>Remove a Device</title>
+    <p>
+      Before starting, ensure that both devices you want to connect are on the
+      same local network.
+    </p>
+
+    <steps>
+      <item>
+        <p>
+          Open the <gui xref="introduction#main-window">Main Window</gui>.
+        </p>
+      </item>
+      <item>
+        <p>
+          Activate the device row to open the
+          <gui xref="introduction#device-page">Device Page</gui>.
+        </p>
+      </item>
+      <item>
+        <guiseq>
+          <gui style="menu" its:translate="no">
+            <media style="button" its:translate="yes" type="image" src="figures/view-more-symbolic.svg">Device Menu</media>
+          </gui>
+          <gui style="menuitem">Unpair</gui>
+        </guiseq>
+        in the <gui xref="introduction#device-page">Device Page</gui>.
+        <p>
+          Activate the <gui style="button">Request Pairing</gui> button, then use
+          the other device to confirm the verification key and accept the request.
+        </p>
+      </item>
+    </steps>
+  </section>
+</page>

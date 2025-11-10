@@ -1,0 +1,54 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="task"
+      id="tools-messages-window">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="index#tools"/>
+    <keywords>messages, messaging, sms, mms, text</keywords>
+
+    <title type="text">Messages</title>
+    <desc>Send and receive messages.</desc>
+  </info>
+
+  <title>Messages</title>
+  <p>
+    To send and receive messages, start by opening the
+    <gui xref="introduction#main-window">Main Window</gui>.
+  </p>
+
+  <steps>
+    <item>
+      <p>
+        Open the main window.
+      </p>
+    </item>
+    <item>
+      <p>
+        Open the
+        <media style="button" its:translate="no" type="image" src="figures/open-menu-symbolic.svg">
+          <gui style="menu" its:translate="yes">Main Menu</gui>
+        </media>
+        menu and select <gui style="menuitem">Messages</gui>.
+      </p>
+    </item>
+    <item>
+      <p>
+        Open the <gui style="menu" its:translate="yes">dropdown menu</gui> and
+        select a device.
+      </p>
+    </item>
+    <item>
+      <p>
+        Select or start a new conversation and use the controls to send
+        messages and attachments to contacts in your addressbook.
+      </p>
+    </item>
+  </steps>
+</page>

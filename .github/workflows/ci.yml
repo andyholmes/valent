@@ -93,6 +93,7 @@ jobs:
         run: |
           meson setup --buildtype=release \
                       -Ddocumentation=true \
+                      -Dhelp=true \
                       _build
           meson compile -C _build
 
@@ -116,10 +117,12 @@ jobs:
         include:
           - suite: abidiff
             setup-args: |
+              -Dhelp=false
               -Dintrospection=false
               -Dplugins=false
           - suite: cppcheck
             setup-args: |
+              -Dhelp=false
               -Dintrospection=false
               -Dtests=true
       fail-fast: false
@@ -163,20 +166,24 @@ jobs:
         include:
           - suite: test
             setup-args: |
+              -Dhelp=false
               -Dtests=true
             test-args: |
               --repeat=3
           - suite: asan
             setup-args: |
+              -Dhelp=false
               -Dintrospection=false
               -Dtests=true
           - suite: tsan
             setup-args: |
+              -Dhelp=false
               -Dintrospection=false
               -Dtests=true
               -Dtests_libdir=/usr/tsan/lib64
           - suite: analyzer
             setup-args: |
+              -Dhelp=false
               -Dintrospection=false
               -Dtests=true
       fail-fast: false

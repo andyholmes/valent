@@ -280,6 +280,21 @@ page_action (GtkWidget  *widget,
 }
 
 static void
+help_action (GtkWidget  *widget,
+             const char *action_name,
+             GVariant   *parameter)
+{
+  GtkWindow *window = GTK_WINDOW (widget);
+
+  g_assert (GTK_IS_WINDOW (window));
+
+  /* GtkUriLauncher may try to open the URI outside of the sandbox */
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+  gtk_show_uri (window, "help:valent", GDK_CURRENT_TIME);
+  G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+static void
 preferences_action (GtkWidget  *widget,
                     const char *action_name,
                     GVariant   *parameter)
@@ -447,6 +462,7 @@ valent_window_class_init (ValentWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ValentWindow, device_list);
 
   gtk_widget_class_install_action (widget_class, "win.about", NULL, about_action);
+  gtk_widget_class_install_action (widget_class, "win.help", NULL, help_action);
   gtk_widget_class_install_action (widget_class, "win.page", "s", page_action);
   gtk_widget_class_install_action (widget_class, "win.preferences", NULL, preferences_action);
   gtk_widget_class_install_action (widget_class, "win.refresh", NULL, refresh_action);

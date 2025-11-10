@@ -1,0 +1,37 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      type="guide"
+      id="plugins">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="index"/>
+    <link type="seealso" href="https://userbase.kde.org/KDEConnect#Available_Plugins">
+      <title>KDE Connect — Available Plugins</title>
+    </link>
+
+    <title type="text">Plugins</title>
+    <desc>Extended Functionality.</desc>
+  </info>
+
+  <title>Plugins</title>
+  <p>
+    <app>Valent</app> supports several types of plugins, with default plugins
+    for features in <app>KDE Connect</app> and
+    <link href="https://freedesktop.org">freedesktop.org</link> interfaces.
+  </p>
+
+  <section id="application" style="2column">
+    <title>Device Plugins</title>
+    <subtitle>Remote control and syncing capabilities</subtitle>
+  </section>
+
+  <section id="device" style="2column">
+    <title>Device Plugins</title>
+    <subtitle>Remote control and syncing capabilities</subtitle>
+  </section>
+</page>

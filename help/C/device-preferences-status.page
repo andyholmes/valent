@@ -1,0 +1,305 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="topic"
+      id="device-preferences-status">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <!-- <link type="guide" xref="device-preference-other"/> -->
+    <keywords>battery, charge, charging, level, monitor, statistics</keywords>
+
+    <title type="text">Device Status</title>
+    <desc>Other types of plugins.</desc>
+  </info>
+
+  <title>Device Status</title>
+  <p>
+    The Battery plugin allows devices to exchange information about their
+    battery status, such as the level and charging state.
+  </p>
+
+  <list>
+    <title>Features</title>
+    <item>
+      <p>Monitor remote battery level and charging state</p>
+    </item>
+    <item>
+      <p>Configurable notifications for low battery and full charge.</p>
+    </item>
+    <item>
+      <p>Report local battery level and charging status.</p>
+    </item>
+  </list>
+
+  <div>
+    <title>Requirements</title>
+    <p>
+      To report local battery statistics to a remote device, a battery must be
+      recognized by UPower. Consult the documentation for your distribution if
+      your battery is not recognized.
+    </p>
+  </div>
+
+  <section id="battery-preferences">
+    <info>
+      <link type="guide" xref="index#status-guides"/>
+
+      <title type="text">Monitor the battery status</title>
+      <desc>Configure status notifications.</desc>
+    </info>
+
+    <title>Monitor the battery status</title>
+    <p>
+      This guide will teach you how to configure when notifications are shown
+      for the battery level and status.
+    </p>
+
+    <links type="section"/>
+
+    <section id="low-battery">
+      <title>Low Battery Notification</title>
+      <p>
+        To change the battery notification level, start by opening the main
+        window and selecting a device.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Status</gui> in the view switcher, then
+            toggle the <gui style="button">Low Battery Notification</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Adjust the <gui style="input">Level Threshold</gui> to control when
+            the notification will be shown.
+          </p>
+        </item>
+      </steps>
+    </section>
+
+    <section id="full-battery">
+      <title>Full Battery Notification</title>
+      <p>
+        To change the battery notification level, start by opening the main
+        window and selecting a device.
+      </p>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Status</gui> in the view switcher, then
+            toggle the <gui style="button">Full Battery Notification</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Adjust the <gui style="input">Level Threshold</gui> to control when
+            the notification will be shown.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+
+  <section id="connectivity-preferences">
+    <info>
+      <link type="guide" xref="index#status-guides"/>
+
+      <title type="text">Monitor mobile connectivity</title>
+      <desc>Configure status notifications.</desc>
+    </info>
+
+    <title>Monitor mobile connectivity</title>
+    <p>
+      The <link xref="device-plugins#connectivity_report"/> monitors the signal strength
+      and status of mobile connectivity. This guide will teach you how to
+      configure when notifications are shown for the connection status.
+    </p>
+
+    <links type="section"/>
+
+    <section id="status">
+      <title>Connectivity Notification</title>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Status</gui> in the view switcher, then
+            toggle the <gui style="button">Remote Connectivity</gui> row.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+
+  <section id="telephony-preferences">
+    <info>
+      <link type="guide" xref="index#status-guides"/>
+      <keywords>telephony, phone, call, ring</keywords>
+
+      <title type="text">Phone Call Notification</title>
+      <desc>Lower the volume and pause media while on the phone.</desc>
+    </info>
+
+    <title>Phone Call Notification</title>
+    <p>
+      The <link xref="device-plugins#telephony"/> handles phone call notification. This
+      guide will teach you how configure responses to incoming and ongoing calls.
+    </p>
+
+    <links type="section"/>
+
+    <section id="incoming-calls">
+      <title>Incoming Calls</title>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Other</gui> in the view switcher, then
+            expand the <gui style="button">Incoming Calls</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Activate the <gui style="button">Volume</gui> row and select from
+            <gui style="menuitem">Nothing</gui>, <gui style="menuitem">Lower</gui>
+            and <gui style="menuitem">Mute</gui>.
+          </p>
+          <p>
+            When the phone rings, the system volume will be adjusted according to
+            this setting.
+          </p>
+        </item>
+        <item>
+          <p>
+            Toggle the switch on the <gui style="button">Pause Media</gui> row.
+          </p>
+          <p>
+            When the phone rings, supported media players will be paused until the
+            call ends, if enabled.
+          </p>
+        </item>
+      </steps>
+    </section>
+
+    <section id="ongoing-calls">
+      <title>Ongoing Calls</title>
+
+      <steps>
+        <item>
+          <p>
+            Open the main window and select a device.
+          </p>
+        </item>
+        <item>
+          <p>
+            Open the
+            <media style="button" its:translate="no" type="image" src="figures/view-more-symbolic.svg">
+              <gui style="menu" its:translate="yes">Device Menu</gui>
+            </media>
+            menu and select <gui style="menuitem">Preferences</gui>.
+          </p>
+        </item>
+        <item>
+          <p>
+            Select <gui style="tab">Other</gui> in the view switcher, then
+            expand the <gui style="button">Incoming Calls</gui> row.
+          </p>
+        </item>
+        <item>
+          <p>
+            Activate the <gui style="button">Volume</gui> row and select from
+            <gui style="menuitem">Nothing</gui>, <gui style="menuitem">Lower</gui>
+            and <gui style="menuitem">Mute</gui>.
+          </p>
+          <p>
+            When the phone rings, the system volume will be adjusted according to
+            this setting.
+          </p>
+        </item>
+        <item>
+          <p>
+            Toggle the switch on the <gui style="button">Mute Microphone</gui>
+            row.
+          </p>
+          <p>
+            When the phone rings, the microphone will be muted until the call
+            ends, if enabled.
+          </p>
+        </item>
+        <item>
+          <p>
+            Toggle the switch on the <gui style="button">Pause Media</gui> row.
+          </p>
+          <p>
+            When the phone rings, supported media players will be paused until the
+            call ends, if enabled.
+          </p>
+        </item>
+      </steps>
+    </section>
+  </section>
+</page>

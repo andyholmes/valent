@@ -1,0 +1,53 @@
+<page xmlns="http://projectmallard.org/1.0/" version="1.1"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="topic" style="task"
+      id="tools-media-remote">
+
+  <info>
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+    <credit type="author">
+      <name>Andy Holmes</name>
+      <email>andrew.g.r.holmes@gmail.com</email>
+    </credit>
+
+    <link type="guide" xref="index#tools"/>
+    <keywords>media, remote</keywords>
+
+    <title type="text">Media Remote</title>
+    <desc>Control media players and volume.</desc>
+  </info>
+
+  <title>Media Remote</title>
+  <p>
+    To control a media player, start by opening the
+    <gui xref="introduction#main-window">Main Window</gui>.
+  </p>
+
+  <steps>
+    <item>
+      <p>
+        Open the main window.
+      </p>
+    </item>
+    <item>
+      <p>
+        Open the
+        <media style="button" its:translate="no" type="image" src="figures/open-menu-symbolic.svg">
+          <gui style="menu" its:translate="yes">Main Menu</gui>
+        </media>
+        menu and select <gui style="menuitem">Media Remote</gui>.
+      </p>
+    </item>
+    <item>
+      <p>
+        Open the <gui style="menu" its:translate="yes">dropdown menu</gui> and
+        select a media player.
+      </p>
+    </item>
+    <item>
+      <p>
+        Use the remote to control the media player and volume.
+      </p>
+    </item>
+  </steps>
+</page>
