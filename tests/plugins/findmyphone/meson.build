@@ -33,6 +33,7 @@ foreach test : plugin_findmyphone_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'findmyphone'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

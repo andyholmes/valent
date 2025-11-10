@@ -43,6 +43,7 @@ foreach test, test_wrapper : plugin_connectivity_report_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'connectivity_report'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

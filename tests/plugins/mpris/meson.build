@@ -32,6 +32,7 @@ foreach test : plugin_mpris_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'mpris'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

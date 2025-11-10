@@ -27,6 +27,7 @@ foreach test : libvalent_mixer_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['libvalent', 'mixer'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

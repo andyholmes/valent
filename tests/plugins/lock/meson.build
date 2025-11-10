@@ -29,6 +29,7 @@ foreach test : plugin_lock_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'lock'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

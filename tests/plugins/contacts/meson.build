@@ -29,6 +29,7 @@ foreach test : plugin_contacts_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'contacts'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

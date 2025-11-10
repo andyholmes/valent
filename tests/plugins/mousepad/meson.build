@@ -31,6 +31,7 @@ foreach test : plugin_mousepad_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'mousepad'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

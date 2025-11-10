@@ -78,6 +78,7 @@ foreach test, test_wrapper : plugin_gnome_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'gnome'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

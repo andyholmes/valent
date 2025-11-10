@@ -29,6 +29,7 @@ foreach test : plugin_systemvolume_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'systemvolume'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{

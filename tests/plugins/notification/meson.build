@@ -29,6 +29,7 @@ foreach test : plugin_notification_tests
     is_parallel: false,
        protocol: 'tap',
           suite: ['plugins', 'notification'],
+        timeout: tests_timeout,
   )
 
   installed_tests_plan += [{
