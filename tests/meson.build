@@ -44,10 +44,10 @@ tests_env = [
   'PYTHONDONTWRITEBYTECODE=yes',
 ]
 
-test_c_args = [
+tests_c_args = [
 ]
 
-test_link_args = [
+tests_link_args = [
 ]
 
 tests_timeout = 30

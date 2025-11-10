@@ -47,10 +47,10 @@ foreach test, test_wrapper : plugin_gnome_tests
   endforeach
 
   test_program = executable(test, '@0@.c'.format(test),
-                 c_args: test_c_args,
+                 c_args: tests_c_args,
            dependencies: plugin_gnome_test_deps,
     include_directories: plugin_gnome_include_directories,
-              link_args: test_link_args,
+              link_args: tests_link_args,
              link_whole: [
                libvalent_test,
                plugin_gnome,
