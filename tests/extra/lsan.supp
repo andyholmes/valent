@@ -16,3 +16,6 @@ leak:translate_RDFLiteral.lto_priv.0
 # GTK
 leak:libEGL_mesa.so
 
+# Glycin
+leak:gly_loader_load
+
