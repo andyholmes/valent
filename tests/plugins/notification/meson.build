@@ -13,10 +13,10 @@ plugin_notification_tests = [
 
 foreach test : plugin_notification_tests
   test_program = executable(test, '@0@.c'.format(test),
-                 c_args: test_c_args,
+                 c_args: tests_c_args,
            dependencies: plugin_notification_test_deps,
     include_directories: plugin_notification_include_directories,
-              link_args: test_link_args,
+              link_args: tests_link_args,
              link_whole: [libvalent_test, plugin_notification],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,

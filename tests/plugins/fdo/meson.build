@@ -28,10 +28,10 @@ foreach test, test_wrapper : plugin_fdo_tests
   endforeach
 
   test_program = executable(test, '@0@.c'.format(test),
-                 c_args: test_c_args,
+                 c_args: tests_c_args,
            dependencies: plugin_fdo_test_deps,
     include_directories: plugin_fdo_include_directories,
-              link_args: test_link_args,
+              link_args: tests_link_args,
              link_whole: [libvalent_test, plugin_fdo],
                 install: get_option('installed_tests'),
             install_dir: installed_tests_execdir,
