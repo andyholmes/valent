@@ -11,7 +11,8 @@ leak:adw_init
 # FIXME: Unconfirmed (valent-messages-adapter,valent-sms-device)
 leak:tracker_sparql_execute_cursor
 leak:tracker_sparql_execute_update
-leak:translate_RDFLiteral.lto_priv.0
+leak:translate_RDFLiteral
+leak:_postprocess_rule
 
 # GTK
 leak:libEGL_mesa.so

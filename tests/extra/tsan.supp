@@ -12,6 +12,7 @@ race:valent_object_finalizer_source_check
 race:valent_object_finalizer_source_dispatch
 
 # GLib
+race:g_file_monitor_source_handle_event
 race:g_markup_error_quark
 race:g_resource_file_query_info
 race:g_resources_lookup_data
