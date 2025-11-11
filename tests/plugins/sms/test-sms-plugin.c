@@ -103,6 +103,8 @@ test_sms_plugin_handle_request (ValentTestFixture *fixture,
   g_assert_true (VALENT_IS_MESSAGE (message));
   g_clear_object (&list);
   g_clear_object (&message);
+
+  valent_test_await_pending ();
 }
 
 static void
