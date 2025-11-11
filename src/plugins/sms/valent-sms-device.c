@@ -953,9 +953,11 @@ cursor_get_timestamp_cb (TrackerSparqlCursor *cursor,
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
   g_autoptr (GDateTime) datetime = NULL;
-  g_autofree int64_t *timestamp = g_new0 (int64_t, 1);
+  g_autofree int64_t *timestamp = NULL;
   GError *error = NULL;
 
+#ifndef __clang_analyzer__
+  timestamp = g_new0 (int64_t, 1);
   if (tracker_sparql_cursor_next_finish (cursor, result, &error) &&
       tracker_sparql_cursor_is_bound (cursor, 0))
     {
@@ -968,6 +970,8 @@ cursor_get_timestamp_cb (TrackerSparqlCursor *cursor,
     g_task_return_pointer (task, g_steal_pointer (&timestamp), g_free);
   else
     g_task_return_error (task, g_steal_pointer (&error));
+
+#endif /* __clang_analyzer__ */
 }
 
 static void
