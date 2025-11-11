@@ -761,41 +761,34 @@ valent_packet_dup_strv (JsonNode   *packet,
   JsonObject *root, *body;
   JsonNode *node;
   JsonArray *array;
-  g_auto (GStrv) strv = NULL;
+  g_autoptr (GStrvBuilder) builder = NULL;
   unsigned int n_strings;
 
   g_return_val_if_fail (JSON_NODE_HOLDS_OBJECT (packet), NULL);
   g_return_val_if_fail (field != NULL && *field != '\0', NULL);
 
-#ifndef __clang_analyzer__
   root = json_node_get_object (packet);
-
   if G_UNLIKELY ((node = json_object_get_member (root, "body")) == NULL ||
                  json_node_get_node_type (node) != JSON_NODE_OBJECT)
     return NULL;
 
   body = json_node_get_object (node);
-
   if G_UNLIKELY ((node = json_object_get_member (body, field)) == NULL ||
                  json_node_get_node_type (node) != JSON_NODE_ARRAY)
     return NULL;
 
+  builder = g_strv_builder_new ();
   array = json_node_get_array (node);
   n_strings = json_array_get_length (array);
-  strv = g_new0 (char *, n_strings + 1);
-
   for (unsigned int i = 0; i < n_strings; i++)
     {
       JsonNode *element = json_array_get_element (array, i);
 
-      if G_UNLIKELY (json_node_get_value_type (element) != G_TYPE_STRING)
-        return NULL;
-
-      strv[i] = json_node_dup_string (element);
+      g_return_val_if_fail (json_node_get_value_type (element) == G_TYPE_STRING, NULL);
+      g_strv_builder_add (builder, json_node_get_string (element));
     }
-#endif /* __clang_analyzer__ */
 
-  return g_steal_pointer (&strv);
+  return g_strv_builder_end (builder);
 }
 
 /**
