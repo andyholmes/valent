@@ -4,19 +4,21 @@
 # https://gitlab.freedesktop.org/fontconfig/fontconfig/-/issues/77
 leak:libfontconfig.so
 
-# TODO: Seems to come up every cycle or so :shrug:
 # https://gitlab.gnome.org/GNOME/libadwaita/blob/main/src/adw-style-manager.c
 leak:adw_init
-
-# FIXME: Unconfirmed (valent-messages-adapter,valent-sms-device)
-leak:tracker_sparql_execute_cursor
-leak:tracker_sparql_execute_update
-leak:translate_RDFLiteral
-leak:_postprocess_rule
 
 # GTK
 leak:libEGL_mesa.so
 
 # Glycin
 leak:gly_loader_load
+
+# GCC Only
+leak:tracker_string_builder_to_gstring
+leak:translate_RDFLiteral
+leak:_postprocess_rule
+
+# LLVM Only
+leak:tracker-string-builder.c
+leak:tracker-sparql-types.c
 
