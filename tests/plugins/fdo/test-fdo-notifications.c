@@ -4,6 +4,7 @@
 #include "config.h"
 
 #include <gio/gio.h>
+#include <libportal/portal.h>
 #include <valent.h>
 #include <libvalent-test.h>
 
@@ -240,6 +241,8 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_clear_pointer (&id_str, g_free);
 
 #ifdef HAVE_GLYCIN
+  if (!xdp_portal_running_under_sandbox ())
+    {
   VALENT_TEST_CHECK ("Adapter adds notifications with pixbuf icons");
   send_notification (fixture, TRUE, &id_value);
   valent_test_await_pointer (&id_value);
@@ -276,6 +279,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
   g_clear_object (&icon);
   g_clear_pointer (&id_value, g_variant_unref);
   g_clear_pointer (&id_str, g_free);
+    }
 #endif /* HAVE_GLYCIN */
 
   g_signal_handlers_disconnect_by_data (adapter, &notification);
