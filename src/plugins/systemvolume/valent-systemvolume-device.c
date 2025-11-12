@@ -222,26 +222,6 @@ struct _ValentSystemvolumeDevice
 
 G_DEFINE_FINAL_TYPE (ValentSystemvolumeDevice, valent_systemvolume_device, VALENT_TYPE_MIXER_ADAPTER)
 
-#if 0
-static void
-valent_systemvolume_device_request_sinks (ValentSystemvolumeDevice *self)
-{
-  g_autoptr (JsonBuilder) builder = NULL;
-  g_autoptr (JsonNode) packet = NULL;
-
-  valent_packet_init (&builder, "kdeconnect.systemvolume.request");
-  json_builder_set_member_name (builder, "requestSinks");
-  json_builder_add_boolean_value (builder, TRUE);
-  packet = valent_packet_end (&builder);
-
-  valent_device_send_packet (self->device,
-                             packet,
-                             self->cancellable,
-                             (GAsyncReadyCallback) valent_device_send_packet_cb,
-                             NULL);
-}
-#endif
-
 /*
  * ValentMixerAdapter
  */
