@@ -404,13 +404,15 @@ valent_systemvolume_plugin_handle_request (ValentSystemvolumePlugin *self,
 {
   g_assert (VALENT_IS_SYSTEMVOLUME_PLUGIN (self));
 
-  /* A request for a list of audio outputs */
-  if (valent_packet_check_field (packet, "requestSinks"))
-    valent_systemvolume_plugin_send_sinklist (self);
-
-  /* A request to change an audio output */
-  else if (valent_packet_check_field (packet, "name"))
+  /* A request to change an audio output
+   */
+  if (valent_packet_check_field (packet, "name"))
     valent_systemvolume_plugin_handle_sink_change (self, packet);
+
+  /* A request for a list of audio outputs (deprecated)
+   */
+  else if (valent_packet_check_field (packet, "requestSinks"))
+    valent_systemvolume_plugin_send_sinklist (self);
 
   else
     g_warn_if_reached ();
