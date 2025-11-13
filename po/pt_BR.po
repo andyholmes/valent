@@ -10,15 +10,16 @@ msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
 "POT-Creation-Date: 2025-11-07 13:04-0800\n"
-"PO-Revision-Date: 2023-10-29 00:44-0300\n"
-"Last-Translator: Victor L. Pavan <victorpavan001@gmail.com>\n"
-"Language-Team: Brazilian Portuguese <victorpavan001@gmail.com>\n"
+"PO-Revision-Date: 2025-11-13 19:57+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/"
+"valent/application/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
-"X-Generator: Gtranslator 45.3\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.15-dev\n"
 
 #: data/ca.andyholmes.Valent.desktop.in.in:2
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
@@ -75,8 +76,7 @@ msgstr "Recursos:"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:23
 msgid "Sync contacts, notifications and clipboard content"
-msgstr ""
-"Sincronize contatos, notificações e o conteúdo da área de transferência"
+msgstr "Sincronize contatos, notificações e o conteúdo da área de transferência"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:24
 msgid "Control media players and volume"
