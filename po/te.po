@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
 "POT-Creation-Date: 2025-11-07 13:04-0800\n"
-"PO-Revision-Date: 2024-09-29 08:24+0530\n"
-"Last-Translator: Aryan Karamtoth <aryankmmiv@outlook.com>\n"
-"Language-Team: Telugu l10n Translation Team <ubuntu-l10n-"
-"te@lists.launchpad.net >\n"
+"PO-Revision-Date: 2025-11-13 19:57+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Telugu <https://hosted.weblate.org/projects/valent/"
+"application/te/>\n"
 "Language: te\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Gtranslator 46.1\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.15-dev\n"
 
 #: data/ca.andyholmes.Valent.desktop.in.in:2
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
@@ -64,8 +64,8 @@ msgid ""
 "Securely connect your devices to open files and links where you need them, "
 "get notifications when you need them, stay in control of your media and more."
 msgstr ""
-"మీకు అవసరమైన ఫైల్‌లు మరియు లింక్‌లను తెరవడానికి మీ పరికరాలను సురక్షితంగా కనెక్ట్ చేయండి, మీకు "
-"అవసరమైనప్పుడు నోటిఫికేషన్‌లను పొందండి, మీ మీడియాపై నియంత్రణలో ఉండండి మరియు మరిన్ని చేయండి."
+"మీకు అవసరమైన ఫైల్‌లు మరియు లింక్‌లను తెరవడానికి మీ పరికరాలను సురక్షితంగా కనెక్ట్ చేయండి, మీకు అవసరమైనప్పుడు నోటిఫికేషన్‌లను"
+" పొందండి, మీ మీడియాపై నియంత్రణలో ఉండండి మరియు మరిన్ని చేయండి."
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:19
 msgid "Features:"
@@ -103,7 +103,8 @@ msgstr "మరిన్ని…"
 msgid ""
 "Valent is an implementation of the KDE Connect protocol, built on GNOME "
 "platform libraries."
-msgstr "వాలెంట్ అనేది గ్నోమ్ ప్లాట్‌ఫారమ్ లైబ్రరీలపై నిర్మించబడిన KDE కనెక్ట్ ప్రోటోకాల్ యొక్క అమలు."
+msgstr ""
+"వాలెంట్ అనేది గ్నోమ్ ప్లాట్‌ఫారమ్ లైబ్రరీలపై నిర్మించబడిన KDE కనెక్ట్ ప్రోటోకాల్ యొక్క అమలు."
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:42
 msgid "Support connecting to devices by IP address"
@@ -567,7 +568,8 @@ msgstr "%s · %s"
 #: src/plugins/gnome/valent-device-page.c:88
 #, c-format
 msgid "Please confirm the verification key below matches the one on “%s”"
-msgstr "దయచేసి దిగువన ఉన్న ధృవీకరణ కీ \"%s\" లో ఉన్నదానితో సరిపోలుతుందని నిర్ధారించండి"
+msgstr ""
+"దయచేసి దిగువన ఉన్న ధృవీకరణ కీ \"%s\" లో ఉన్నదానితో సరిపోలుతుందని నిర్ధారించండి"
 
 #: src/plugins/gnome/valent-device-page.c:95
 #, c-format
