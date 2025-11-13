@@ -9,7 +9,6 @@ src/plugins/battery/battery.plugin.desktop.in
 src/plugins/battery/valent-battery-plugin.c
 src/plugins/bluez/bluez.plugin.desktop.in
 src/plugins/clipboard/clipboard.plugin.desktop.in
-src/plugins/connectivity_report/ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml
 src/plugins/connectivity_report/connectivity_report.plugin.desktop.in
 src/plugins/connectivity_report/valent-connectivity_report-plugin.c
 src/plugins/contacts/contacts.plugin.desktop.in
@@ -78,7 +77,6 @@ src/plugins/sms/sms.plugin.desktop.in
 src/plugins/systemvolume/systemvolume.plugin.desktop.in
 src/plugins/telephony/telephony.plugin.desktop.in
 src/plugins/telephony/valent-telephony-plugin.c
-src/plugins/xdp/ca.andyholmes.Valent.Plugin.xdp.gschema.xml
 src/plugins/xdp/valent-xdp-background.c
 src/plugins/xdp/xdp.plugin.desktop.in
 # Please do not remove this file from POTFILES.in. Run "git submodule init && git submodule update" to get it.

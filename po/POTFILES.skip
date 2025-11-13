@@ -4,6 +4,7 @@
 data/ca.andyholmes.Valent-autostart.desktop.in.in
 src/plugins/battery/ca.andyholmes.Valent.Plugin.battery.gschema.xml
 src/plugins/clipboard/ca.andyholmes.Valent.Plugin.clipboard.gschema.xml
+src/plugins/connectivity_report/ca.andyholmes.Valent.Plugin.connectivity_report.gschema.xml
 src/plugins/contacts/ca.andyholmes.Valent.Plugin.contacts.gschema.xml
 src/plugins/mousepad/ca.andyholmes.Valent.Plugin.mousepad.gschema.xml
 src/plugins/mpris/ca.andyholmes.Valent.Plugin.mpris.gschema.xml
@@ -14,4 +15,5 @@ src/plugins/share/ca.andyholmes.Valent.Plugin.share.gschema.xml
 src/plugins/sms/ca.andyholmes.Valent.Plugin.sms.gschema.xml
 src/plugins/systemvolume/ca.andyholmes.Valent.Plugin.systemvolume.gschema.xml
 src/plugins/telephony/ca.andyholmes.Valent.Plugin.telephony.gschema.xml
+src/plugins/xdp/ca.andyholmes.Valent.Plugin.xdp.gschema.xml
 
