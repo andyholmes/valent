@@ -254,6 +254,8 @@ handshake_read_identity_cb (GInputStream *stream,
   HandshakeData *data = g_task_get_task_data (task);
   g_autoptr (JsonNode) secure_identity = NULL;
   int64_t protocol_version;
+  const char *device_id;
+  const char *secure_id;
   GError *error = NULL;
 
   secure_identity = valent_packet_from_stream_finish (stream, result, &error);
@@ -286,6 +288,28 @@ handshake_read_identity_cb (GInputStream *stream,
                                "handshake began with version \"%u\"",
                                (uint8_t)protocol_version,
                                (uint8_t)data->protocol_version);
+      return;
+    }
+
+  valent_packet_get_string (data->peer_identity, "deviceId", &device_id);
+  if (!valent_packet_get_string (secure_identity, "deviceId", &secure_id))
+    {
+      g_task_return_new_error (task,
+                               VALENT_PACKET_ERROR,
+                               VALENT_PACKET_ERROR_MISSING_FIELD,
+                               "expected \"deviceId\" field holding an integer");
+      return;
+    }
+
+  if (!g_str_equal (device_id, secure_id))
+    {
+      g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_NOT_SUPPORTED,
+                               "Unexpected device ID \"%s\"; "
+                               "handshake began with ID \"%s\"",
+                               secure_id,
+                               device_id);
       return;
     }
 
