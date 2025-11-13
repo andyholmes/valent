@@ -23,6 +23,7 @@ libvalent_device_public_headers = [
 libvalent_device_private_headers = [
   'valent-device-impl.h',
   'valent-device-private.h',
+  'valent-packet-input-stream.h',
 ]
 
 libvalent_device_enum_headers = [
@@ -46,6 +47,7 @@ libvalent_device_public_sources = [
   'valent-device-plugin.c',
   'valent-device-transfer.c',
   'valent-packet.c',
+  'valent-packet-input-stream.c',
 ]
 
 
