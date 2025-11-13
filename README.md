@@ -1,6 +1,7 @@
 [![Flatpak](https://img.shields.io/badge/Flatpak-nightly-blue)](https://valent.andyholmes.ca/valent.flatpakref)
-[![Coverage](https://valent.andyholmes.ca/coverage/badge.svg)](https://valent.andyholmes.ca/coverage)
 [![API](https://img.shields.io/badge/API-unstable-yellow)](https://valent.andyholmes.ca/documentation)
+[![Coverage](https://valent.andyholmes.ca/coverage/badge.svg)](https://valent.andyholmes.ca/coverage)
+[![Translated](https://hosted.weblate.org/widget/valent/application/svg-badge.svg)](https://hosted.weblate.org/engage/valent/)
 
 # Valent
 
