@@ -20,23 +20,30 @@ Features:
 * Execute custom commands
 * More…
 
-Valent is an implementation of the [KDE Connect][kdeconnect] protocol, built on
-[GNOME][gnome] platform libraries.
+Valent is an implementation of the [KDE Connect] protocol, built on [GNOME]
+platform libraries.
 
 ## Status
 
 This project is currently in alpha. It generally works as intended, but is still
 missing some features and may contain bugs.
 
-If that's okay with you, there is a [nightly Flatpak][nightly-flatpakref] that
-you can try out. It includes the nightly Flatpak repository, so you'll get
-updates along with your other applications.
+If that's okay with you, there is a [nightly Flatpak] that you can try out. It
+includes the nightly Flatpak repository, so you'll get updates along with your
+other applications.
 
 ## Related
 
 [![Valent (GNOME Shell Extension)](https://gh-card.dev/repos/andyholmes/gnome-shell-extension-valent.svg)](https://github.com/andyholmes/gnome-shell-extension-valent) [![Valent (Plugin Template)](https://gh-card.dev/repos/andyholmes/valent-plugin-example.svg)](https://github.com/andyholmes/valent-plugin-example)
 
+## Acknowledgements
 
-[gnome]: https://www.gnome.org
-[kdeconnect]: https://kdeconnect.kde.org
-[nightly-flatpakref]: https://valent.andyholmes.ca/valent.flatpakref
+The [KDE Connect] project is developed and maintained by Albert Vaka, et al.
+
+Translation services for Valent are provided courtesy of [Weblate].
+
+[GNOME]: https://www.gnome.org
+[KDE Connect]: https://kdeconnect.kde.org
+[nightly Flatpak]: https://valent.andyholmes.ca/valent.flatpakref
+[Albert Vaka, et al]: https://kdeconnect.kde.org/get-involved.html
+[Weblate]: https://weblate.org
