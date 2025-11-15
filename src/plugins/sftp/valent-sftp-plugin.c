@@ -47,7 +47,7 @@ get_device_host (ValentSftpPlugin *self)
 
   g_assert (VALENT_IS_SFTP_PLUGIN (self));
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   if (device != NULL)
     {
       GListModel *channels;
@@ -563,7 +563,7 @@ handle_sftp_error (ValentSftpPlugin *self,
 
   body = valent_packet_get_body (packet);
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   device_name = valent_device_get_name (device);
 
   error_icon = g_themed_icon_new ("dialog-error-symbolic");

@@ -76,6 +76,7 @@ on_source_added (ESourceRegistry    *registry,
                               (GAsyncReadyCallback)g_async_initable_new_async_cb,
                               self,
                               "connection", connection,
+                              "parent",     self,
                               "source",     source,
                               NULL);
 }

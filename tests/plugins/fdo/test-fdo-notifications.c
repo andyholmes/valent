@@ -186,7 +186,7 @@ test_fdo_notifications_source (FdoNotificationsFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                           "iri",     "urn:valent:notifications:fdo",
-                                          "source",  NULL,
+                                          "parent",  NULL,
                                           "context", context,
                                           NULL);
   g_async_initable_init_async (G_ASYNC_INITABLE (adapter),

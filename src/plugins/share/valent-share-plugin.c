@@ -431,7 +431,7 @@ valent_share_plugin_open_file (ValentSharePlugin *self,
    * `numberOfFiles` field and consider a concurrent multi-file transfer as
    * incomplete.
    */
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   transfer = valent_device_transfer_new (device, packet, file);
   g_hash_table_insert (self->transfers,
                        valent_transfer_dup_id (transfer),
@@ -593,7 +593,7 @@ valent_share_plugin_upload_file (ValentSharePlugin *self,
     {
       ValentDevice *device;
 
-      device = valent_resource_get_source (VALENT_RESOURCE (self));
+      device = valent_object_get_parent (VALENT_OBJECT (self));
 
       self->upload = valent_share_upload_new (device);
       g_signal_connect_object (self->upload,
@@ -744,7 +744,7 @@ share_save_action_cb (GFile        *file,
       return;
     }
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   name = valent_device_get_name (device);
   parent = g_file_get_parent (file);
   dir_uri = g_file_get_uri (parent);
@@ -795,7 +795,7 @@ share_save_action (GSimpleAction *action,
 
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   name = valent_device_get_name (device);
   text = g_variant_get_string (parameter, NULL);
 
@@ -1012,7 +1012,7 @@ valent_share_plugin_handle_file (ValentSharePlugin *self,
     }
 
   file = valent_share_plugin_create_download_file (self, filename, TRUE);
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
 
   /* If the packet includes a request to open the file when the transfer
    * completes, use a separate routine for success/failure. */
@@ -1115,7 +1115,6 @@ static void
 valent_share_plugin_handle_text (ValentSharePlugin *self,
                                  const char        *text)
 {
-  ValentResource *resource = VALENT_RESOURCE (self);
   ValentDevice *device = NULL;
   g_autoptr (GNotification) notification = NULL;
   g_autofree char *id = NULL;
@@ -1125,7 +1124,7 @@ valent_share_plugin_handle_text (ValentSharePlugin *self,
   g_assert (VALENT_IS_SHARE_PLUGIN (self));
   g_assert (text != NULL);
 
-  device = valent_resource_get_source (resource);
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   name = valent_device_get_name (device);
   id = g_compute_checksum_for_string (G_CHECKSUM_MD5, text, -1);
   title = g_strdup_printf (_("Text from “%s”"), name);

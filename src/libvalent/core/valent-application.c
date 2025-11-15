@@ -58,8 +58,8 @@ valent_application_enable_plugin (ValentApplication *self,
                                                     plugin->info,
                                                     VALENT_TYPE_APPLICATION_PLUGIN,
                                                     "iri",         urn,
-                                                    // FIXME: root source
-                                                    "source",      NULL,
+                                                    // FIXME: root object
+                                                    "parent",      NULL,
                                                     "title",       title,
                                                     "description", description,
                                                     "context",     plugin->context,

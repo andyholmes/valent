@@ -127,7 +127,7 @@ valent_mpris_plugin_send_album_art (ValentMprisPlugin *self,
   packet = valent_packet_end (&builder);
 
   /* Start the transfer */
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   transfer = valent_device_transfer_new (device, packet, real_file);
 
   g_hash_table_insert (self->transfers,
@@ -310,7 +310,7 @@ valent_mpris_plugin_watch_media (ValentMprisPlugin *self,
         {
           ValentDevice *device = NULL;
 
-          device = valent_resource_get_source (VALENT_RESOURCE (self));
+          device = valent_object_get_parent (VALENT_OBJECT (self));
           self->adapter = vdp_mpris_adapter_new (device);
           valent_component_export_adapter (VALENT_COMPONENT (media),
                                            VALENT_EXTENSION (self->adapter));

@@ -392,7 +392,7 @@ valent_telephony_plugin_handle_telephony (ValentTelephonyPlugin *self,
 
       /* TRANSLATORS: The phone is ringing */
       g_notification_set_body (notification, _("Incoming call"));
-      device = valent_resource_get_source (VALENT_RESOURCE (self));
+      device = valent_object_get_parent (VALENT_OBJECT (self));
       valent_notification_add_device_button (notification,
                                              device,
                                              _("Mute"),

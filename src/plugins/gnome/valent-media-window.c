@@ -57,7 +57,7 @@ on_player_selected (GtkDropDown       *dropdown,
       return;
     }
 
-  player_source = valent_resource_get_source (VALENT_RESOURCE (player));
+  player_source = valent_object_get_parent (VALENT_OBJECT (player));
   if (player_source == NULL)
     return;
 
@@ -68,7 +68,7 @@ on_player_selected (GtkDropDown       *dropdown,
       ValentResource *item_source = NULL;
 
       item = g_list_model_get_item (self->mixers, i);
-      item_source = valent_resource_get_source (VALENT_RESOURCE (item));
+      item_source = valent_object_get_parent (VALENT_OBJECT (item));
       if (item_source == player_source)
         {
           gtk_drop_down_set_selected (self->mixer_adapter, i);

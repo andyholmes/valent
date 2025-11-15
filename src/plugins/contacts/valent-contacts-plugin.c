@@ -299,7 +299,7 @@ valent_contacts_plugin_constructed (GObject *object)
                                    plugin);
   self->cancellable = g_cancellable_new ();
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   settings = valent_extension_get_settings (VALENT_EXTENSION (self));
 
   /* Remote Adapter
