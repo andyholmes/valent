@@ -631,7 +631,7 @@ on_selected_item (GObject              *object,
     return;
 
   // HACK: try to find a matching contacts adapter
-  owner = valent_resource_get_source (VALENT_RESOURCE (adapter));
+  owner = valent_object_get_parent (VALENT_OBJECT (adapter));
   n_items = g_list_model_get_n_items (self->contacts);
   for (unsigned int i = 0; i < n_items; i++)
     {
@@ -639,7 +639,7 @@ on_selected_item (GObject              *object,
       GObject *item_owner = NULL;
 
       item = g_list_model_get_item (self->contacts, i);
-      item_owner = valent_resource_get_source (VALENT_RESOURCE (item));
+      item_owner = valent_object_get_parent (VALENT_OBJECT (item));
       if (item_owner == owner)
         {
           g_set_object (&self->contacts_adapter, item);

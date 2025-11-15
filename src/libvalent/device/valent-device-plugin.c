@@ -164,7 +164,7 @@ valent_device_plugin_init (ValentDevicePlugin *self)
  *
  * Queue a KDE Connect packet to be sent to the device this plugin is bound to.
  *
- * For notification of success, you may call [method@Valent.Resource.get_source]
+ * For notification of success, you may call [method@Valent.Object.get_parent]
  * and then [method@Valent.Device.send_packet], but note that there can be no
  * guarantee the remote device has received the packet.
  *
@@ -180,7 +180,7 @@ valent_device_plugin_queue_packet (ValentDevicePlugin *plugin,
   g_return_if_fail (VALENT_IS_DEVICE_PLUGIN (plugin));
   g_return_if_fail (VALENT_IS_PACKET (packet));
 
-  if ((device = valent_resource_get_source (VALENT_RESOURCE (plugin))) == NULL)
+  if ((device = valent_object_get_parent (VALENT_OBJECT (plugin))) == NULL)
     return;
 
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (plugin));
@@ -226,7 +226,7 @@ valent_device_plugin_show_notification (ValentDevicePlugin *plugin,
 
   g_object_get (plugin,
                 "plugin-info", &plugin_info,
-                "source",      &device,
+                "parent",      &device,
                 NULL);
   notification_id = g_strdup_printf ("%s::%s::%s",
                                      valent_device_get_id (device),
@@ -264,7 +264,7 @@ valent_device_plugin_hide_notification (ValentDevicePlugin *plugin,
 
   g_object_get (plugin,
                 "plugin-info", &plugin_info,
-                "source",      &device,
+                "parent",      &device,
                 NULL);
   notification_id = g_strdup_printf ("%s::%s::%s",
                                      valent_device_get_id (device),
@@ -453,7 +453,7 @@ valent_device_plugin_set_menu_item (ValentDevicePlugin *plugin,
   g_return_if_fail (item == NULL || G_IS_MENU_ITEM (item));
 
   /* NOTE: this method may be called by plugins in their `dispose()` */
-  if ((device = valent_resource_get_source (VALENT_RESOURCE (plugin))) == NULL)
+  if ((device = valent_object_get_parent (VALENT_OBJECT (plugin))) == NULL)
     return;
 
   menu = valent_device_get_menu (device);

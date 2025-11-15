@@ -115,7 +115,6 @@ valent_messages_adapter_remove_thread (ValentMessagesAdapter *self,
                                        const char            *iri)
 {
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
-  g_autoptr (GListModel) item = NULL;
   unsigned int position = 0;
 
   g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
@@ -131,7 +130,7 @@ valent_messages_adapter_remove_thread (ValentMessagesAdapter *self,
       return;
     }
 
-  item = g_ptr_array_steal_index (priv->items, position);
+  g_ptr_array_remove_index (priv->items, position);
   g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
 }
 

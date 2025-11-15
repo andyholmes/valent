@@ -275,7 +275,6 @@ valent_contacts_adapter_remove_contact_list (ValentContactsAdapter *self,
                                              const char            *iri)
 {
   ValentContactsAdapterPrivate *priv = valent_contacts_adapter_get_instance_private (self);
-  g_autoptr (GListModel) item = NULL;
   unsigned int position = 0;
 
   g_assert (VALENT_IS_CONTACTS_ADAPTER (self));
@@ -288,7 +287,7 @@ valent_contacts_adapter_remove_contact_list (ValentContactsAdapter *self,
       return;
     }
 
-  item = g_ptr_array_steal_index (priv->items, position);
+  g_ptr_array_remove_index (priv->items, position);
   g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
 }
 

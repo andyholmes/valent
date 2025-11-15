@@ -43,7 +43,7 @@ test_contacts_component_adapter (ContactsComponentFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_CONTACTS_ADAPTER,
                                           "iri",     "urn:valent:contacts:mock",
-                                          "source",  NULL,
+                                          "parent",  NULL,
                                           "context", context,
                                           NULL);
 
@@ -101,7 +101,7 @@ test_contacts_component_contact_list (ContactsComponentFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_CONTACTS_ADAPTER,
                                           "iri",     "urn:valent:contacts:mock",
-                                          "source",  NULL,
+                                          "parent",  NULL,
                                           "context", context,
                                           NULL);
 

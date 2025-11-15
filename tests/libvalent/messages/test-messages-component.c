@@ -43,7 +43,7 @@ test_messages_component_adapter (MessagesComponentFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_MESSAGES_ADAPTER,
                                           "iri",     "urn:valent:messages:mock",
-                                          "source",  NULL,
+                                          "parent",  NULL,
                                           "context", context,
                                           NULL);
 
@@ -100,7 +100,7 @@ test_messages_component_message_list (MessagesComponentFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_MESSAGES_ADAPTER,
                                           "iri",     "urn:valent:messages:mock",
-                                          "source",  NULL,
+                                          "parent",  NULL,
                                           "context", context,
                                           NULL);
 

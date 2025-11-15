@@ -42,6 +42,15 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentMediaAdapter, valent_media_adapter, VALE
                                   G_ADD_PRIVATE (ValentMediaAdapter)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
+static inline void
+_valent_object_deref (gpointer data)
+{
+  if (!valent_object_in_destruction (VALENT_OBJECT (data)))
+    valent_object_destroy (VALENT_OBJECT (data));
+
+  g_object_unref (data);
+}
+
 /*
  * GListModel
  */
@@ -133,7 +142,7 @@ valent_media_adapter_init (ValentMediaAdapter *self)
 {
   ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (self);
 
-  priv->items = g_ptr_array_new_with_free_func (g_object_unref);
+  priv->items = g_ptr_array_new_with_free_func (_valent_object_deref);
 }
 
 /**
@@ -196,7 +205,6 @@ valent_media_adapter_player_removed (ValentMediaAdapter *adapter,
                                      ValentMediaPlayer  *player)
 {
   ValentMediaAdapterPrivate *priv = valent_media_adapter_get_instance_private (adapter);
-  g_autoptr (ValentMediaPlayer) item = NULL;
   unsigned int position = 0;
 
   g_return_if_fail (VALENT_IS_MEDIA_ADAPTER (adapter));
@@ -211,7 +219,7 @@ valent_media_adapter_player_removed (ValentMediaAdapter *adapter,
     }
 
   g_signal_handlers_disconnect_by_func (player, valent_media_adapter_player_removed, adapter);
-  item = g_ptr_array_steal_index (priv->items, position);
+  g_ptr_array_remove_index (priv->items, position);
   g_list_model_items_changed (G_LIST_MODEL (adapter), position, 1, 0);
 }
 
