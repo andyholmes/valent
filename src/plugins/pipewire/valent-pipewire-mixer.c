@@ -1108,7 +1108,7 @@ valent_pipewire_mixer_open (ValentPipewireMixer *self)
   spa_list_init (&self->nodes);
 
   /* Register as a manager */
-  context_properties = pw_properties_new (PW_KEY_CONFIG_NAME,    "client-rt.conf",
+  context_properties = pw_properties_new (PW_KEY_CONFIG_NAME,    "client.conf",
                                           PW_KEY_MEDIA_TYPE,     "Audio",
                                           PW_KEY_MEDIA_CATEGORY, "Manager",
                                           PW_KEY_MEDIA_ROLE,     "Music",
