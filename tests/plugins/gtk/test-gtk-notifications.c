@@ -153,7 +153,7 @@ test_gtk_notifications_source (GtkNotificationsFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                           "iri",     "urn:valent:notifications:gtk",
-                                          "source",  NULL,
+                                          "parent",  NULL,
                                           "context", context,
                                           NULL);
   g_async_initable_init_async (G_ASYNC_INITABLE (adapter),

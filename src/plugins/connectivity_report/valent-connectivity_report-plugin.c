@@ -304,7 +304,7 @@ valent_connectivity_report_plugin_handle_connectivity_report (ValentConnectivity
       g_autofree char *body = NULL;
       const char *device_name;
 
-      device = valent_resource_get_source (VALENT_RESOURCE (self));
+      device = valent_object_get_parent (VALENT_OBJECT (self));
       device_name = valent_device_get_name (device);
 
       /* TRANSLATORS: The connectivity notification title (e.g. "PinePhone: No Service") */

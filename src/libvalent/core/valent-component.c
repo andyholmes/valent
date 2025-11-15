@@ -190,7 +190,7 @@ valent_component_enable_plugin (ValentComponent *self,
                                                     plugin->info,
                                                     priv->plugin_type,
                                                     "iri",         urn,
-                                                    "source",      self,
+                                                    "parent",      self,
                                                     "title",       title,
                                                     "description", description,
                                                     "context",     plugin->context,
@@ -741,7 +741,6 @@ valent_component_unexport_adapter (ValentComponent *component,
                                    ValentExtension *extension)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (component);
-  g_autoptr (ValentExtension) item = NULL;
   unsigned int position = 0;
 
   VALENT_ENTRY;
@@ -762,7 +761,7 @@ valent_component_unexport_adapter (ValentComponent *component,
                                         component);
   VALENT_COMPONENT_GET_CLASS (component)->unbind_extension (component, extension);
 
-  item = g_ptr_array_steal_index (priv->items, position);
+  g_ptr_array_remove_index (priv->items, position);
   g_list_model_items_changed (G_LIST_MODEL (component), position, 1, 0);
 
   VALENT_EXIT;

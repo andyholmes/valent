@@ -283,7 +283,7 @@ download_icon_from_cache_cb (GFile        *file,
       return;
     }
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   transfer = valent_device_transfer_new (device, packet, file);
   valent_transfer_execute (transfer,
                            g_task_get_cancellable (task),
@@ -382,7 +382,7 @@ valent_notification_plugin_show_notification (ValentNotificationPlugin *self,
         }
     }
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
 
   notification = g_notification_new (title);
   g_notification_set_body (notification, text);
@@ -631,7 +631,7 @@ valent_notification_plugin_send_notification_with_icon (ValentNotificationPlugin
       ValentDevice *device;
       g_autoptr (ValentTransfer) transfer = NULL;
 
-      device = valent_resource_get_source (VALENT_RESOURCE (self));
+      device = valent_object_get_parent (VALENT_OBJECT (self));
       transfer = valent_notification_upload_new (device, packet, icon);
       valent_transfer_execute (transfer,
                                NULL,

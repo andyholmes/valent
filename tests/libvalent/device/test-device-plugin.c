@@ -35,7 +35,7 @@ device_fixture_set_up (DevicePluginFixture *fixture,
                                                      plugin_info,
                                                      VALENT_TYPE_DEVICE_PLUGIN,
                                                      "iri",     "urn:valent:device:mock",
-                                                     "source",  fixture->device,
+                                                     "parent",  fixture->device,
                                                      "context", context,
                                                      NULL);
 }
@@ -67,7 +67,7 @@ test_device_plugin_basic (DevicePluginFixture *fixture,
                                             plugin_info,
                                             VALENT_TYPE_DEVICE_PLUGIN,
                                             "iri",     "urn:valent:device:mock",
-                                            "source",  NULL,
+                                            "parent",  NULL,
                                             "context", context,
                                             NULL);
 

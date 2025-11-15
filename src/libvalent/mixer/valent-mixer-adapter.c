@@ -300,7 +300,6 @@ valent_mixer_adapter_stream_removed (ValentMixerAdapter *adapter,
                                      ValentMixerStream  *stream)
 {
   ValentMixerAdapterPrivate *priv = valent_mixer_adapter_get_instance_private (adapter);
-  g_autoptr (ValentMixerStream) item = NULL;
   unsigned int position = 0;
 
   g_return_if_fail (VALENT_IS_MIXER_ADAPTER (adapter));
@@ -309,7 +308,7 @@ valent_mixer_adapter_stream_removed (ValentMixerAdapter *adapter,
   if (!g_ptr_array_find (priv->streams, stream, &position))
     return;
 
-  item = g_ptr_array_steal_index (priv->streams, position);
+  g_ptr_array_remove_index (priv->streams, position);
   g_list_model_items_changed (G_LIST_MODEL (adapter), position, 1, 0);
 }
 

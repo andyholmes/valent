@@ -37,6 +37,8 @@ void           valent_object_unlock            (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
 GCancellable * valent_object_ref_cancellable   (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
+gpointer       valent_object_get_parent        (ValentObject *object);
+VALENT_AVAILABLE_IN_1_0
 void           valent_object_destroy           (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
 gboolean       valent_object_in_destruction    (ValentObject *object);

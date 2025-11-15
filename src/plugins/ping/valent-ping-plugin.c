@@ -37,7 +37,7 @@ valent_ping_plugin_handle_ping (ValentPingPlugin *self,
     message = _("Ping!");
 
   /* Show a notification */
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   notification = g_notification_new (valent_device_get_name (device));
   g_notification_set_body (notification, message);
   valent_device_plugin_show_notification (VALENT_DEVICE_PLUGIN (self),

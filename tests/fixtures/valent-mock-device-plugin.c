@@ -85,7 +85,7 @@ valent_mock_device_plugin_handle_transfer (ValentMockDevicePlugin *self,
       return;
     }
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
   directory = valent_get_user_directory (G_USER_DIRECTORY_DOWNLOAD);
   file = valent_get_user_file (directory, filename, TRUE);

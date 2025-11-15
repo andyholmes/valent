@@ -126,7 +126,7 @@ valent_media_export_player (ValentMedia       *media,
                            G_CONNECT_SWAPPED);
   g_ptr_array_add (media->exports, g_object_ref (player));
 
-  source = valent_resource_get_source (VALENT_RESOURCE (player));
+  source = valent_object_get_parent (VALENT_OBJECT (player));
   n_items = g_list_model_get_n_items (G_LIST_MODEL (media));
   for (unsigned int i = 0; i < n_items; i++)
     {
@@ -153,7 +153,7 @@ void
 valent_media_unexport_player (ValentMedia       *media,
                               ValentMediaPlayer *player)
 {
-  ValentResource *source = NULL;
+  ValentObject *parent = NULL;
   unsigned int n_items;
   g_autoptr (ValentExtension) item = NULL;
   unsigned int position = 0;
@@ -175,14 +175,14 @@ valent_media_unexport_player (ValentMedia       *media,
   g_signal_handlers_disconnect_by_func (player, valent_media_unexport_player, media);
   item = g_ptr_array_steal_index (media->exports, position);
 
-  source = valent_resource_get_source (VALENT_RESOURCE (player));
+  parent = valent_object_get_parent (VALENT_OBJECT (player));
   n_items = g_list_model_get_n_items (G_LIST_MODEL (media));
   for (unsigned int i = 0; i < n_items; i++)
     {
       g_autoptr (ValentMediaAdapter) adapter = NULL;
 
       adapter = g_list_model_get_item (G_LIST_MODEL (media), i);
-      if (VALENT_RESOURCE (adapter) != source)
+      if (VALENT_OBJECT (adapter) != parent)
         valent_media_adapter_unexport_player (adapter, player);
     }
 

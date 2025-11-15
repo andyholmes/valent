@@ -277,7 +277,7 @@ valent_device_enable_plugin (ValentDevice *device,
                                                     plugin->info,
                                                     VALENT_TYPE_DEVICE_PLUGIN,
                                                     "context",     plugin->context,
-                                                    "source",      plugin->parent,
+                                                    "parent",      plugin->parent,
                                                     "title",       title,
                                                     "description", description,
                                                     NULL);

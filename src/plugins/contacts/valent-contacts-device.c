@@ -133,7 +133,7 @@ valent_contacts_device_handle_response_vcards (ValentContactsDevice *self,
   g_assert (VALENT_IS_CONTACTS_DEVICE (self));
   g_assert (VALENT_IS_PACKET (packet));
 
-  device = valent_resource_get_source (VALENT_RESOURCE (self));
+  device = valent_object_get_parent (VALENT_OBJECT (self));
   list_name = valent_device_get_name (device);
 
   list_resource = tracker_resource_new (self->default_iri);
@@ -230,7 +230,7 @@ valent_contacts_device_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_contacts_device_parent_class)->constructed (object);
 
-  self->device = valent_resource_get_source (VALENT_RESOURCE (self));
+  self->device = valent_object_get_parent (VALENT_OBJECT (self));
   g_signal_connect_object (self->device,
                            "notify::state",
                            G_CALLBACK (on_device_state_changed),
@@ -291,7 +291,7 @@ valent_contacts_device_new (ValentDevice *device)
   return g_object_new (VALENT_TYPE_CONTACTS_DEVICE,
                        "iri",     iri,
                        "context", context,
-                       "source",  device,
+                       "parent",  device,
                        "title",   valent_device_get_name (device),
                        NULL);
 }

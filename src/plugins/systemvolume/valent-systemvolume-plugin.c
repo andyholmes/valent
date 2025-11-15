@@ -289,7 +289,7 @@ valent_systemvolume_plugin_watch_mixer (ValentSystemvolumePlugin *self,
         {
           ValentDevice *device = NULL;
 
-          device = valent_resource_get_source (VALENT_RESOURCE (self));
+          device = valent_object_get_parent (VALENT_OBJECT (self));
           self->adapter = valent_systemvolume_device_new (device);
           valent_component_export_adapter (VALENT_COMPONENT (mixer),
                                            VALENT_EXTENSION (self->adapter));

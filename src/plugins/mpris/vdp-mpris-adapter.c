@@ -205,7 +205,7 @@ vdp_mpris_adapter_constructed (GObject *object)
 
   G_OBJECT_CLASS (vdp_mpris_adapter_parent_class)->constructed (object);
 
-  self->device = valent_resource_get_source (VALENT_RESOURCE (self));
+  self->device = valent_object_get_parent (VALENT_OBJECT (self));
   g_signal_connect_object (self->device,
                            "notify::state",
                            G_CALLBACK (on_device_state_changed),
@@ -271,7 +271,7 @@ vdp_mpris_adapter_new (ValentDevice *device)
   return g_object_new (VDP_TYPE_MPRIS_ADAPTER,
                        "iri",     iri,
                        "context", context,
-                       "source",  device,
+                       "parent",  device,
                        "title",   valent_device_get_name (device),
                        NULL);
 }
