@@ -28,7 +28,7 @@ test_application_plugin (void)
                                             VALENT_TYPE_APPLICATION_PLUGIN,
                                             "iri",     "urn:valent:application:mock",
                                             // FIXME: root source
-                                            "source",  NULL,
+                                            "parent",  NULL,
                                             "context", context,
                                             NULL);
 

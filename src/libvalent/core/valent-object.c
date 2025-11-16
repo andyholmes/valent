@@ -29,6 +29,9 @@ typedef struct
 {
   GRecMutex     mutex;
   GCancellable *cancellable;
+  char         *iri;
+  ValentObject *parent;
+  GQueue        children;
   unsigned int  in_destruction : 1;
   unsigned int  destroyed : 1;
 } ValentObjectPrivate;
@@ -37,9 +40,11 @@ G_DEFINE_TYPE_WITH_PRIVATE (ValentObject, valent_object, G_TYPE_OBJECT)
 
 typedef enum {
   PROP_CANCELLABLE = 1,
+  PROP_IRI,
+  PROP_PARENT,
 } ValentObjectProperty;
 
-static GParamSpec *properties[PROP_CANCELLABLE + 1] = { NULL, };
+static GParamSpec *properties[PROP_PARENT + 1] = { NULL, };
 
 enum {
   DESTROY,
@@ -133,14 +138,91 @@ valent_object_notify_main (gpointer data)
  * ValentObject
  */
 static void
+valent_object_real_add (ValentObject *self,
+                        ValentObject *child)
+{
+  ValentObjectPrivate *priv = valent_object_get_instance_private (self);
+  ValentObjectPrivate *child_priv = valent_object_get_instance_private (child);
+
+  g_assert (VALENT_IS_OBJECT (self));
+  g_assert (VALENT_IS_OBJECT (child));
+
+  valent_object_private_lock (priv);
+  valent_object_private_lock (child_priv);
+
+  if (child_priv->parent != NULL)
+    {
+      g_critical ("Attempt to add %s to %s, but it already has a parent",
+                  G_OBJECT_TYPE_NAME (child),
+                  G_OBJECT_TYPE_NAME (self));
+      valent_object_private_unlock (child_priv);
+      valent_object_private_unlock (priv);
+      return;
+    }
+
+  g_queue_push_tail (&priv->children, g_object_ref (child));
+  child_priv->parent = self;
+
+  valent_object_private_unlock (child_priv);
+  valent_object_private_unlock (priv);
+}
+
+static void
+valent_object_real_remove (ValentObject *self,
+                           ValentObject *child)
+{
+  ValentObjectPrivate *priv = valent_object_get_instance_private (self);
+  ValentObjectPrivate *child_priv = valent_object_get_instance_private (child);
+
+  g_assert (VALENT_IS_OBJECT (self));
+  g_assert (VALENT_IS_OBJECT (child));
+
+  valent_object_private_lock (priv);
+  valent_object_private_lock (child_priv);
+
+  if (child_priv->parent != self)
+    {
+      g_critical ("Attempt to remove %s from incorrect parent %s",
+                  G_OBJECT_TYPE_NAME (child),
+                  G_OBJECT_TYPE_NAME (self));
+      valent_object_private_unlock (child_priv);
+      valent_object_private_unlock (priv);
+      return;
+    }
+
+  g_queue_remove (&priv->children, child);
+  child_priv->parent = NULL;
+
+  valent_object_private_unlock (child_priv);
+  valent_object_private_unlock (priv);
+
+  g_object_unref (child);
+}
+
+static void
 valent_object_real_destroy (ValentObject *self)
 {
   ValentObjectPrivate *priv = valent_object_get_instance_private (self);
+  ValentObject *hold = NULL;
 
   g_assert (VALENT_IS_OBJECT (self));
 
   g_cancellable_cancel (priv->cancellable);
+
+  if (priv->parent != NULL)
+    {
+      hold = g_object_ref (self);
+      valent_object_real_remove (priv->parent, self);
+    }
+
+  while (priv->children.head != NULL)
+    {
+      ValentObject *child = priv->children.head->data;
+      valent_object_destroy (child);
+    }
+
   priv->destroyed = TRUE;
+  g_clear_object (&hold);
 }
 
 /*
@@ -195,6 +277,7 @@ valent_object_finalize (GObject *object)
   ValentObjectPrivate *priv = valent_object_get_instance_private (self);
 
   g_clear_object (&priv->cancellable);
+  g_clear_pointer (&priv->iri, g_free);
   g_rec_mutex_clear (&priv->mutex);
 
   G_OBJECT_CLASS (valent_object_parent_class)->finalize (object);
@@ -214,6 +297,14 @@ valent_object_get_property (GObject    *object,
       g_value_take_object (value, valent_object_ref_cancellable (self));
       break;
 
+    case PROP_IRI:
+      g_value_set_string (value, valent_object_get_iri (self));
+      break;
+
+    case PROP_PARENT:
+      g_value_set_object (value, valent_object_get_parent (self));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -228,10 +319,22 @@ valent_object_set_property (GObject      *object,
   ValentObject *self = VALENT_OBJECT (object);
   ValentObjectPrivate *priv = valent_object_get_instance_private (self);
 
-  switch (prop_id)
+  switch ((ValentObjectProperty)prop_id)
     {
     case PROP_CANCELLABLE:
       priv->cancellable = g_value_dup_object (value);
+      break;
+
+    case PROP_IRI:
+      priv->iri = g_value_dup_string (value);
+      break;
+
+    case PROP_PARENT:
+      {
+        ValentObject *parent = g_value_get_object (value);
+        if (parent != NULL)
+          valent_object_real_add (parent, self);
+      }
       break;
 
     default:
@@ -265,6 +368,36 @@ valent_object_class_init (ValentObjectClass *klass)
   properties [PROP_CANCELLABLE] =
     g_param_spec_object ("cancellable", NULL, NULL,
                          G_TYPE_CANCELLABLE,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentObject:iri: (getter get_iri)
+   *
+   * The object IRI.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_IRI] =
+    g_param_spec_string ("iri", NULL, NULL,
+                         NULL,
+                         (G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_EXPLICIT_NOTIFY |
+                          G_PARAM_STATIC_STRINGS));
+
+  /**
+   * ValentObject:parent: (getter get_parent)
+   *
+   * The object's parent.
+   *
+   * Since: 1.0
+   */
+  properties [PROP_PARENT] =
+    g_param_spec_object ("parent", NULL, NULL,
+                         VALENT_TYPE_OBJECT,
                          (G_PARAM_READWRITE |
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_EXPLICIT_NOTIFY |
@@ -381,6 +514,51 @@ valent_object_ref_cancellable (ValentObject *object)
   valent_object_private_unlock (priv);
 
   return g_steal_pointer (&ret);
+}
+
+/**
+ * valent_object_get_iri: (get-property iri)
+ * @object: a `ValentResource`
+ *
+ * Gets the IRI of @object.
+ *
+ * This method may only be called from the main thread.
+ *
+ * Returns: (transfer none) (nullable): the IRI of @object
+ *
+ * Since: 1.0
+ */
+const char *
+valent_object_get_iri (ValentObject *object)
+{
+  ValentObjectPrivate *priv = valent_object_get_instance_private (object);
+
+  g_return_val_if_fail (VALENT_IS_OBJECT (object), NULL);
+
+  return priv->iri;
+}
+
+/**
+ * valent_object_get_parent: (get-property parent)
+ * @object: a `ValentObject`
+ *
+ * Get the parent [class@Valent.Object].
+ *
+ * This method may only be called from the main thread.
+ *
+ * Returns: (type Valent.Object) (transfer none) (nullable): @object's parent,
+ *   or %NULL if unset
+ *
+ * Since: 1.0
+ */
+gpointer
+valent_object_get_parent (ValentObject *object)
+{
+  ValentObjectPrivate *priv = valent_object_get_instance_private (object);
+
+  g_return_val_if_fail (VALENT_IS_OBJECT (object), NULL);
+
+  return priv->parent;
 }
 
 /**

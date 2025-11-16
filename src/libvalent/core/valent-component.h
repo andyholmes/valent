@@ -17,11 +17,11 @@ G_BEGIN_DECLS
 #define VALENT_TYPE_COMPONENT (valent_component_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentComponent, valent_component, VALENT, COMPONENT, ValentResource)
+G_DECLARE_DERIVABLE_TYPE (ValentComponent, valent_component, VALENT, COMPONENT, ValentObject)
 
 struct _ValentComponentClass
 {
-  ValentResourceClass   parent_class;
+  ValentObjectClass     parent_class;
 
   /* virtual functions */
   void                  (*bind_extension)   (ValentComponent *component,

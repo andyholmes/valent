@@ -481,7 +481,7 @@ valent_mousepad_device_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_mousepad_device_parent_class)->constructed (object);
 
-  self->device = valent_resource_get_source (VALENT_RESOURCE (self));
+  self->device = valent_object_get_parent (VALENT_OBJECT (self));
   g_signal_connect_object (self->device,
                            "notify::state",
                            G_CALLBACK (on_device_state_changed),
@@ -557,14 +557,13 @@ valent_mousepad_device_new (ValentDevice *device)
 
   context = valent_context_new (valent_device_get_context (device),
                                 "plugin",
-                                "systemvolume");
-  iri = tracker_sparql_escape_uri_printf ("urn:valent:mixer:%s",
+                                "input");
+  iri = tracker_sparql_escape_uri_printf ("urn:valent:input:%s",
                                           valent_device_get_id (device));
   return g_object_new (VALENT_TYPE_MOUSEPAD_DEVICE,
                        "iri",     iri,
                        "context", context,
-                       "source",  device,
-                       "title",   valent_device_get_name (device),
+                       "parent",  device,
                        NULL);
 }
 

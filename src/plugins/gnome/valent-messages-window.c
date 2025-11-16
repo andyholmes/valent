@@ -597,7 +597,7 @@ on_conversation_activated (GtkListBox           *box,
   contact = valent_message_row_get_contact (VALENT_MESSAGE_ROW (row));
   message = valent_message_row_get_message (VALENT_MESSAGE_ROW (row));
   thread_id = valent_message_get_thread_id (message);
-  adapter_urn = valent_resource_get_iri (VALENT_RESOURCE (self->messages_adapter));
+  adapter_urn = valent_object_get_iri (VALENT_OBJECT (self->messages_adapter));
   thread_urn = g_strdup_printf ("%s:%"PRId64, adapter_urn, thread_id);
 
   page = valent_messages_window_ensure_conversation (self, thread_urn);
@@ -631,7 +631,7 @@ on_selected_item (GObject              *object,
     return;
 
   // HACK: try to find a matching contacts adapter
-  owner = valent_resource_get_source (VALENT_RESOURCE (adapter));
+  owner = valent_object_get_parent (VALENT_OBJECT (adapter));
   n_items = g_list_model_get_n_items (self->contacts);
   for (unsigned int i = 0; i < n_items; i++)
     {
@@ -639,7 +639,7 @@ on_selected_item (GObject              *object,
       GObject *item_owner = NULL;
 
       item = g_list_model_get_item (self->contacts, i);
-      item_owner = valent_resource_get_source (VALENT_RESOURCE (item));
+      item_owner = valent_object_get_parent (VALENT_OBJECT (item));
       if (item_owner == owner)
         {
           g_set_object (&self->contacts_adapter, item);
@@ -854,7 +854,7 @@ valent_messages_window_set_active_message (ValentMessagesWindow *window,
   g_return_if_fail (VALENT_IS_MESSAGES_WINDOW (window));
 
   thread_id = valent_message_get_thread_id (message);
-  adapter_urn = valent_resource_get_iri (VALENT_RESOURCE (window->messages_adapter));
+  adapter_urn = valent_object_get_iri (VALENT_OBJECT (window->messages_adapter));
   thread_urn = g_strdup_printf ("%s:%"PRId64, adapter_urn, thread_id);
 
   widget = valent_messages_window_ensure_conversation (window, thread_urn);

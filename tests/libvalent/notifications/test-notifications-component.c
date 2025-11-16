@@ -130,7 +130,7 @@ test_notifications_component_adapter (NotificationsComponentFixture *fixture,
                                           plugin_info,
                                           VALENT_TYPE_NOTIFICATIONS_ADAPTER,
                                           "iri",     "urn:valent:notifications:mock",
-                                          "source",  NULL,
+                                          "parent",  NULL,
                                           "context", context,
                                           NULL);
 

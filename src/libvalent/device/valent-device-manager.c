@@ -315,7 +315,7 @@ valent_device_manager_enable_plugin (ValentDeviceManager *self,
   plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_CHANNEL_SERVICE,
-                                                    "source",  self,
+                                                    "parent",  self,
                                                     "context", plugin->context,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));

@@ -559,7 +559,7 @@ valent_sms_device_add_json (ValentSmsDevice *self,
     }
 
   thread_id = json_node_get_int (node);
-  base_urn = valent_resource_get_iri (VALENT_RESOURCE (self));
+  base_urn = valent_object_get_iri (VALENT_OBJECT (self));
   thread_urn = g_strdup_printf ("%s:%"PRId64, base_urn, thread_id);
   thread = tracker_resource_new (thread_urn);
   tracker_resource_set_uri (thread, "rdf:type", "vmo:CommunicationChannel");
@@ -873,7 +873,7 @@ valent_sms_device_constructed (GObject *object)
 
   G_OBJECT_CLASS (valent_sms_device_parent_class)->constructed (object);
 
-  self->device = valent_resource_get_source (VALENT_RESOURCE (self));
+  self->device = valent_object_get_parent (VALENT_OBJECT (self));
   g_signal_connect_object (self->device,
                            "notify::state",
                            G_CALLBACK (on_device_state_changed),
@@ -941,8 +941,7 @@ valent_sms_device_new (ValentDevice *device)
   return g_object_new (VALENT_TYPE_SMS_DEVICE,
                        "iri",     iri,
                        "context", context,
-                       "source",  device,
-                       "title",   valent_device_get_name (device),
+                       "parent",  device,
                        NULL);
 }
 

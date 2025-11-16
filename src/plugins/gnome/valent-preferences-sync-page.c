@@ -95,7 +95,7 @@ on_adapter_selected (AdwActionRow          *row,
 
       if (row == store_row)
         {
-          const char *iri = valent_resource_get_iri (VALENT_RESOURCE (self));
+          const char *iri = valent_object_get_iri (VALENT_OBJECT (self));
           g_settings_set_string (settings, "local-uid", iri != NULL ? iri : "");
         }
 
@@ -119,7 +119,7 @@ valent_contacts_preferences_create_row_func (gpointer item,
   g_assert (VALENT_IS_CONTACTS_ADAPTER (adapter));
   g_assert (VALENT_IS_PREFERENCES_SYNC_PAGE (self));
 
-  iri = valent_resource_get_iri (VALENT_RESOURCE (adapter));
+  iri = valent_object_get_iri (VALENT_OBJECT (adapter));
   row = g_object_new (ADW_TYPE_ACTION_ROW,
                       "activatable", TRUE,
                       "title",       iri,

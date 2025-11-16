@@ -30,7 +30,7 @@ test_gnome_application (void)
                                             VALENT_TYPE_APPLICATION_PLUGIN,
                                             "iri",     "urn:valent:application:gnome",
                                             // FIXME: root source
-                                            "source",  NULL,
+                                            "parent",  NULL,
                                             "context", context,
                                             NULL);
 

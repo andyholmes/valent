@@ -130,7 +130,7 @@ test_notification_plugin_send_notification (ValentTestFixture *fixture,
   VALENT_TEST_CHECK ("Plugin forwards standard notifications");
   valent_notification_set_id (notification, "test-id");
   valent_notification_set_application (notification, "Test Application");
-  valent_resource_set_title (VALENT_RESOURCE (notification), "Test Title");
+  valent_notification_set_title (notification, "Test Title");
   valent_notification_set_body (notification, "Test Body");
   valent_notifications_adapter_notification_added (adapter, notification);
 

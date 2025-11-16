@@ -105,7 +105,7 @@ static inline gboolean
 valent_messages_adapter_equal_func (gconstpointer a,
                                     gconstpointer b)
 {
-  const char *iri = valent_resource_get_iri ((ValentResource *)a);
+  const char *iri = valent_object_get_iri ((ValentObject *)a);
 
   return g_utf8_collate (iri, (const char *)b) == 0;
 }
@@ -115,7 +115,6 @@ valent_messages_adapter_remove_thread (ValentMessagesAdapter *self,
                                        const char            *iri)
 {
   ValentMessagesAdapterPrivate *priv = valent_messages_adapter_get_instance_private (self);
-  g_autoptr (GListModel) item = NULL;
   unsigned int position = 0;
 
   g_assert (VALENT_IS_MESSAGES_ADAPTER (self));
@@ -131,7 +130,7 @@ valent_messages_adapter_remove_thread (ValentMessagesAdapter *self,
       return;
     }
 
-  item = g_ptr_array_steal_index (priv->items, position);
+  g_ptr_array_remove_index (priv->items, position);
   g_list_model_items_changed (G_LIST_MODEL (self), position, 1, 0);
 }
 
@@ -212,7 +211,7 @@ valent_messages_adapter_open (ValentMessagesAdapter  *self,
   if (priv->connection == NULL)
     return FALSE;
 
-  iri = valent_resource_get_iri (VALENT_RESOURCE (self));
+  iri = valent_object_get_iri (VALENT_OBJECT (self));
   iri_pattern = g_strdup_printf ("^%s:([^:]+)$", iri);
   priv->iri_pattern = g_regex_new (iri_pattern,
                                    G_REGEX_OPTIMIZE,

@@ -45,7 +45,7 @@ typedef struct
 
 static void   g_list_model_iface_init           (GListModelInterface *iface);
 
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentComponent, valent_component, VALENT_TYPE_RESOURCE,
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentComponent, valent_component, VALENT_TYPE_OBJECT,
                                   G_ADD_PRIVATE (ValentComponent)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init));
 
@@ -171,8 +171,6 @@ valent_component_enable_plugin (ValentComponent *self,
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (self);
   g_autofree char *urn = NULL;
-  const char *title = NULL;
-  const char *description = NULL;
   const char *domain = NULL;
   const char *module = NULL;
 
@@ -181,8 +179,6 @@ valent_component_enable_plugin (ValentComponent *self,
   g_assert (VALENT_IS_COMPONENT (self));
   g_assert (plugin != NULL);
 
-  title = peas_plugin_info_get_name (plugin->info);
-  description = peas_plugin_info_get_description (plugin->info);
   domain = valent_context_get_domain (priv->context);
   module = peas_plugin_info_get_module_name (plugin->info);
   urn = tracker_sparql_escape_uri_printf ("urn:valent:%s:%s", domain, module);
@@ -190,9 +186,7 @@ valent_component_enable_plugin (ValentComponent *self,
                                                     plugin->info,
                                                     priv->plugin_type,
                                                     "iri",         urn,
-                                                    "source",      self,
-                                                    "title",       title,
-                                                    "description", description,
+                                                    "parent",      self,
                                                     "context",     plugin->context,
                                                     NULL);
   g_return_if_fail (VALENT_IS_EXTENSION (plugin->extension));
@@ -741,7 +735,6 @@ valent_component_unexport_adapter (ValentComponent *component,
                                    ValentExtension *extension)
 {
   ValentComponentPrivate *priv = valent_component_get_instance_private (component);
-  g_autoptr (ValentExtension) item = NULL;
   unsigned int position = 0;
 
   VALENT_ENTRY;
@@ -762,7 +755,7 @@ valent_component_unexport_adapter (ValentComponent *component,
                                         component);
   VALENT_COMPONENT_GET_CLASS (component)->unbind_extension (component, extension);
 
-  item = g_ptr_array_steal_index (priv->items, position);
+  g_ptr_array_remove_index (priv->items, position);
   g_list_model_items_changed (G_LIST_MODEL (component), position, 1, 0);
 
   VALENT_EXIT;

@@ -9,7 +9,7 @@
 
 #include <json-glib/json-glib.h>
 
-#include "../core/valent-resource.h"
+#include "../core/valent-object.h"
 #include "valent-channel.h"
 
 G_BEGIN_DECLS
@@ -39,7 +39,7 @@ typedef enum
 #define VALENT_TYPE_DEVICE (valent_device_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_FINAL_TYPE (ValentDevice, valent_device, VALENT, DEVICE, ValentResource)
+G_DECLARE_FINAL_TYPE (ValentDevice, valent_device, VALENT, DEVICE, ValentObject)
 
 VALENT_AVAILABLE_IN_1_0
 ValentDevice      * valent_device_new                  (const char           *id);

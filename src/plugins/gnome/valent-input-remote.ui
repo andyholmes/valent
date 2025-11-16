@@ -49,7 +49,7 @@
                                   <binding name="icon-name">
                                     <!-- FIXME: this should be a property of the adapter -->
                                     <lookup name="icon-name" type="ValentDevice">
-                                      <lookup name="source" type="ValentResource">
+                                      <lookup name="parent" type="ValentObject">
                                         <lookup name="item">GtkListItem</lookup>
                                       </lookup>
                                     </lookup>
@@ -62,7 +62,7 @@
                                   <binding name="label">
                                     <!-- FIXME: this should be a property of the adapter -->
                                     <lookup name="name" type="ValentDevice">
-                                      <lookup name="source" type="ValentResource">
+                                      <lookup name="parent" type="ValentObject">
                                         <lookup name="item">GtkListItem</lookup>
                                       </lookup>
                                     </lookup>

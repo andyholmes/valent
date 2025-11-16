@@ -39,7 +39,7 @@ channel_service_fixture_set_up (ChannelServiceFixture *fixture,
   fixture->service = g_object_new (VALENT_TYPE_MOCK_CHANNEL_SERVICE,
                                    "iri",         "urn:valent:network:mock",
                                    // FIXME: root source
-                                   "source",      NULL,
+                                   "parent",      NULL,
                                    "context",     context,
                                    "plugin-info", plugin_info,
                                    NULL);

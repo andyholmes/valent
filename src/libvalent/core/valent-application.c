@@ -44,24 +44,18 @@ valent_application_enable_plugin (ValentApplication *self,
                                   ValentPlugin      *plugin)
 {
   g_autofree char *urn = NULL;
-  const char *title = NULL;
-  const char *description = NULL;
   const char *module = NULL;
 
   g_assert (VALENT_IS_APPLICATION (self));
 
-  title = peas_plugin_info_get_name (plugin->info);
-  description = peas_plugin_info_get_description (plugin->info);
   module = peas_plugin_info_get_module_name (plugin->info);
   urn = tracker_sparql_escape_uri_printf ("urn:valent:application:%s", module);
   plugin->extension = peas_engine_create_extension (valent_get_plugin_engine (),
                                                     plugin->info,
                                                     VALENT_TYPE_APPLICATION_PLUGIN,
                                                     "iri",         urn,
-                                                    // FIXME: root source
-                                                    "source",      NULL,
-                                                    "title",       title,
-                                                    "description", description,
+                                                    // FIXME: root object
+                                                    "parent",      NULL,
                                                     "context",     plugin->context,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
