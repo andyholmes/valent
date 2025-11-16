@@ -559,7 +559,7 @@ valent_sms_device_add_json (ValentSmsDevice *self,
     }
 
   thread_id = json_node_get_int (node);
-  base_urn = valent_resource_get_iri (VALENT_RESOURCE (self));
+  base_urn = valent_object_get_iri (VALENT_OBJECT (self));
   thread_urn = g_strdup_printf ("%s:%"PRId64, base_urn, thread_id);
   thread = tracker_resource_new (thread_urn);
   tracker_resource_set_uri (thread, "rdf:type", "vmo:CommunicationChannel");
@@ -942,7 +942,6 @@ valent_sms_device_new (ValentDevice *device)
                        "iri",     iri,
                        "context", context,
                        "parent",  device,
-                       "title",   valent_device_get_name (device),
                        NULL);
 }
 

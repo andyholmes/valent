@@ -50,7 +50,7 @@ on_local_uid_changed (GSettings            *settings,
           const char *iri = NULL;
 
           adapter = g_list_model_get_item (G_LIST_MODEL (contacts), i);
-          iri = valent_resource_get_iri (VALENT_RESOURCE (adapter));
+          iri = valent_object_get_iri (VALENT_OBJECT (adapter));
           if (g_strcmp0 (local_iri, iri) == 0)
             {
               self->local_contacts = g_list_model_get_item (adapter, i);

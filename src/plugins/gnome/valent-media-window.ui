@@ -48,9 +48,9 @@
                                         <object class="GtkLabel">
                                           <property name="ellipsize">end</property>
                                           <binding name="label">
-                                            <lookup name="title" type="ValentMixerAdapter">
+                                            <closure type="gchararray" function="_valent_mixer_adapter_get_name">
                                               <lookup name="item">GtkListItem</lookup>
-                                            </lookup>
+                                            </closure>
                                           </binding>
                                         </object>
                                       </child>

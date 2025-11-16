@@ -374,7 +374,6 @@ valent_systemvolume_device_new (ValentDevice *device)
                        "iri",     iri,
                        "context", context,
                        "parent",  device,
-                       "title",   valent_device_get_name (device),
                        NULL);
 }
 
