@@ -21,7 +21,7 @@
 
 struct _ValentMessageThread
 {
-  ValentResource           parent_instance;
+  ValentObject             parent_instance;
 
   TrackerSparqlConnection *connection;
   char                    *iri;
@@ -47,7 +47,7 @@ static void   valent_message_thread_load         (ValentMessageThread *self);
 static void   valent_message_thread_load_message (ValentMessageThread *self,
                                                   const char          *iri);
 
-G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMessageThread, valent_message_thread, VALENT_TYPE_RESOURCE,
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentMessageThread, valent_message_thread, VALENT_TYPE_OBJECT,
                                G_IMPLEMENT_INTERFACE (G_TYPE_LIST_MODEL, g_list_model_iface_init))
 
 typedef enum {
@@ -139,7 +139,7 @@ valent_message_thread_lookup_func (gconstpointer a,
                                    gconstpointer b,
                                    gpointer      user_data)
 {
-  const char *iri = valent_resource_get_iri ((ValentResource *)a);
+  const char *iri = valent_object_get_iri ((ValentObject *)a);
 
   return g_utf8_collate (iri, (const char *)b);
 }

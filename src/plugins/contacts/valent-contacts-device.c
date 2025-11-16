@@ -237,7 +237,7 @@ valent_contacts_device_constructed (GObject *object)
                            self,
                            G_CONNECT_DEFAULT);
 
-  iri = valent_resource_get_iri (VALENT_RESOURCE (self));
+  iri = valent_object_get_iri (VALENT_OBJECT (self));
   self->default_iri = tracker_sparql_escape_uri_printf ("%s:default", iri);
 }
 
@@ -292,7 +292,6 @@ valent_contacts_device_new (ValentDevice *device)
                        "iri",     iri,
                        "context", context,
                        "parent",  device,
-                       "title",   valent_device_get_name (device),
                        NULL);
 }
 

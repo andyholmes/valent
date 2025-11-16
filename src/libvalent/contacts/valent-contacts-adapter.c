@@ -265,7 +265,7 @@ static inline gboolean
 find_item (gconstpointer a,
            gconstpointer b)
 {
-  const char *iri = valent_resource_get_iri ((ValentResource *)a);
+  const char *iri = valent_object_get_iri ((ValentObject *)a);
 
   return g_strcmp0 (iri, (const char *)b) == 0;
 }
@@ -316,7 +316,7 @@ valent_contacts_adapter_open (ValentContactsAdapter  *self,
   if (priv->connection == NULL)
     return FALSE;
 
-  iri = valent_resource_get_iri (VALENT_RESOURCE (self));
+  iri = valent_object_get_iri (VALENT_OBJECT (self));
   iri_pattern = g_strdup_printf ("^%s:([^:]+)$", iri);
   priv->iri_pattern = g_regex_new (iri_pattern,
                                    G_REGEX_OPTIMIZE,

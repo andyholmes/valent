@@ -164,7 +164,7 @@ valent_fdo_notifications_notify_main (gpointer data)
   notification = valent_notification_new (NULL);
   valent_notification_set_id (notification, id_str);
   valent_notification_set_application (notification, app_name);
-  valent_resource_set_title (VALENT_RESOURCE (notification), summary);
+  valent_notification_set_title (notification, summary);
   valent_notification_set_body (notification, body);
 
   /* This ordering is required by the specification.

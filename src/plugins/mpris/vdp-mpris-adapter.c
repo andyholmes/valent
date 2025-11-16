@@ -272,7 +272,6 @@ vdp_mpris_adapter_new (ValentDevice *device)
                        "iri",     iri,
                        "context", context,
                        "parent",  device,
-                       "title",   valent_device_get_name (device),
                        NULL);
 }
 

@@ -52,7 +52,7 @@
 
 struct _ValentDevice
 {
-  ValentResource   parent_instance;
+  ValentObject     parent_instance;
 
   ValentContext   *context;
 
@@ -83,7 +83,7 @@ struct _ValentDevice
 
 static void   g_action_group_iface_init (GActionGroupInterface *iface);
 
-G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_RESOURCE,
+G_DEFINE_FINAL_TYPE_WITH_CODE (ValentDevice, valent_device, VALENT_TYPE_OBJECT,
                                G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init))
 
 typedef enum {
@@ -265,21 +265,15 @@ valent_device_enable_plugin (ValentDevice *device,
   g_auto (GStrv) actions = NULL;
   g_autofree char *urn = NULL;
   const char *incoming = NULL;
-  const char *title = NULL;
-  const char *description = NULL;
 
   g_assert (VALENT_IS_DEVICE (device));
   g_assert (plugin != NULL);
 
-  title = peas_plugin_info_get_name (plugin->info);
-  description = peas_plugin_info_get_description (plugin->info);
   plugin->extension = peas_engine_create_extension (device->engine,
                                                     plugin->info,
                                                     VALENT_TYPE_DEVICE_PLUGIN,
                                                     "context",     plugin->context,
                                                     "parent",      plugin->parent,
-                                                    "title",       title,
-                                                    "description", description,
                                                     NULL);
   g_return_if_fail (G_IS_OBJECT (plugin->extension));
 

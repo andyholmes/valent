@@ -44,7 +44,7 @@ on_player_selected (GtkDropDown       *dropdown,
                     ValentMediaWindow *self)
 {
   ValentMediaPlayer *player = NULL;
-  ValentResource *player_source = NULL;
+  ValentObject *player_parent = NULL;
   unsigned int n_items = 0;
 
   g_assert (VALENT_IS_MEDIA_WINDOW (self));
@@ -57,19 +57,19 @@ on_player_selected (GtkDropDown       *dropdown,
       return;
     }
 
-  player_source = valent_object_get_parent (VALENT_OBJECT (player));
-  if (player_source == NULL)
+  player_parent = valent_object_get_parent (VALENT_OBJECT (player));
+  if (player_parent == NULL)
     return;
 
   n_items = g_list_model_get_n_items (self->mixers);
   for (unsigned int i = 0; i < n_items; i++)
     {
       g_autoptr (ValentMixerAdapter) item = NULL;
-      ValentResource *item_source = NULL;
+      ValentObject *item_parent = NULL;
 
       item = g_list_model_get_item (self->mixers, i);
-      item_source = valent_object_get_parent (VALENT_OBJECT (item));
-      if (item_source == player_source)
+      item_parent = valent_object_get_parent (VALENT_OBJECT (item));
+      if (item_parent == player_parent)
         {
           gtk_drop_down_set_selected (self->mixer_adapter, i);
           break;
@@ -78,7 +78,7 @@ on_player_selected (GtkDropDown       *dropdown,
       // TODO: this should only be reached for local players, whose direct
       //       source doesn't match the player. The hypothetical solution is
       //       `valent_object_get_ancestor (object, VALENT_TYPE_DATA_SOURCE)`
-      if (!VALENT_IS_DEVICE (player_source) && !VALENT_IS_DEVICE (item_source))
+      if (!VALENT_IS_DEVICE (player_parent) && !VALENT_IS_DEVICE (item_parent))
         {
           gtk_drop_down_set_selected (self->mixer_adapter, i);
           break;
