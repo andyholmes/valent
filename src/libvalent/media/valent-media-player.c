@@ -23,7 +23,7 @@
  * Since: 1.0
  */
 
-G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, VALENT_TYPE_RESOURCE)
+G_DEFINE_TYPE (ValentMediaPlayer, valent_media_player, VALENT_TYPE_OBJECT)
 
 typedef enum {
   PROP_FLAGS = 1,

@@ -11,7 +11,6 @@ libvalent_core_tests = [
   'test-application-plugin',
   'test-context',
   'test-object',
-  'test-resource',
   'test-utils',
 ]
 

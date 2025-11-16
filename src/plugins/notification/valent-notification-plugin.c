@@ -98,7 +98,7 @@ on_notification_added (ValentNotificationPlugin *self,
   valent_notification_plugin_send_notification (self,
                                                 valent_notification_get_id (notification),
                                                 valent_notification_get_application (notification),
-                                                valent_resource_get_title (VALENT_RESOURCE (notification)),
+                                                valent_notification_get_title (notification),
                                                 valent_notification_get_body (notification),
                                                 valent_notification_get_icon (notification));
 

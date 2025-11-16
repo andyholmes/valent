@@ -563,7 +563,6 @@ vdp_mpris_player_new (ValentDevice *device)
   return g_object_new (VALENT_TYPE_MPRIS_PLAYER,
                        "iri",     iri,
                        "parent",  device,
-                       "title",   valent_device_get_name (device),
                        NULL);
 }
 

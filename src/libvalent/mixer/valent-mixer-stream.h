@@ -7,7 +7,7 @@
 # error "Only <valent.h> can be included directly."
 #endif
 
-#include "../core/valent-resource.h"
+#include "../core/valent-object.h"
 
 G_BEGIN_DECLS
 
@@ -30,11 +30,11 @@ typedef enum
 #define VALENT_TYPE_MIXER_STREAM (valent_mixer_stream_get_type())
 
 VALENT_AVAILABLE_IN_1_0
-G_DECLARE_DERIVABLE_TYPE (ValentMixerStream, valent_mixer_stream, VALENT, MIXER_STREAM, ValentResource)
+G_DECLARE_DERIVABLE_TYPE (ValentMixerStream, valent_mixer_stream, VALENT, MIXER_STREAM, ValentObject)
 
 struct _ValentMixerStreamClass
 {
-  ValentResourceClass    parent_class;
+  ValentObjectClass      parent_class;
 
   /* virtual functions */
   const char           * (*get_name)        (ValentMixerStream *stream);

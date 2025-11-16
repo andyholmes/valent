@@ -11,7 +11,6 @@
 #include "valent-context.h"
 #include "valent-core-enums.h"
 #include "valent-object.h"
-#include "valent-resource.h"
 
 #include "valent-extension.h"
 
@@ -81,7 +80,7 @@ typedef struct
 static void   g_action_group_iface_init (GActionGroupInterface *iface);
 static void   g_action_map_iface_init   (GActionMapInterface   *iface);
 
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentExtension, valent_extension, VALENT_TYPE_RESOURCE,
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (ValentExtension, valent_extension, VALENT_TYPE_OBJECT,
                                   G_ADD_PRIVATE (ValentExtension)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_GROUP, g_action_group_iface_init)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_ACTION_MAP, g_action_map_iface_init))

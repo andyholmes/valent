@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "../core/valent-resource.h"
+#include "../core/valent-object.h"
 
 G_BEGIN_DECLS
 
 #define VALENT_TYPE_CONTACT_LIST (valent_contact_list_get_type())
 
-G_DECLARE_FINAL_TYPE (ValentContactList, valent_contact_list, VALENT, CONTACT_LIST, ValentResource)
+G_DECLARE_FINAL_TYPE (ValentContactList, valent_contact_list, VALENT, CONTACT_LIST, ValentObject)
 
 G_END_DECLS

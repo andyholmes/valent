@@ -31,7 +31,7 @@ typedef struct
   unsigned int          muted : 1;
 } ValentMixerStreamPrivate;
 
-G_DEFINE_TYPE_WITH_PRIVATE (ValentMixerStream, valent_mixer_stream, VALENT_TYPE_RESOURCE)
+G_DEFINE_TYPE_WITH_PRIVATE (ValentMixerStream, valent_mixer_stream, VALENT_TYPE_OBJECT)
 
 typedef enum {
   PROP_DESCRIPTION = 1,
