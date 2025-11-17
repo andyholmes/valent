@@ -35,6 +35,21 @@
   </description>
 
   <releases>
+    <release version="1.0.0.alpha.49" date="2025-11-17" type="development">
+      <url>https://github.com/andyholmes/valent/releases/tag/v1.0.0.alpha.49</url>
+      <description>
+        <ul>
+          <li>Support bluetooth connections</li>
+          <li>Support notification IDs for XDG notifications</li>
+          <li>Port from GdkPixbuf to Glycin</li>
+          <li>Drop device GSettings</li>
+          <li>Various protocol updates</li>
+          <li>Fixes for VAPI and Vala plugins</li>
+          <li>Protocol and security fixes</li>
+          <li>Add Estonian (et) translation</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.0.alpha.48" date="2025-09-14" type="development">
       <url>https://github.com/andyholmes/valent/releases/tag/v1.0.0.alpha.48</url>
       <description>

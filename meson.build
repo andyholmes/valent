@@ -3,7 +3,7 @@
 
 project('valent', 'c', 'cpp',
           license: 'GPL-3.0-or-later',
-          version: '1.0.0.alpha.48',
+          version: '1.0.0.alpha.49',
     meson_version: '>= 1.1',
   default_options: [
     'buildtype=debugoptimized',

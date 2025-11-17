@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0.alpha.49] - 2025-11-17
+
+### Added
+
+- Support bluetooth connections
+- Support notification IDs for XDG notifications
+- Add Estonian (et) translation
+
+### Changed
+
+- Port from GdkPixbuf to Glycin
+- Drop device GSettings
+- Various protocol updates
+
+### Fixed
+
+- Fixes for VAPI and Vala plugins
+- Protocol and security fixes
+
 ## [1.0.0.alpha.48] - 2025-09-14
 
 ### Added
