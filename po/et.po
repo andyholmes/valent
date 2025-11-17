@@ -8,40 +8,42 @@ msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
 "POT-Creation-Date: 2025-11-07 13:04-0800\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2025-11-17 19:45+0000\n"
+"Last-Translator: Priit Jõerüüt <jrthwlate@users.noreply.hosted.weblate.org>\n"
+"Language-Team: Estonian <https://hosted.weblate.org/projects/valent/"
+"application/et/>\n"
 "Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.15-dev\n"
 
 #: data/ca.andyholmes.Valent.desktop.in.in:2
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: src/plugins/gnome/valent-window.c:220 src/plugins/gnome/valent-window.ui:8
 #: src/plugins/gnome/valent-window.ui:45
 msgid "Valent"
-msgstr ""
+msgstr "Valent"
 
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
 msgid "Connect, control and sync devices"
-msgstr ""
+msgstr "Ühenda, halda ja sünkrooni seadmeid"
 
 #: data/ca.andyholmes.Valent.gschema.xml:10
 #: src/plugins/gnome/valent-preferences-command-editor.ui:41
 msgid "Name"
-msgstr ""
+msgstr "Nimi"
 
 #: data/ca.andyholmes.Valent.gschema.xml:11
 msgid "The display name for the local device."
-msgstr ""
+msgstr "Kohaliku seadme kuvatav nimi."
 
 #: data/ca.andyholmes.Valent.gschema.xml:15
 #: src/plugins/gnome/valent-preferences-dialog.ui:93
 msgid "Device Addresses"
-msgstr ""
+msgstr "Seadme aadressid"
 
 #: data/ca.andyholmes.Valent.gschema.xml:16
 #: src/plugins/gnome/valent-preferences-dialog.ui:63
