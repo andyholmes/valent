@@ -31,25 +31,19 @@ struct _ValentObjectClass
 };
 
 VALENT_AVAILABLE_IN_1_0
-void           valent_object_lock              (ValentObject *object);
+void           valent_object_lock            (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-void           valent_object_unlock            (ValentObject *object);
+void           valent_object_unlock          (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-GCancellable * valent_object_ref_cancellable   (ValentObject *object);
+GCancellable * valent_object_ref_cancellable (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-const char   * valent_object_get_iri           (ValentObject *object);
+const char   * valent_object_get_iri         (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-gpointer       valent_object_get_parent        (ValentObject *object);
+gpointer       valent_object_get_parent      (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-void           valent_object_destroy           (ValentObject *object);
+void           valent_object_destroy         (ValentObject *object);
 VALENT_AVAILABLE_IN_1_0
-gboolean       valent_object_in_destruction    (ValentObject *object);
-VALENT_AVAILABLE_IN_1_0
-void           valent_object_notify            (ValentObject *object,
-                                                const char   *property_name);
-VALENT_AVAILABLE_IN_1_0
-void           valent_object_notify_by_pspec   (ValentObject *object,
-                                                GParamSpec   *pspec);
+gboolean       valent_object_in_destruction  (ValentObject *object);
 
 G_END_DECLS
 
