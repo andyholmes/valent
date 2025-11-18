@@ -320,110 +320,51 @@ valent_share_upload_new (ValentDevice *device)
 }
 
 static void
-valent_share_upload_add_files_cb (GObject      *object,
-                                  GAsyncResult *result,
-                                  gpointer      user_data)
+g_file_query_info_cb (GFile        *file,
+                      GAsyncResult *result,
+                      gpointer      user_data)
 {
-  ValentShareUpload *self = VALENT_SHARE_UPLOAD (object);
-  g_autoptr (GPtrArray) items = NULL;
-  unsigned int position, added;
+  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
+  ValentShareUpload *self = g_task_get_source_object (task);
+  g_autoptr (GFileInfo) info = NULL;
+  g_autoptr (ValentTransfer) transfer = NULL;
+  g_autoptr (JsonNode) packet = NULL;
+  g_autoptr (JsonBuilder) builder = NULL;
+  const char *filename;
+  goffset payload_size;
+  unsigned int position;
   g_autoptr (GError) error = NULL;
 
-  g_assert (VALENT_IS_SHARE_UPLOAD (self));
-  g_assert (g_task_is_valid (result, self));
-
-  if ((items = g_task_propagate_pointer (G_TASK (result), &error)) == NULL)
+  info = g_file_query_info_finish (file, result, &error);
+  if (info == NULL)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s: %s", G_OBJECT_TYPE_NAME (self), error->message);
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
 
       self->processing_files--;
       return;
     }
 
+  filename = g_file_info_get_name (info);
+  payload_size = g_file_info_get_size (info);
   position = self->items->len;
-  added = items->len;
 
-  for (unsigned int i = 0; i < items->len; i++)
-    {
-      ValentDeviceTransfer *transfer = g_ptr_array_index (items, i);
-      g_autoptr (JsonNode) packet = NULL;
+  valent_packet_init (&builder, "kdeconnect.share.request");
+  json_builder_set_member_name (builder, "filename");
+  json_builder_add_string_value (builder, filename);
+  json_builder_set_member_name (builder, "open");
+  json_builder_add_boolean_value (builder, FALSE);
+  packet = valent_packet_end (&builder);
+  valent_packet_set_payload_size (packet, payload_size);
 
-      packet = valent_device_transfer_ref_packet (transfer);
-      self->payload_size += valent_packet_get_payload_size (packet);
-    }
+  transfer = valent_device_transfer_new (self->device, packet, file);
+  g_ptr_array_add (self->items, g_steal_pointer (&transfer));
+  self->payload_size += payload_size;
 
-  g_ptr_array_extend_and_steal (self->items, g_steal_pointer (&items));
   self->processing_files--;
-
-  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, added);
   valent_share_upload_update (self);
-}
-
-static void
-valent_share_upload_add_files_task (GTask        *task,
-                                    gpointer      source_object,
-                                    gpointer      task_data,
-                                    GCancellable *cancellable)
-{
-  ValentShareUpload *self = VALENT_SHARE_UPLOAD (source_object);
-  GPtrArray *files = task_data;
-  g_autoptr (ValentDevice) device = NULL;
-  g_autoptr (GPtrArray) items = NULL;
-
-  g_assert (VALENT_IS_SHARE_UPLOAD (self));
-  g_assert (files != NULL);
-
-  if (g_task_return_error_if_cancelled (task))
-    return;
-
-  valent_object_lock (VALENT_OBJECT (self));
-  device = g_object_ref (self->device);
-  valent_object_unlock (VALENT_OBJECT (self));
-
-  items = g_ptr_array_new_with_free_func (g_object_unref);
-
-  for (unsigned int i = 0; i < files->len; i++)
-    {
-      GFile *file = g_ptr_array_index (files, i);
-      g_autoptr (ValentTransfer) transfer = NULL;
-      g_autoptr (GFileInfo) info = NULL;
-      g_autoptr (JsonNode) packet = NULL;
-      g_autoptr (JsonBuilder) builder = NULL;
-      const char *filename;
-      goffset payload_size;
-      g_autoptr (GError) error = NULL;
-
-      info = g_file_query_info (file,
-                                G_FILE_ATTRIBUTE_STANDARD_NAME","
-                                G_FILE_ATTRIBUTE_STANDARD_SIZE,
-                                G_FILE_QUERY_INFO_NONE,
-                                cancellable,
-                                &error);
-      if (info == NULL)
-        {
-          g_task_return_error (task, g_steal_pointer (&error));
-          return;
-        }
-
-      filename = g_file_info_get_name (info);
-      payload_size = g_file_info_get_size (info);
-
-      valent_packet_init (&builder, "kdeconnect.share.request");
-      json_builder_set_member_name (builder, "filename");
-      json_builder_add_string_value (builder, filename);
-      json_builder_set_member_name (builder, "open");
-      json_builder_add_boolean_value (builder, FALSE);
-      packet = valent_packet_end (&builder);
-
-      valent_packet_set_payload_size (packet, payload_size);
-
-      transfer = valent_device_transfer_new (device, packet, file);
-      g_ptr_array_add (items, g_steal_pointer (&transfer));
-    }
-
-  g_task_return_pointer (task, g_steal_pointer (&items),
-                         (GDestroyNotify)g_ptr_array_unref);
+  g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
+  g_task_return_boolean (task, TRUE);
 }
 
 /**
@@ -446,56 +387,17 @@ valent_share_upload_add_file (ValentShareUpload *upload,
 
   upload->processing_files++;
 
-  items = g_ptr_array_new_full (1, g_object_unref);
-  g_ptr_array_add (items, g_object_ref (file));
-
   destroy = valent_object_ref_cancellable (VALENT_OBJECT (upload));
-  task = g_task_new (upload, destroy, valent_share_upload_add_files_cb, NULL);
+  task = g_task_new (upload, destroy, NULL, NULL);
   g_task_set_source_tag (task, valent_share_upload_add_file);
-  g_task_set_task_data (task,
-                        g_steal_pointer (&items),
-                        (GDestroyNotify)g_ptr_array_unref);
-  g_task_run_in_thread (task, valent_share_upload_add_files_task);
-}
 
-/**
- * valent_share_upload_add_files:
- * @group: a `ValentShareUpload`
- * @files: a `GListModel`
- *
- * Add @files to the transfer operation.
- *
- * The [property@Gio.ListModel:item-type] of @files must be [type@Gio.File].
- *
- * Call [method@Valent.ShareUpload.add_files_finish] to get the result.
- */
-void
-valent_share_upload_add_files (ValentShareUpload *upload,
-                               GListModel        *files)
-{
-  g_autoptr (GTask) task = NULL;
-  g_autoptr (GCancellable) destroy = NULL;
-  g_autoptr (GPtrArray) items = NULL;
-  unsigned int n_files = 0;
-
-  g_return_if_fail (VALENT_IS_SHARE_UPLOAD (upload));
-  g_return_if_fail (G_IS_LIST_MODEL (files));
-  g_return_if_fail (g_list_model_get_item_type (files) == G_TYPE_FILE);
-
-  upload->processing_files++;
-
-  n_files = g_list_model_get_n_items (files);
-  items = g_ptr_array_new_full (n_files, g_object_unref);
-
-  for (unsigned int i = 0; i < n_files; i++)
-    g_ptr_array_add (items, g_list_model_get_item (files, i));
-
-  destroy = valent_object_ref_cancellable (VALENT_OBJECT (upload));
-  task = g_task_new (upload, destroy, valent_share_upload_add_files_cb, NULL);
-  g_task_set_source_tag (task, valent_share_upload_add_files);
-  g_task_set_task_data (task,
-                        g_steal_pointer (&items),
-                        (GDestroyNotify)g_ptr_array_unref);
-  g_task_run_in_thread (task, valent_share_upload_add_files_task);
+  g_file_query_info_async (file,
+                           G_FILE_ATTRIBUTE_STANDARD_NAME","
+                           G_FILE_ATTRIBUTE_STANDARD_SIZE,
+                           G_FILE_QUERY_INFO_NONE,
+                           G_PRIORITY_DEFAULT,
+                           destroy,
+                           (GAsyncReadyCallback)g_file_query_info_cb,
+                           g_object_ref (task));
 }
 
