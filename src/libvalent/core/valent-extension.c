@@ -613,8 +613,8 @@ valent_extension_plugin_state_changed (ValentExtension   *extension,
   if (priv->plugin_state != state || priv->plugin_error != NULL)
     {
       priv->plugin_state = state;
-      valent_object_notify_by_pspec (VALENT_OBJECT (extension),
-                                     properties [PROP_PLUGIN_STATE]);
+      g_object_notify_by_pspec (G_OBJECT (extension),
+                                properties[PROP_PLUGIN_STATE]);
     }
 }
 
