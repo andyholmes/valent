@@ -11,11 +11,9 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (ValentShareUpload, valent_share_upload, VALENT, SHARE_UPLOAD, ValentTransfer)
 
-ValentTransfer * valent_share_upload_new       (ValentDevice      *device);
-void             valent_share_upload_add_file  (ValentShareUpload *upload,
-                                                GFile             *file);
-void             valent_share_upload_add_files (ValentShareUpload *upload,
-                                                GListModel        *files);
+ValentTransfer * valent_share_upload_new      (ValentDevice      *device);
+void             valent_share_upload_add_file (ValentShareUpload *upload,
+                                               GFile             *file);
 
 G_END_DECLS
 
