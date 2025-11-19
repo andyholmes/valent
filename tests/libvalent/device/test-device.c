@@ -66,7 +66,7 @@ device_fixture_set_up (DeviceFixture *fixture,
                             peer_identity,
                             &fixture->channel,
                             &fixture->endpoint);
-  fixture->device = valent_device_new_full (peer_identity, NULL);
+  fixture->device = valent_device_new_full (NULL, peer_identity);
 }
 
 static void
@@ -342,7 +342,7 @@ test_device_verification_key (DeviceFixture *fixture,
   g_autofree char *endpoint_verification = NULL;
 
   endpoint_identity = valent_channel_get_peer_identity (fixture->endpoint);
-  endpoint_device = valent_device_new_full (endpoint_identity, NULL);
+  endpoint_device = valent_device_new_full (NULL, endpoint_identity);
 
   /* Check verification key */
   channel_verification = valent_device_get_verification_key (fixture->device);

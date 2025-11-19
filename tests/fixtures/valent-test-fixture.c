@@ -109,7 +109,7 @@ valent_test_fixture_init (ValentTestFixture *fixture,
       break;
     }
 
-  fixture->device = valent_device_new_full (peer_identity, NULL);
+  fixture->device = valent_device_new_full (NULL, peer_identity);
 }
 
 /**

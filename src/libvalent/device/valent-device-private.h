@@ -8,7 +8,7 @@
 G_BEGIN_DECLS
 
 _VALENT_EXTERN
-ValentDevice * valent_device_new_full      (JsonNode      *identity,
-                                            ValentContext *context);
+ValentDevice * valent_device_new_full (ValentObject *parent,
+                                       JsonNode     *identity);
 
 G_END_DECLS
