@@ -172,6 +172,7 @@ static void
 test_device_new (void)
 {
   ValentDevice *device = NULL;
+  g_autoptr (ValentContext) context = NULL;
   g_autofree char *device_id = NULL;
   g_autofree char *icon_name = NULL;
   g_autofree char *id = NULL;
@@ -181,17 +182,22 @@ test_device_new (void)
   GMenuModel *menu;
 
   device_id = valent_device_generate_id ();
-  device = valent_device_new (device_id);
+  device = g_object_new (VALENT_TYPE_DEVICE,
+                         "id", device_id,
+                         NULL);
   g_assert_true (VALENT_IS_DEVICE (device));
 
   g_object_get (device,
-                "id",        &id,
+                "context",   &context,
                 "icon-name", &icon_name,
+                "id",        &id,
                 "name",      &name,
                 "state",     &state,
                 NULL);
 
-  /* id should be set, but everything else should be %FALSE or %NULL */
+  /* Everything but `context` and `id` should be %FALSE or %NULL
+   */
+  g_assert_true (VALENT_IS_CONTEXT (context));
   g_assert_cmpstr (id, ==, device_id);
   g_assert_null (icon_name);
   g_assert_null (name);
