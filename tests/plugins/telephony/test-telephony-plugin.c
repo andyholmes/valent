@@ -5,8 +5,6 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-mock-media-player.h"
-
 typedef struct
 {
   ValentMixerAdapter *mixer_adapter;
@@ -65,15 +63,17 @@ telephony_plugin_fixture_set_up (ValentTestFixture *fixture,
                                    "level",       100,
                                    NULL);
   info->media_adapter = valent_test_await_adapter (valent_media_get_default ());
-  info->player1 = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
-  info->player2 = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+  g_action_group_activate_action (G_ACTION_GROUP (info->media_adapter),
+                                  "add-player", NULL);
+  info->player1 = g_list_model_get_item (G_LIST_MODEL (info->media_adapter), 0);
+  g_action_group_activate_action (G_ACTION_GROUP (info->media_adapter),
+                                  "add-player", NULL);
+  info->player2 = g_list_model_get_item (G_LIST_MODEL (info->media_adapter), 1);
   valent_test_fixture_set_data (fixture, info, mixer_info_free);
 
   valent_mixer_adapter_stream_added (info->mixer_adapter, info->speakers);
   valent_mixer_adapter_stream_added (info->mixer_adapter, info->microphone);
   valent_mixer_adapter_stream_added (info->mixer_adapter, info->headphones);
-  valent_media_adapter_player_added (info->media_adapter, info->player1);
-  valent_media_adapter_player_added (info->media_adapter, info->player2);
 }
 
 static void

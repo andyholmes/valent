@@ -78,11 +78,11 @@ test_mpris_adapter_player (MPRISAdapterFixture *fixture,
   ValentMediaActions flags;
   ValentMediaRepeat repeat;
   ValentMediaState state;
-  double volume;
-  char *name;
   g_autoptr (GVariant) metadata = NULL;
+  g_autofree char *name = NULL;
   double position;
   gboolean shuffle;
+  double volume;
 
   g_signal_connect (fixture->adapter,
                     "items-changed",
@@ -270,7 +270,6 @@ test_mpris_adapter_export (MPRISAdapterFixture *fixture,
   g_clear_pointer (&name, g_free);
   g_clear_pointer (&metadata, g_variant_unref);
 
-  /* Setters */
   VALENT_TEST_CHECK ("Player `set_position()` method works correctly");
   g_object_set (fixture->export, "position", 5.0, NULL);
   valent_test_await_signal (fixture->player, "notify::position");
@@ -291,7 +290,6 @@ test_mpris_adapter_export (MPRISAdapterFixture *fixture,
   valent_test_await_signal (fixture->player, "notify::volume");
   g_assert_cmpfloat_with_epsilon (valent_media_player_get_volume (fixture->player), 0.5, 0.01);
 
-  /* Methods */
   VALENT_TEST_CHECK ("Player `play()` method works correctly");
   valent_media_player_play (fixture->export);
   valent_test_await_signal (fixture->player, "notify::state");

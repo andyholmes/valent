@@ -217,7 +217,6 @@ valent_mock_media_player_pause (ValentMediaPlayer *player)
 
   self->state = VALENT_MEDIA_STATE_PAUSED;
   valent_mock_media_player_update_state (self);
-  g_object_notify (G_OBJECT (self), "state");
 }
 
 static void
@@ -227,7 +226,6 @@ valent_mock_media_player_play (ValentMediaPlayer *player)
 
   self->state = VALENT_MEDIA_STATE_PLAYING;
   valent_mock_media_player_update_state (self);
-  g_object_notify (G_OBJECT (self), "state");
 }
 
 static void
@@ -256,7 +254,6 @@ valent_mock_media_player_stop (ValentMediaPlayer *player)
 
   self->state = VALENT_MEDIA_STATE_STOPPED;
   valent_mock_media_player_update_state (self);
-  g_object_notify (G_OBJECT (self), "state");
 }
 
 /*
@@ -334,23 +331,5 @@ valent_mock_media_player_update_art (ValentMockMediaPlayer *self,
   g_variant_dict_insert (&dict, "mpris:artUrl", "s", uri);
   self->metadata = g_variant_ref_sink (g_variant_dict_end (&dict));
   g_object_notify (G_OBJECT (self), "metadata");
-}
-
-/**
- * valent_mock_media_player_update_flags:
- * @self: a `ValentMockMediaPlayer`
- * @flags: a `ValentMediaActions`
- *
- * Update the track metadata with album art at @uri.
- *
- * This is a convenience for unit tests, where the player must being with
- * particular flags set.
- */
-void
-valent_mock_media_player_update_flags (ValentMockMediaPlayer *self,
-                                       ValentMediaActions     flags)
-{
-  self->flags = flags;
-  g_object_notify (G_OBJECT (self), "flags");
 }
 
