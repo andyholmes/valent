@@ -20,10 +20,6 @@ struct _ValentMousepadDevice
   ValentInputAdapter  parent_instance;
 
   ValentDevice       *device;
-#if 0
-  // TODO: use libportal
-  GtkSettings        *settings;
-#endif
 
   /* keyboard */
   GArray             *keyboard_keys;
@@ -256,22 +252,6 @@ valent_mousepad_device_pointer_longpress (gpointer data)
   return valent_mousepad_device_pointer_reset (self);
 }
 
-#if 0
-// TODO: use libportal
-static void
-on_pointer_settings_changed (GtkSettings          *settings,
-                             GParamSpec           *pspec,
-                             ValentMousepadDevice *self)
-{
-  g_assert (VALENT_IS_MOUSEPAD_DEVICE (self));
-
-  g_object_get (settings,
-                "gtk-double-click-time", &self->double_click_time,
-                "gtk-long-press-time",   &self->long_press_time,
-                NULL);
-}
-#endif
-
 /*
  * ValentInputAdapter
  */
@@ -456,15 +436,6 @@ valent_mousepad_device_destroy (ValentObject *object)
 {
   ValentMousepadDevice *self = VALENT_MOUSEPAD_DEVICE (object);
 
-#if 0
-// TODO: use libportal
-  if (self->settings != NULL)
-    {
-      g_signal_handlers_disconnect_by_data (self->settings, self);
-      self->settings = NULL;
-    }
-#endif
-
   valent_mousepad_device_keyboard_reset (self);
   valent_mousepad_device_pointer_reset (self);
 
@@ -487,20 +458,6 @@ valent_mousepad_device_constructed (GObject *object)
                            G_CALLBACK (on_device_state_changed),
                            self,
                            G_CONNECT_DEFAULT);
-
-#if 0
-// TODO: use libportal
-  if (gtk_is_initialized ())
-    {
-      self->settings = gtk_settings_get_default ();
-      g_signal_connect_object (self->settings,
-                               "notify::gtk-double-click-time",
-                               G_CALLBACK (on_pointer_settings_changed),
-                               self,
-                               G_CONNECT_DEFAULT);
-      on_pointer_settings_changed (self->settings, NULL, self);
-    }
-#endif
 }
 
 static void
