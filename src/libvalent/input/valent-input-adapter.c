@@ -32,12 +32,7 @@
  * Since: 1.0
  */
 
-typedef struct
-{
-  uint8_t  active : 1;
-} ValentInputAdapterPrivate;
-
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (ValentInputAdapter, valent_input_adapter, VALENT_TYPE_EXTENSION)
+G_DEFINE_ABSTRACT_TYPE (ValentInputAdapter, valent_input_adapter, VALENT_TYPE_EXTENSION)
 
 /* LCOV_EXCL_START */
 static void

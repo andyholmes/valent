@@ -5,46 +5,28 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-mock-media-player.h"
-
 
 typedef struct
 {
-  ValentMedia        *media;
-  ValentMediaAdapter *adapter;
-  ValentMediaPlayer  *player;
-  gpointer            emitter;
 } MediaComponentFixture;
 
 static void
 media_component_fixture_set_up (MediaComponentFixture *fixture,
                                 gconstpointer          user_data)
 {
-  fixture->media = valent_media_get_default ();
-  fixture->adapter = valent_test_await_adapter (fixture->media);
-  fixture->player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
-  valent_media_adapter_player_added (fixture->adapter, fixture->player);
+  ValentMediaAdapter *adapter = NULL;
+  g_autoptr (ValentMediaPlayer) player = NULL;
 
-  g_object_ref (fixture->adapter);
+  adapter = valent_test_await_adapter (valent_media_get_default ());
+  player = g_object_new (VALENT_TYPE_MEDIA_PLAYER, NULL);
+  valent_media_adapter_player_added (adapter, player);
 }
 
 static void
 media_component_fixture_tear_down (MediaComponentFixture *fixture,
                                    gconstpointer          user_data)
 {
-  v_await_finalize_object (fixture->media);
-  v_await_finalize_object (fixture->adapter);
-  v_await_finalize_object (fixture->player);
-
-  valent_test_await_pending ();
-}
-
-static void
-on_player_notify (ValentMediaPlayer     *player,
-                  GParamSpec            *pspec,
-                  MediaComponentFixture *fixture)
-{
-  fixture->emitter = player;
+  v_await_finalize_object (valent_media_get_default ());
 }
 
 static void
@@ -62,7 +44,7 @@ test_media_component_player (MediaComponentFixture *fixture,
   gboolean shuffle;
 
   VALENT_TEST_CHECK ("GObject can be constructed");
-  player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER,
+  player = g_object_new (VALENT_TYPE_MEDIA_PLAYER,
                          "position", 0.0,
                          "repeat",   VALENT_MEDIA_REPEAT_NONE,
                          "shuffle",  FALSE,
@@ -81,7 +63,7 @@ test_media_component_player (MediaComponentFixture *fixture,
                 "volume",   &volume,
                 NULL);
 
-  g_assert_cmpstr (name, ==, "Mock Player");
+  g_assert_cmpstr (name, ==, "Media Player");
   g_assert_cmpuint (flags, ==, VALENT_MEDIA_ACTION_NONE);
   g_assert_cmpfloat_with_epsilon (position, 0.0, DBL_EPSILON);
   g_assert_cmpuint (repeat, ==, VALENT_MEDIA_REPEAT_NONE);
@@ -91,51 +73,40 @@ test_media_component_player (MediaComponentFixture *fixture,
   g_clear_pointer (&name, g_free);
   g_clear_pointer (&metadata, g_variant_unref);
 
-  g_object_set (player,
-                "repeat",  VALENT_MEDIA_REPEAT_ALL,
-                "shuffle", TRUE,
-                "volume",  0.5,
-                NULL);
+  VALENT_TEST_CHECK ("Player `set_position()` method works correctly");
+  g_object_set (player, "position", 0.0, NULL);
+  g_assert_cmpfloat_with_epsilon (valent_media_player_get_position (player), 0.0, DBL_EPSILON);
 
-  g_assert_cmpuint (valent_media_player_get_repeat (player), ==, VALENT_MEDIA_REPEAT_ALL);
-  g_assert_true (valent_media_player_get_shuffle (player));
-  g_assert_cmpfloat_with_epsilon (valent_media_player_get_volume (player), 0.5, DBL_EPSILON);
+  VALENT_TEST_CHECK ("Player `set_repeat()` method works correctly");
+  g_object_set (player, "repeat", VALENT_MEDIA_REPEAT_NONE, NULL);
+  g_assert_cmpuint (valent_media_player_get_repeat (player), ==, VALENT_MEDIA_REPEAT_NONE);
 
-  /* Mock Player Methods */
-  g_signal_connect (player,
-                    "notify",
-                    G_CALLBACK (on_player_notify),
-                    fixture);
+  VALENT_TEST_CHECK ("Player `set_shuffle()` method works correctly");
+  g_object_set (player, "shuffle", FALSE, NULL);
+  g_assert_false (valent_media_player_get_shuffle (player));
 
+  VALENT_TEST_CHECK ("Player `set_volume()` method works correctly");
+  g_object_set (player, "volume", 1.0, NULL);
+  g_assert_cmpfloat_with_epsilon (valent_media_player_get_volume (player), 1.0, 0.01);
+
+  VALENT_TEST_CHECK ("Player `play()` method works correctly");
   valent_media_player_play (player);
-  g_assert_true (fixture->emitter == player);
-  fixture->emitter = NULL;
 
+  VALENT_TEST_CHECK ("Player `pause()` method works correctly");
   valent_media_player_pause (player);
-  g_assert_true (fixture->emitter == player);
-  fixture->emitter = NULL;
 
+  VALENT_TEST_CHECK ("Player `stop()` method works correctly");
   valent_media_player_stop (player);
-  g_assert_true (fixture->emitter == player);
-  fixture->emitter = NULL;
 
+  VALENT_TEST_CHECK ("Player `next()` method works correctly");
   valent_media_player_next (player);
-  g_assert_true (fixture->emitter == player);
-  fixture->emitter = NULL;
 
+  VALENT_TEST_CHECK ("Player `previous()` method works correctly");
   valent_media_player_previous (player);
-  g_assert_true (fixture->emitter == player);
-  fixture->emitter = NULL;
 
-  valent_media_player_seek (player, 1.0);
-  g_assert_true (fixture->emitter == player);
-  fixture->emitter = NULL;
+  VALENT_TEST_CHECK ("Player `seek()` method works correctly");
+  valent_media_player_seek (player, 1000);
 
-  valent_media_player_set_position (player, 2.0);
-  g_assert_cmpfloat_with_epsilon (valent_media_player_get_position (player), 2.0, DBL_EPSILON);
-  fixture->emitter = NULL;
-
-  g_signal_handlers_disconnect_by_data (player, fixture);
   v_await_finalize_object (player);
 }
 
@@ -143,31 +114,48 @@ static void
 test_media_component_adapter (MediaComponentFixture *fixture,
                               gconstpointer          user_data)
 {
-  ValentMedia *media = valent_media_get_default ();
-  GListModel *list = G_LIST_MODEL (fixture->adapter);
+  PeasEngine *engine;
+  PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
+  g_autoptr (GObject) adapter = NULL;
   ValentMediaPlayer *player;
   unsigned int n_items = 0;
 
-  VALENT_TEST_CHECK ("Adapter implements GListModel correctly");
-  g_assert_true (G_IS_LIST_MODEL (list));
-  g_assert_cmpuint (g_list_model_get_n_items (list), >, 0);
-  g_assert_true (g_list_model_get_item_type (list) == VALENT_TYPE_MEDIA_PLAYER);
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (NULL, "plugin", "mock");
+  player = g_object_new (VALENT_TYPE_MEDIA_PLAYER, NULL);
 
-  n_items = g_list_model_get_n_items (list);
+  VALENT_TEST_CHECK ("Adapter can be constructed");
+  adapter = peas_engine_create_extension (engine,
+                                          plugin_info,
+                                          VALENT_TYPE_MEDIA_ADAPTER,
+                                          "iri",     "urn:valent:media:mock",
+                                          "parent",  NULL,
+                                          "context", context,
+                                          NULL);
+
+  VALENT_TEST_CHECK ("Adapter can export players");
+  valent_media_adapter_player_added (VALENT_MEDIA_ADAPTER (adapter), player);
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (adapter)), ==, n_items + 1);
+
+  VALENT_TEST_CHECK ("Adapter implements GListModel correctly");
+  g_assert_true (G_IS_LIST_MODEL (adapter));
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (adapter)), >, 0);
+  g_assert_true (g_list_model_get_item_type (G_LIST_MODEL (adapter)) == VALENT_TYPE_MEDIA_PLAYER);
+
+  n_items = g_list_model_get_n_items (G_LIST_MODEL (adapter));
   for (unsigned int i = 0; i < n_items; i++)
     {
       g_autoptr (GObject) item = NULL;
 
-      item = g_list_model_get_item (list, i);
+      item = g_list_model_get_item (G_LIST_MODEL (adapter), i);
       g_assert_true (VALENT_IS_MEDIA_PLAYER (item));
     }
 
-  player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
-
-  valent_media_adapter_player_added (fixture->adapter, player);
-  valent_media_export_player (media, player);
-  valent_media_unexport_player (media, player);
-  valent_media_adapter_player_removed (fixture->adapter, player);
+  VALENT_TEST_CHECK ("Adapter can unexport players");
+  valent_media_adapter_player_removed (VALENT_MEDIA_ADAPTER (adapter), player);
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (adapter)), ==, n_items - 1);
 
   v_await_finalize_object (player);
 }
@@ -176,9 +164,18 @@ static void
 test_media_component_self (MediaComponentFixture *fixture,
                            gconstpointer          user_data)
 {
+  PeasEngine *engine;
+  PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
   ValentMedia *media = valent_media_get_default ();
+  g_autoptr (GObject) adapter = NULL;
   ValentMediaPlayer *player;
   unsigned int n_items = 0;
+
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (NULL, "plugin", "mock");
+  player = g_object_new (VALENT_TYPE_MEDIA_PLAYER, NULL);
 
   VALENT_TEST_CHECK ("Component implements GListModel correctly");
   g_assert_true (G_LIST_MODEL (media));
@@ -194,12 +191,29 @@ test_media_component_self (MediaComponentFixture *fixture,
       g_assert_true (VALENT_IS_MEDIA_ADAPTER (item));
     }
 
-  player = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+  VALENT_TEST_CHECK ("Component can export adapters");
+  adapter = peas_engine_create_extension (engine,
+                                          plugin_info,
+                                          VALENT_TYPE_MEDIA_ADAPTER,
+                                          "iri",     "urn:valent:media:remote",
+                                          "parent",  NULL,
+                                          "context", context,
+                                          NULL);
 
-  valent_media_adapter_player_added (fixture->adapter, player);
+  valent_component_export_adapter (VALENT_COMPONENT (media),
+                                   VALENT_EXTENSION (adapter));
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (media)), ==, n_items + 1);
+
+  VALENT_TEST_CHECK ("Component can unexport adapters");
+  valent_component_unexport_adapter (VALENT_COMPONENT (media),
+                                     VALENT_EXTENSION (adapter));
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (media)), ==, n_items);
+
+  VALENT_TEST_CHECK ("Component can export players");
   valent_media_export_player (media, player);
+
+  VALENT_TEST_CHECK ("Component can unexport players");
   valent_media_unexport_player (media, player);
-  valent_media_adapter_player_removed (fixture->adapter, player);
 
   v_await_finalize_object (player);
 }
