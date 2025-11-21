@@ -7,19 +7,25 @@
 
 #include "test-gnome-common.h"
 
-#include "valent-mock-input-adapter.h"
-
 #define VALENT_TYPE_TEST_SUBJECT (g_type_from_name ("ValentInputRemote"))
 
 
 static void
 test_input_remote (void)
 {
+  PeasEngine *engine;
+  PeasPluginInfo *plugin_info;
+  g_autoptr (ValentContext) context = NULL;
   GtkWindow *remote = NULL;
   GListStore *list = NULL;
-  g_autoptr (ValentInputAdapter) adapter = NULL;
   g_autoptr (GListStore) adapters = NULL;
+  g_autoptr (GObject) adapter = NULL;
 
+  engine = valent_get_plugin_engine ();
+  plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  context = valent_context_new (NULL, "plugin", "mock");
+
+  VALENT_TEST_CHECK ("Window can be constructed");
   list = g_list_store_new (VALENT_TYPE_INPUT_ADAPTER);
   remote = g_object_new (VALENT_TYPE_TEST_SUBJECT,
                          "adapters", list,
@@ -32,18 +38,24 @@ test_input_remote (void)
   g_assert_true (list == adapters);
   g_clear_object (&adapters);
 
-  /* Show the window */
+  VALENT_TEST_CHECK ("Window can be presented");
   gtk_window_present (remote);
   valent_test_await_pending ();
 
-  /* Add an adapter */
-  adapter = g_object_new (VALENT_TYPE_MOCK_INPUT_ADAPTER, NULL);
+  VALENT_TEST_CHECK ("Window can add adapters");
+  adapter = peas_engine_create_extension (engine,
+                                          plugin_info,
+                                          VALENT_TYPE_INPUT_ADAPTER,
+                                          "iri",     "urn:valent:input:remote",
+                                          "parent",  NULL,
+                                          "context", context,
+                                          NULL);
   g_list_store_append (list, adapter);
 
-  /* Remove the adapter */
+  VALENT_TEST_CHECK ("Window can remove adapters");
   g_list_store_remove (list, 0);
 
-  /* Destroy the window */
+  VALENT_TEST_CHECK ("Window can be destroyed");
   gtk_window_destroy (remote);
   valent_test_await_pending ();
 }
