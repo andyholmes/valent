@@ -42,8 +42,6 @@ VALENT_AVAILABLE_IN_1_0
 G_DECLARE_FINAL_TYPE (ValentDevice, valent_device, VALENT, DEVICE, ValentObject)
 
 VALENT_AVAILABLE_IN_1_0
-ValentDevice      * valent_device_new                  (const char           *id);
-VALENT_AVAILABLE_IN_1_0
 void                valent_device_add_channel          (ValentDevice         *device,
                                                         ValentChannel        *channel);
 VALENT_AVAILABLE_IN_1_0

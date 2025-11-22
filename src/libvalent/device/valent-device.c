@@ -1126,7 +1126,16 @@ valent_device_constructed (GObject *object)
   g_assert (self->id != NULL);
 
   if (self->context == NULL)
-    self->context = valent_context_new (NULL, "device", self->id);
+    {
+      g_autoptr (ValentContext) context = NULL;
+      ValentObject *parent = NULL;
+
+      parent = valent_object_get_parent (VALENT_OBJECT (self));
+      if (parent != NULL)
+        g_object_get (parent, "context", &context, NULL);
+
+      self->context = valent_context_new (context, "device", self->id);
+    }
 
   certificate_file = valent_context_get_config_file (self->context,
                                                      "certificate.pem");
@@ -1377,42 +1386,23 @@ valent_device_class_init (ValentDeviceClass *klass)
   g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
-/**
- * valent_device_new:
- * @id: (not nullable): a device ID
- *
- * Create a new device for @id.
- *
- * Returns: (transfer full) (nullable): a new `ValentDevice`
- *
- * Since: 1.0
- */
-ValentDevice *
-valent_device_new (const char *id)
-{
-  g_return_val_if_fail (valent_device_validate_id (id), NULL);
-
-  return g_object_new (VALENT_TYPE_DEVICE,
-                       "id", id,
-                       NULL);
-}
-
 /*< private >
  * valent_device_new_full:
+ * @parent: (nullable): a `ValentObject`
  * @identity: a KDE Connect identity packet
- * @context: (nullable): a `ValentContext`
  *
  * Create a new device for @identity.
  *
  * Returns: (transfer full) (nullable): a new `ValentDevice`
  */
 ValentDevice *
-valent_device_new_full (JsonNode      *identity,
-                        ValentContext *context)
+valent_device_new_full (ValentObject *parent,
+                        JsonNode     *identity)
 {
   ValentDevice *ret;
   const char *id;
 
+  g_return_val_if_fail (parent == NULL || VALENT_IS_OBJECT (parent), NULL);
   g_return_val_if_fail (VALENT_IS_PACKET (identity), NULL);
 
   if (!valent_packet_get_string (identity, "deviceId", &id))
@@ -1428,8 +1418,8 @@ valent_device_new_full (JsonNode      *identity,
     }
 
   ret = g_object_new (VALENT_TYPE_DEVICE,
-                      "id",      id,
-                      "context", context,
+                      "id",     id,
+                      "parent", parent,
                       NULL);
   valent_device_handle_identity (ret, identity);
 

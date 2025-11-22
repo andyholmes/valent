@@ -19,18 +19,100 @@ struct _ValentMousepadPlugin
 {
   ValentDevicePlugin    parent_instance;
 
-  ValentInput          *input;
-  ValentMousepadDevice *adapter;
-
+  ValentInputAdapter   *local_adapter;
   unsigned int          local_state : 1;
+  unsigned int          local_watch : 1;
+
+  ValentMousepadDevice *remote_adapter;
   unsigned int          remote_state : 1;
 };
 
-static void   valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
-                                                JsonNode             *packet);
+static void   valent_mousepad_plugin_send_echo          (ValentMousepadPlugin *self,
+                                                         JsonNode             *packet);
+static void   valent_mousepad_plugin_send_keyboardstate (ValentMousepadPlugin *self);
 
 G_DEFINE_FINAL_TYPE (ValentMousepadPlugin, valent_mousepad_plugin, VALENT_TYPE_DEVICE_PLUGIN)
 
+static void
+on_primary_adapter_changed (ValentComponent      *component,
+                            GParamSpec           *pspec,
+                            ValentMousepadPlugin *self)
+{
+  g_assert (VALENT_IS_INPUT (component));
+  g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
+
+  g_clear_object (&self->local_adapter);
+  g_object_get (component, "primary-adapter", &self->local_adapter, NULL);
+
+  if (self->local_state != (self->local_adapter != NULL))
+    {
+      self->local_state = (self->local_adapter != NULL);
+      valent_mousepad_plugin_send_keyboardstate (self);
+    }
+}
+
+static void
+valent_mousepad_plugin_watch_local_state (ValentMousepadPlugin *self,
+                                          gboolean              watch)
+{
+  ValentInput *input = valent_input_get_default ();
+
+  g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
+
+  if (self->local_watch == watch)
+    return;
+
+  if (watch)
+    {
+      g_signal_connect_object (input,
+                               "notify::primary-adapter",
+                               G_CALLBACK (on_primary_adapter_changed),
+                               self,
+                               G_CONNECT_DEFAULT);
+      on_primary_adapter_changed (VALENT_COMPONENT (input), NULL, self);
+      self->local_watch = TRUE;
+    }
+  else
+    {
+      g_signal_handlers_disconnect_by_data (input, self);
+      self->local_watch = FALSE;
+    }
+}
+
+static void
+valent_mousepad_plugin_update_remote_state (ValentMousepadPlugin *self,
+                                            gboolean              state)
+{
+  ValentInput *input = valent_input_get_default ();
+  GAction *action;
+
+  g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
+
+  action = g_action_map_lookup_action (G_ACTION_MAP (self), "event");
+  if (action != NULL)
+    g_simple_action_set_enabled (G_SIMPLE_ACTION (action), state);
+
+  if (self->remote_state == state)
+    return;
+
+  self->remote_state = state;
+  if (self->remote_state && self->remote_adapter == NULL)
+    {
+      ValentDevice *device = NULL;
+
+      device = valent_object_get_parent (VALENT_OBJECT (self));
+      self->remote_adapter = valent_mousepad_device_new (device);
+      valent_component_export_adapter (VALENT_COMPONENT (input),
+                                       VALENT_EXTENSION (self->remote_adapter));
+    }
+  else if (!self->remote_state && self->remote_adapter != NULL)
+    {
+      valent_component_unexport_adapter (VALENT_COMPONENT (input),
+                                         VALENT_EXTENSION (self->remote_adapter));
+      valent_object_destroy (VALENT_OBJECT (self->remote_adapter));
+      g_clear_object (&self->remote_adapter);
+    }
+}
 
 static KeyModifierType
 event_to_mask (JsonObject *body)
@@ -53,21 +135,21 @@ event_to_mask (JsonObject *body)
 }
 
 static inline void
-keyboard_mask (ValentInput  *input,
-               unsigned int  mask,
-               gboolean      lock)
+keyboard_mask (ValentInputAdapter *input,
+               unsigned int        mask,
+               gboolean            lock)
 {
   if (mask & KEYMOD_ALT_MASK)
-    valent_input_keyboard_keysym (input, KEYSYM_Alt_L, lock);
+    valent_input_adapter_keyboard_keysym (input, KEYSYM_Alt_L, lock);
 
   if (mask & KEYMOD_CONTROL_MASK)
-    valent_input_keyboard_keysym (input, KEYSYM_Control_L, lock);
+    valent_input_adapter_keyboard_keysym (input, KEYSYM_Control_L, lock);
 
   if (mask & KEYMOD_SHIFT_MASK)
-    valent_input_keyboard_keysym (input, KEYSYM_Shift_L, lock);
+    valent_input_adapter_keyboard_keysym (input, KEYSYM_Shift_L, lock);
 
   if (mask & KEYMOD_SUPER_MASK)
-    valent_input_keyboard_keysym (input, KEYSYM_Super_L, lock);
+    valent_input_adapter_keyboard_keysym (input, KEYSYM_Super_L, lock);
 }
 
 /*
@@ -84,6 +166,12 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
   g_assert (VALENT_IS_PACKET (packet));
 
+  if (self->local_adapter == NULL)
+    {
+      g_warning ("%s(): No input adapter available", G_STRFUNC);
+      return;
+    }
+
   body = valent_packet_get_body (packet);
 
   /* Pointer movement */
@@ -95,9 +183,9 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
       dy = json_object_get_double_member_with_default (body, "dy", 0.0);
 
       if (valent_packet_check_field (packet, "scroll"))
-        valent_input_pointer_axis (self->input, dx, dy);
+        valent_input_adapter_pointer_axis (self->local_adapter, dx, dy);
       else
-        valent_input_pointer_motion (self->input, dx, dy);
+        valent_input_adapter_pointer_motion (self->local_adapter, dx, dy);
     }
 
   /* Keyboard Event */
@@ -109,7 +197,7 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
 
       /* Lock modifiers */
       if ((mask = event_to_mask (body)) != 0)
-        keyboard_mask (self->input, mask, TRUE);
+        keyboard_mask (self->local_adapter, mask, TRUE);
 
       /* Input each keysym */
       next = key;
@@ -119,15 +207,15 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
           uint32_t keysym;
 
           keysym = valent_input_unicode_to_keysym (codepoint);
-          valent_input_keyboard_keysym (self->input, keysym, TRUE);
-          valent_input_keyboard_keysym (self->input, keysym, FALSE);
+          valent_input_adapter_keyboard_keysym (self->local_adapter, keysym, TRUE);
+          valent_input_adapter_keyboard_keysym (self->local_adapter, keysym, FALSE);
 
           next = g_utf8_next_char (next);
         }
 
       /* Unlock modifiers */
       if (mask != 0)
-        keyboard_mask (self->input, mask, FALSE);
+        keyboard_mask (self->local_adapter, mask, FALSE);
 
       /* Send ack, if requested */
       if (valent_packet_check_field (packet, "sendAck"))
@@ -147,15 +235,15 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
 
       /* Lock modifiers */
       if ((mask = event_to_mask (body)) != 0)
-        keyboard_mask (self->input, mask, TRUE);
+        keyboard_mask (self->local_adapter, mask, TRUE);
 
       /* Input each keysym */
-      valent_input_keyboard_keysym (self->input, keysym, TRUE);
-      valent_input_keyboard_keysym (self->input, keysym, FALSE);
+      valent_input_adapter_keyboard_keysym (self->local_adapter, keysym, TRUE);
+      valent_input_adapter_keyboard_keysym (self->local_adapter, keysym, FALSE);
 
       /* Unlock modifiers */
       if (mask != 0)
-        keyboard_mask (self->input, mask, FALSE);
+        keyboard_mask (self->local_adapter, mask, FALSE);
 
       /* Send ack, if requested */
       if (valent_packet_check_field (packet, "sendAck"))
@@ -164,39 +252,39 @@ valent_mousepad_plugin_handle_mousepad_request (ValentMousepadPlugin *self,
 
   else if (valent_packet_check_field (packet, "singleclick"))
     {
-      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
-      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_PRIMARY, TRUE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_PRIMARY, FALSE);
     }
 
   else if (valent_packet_check_field (packet, "doubleclick"))
     {
-      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
-      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
-      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
-      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_PRIMARY, TRUE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_PRIMARY, FALSE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_PRIMARY, TRUE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_PRIMARY, FALSE);
     }
 
   else if (valent_packet_check_field (packet, "middleclick"))
     {
-      valent_input_pointer_button (self->input, VALENT_POINTER_MIDDLE, TRUE);
-      valent_input_pointer_button (self->input, VALENT_POINTER_MIDDLE, FALSE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_MIDDLE, TRUE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_MIDDLE, FALSE);
     }
 
   else if (valent_packet_check_field (packet, "rightclick"))
     {
-      valent_input_pointer_button (self->input, VALENT_POINTER_SECONDARY, TRUE);
-      valent_input_pointer_button (self->input, VALENT_POINTER_SECONDARY, FALSE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_SECONDARY, TRUE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_SECONDARY, FALSE);
     }
 
   else if (valent_packet_check_field (packet, "singlehold"))
     {
-      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, TRUE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_PRIMARY, TRUE);
     }
 
   /* Not used by kdeconnect-android, hold is released with a regular click */
   else if (valent_packet_check_field (packet, "singlerelease"))
     {
-      valent_input_pointer_button (self->input, VALENT_POINTER_PRIMARY, FALSE);
+      valent_input_adapter_pointer_button (self->local_adapter, VALENT_POINTER_PRIMARY, FALSE);
     }
 
   else
@@ -234,27 +322,7 @@ valent_mousepad_plugin_handle_mousepad_keyboardstate (ValentMousepadPlugin *self
 
   if (self->remote_state != state)
     {
-      GAction *action;
-
-      self->remote_state = state;
-      action = g_action_map_lookup_action (G_ACTION_MAP (self), "event");
-      g_simple_action_set_enabled (G_SIMPLE_ACTION (action), self->remote_state);
-
-      if (self->remote_state && self->adapter == NULL)
-        {
-          ValentDevice *device = NULL;
-
-          device = valent_object_get_parent (VALENT_OBJECT (self));
-          self->adapter = valent_mousepad_device_new (device);
-          valent_component_export_adapter (VALENT_COMPONENT (self->input),
-                                           VALENT_EXTENSION (self->adapter));
-        }
-      else if (!self->remote_state && self->adapter != NULL)
-        {
-          valent_component_unexport_adapter (VALENT_COMPONENT (self->input),
-                                             VALENT_EXTENSION (self->adapter));
-          g_clear_object (&self->adapter);
-        }
+      valent_mousepad_plugin_update_remote_state (self, state);
     }
 }
 
@@ -390,16 +458,16 @@ valent_mousepad_plugin_send_echo (ValentMousepadPlugin *self,
 }
 
 static void
-valent_mousepad_plugin_mousepad_keyboardstate (ValentMousepadPlugin *self)
+valent_mousepad_plugin_send_keyboardstate (ValentMousepadPlugin *self)
 {
   g_autoptr (JsonBuilder) builder = NULL;
   g_autoptr (JsonNode) packet = NULL;
 
-  g_return_if_fail (VALENT_IS_MOUSEPAD_PLUGIN (self));
+  g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
   valent_packet_init (&builder, "kdeconnect.mousepad.keyboardstate");
   json_builder_set_member_name (builder, "state");
-  json_builder_add_boolean_value (builder, TRUE);
+  json_builder_add_boolean_value (builder, self->local_state);
   packet = valent_packet_end (&builder);
 
   valent_device_plugin_queue_packet (VALENT_DEVICE_PLUGIN (self), packet);
@@ -408,19 +476,6 @@ valent_mousepad_plugin_mousepad_keyboardstate (ValentMousepadPlugin *self)
 /*
  * GActions
  */
-static void
-valent_mousepad_plugin_toggle_actions (ValentMousepadPlugin *self,
-                                       gboolean              available)
-{
-  GAction *action;
-
-  g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
-
-  action = g_action_map_lookup_action (G_ACTION_MAP (self), "event");
-  g_simple_action_set_enabled (G_SIMPLE_ACTION (action),
-                               available && self->remote_state);
-}
-
 static void
 mousepad_event_action (GSimpleAction *action,
                        GVariant      *parameter,
@@ -476,19 +531,8 @@ valent_mousepad_plugin_update_state (ValentDevicePlugin *plugin,
   available = (state & VALENT_DEVICE_STATE_CONNECTED) != 0 &&
               (state & VALENT_DEVICE_STATE_PAIRED) != 0;
 
-  if (available)
-    valent_mousepad_plugin_mousepad_keyboardstate (self);
-  else
-    self->remote_state = FALSE;
-
-  if (!self->remote_state && self->adapter != NULL)
-    {
-      valent_component_unexport_adapter (VALENT_COMPONENT (self->input),
-                                         VALENT_EXTENSION (self->adapter));
-      g_clear_object (&self->adapter);
-    }
-
-  valent_mousepad_plugin_toggle_actions (self, available);
+  valent_mousepad_plugin_watch_local_state (self, available);
+  valent_mousepad_plugin_update_remote_state (self, available && self->remote_state);
 }
 
 static void
@@ -525,15 +569,9 @@ static void
 valent_mousepad_plugin_destroy (ValentObject *object)
 {
   ValentMousepadPlugin *self = VALENT_MOUSEPAD_PLUGIN (object);
-  ValentComponent *component = NULL;
 
-  if (self->adapter != NULL)
-    {
-      component = VALENT_COMPONENT (valent_input_get_default ());
-      valent_component_unexport_adapter (component, VALENT_EXTENSION (self->adapter));
-      valent_object_destroy (VALENT_OBJECT (self->adapter));
-      g_clear_object (&self->adapter);
-    }
+  valent_mousepad_plugin_watch_local_state (self, FALSE);
+  valent_mousepad_plugin_update_remote_state (self, FALSE);
 
   VALENT_OBJECT_CLASS (valent_mousepad_plugin_parent_class)->destroy (object);
 }
@@ -572,6 +610,5 @@ valent_mousepad_plugin_class_init (ValentMousepadPluginClass *klass)
 static void
 valent_mousepad_plugin_init (ValentMousepadPlugin *self)
 {
-  self->input = valent_input_get_default ();
 }
 

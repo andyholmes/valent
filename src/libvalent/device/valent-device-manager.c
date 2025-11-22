@@ -533,12 +533,9 @@ valent_device_manager_ensure_device (ValentDeviceManager *self,
                                          find_device_by_id,
                                          &position))
     {
-      g_autoptr (ValentContext) context = NULL;
       g_autoptr (ValentDevice) device = NULL;
 
-      context = valent_context_new (self->context, "device", device_id);
-      device = valent_device_new_full (identity, context);
-
+      device = valent_device_new_full (VALENT_OBJECT (self), identity);
       valent_device_manager_add_device (self, device);
       position = (self->devices->len - 1);
     }

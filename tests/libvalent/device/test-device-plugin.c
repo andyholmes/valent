@@ -30,7 +30,7 @@ device_fixture_set_up (DevicePluginFixture *fixture,
   peer_identity = json_object_get_member (json_node_get_object (fixture->packets),
                                           "peer-identity");
 
-  fixture->device = valent_device_new_full (peer_identity, NULL);
+  fixture->device = valent_device_new_full (NULL, peer_identity);
   fixture->extension = peas_engine_create_extension (engine,
                                                      plugin_info,
                                                      VALENT_TYPE_DEVICE_PLUGIN,

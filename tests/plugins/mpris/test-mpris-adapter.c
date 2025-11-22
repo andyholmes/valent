@@ -5,7 +5,6 @@
 #include <valent.h>
 #include <libvalent-test.h>
 
-#include "valent-mock-media-player.h"
 #include "valent-mpris-adapter.h"
 #include "valent-mpris-impl.h"
 #include "valent-mpris-player.h"
@@ -22,14 +21,13 @@ static void
 mpris_adapter_fixture_set_up (MPRISAdapterFixture *fixture,
                               gconstpointer        user_data)
 {
-  g_autoptr (GSettings) settings = NULL;
+  ValentMedia *media = valent_media_get_default ();
+  g_autoptr (GObject) mock = NULL;
 
-  /* Disable the mock plugin */
-  settings = valent_test_mock_settings ("media");
-  g_settings_set_boolean (settings, "enabled", FALSE);
-
-  fixture->adapter = valent_test_await_adapter (valent_media_get_default ());
-  fixture->export = g_object_new (VALENT_TYPE_MOCK_MEDIA_PLAYER, NULL);
+  fixture->adapter = g_list_model_get_item (G_LIST_MODEL (media), 0);
+  mock = g_list_model_get_item (G_LIST_MODEL (media), 1);
+  g_action_group_activate_action (G_ACTION_GROUP (mock), "add-player", NULL);
+  fixture->export = g_list_model_get_item (G_LIST_MODEL (mock), 0);
 
   /* Wait just a tick to avoid a strange race condition */
   valent_test_await_pending ();
@@ -270,7 +268,6 @@ test_mpris_adapter_export (MPRISAdapterFixture *fixture,
   g_clear_pointer (&name, g_free);
   g_clear_pointer (&metadata, g_variant_unref);
 
-  /* Setters */
   VALENT_TEST_CHECK ("Player `set_position()` method works correctly");
   g_object_set (fixture->export, "position", 5.0, NULL);
   valent_test_await_signal (fixture->player, "notify::position");
@@ -291,7 +288,6 @@ test_mpris_adapter_export (MPRISAdapterFixture *fixture,
   valent_test_await_signal (fixture->player, "notify::volume");
   g_assert_cmpfloat_with_epsilon (valent_media_player_get_volume (fixture->player), 0.5, 0.01);
 
-  /* Methods */
   VALENT_TEST_CHECK ("Player `play()` method works correctly");
   valent_media_player_play (fixture->export);
   valent_test_await_signal (fixture->player, "notify::state");
