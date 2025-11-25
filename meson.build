@@ -92,8 +92,8 @@ project_c_args = [
   '-Wno-unused-parameter',
 
   # These should be kept in sync with GTK and libadwaita
-  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_80',
-  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_80',
+  '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_84',
+  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_84',
 
   # These are optional, but have minimum requirements if present
   '-DGDK_VERSION_MIN_REQUIRED=GDK_VERSION_4_14',
@@ -152,7 +152,7 @@ add_project_link_arguments(cc.get_supported_link_arguments(project_link_args),
 #
 # Dependencies
 #
-glib_version = '>= 2.80.0'
+glib_version = '>= 2.84.0'
 gtk_version = '>= 4.15.2'
 glycin_version = '>= 2.0.1'
 gnutls_version = '>= 3.1.3'
