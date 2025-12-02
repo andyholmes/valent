@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
 "POT-Creation-Date: 2025-11-07 13:04-0800\n"
-"PO-Revision-Date: 2025-11-19 13:51+0000\n"
+"PO-Revision-Date: 2025-12-03 12:00+0000\n"
 "Last-Translator: Priit Jõerüüt <jrthwlate@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/valent/"
 "application/et/>\n"
@@ -582,7 +582,7 @@ msgstr ""
 #, c-format
 msgid "Open the app on your “%s” to request or accept pairing."
 msgstr ""
-"Paardumisega nõustumiseks või selle algatamiseks ava rakendus „%s“ seadmes."
+"Paardumisega nõustumiseks või selle algatamiseks ava rakendus seadmes „%s“."
 
 #. TRANSLATORS: When the battery level is 100%
 #.
@@ -636,7 +636,7 @@ msgstr "Soovi paardumist"
 #: src/plugins/gnome/valent-device-page.ui:259
 #: src/plugins/lock/lock.plugin.desktop.in:6
 msgid "Lock"
-msgstr "Lukusta"
+msgstr "Lukustamine"
 
 #: src/plugins/gnome/valent-device-page.ui:291
 #: src/plugins/gnome/valent-window.ui:142
@@ -1059,7 +1059,7 @@ msgstr "Mitte midagi"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:123
 msgid "Lower"
-msgstr "Madalam"
+msgstr "Keera heli vaiksemaks"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:124
 #: src/plugins/telephony/valent-telephony-plugin.c:398
@@ -1445,7 +1445,7 @@ msgstr "PipeWire'i lõiming"
 
 #: src/plugins/presenter/presenter.plugin.desktop.in:6
 msgid "Presenter"
-msgstr "Esineja"
+msgstr "Esinemine"
 
 #: src/plugins/presenter/presenter.plugin.desktop.in:7
 msgid "Control presentations"
@@ -1543,18 +1543,18 @@ msgstr "Fail on edastamisel"
 #: src/plugins/share/valent-share-plugin.c:254
 #, c-format
 msgid "Opening “%s” from “%s”"
-msgstr ""
+msgstr "Avan „%s“ faili seadmest „%s“"
 
 #: src/plugins/share/valent-share-plugin.c:345
 #: src/plugins/share/valent-share-plugin.c:357
 #, c-format
 msgid "Opening “%s” on “%s”"
-msgstr ""
+msgstr "Avan „%s“ faili seadmes „%s“"
 
 #: src/plugins/share/valent-share-plugin.c:351
 #, c-format
 msgid "Opened “%s” on “%s”"
-msgstr ""
+msgstr "Avasin „%s“ faili seadmes „%s“"
 
 #: src/plugins/share/valent-share-plugin.c:483
 #: src/plugins/share/valent-share-plugin.c:501
@@ -1574,7 +1574,7 @@ msgstr[1] "Saatsin %2$d faili seadmesse „%1$s“"
 #: src/plugins/share/valent-share-plugin.c:754
 #, c-format
 msgid "Text from “%s” saved to “%s”"
-msgstr ""
+msgstr "Tekst ajatempliga „%s“ on salvestatud kui „%s“"
 
 #. TRANSLATORS: this is a filename used for text shared by a device, where
 #. * the first "%s" is the date and the second "%s" is the device name, e.g.
@@ -1583,12 +1583,12 @@ msgstr ""
 #: src/plugins/share/valent-share-plugin.c:809
 #, c-format
 msgid "Text from %s (%s).txt"
-msgstr ""
+msgstr "Tekst ajatempliga %s (seadmest %s).txt"
 
 #: src/plugins/share/valent-share-plugin.c:1131
 #, c-format
 msgid "Text from “%s”"
-msgstr ""
+msgstr "Tekst ajatempliga %s"
 
 #: src/plugins/share/valent-share-plugin.c:1142
 msgid "Copy"
@@ -1596,7 +1596,7 @@ msgstr "Kopeeri"
 
 #: src/plugins/sms/sms.plugin.desktop.in:6
 msgid "SMS"
-msgstr "SMS-sõnum"
+msgstr "SMS-sõnumid"
 
 #: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "Send and receive SMS messages"
