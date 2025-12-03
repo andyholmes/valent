@@ -30,6 +30,7 @@ static const char *valent_application_credits_sponsors[] = {
   "Anonymous",
   "Camiropan",
   "David Akopov",
+  "Elias Müller",
   "Jason Swan",
   "Oliver Kennedy",
   "Remco Haszing",
