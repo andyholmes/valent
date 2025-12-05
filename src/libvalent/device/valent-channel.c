@@ -13,6 +13,7 @@
 
 #include "valent-certificate.h"
 #include "valent-packet.h"
+#include "valent-packet-input-stream.h"
 
 #include "valent-channel.h"
 
@@ -55,7 +56,7 @@ typedef struct
   JsonNode         *peer_identity;
 
   /* Packet Buffer */
-  GDataInputStream *input_buffer;
+  ValentPacketInputStream *input_buffer;
   GQueue            output_buffer;
   unsigned int      pending : 1;
 } ValentChannelPrivate;
@@ -178,10 +179,13 @@ valent_channel_set_base_stream (ValentChannel *self,
     {
       GInputStream *input_stream;
 
+      // FIXME: associate the device paired state with the channel trust
       input_stream = g_io_stream_get_input_stream (base_stream);
-      priv->input_buffer = g_object_new (G_TYPE_DATA_INPUT_STREAM,
+      priv->input_buffer = g_object_new (VALENT_TYPE_PACKET_INPUT_STREAM,
                                          "base-stream",       input_stream,
+                                         "buffer-size",       VALENT_PACKET_DEFAULT_BUFFER_SIZE,
                                          "close-base-stream", FALSE,
+                                         "trusted",           TRUE,
                                          NULL);
     }
   valent_object_unlock (VALENT_OBJECT (self));
@@ -670,34 +674,15 @@ valent_channel_close_finish (ValentChannel  *channel,
 }
 
 static void
-valent_channel_read_packet_cb (GObject      *object,
-                               GAsyncResult *result,
-                               gpointer      user_data)
+valent_channel_read_packet_cb (ValentPacketInputStream *stream,
+                               GAsyncResult            *result,
+                               gpointer                 user_data)
 {
   g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  g_autofree char *line = NULL;
   JsonNode *packet = NULL;
   GError *error = NULL;
 
-  line = g_data_input_stream_read_line_finish_utf8 (G_DATA_INPUT_STREAM (object),
-                                                    result,
-                                                    NULL,
-                                                    &error);
-  if (error != NULL)
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-  else if (line == NULL)
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_CONNECTION_CLOSED,
-                               "Channel is closed");
-      return;
-    }
-
-  packet = valent_packet_deserialize (line, &error);
+  packet = valent_packet_input_stream_read_packet_finish (stream, result, &error);
   if (packet == NULL)
     {
       g_task_return_error (task, g_steal_pointer (&error));
@@ -741,11 +726,10 @@ valent_channel_read_packet (ValentChannel       *channel,
 
   if (!valent_channel_return_error_if_closed (channel, task))
     {
-      g_data_input_stream_read_line_async (priv->input_buffer,
-                                           G_PRIORITY_DEFAULT,
-                                           cancellable,
-                                           valent_channel_read_packet_cb,
-                                           g_object_ref (task));
+      valent_packet_input_stream_read_packet_async (priv->input_buffer,
+                                                    cancellable,
+                                                    (GAsyncReadyCallback)valent_channel_read_packet_cb,
+                                                    g_object_ref (task));
       valent_object_unlock (VALENT_OBJECT (channel));
     }
 
