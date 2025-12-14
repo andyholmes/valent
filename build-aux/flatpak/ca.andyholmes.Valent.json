@@ -130,8 +130,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/google/libphonenumber.git",
-                    "commit": "2b5323af4197a305c53315281786778b0fc44093",
-                    "tag": "v9.0.19",
+                    "commit": "bd0235b04b40a017dd0ec85e48dc9bc752f431aa",
+                    "tag": "v9.0.20",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 89344,
@@ -187,8 +187,8 @@
                     "sources": [
                         {
                             "type": "archive",
-                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.89.0/boost-1.89.0-b2-nodocs.tar.xz",
-                            "sha256": "875cc413afa6b86922b6df3b2ad23dec4511c8a741753e57c1129e7fa753d700",
+                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.90.0/boost-1.90.0-b2-nodocs.tar.xz",
+                            "sha256": "9e6bee9ab529fb2b0733049692d57d10a72202af085e553539a05b4204211a6f",
                             "x-checker-data": {
                                 "type": "anitya",
                                 "project-id": 6845,
