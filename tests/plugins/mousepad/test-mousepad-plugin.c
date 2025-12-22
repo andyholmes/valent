@@ -186,6 +186,9 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
 {
   GActionGroup *actions = G_ACTION_GROUP (fixture->device);
   JsonNode *packet;
+  uint32_t keysym;
+  unsigned int mask;
+  gunichar *w;
   GVariantDict dict;
   gboolean watch = FALSE;
 
@@ -213,10 +216,6 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
   g_assert_true (g_action_group_get_action_enabled (actions, "mousepad.event"));
 
   VALENT_TEST_CHECK ("Plugin action `mousepad.event` sends ASCII with modifiers");
-  uint32_t keysym;
-  unsigned int mask;
-  gunichar *w;
-
   keysym = 'a';
   mask = KEYMOD_KDE_MASK;
 
@@ -258,24 +257,30 @@ test_mousepad_plugin_send_keyboard_request (ValentTestFixture *fixture,
 
   VALENT_TEST_CHECK ("Plugin action `mousepad.event` sends special keys "
                      "(aka non-printable ASCII");
-  // TODO iterate special keys
-  keysym = KEYSYM_F12;
-  mask = 0;
+  for (size_t i = 1; i < 33; i++)
+    {
+      keysym = valent_mousepad_keycode_to_keysym (i);
+      mask = 0;
 
-  g_variant_dict_init (&dict, NULL);
-  g_variant_dict_insert (&dict, "keysym", "u", keysym);
-  g_variant_dict_insert (&dict, "mask", "u", mask);
-  g_action_group_activate_action (actions, "mousepad.event",
-                                  g_variant_dict_end (&dict));
+      g_variant_dict_init (&dict, NULL);
+      g_variant_dict_insert (&dict, "keysym", "u", keysym);
+      g_variant_dict_insert (&dict, "mask", "u", mask);
+      g_action_group_activate_action (actions, "mousepad.event",
+                                      g_variant_dict_end (&dict));
 
-  packet = valent_test_fixture_expect_packet (fixture);
-  v_assert_packet_type (packet, "kdeconnect.mousepad.request");
-  v_assert_packet_cmpint (packet, "specialKey", ==, 32);
-  v_assert_packet_no_field (packet, "alt");
-  v_assert_packet_no_field (packet, "ctrl");
-  v_assert_packet_no_field (packet, "shift");
-  v_assert_packet_no_field (packet, "super");
-  json_node_unref (packet);
+      // Reserved keycodes should be skipped
+      if (keysym == 0)
+        continue;
+
+      packet = valent_test_fixture_expect_packet (fixture);
+      v_assert_packet_type (packet, "kdeconnect.mousepad.request");
+      v_assert_packet_cmpint (packet, "specialKey", ==, i);
+      v_assert_packet_no_field (packet, "alt");
+      v_assert_packet_no_field (packet, "ctrl");
+      v_assert_packet_no_field (packet, "shift");
+      v_assert_packet_no_field (packet, "super");
+      json_node_unref (packet);
+    }
 
   valent_test_watch_clear (actions, &watch);
 }

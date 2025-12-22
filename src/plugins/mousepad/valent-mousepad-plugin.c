@@ -340,6 +340,9 @@ valent_mousepad_plugin_mousepad_request_keyboard (ValentMousepadPlugin *self,
 
   g_assert (VALENT_IS_MOUSEPAD_PLUGIN (self));
 
+  if G_UNLIKELY (keysym == 0 && mask == 0)
+    return;
+
   valent_packet_init (&builder, "kdeconnect.mousepad.request");
 
   if ((special_key = valent_mousepad_keysym_to_keycode (keysym)) != 0)
