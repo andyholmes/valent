@@ -18,6 +18,34 @@ static GQueue events = G_QUEUE_INIT;
   } G_STMT_END
 
 static void
+_valent_test_event_cmpstrv (const char *str)
+{
+  const char *next = str;
+  gunichar codepoint;
+
+  while ((codepoint = g_utf8_get_char (next)) != 0)
+    {
+      uint32_t keysym = valent_input_unicode_to_keysym (codepoint);
+      char *event_str = NULL;
+      char *expected_str = NULL;
+
+      event_str = g_queue_pop_head (&events);
+      expected_str = g_strdup_printf ("KEYSYM %u 1", keysym);
+      g_assert_cmpstr (event_str, ==, expected_str);
+      g_free (event_str);
+      g_free (expected_str);
+
+      event_str = g_queue_pop_head (&events);
+      expected_str = g_strdup_printf ("KEYSYM %u 0", keysym);
+      g_assert_cmpstr (event_str, ==, expected_str);
+      g_free (event_str);
+      g_free (expected_str);
+
+      next = g_utf8_next_char (next);
+    }
+}
+
+static void
 on_event_state_changed (GActionGroup *group,
                         const char   *name,
                         GVariant     *value,
@@ -74,6 +102,7 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
                                      gconstpointer      user_data)
 {
   JsonNode *packet;
+  const char *str;
 
   VALENT_TEST_CHECK ("Plugin sends the keyboard state on connect");
   valent_test_fixture_connect (fixture);
@@ -166,18 +195,20 @@ test_mousepad_plugin_handle_request (ValentTestFixture *fixture,
   _valent_test_event_cmpstr ("KEYSYM 65361 1");
   _valent_test_event_cmpstr ("KEYSYM 65361 0");
 
-  VALENT_TEST_CHECK ("Plugin handles a request to press-release a series of keysyms");
-  packet = valent_test_fixture_lookup_packet (fixture, "keyboard-keysym-string");
-  valent_test_fixture_handle_packet (fixture, packet);
+  static const char *keysym_tests[] = {
+    "keyboard-keysym-string",
+    "keyboard-keysym-unicode",
+  };
 
-  _valent_test_event_cmpstr ("KEYSYM 116 1");
-  _valent_test_event_cmpstr ("KEYSYM 116 0");
-  _valent_test_event_cmpstr ("KEYSYM 101 1");
-  _valent_test_event_cmpstr ("KEYSYM 101 0");
-  _valent_test_event_cmpstr ("KEYSYM 115 1");
-  _valent_test_event_cmpstr ("KEYSYM 115 0");
-  _valent_test_event_cmpstr ("KEYSYM 116 1");
-  _valent_test_event_cmpstr ("KEYSYM 116 0");
+  for (size_t i = 0; i < G_N_ELEMENTS (keysym_tests); i++)
+    {
+      VALENT_TEST_CHECK ("Plugin handles a request to press-release a series of keysyms");
+      packet = valent_test_fixture_lookup_packet (fixture, keysym_tests[i]);
+      valent_test_fixture_handle_packet (fixture, packet);
+
+      valent_packet_get_string (packet, "key", &str);
+      _valent_test_event_cmpstrv (str);
+    }
 }
 
 static void

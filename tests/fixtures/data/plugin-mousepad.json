@@ -149,7 +149,14 @@
     "id": 0,
     "type": "kdeconnect.mousepad.request",
     "body": {
-      "key": "test"
+      "key": "The quick brown fox jumps over the lazy dog"
+    }
+  },
+  "keyboard-keysym-unicode": {
+    "id": 0,
+    "type": "kdeconnect.mousepad.request",
+    "body": {
+      "key": "A©∑𝜑🚀"
     }
   }
 }
