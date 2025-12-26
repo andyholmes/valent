@@ -23,6 +23,11 @@ plugin_xdp_sources = files([
   'valent-xdp-utils.c',
 ])
 
+if libei_dep.found() and xkbcommon_dep.found()
+  plugin_xdp_deps += [libei_dep, xkbcommon_dep]
+  plugin_xdp_sources += files(['valent-ei-input.c'])
+endif
+
 plugin_xdp_include_directories = [include_directories('.')]
 
 # Resources
