@@ -160,8 +160,10 @@ json_glib_version = '>= 1.6.0'
 libpeas_version = '>= 2.0.0'
 eds_version = '>= 3.48'
 libadwaita_version = '>= 1.6'
+libei_version = '>= 1.3.0'
 libportal_version = ['>= 0.7.1']
 tinysparql_version = '>= 3.0'
+xkbcommon_version = '>= 1.0.0'
 
 libm_dep = cc.find_library('m', required: true)
 gio_dep = dependency('gio-2.0', version: glib_version)
@@ -191,6 +193,14 @@ glycin_dep = dependency('glycin-2',
 )
 libportal_gtk4_dep = dependency('libportal-gtk4',
    version: libportal_version,
+  required: false,
+)
+libei_dep = dependency('libei-1.0',
+   version: libei_version,
+  required: false,
+)
+xkbcommon_dep = dependency('xkbcommon',
+   version: xkbcommon_version,
   required: false,
 )
 
@@ -237,8 +247,10 @@ config_h_dependencies = {
   'HAVE_ADWAITA':        libadwaita_dep,
   'HAVE_GLYCIN':         glycin_dep,
   'HAVE_LIBPORTAL_GTK4': libportal_gtk4_dep,
+  'HAVE_LIBEI':          libei_dep,
   'HAVE_SYSPROF':        libsysprof_capture_dep,
   'HAVE_WALBOTTLE':      libwalbottle_dep,
+  'HAVE_XKBCOMMON':      xkbcommon_dep,
 }
 
 foreach define, dep : config_h_dependencies

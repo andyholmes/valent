@@ -20,11 +20,13 @@ RUN dnf install -y \
         gtk4-devel                    gtk4-debuginfo \
         json-glib-devel               json-glib-debuginfo \
         libadwaita-devel              libadwaita-debuginfo \
+        libei-devel                   libei-debuginfo \
         libpeas-devel                 libpeas-debuginfo \
         libphonenumber-devel          libphonenumber-debuginfo \
         libportal-devel               libportal-debuginfo \
         libportal-gtk4-devel          libportal-gtk4-debuginfo \
         libtinysparql                 libtinysparql-debuginfo \
+        libxkbcommon-devel            libxkbcommon-debuginfo \
         pipewire-devel                pipewire-debuginfo \
         pulseaudio-libs-devel         pulseaudio-libs-debuginfo \
         sqlite-devel                  sqlite-debuginfo \
