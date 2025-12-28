@@ -5,13 +5,7 @@
 
 #include "config.h"
 
-#ifdef __linux__
-# include <linux/input-event-codes.h>
-#else
-# define BTN_LEFT   (0x110)
-# define BTN_RIGHT  (0x111)
-# define BTN_MIDDLE (0x112)
-#endif /* __linux__ */
+#include <linux/input-event-codes.h>
 
 #include <gio/gio.h>
 #include <libportal/portal.h>
