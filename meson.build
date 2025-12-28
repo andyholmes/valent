@@ -161,7 +161,7 @@ libpeas_version = '>= 2.0.0'
 eds_version = '>= 3.48'
 libadwaita_version = '>= 1.6'
 libei_version = '>= 1.3.0'
-libportal_version = ['>= 0.7.1']
+libportal_version = '>= 0.9'
 tinysparql_version = '>= 3.0'
 xkbcommon_version = '>= 1.0.0'
 
@@ -258,10 +258,9 @@ foreach define, dep : config_h_dependencies
 endforeach
 
 config_h_functions = {
-  'HAVE_CLOCK_GETTIME':       'clock_gettime',
-  'HAVE_LOCALTIME_R':         'localtime_r',
-  'HAVE_SCHED_GETCPU':        'sched_getcpu',
-  'HAVE_REMOTE_DESKTOP_FULL': 'xdp_portal_create_remote_desktop_session_full',
+  'HAVE_CLOCK_GETTIME': 'clock_gettime',
+  'HAVE_LOCALTIME_R':   'localtime_r',
+  'HAVE_SCHED_GETCPU':  'sched_getcpu',
 }
 
 foreach define, function : config_h_functions
