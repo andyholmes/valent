@@ -11,15 +11,18 @@
 #include <libportal/portal.h>
 #include <valent.h>
 
+#ifdef HAVE_LIBEI
+# include "valent-ei-input.h"
+#endif /* HAVE_LIBEI */
 #include "valent-xdp-utils.h"
 
 #include "valent-xdp-input.h"
-
 
 struct _ValentXdpInput
 {
   ValentInputAdapter  parent_instance;
 
+  ValentInputAdapter *delegate;
   GSettings          *settings;
   XdpSession         *session;
   gboolean            session_starting;
@@ -54,6 +57,23 @@ on_session_started (XdpSession   *session,
       g_warning ("%s(): %s", G_STRFUNC, error->message);
       g_clear_object (&self->session);
     }
+
+#ifdef HAVE_LIBEI
+  int ei_fd = xdp_session_connect_to_eis (self->session, &error);
+  if (ei_fd > -1)
+    {
+      self->delegate = g_initable_new (VALENT_TYPE_EI_INPUT, NULL, &error,
+                                       "parent", self,
+                                       "fd",     ei_fd,
+                                       NULL);
+      if (self->delegate == NULL)
+        g_warning ("%s(): %s", G_STRFUNC, error->message);
+    }
+  else
+    {
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
+    }
+#endif /* HAVE_LIBEI */
 
   session_token = xdp_session_get_restore_token (session);
   g_settings_set_string (self->settings,
@@ -158,9 +178,17 @@ valent_xdp_input_keyboard_keysym (ValentInputAdapter *adapter,
   if G_UNLIKELY (!ensure_session (self))
     return;
 
-  // TODO: XDP_KEY_PRESSED/XDP_KEY_RELEASED
-
-  xdp_session_keyboard_key (self->session, TRUE, keysym, state);
+  if (self->delegate != NULL)
+    {
+#ifdef HAVE_LIBEI
+      valent_input_adapter_keyboard_keysym (self->delegate, keysym, state);
+#endif /* HAVE_LIBEI */
+    }
+  else
+    {
+      // TODO: XDP_KEY_PRESSED/XDP_KEY_RELEASED
+      xdp_session_keyboard_key (self->session, TRUE, keysym, state);
+    }
 }
 
 static unsigned int
@@ -197,8 +225,17 @@ valent_xdp_input_pointer_axis (ValentInputAdapter *adapter,
   if G_UNLIKELY (!ensure_session (self))
     return;
 
-  xdp_session_pointer_axis (self->session, FALSE, dx, dy);
-  xdp_session_pointer_axis (self->session, TRUE, 0.0, 0.0);
+  if (self->delegate != NULL)
+    {
+#ifdef HAVE_LIBEI
+      valent_input_adapter_pointer_axis (self->delegate, dx, dy);
+#endif /* HAVE_LIBEI */
+    }
+  else
+    {
+      xdp_session_pointer_axis (self->session, FALSE, dx, dy);
+      xdp_session_pointer_axis (self->session, TRUE, 0.0, 0.0);
+    }
 }
 
 static void
@@ -214,9 +251,17 @@ valent_xdp_input_pointer_button (ValentInputAdapter *adapter,
   if G_UNLIKELY (!ensure_session (self))
     return;
 
-  /* Translate the button to EVDEV constant */
-  button = translate_to_evdev_button (button);
-  xdp_session_pointer_button (self->session, button, pressed);
+  if (self->delegate != NULL)
+    {
+#ifdef HAVE_LIBEI
+      valent_input_adapter_pointer_button (self->delegate, button, pressed);
+#endif /* HAVE_LIBEI */
+    }
+  else
+    {
+      button = translate_to_evdev_button (button);
+      xdp_session_pointer_button (self->session, button, pressed);
+    }
 }
 
 static void
@@ -232,7 +277,16 @@ valent_xdp_input_pointer_motion (ValentInputAdapter *adapter,
   if G_UNLIKELY (!ensure_session (self))
     return;
 
-  xdp_session_pointer_motion (self->session, dx, dy);
+  if (self->delegate != NULL)
+    {
+#ifdef HAVE_LIBEI
+      valent_input_adapter_pointer_motion (self->delegate, dx, dy);
+#endif /* HAVE_LIBEI */
+    }
+  else
+    {
+      xdp_session_pointer_motion (self->session, dx, dy);
+    }
 }
 
 
@@ -246,6 +300,9 @@ valent_xdp_input_destroy (ValentObject *object)
 
   if (self->session != NULL)
     xdp_session_close (self->session);
+
+  if (self->delegate != NULL)
+    g_clear_object (&self->delegate);
 
   VALENT_OBJECT_CLASS (valent_xdp_input_parent_class)->destroy (object);
 }
