@@ -134,7 +134,6 @@ ensure_session (ValentXdpInput *self)
   if (!g_uuid_string_is_valid (restore_token))
     g_clear_pointer (&restore_token, g_free);
 
-#ifdef HAVE_REMOTE_DESKTOP_FULL
   xdp_portal_create_remote_desktop_session_full (valent_xdp_get_default (),
                                                  (XDP_DEVICE_KEYBOARD |
                                                    XDP_DEVICE_POINTER),
@@ -146,17 +145,6 @@ ensure_session (ValentXdpInput *self)
                                                  cancellable,
                                                  (GAsyncReadyCallback)on_session_created,
                                                  self);
-#else
-  xdp_portal_create_remote_desktop_session (valent_xdp_get_default (),
-                                            (XDP_DEVICE_KEYBOARD |
-                                             XDP_DEVICE_POINTER),
-                                            XDP_OUTPUT_NONE,
-                                            XDP_REMOTE_DESKTOP_FLAG_NONE,
-                                            XDP_CURSOR_MODE_HIDDEN,
-                                            cancellable,
-                                            (GAsyncReadyCallback)on_session_created,
-                                            self);
-#endif
 
   return FALSE;
 }
