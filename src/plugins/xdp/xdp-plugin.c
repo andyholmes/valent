@@ -5,9 +5,6 @@
 
 #include <libpeas.h>
 #include <libportal/portal.h>
-#ifdef HAVE_LIBPORTAL_GTK4
-#include <libportal-gtk4/portal-gtk4.h>
-#endif /* HAVE_LIBPORTAL_GTK4 */
 #include <valent.h>
 
 #include "valent-xdp-background.h"
