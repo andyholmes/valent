@@ -38,6 +38,7 @@ G_DEFINE_FINAL_TYPE (ValentXdpInput, valent_xdp_input, VALENT_TYPE_INPUT_ADAPTER
 static void
 on_session_closed (ValentXdpInput *self)
 {
+  g_clear_object (&self->delegate);
   g_clear_object (&self->session);
   self->started = FALSE;
 }
