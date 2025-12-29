@@ -122,11 +122,11 @@ ensure_session (ValentXdpInput *self)
   g_autoptr (GCancellable) cancellable = NULL;
   g_autofree char *restore_token = NULL;
 
-  if G_LIKELY (self->started)
-    return TRUE;
-
   if (self->session_starting)
     return FALSE;
+
+  if G_LIKELY (self->started)
+    return TRUE;
 
   self->session_starting = TRUE;
   cancellable = valent_object_ref_cancellable (VALENT_OBJECT (self));
