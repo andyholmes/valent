@@ -277,8 +277,7 @@ ei_source_dispatch (GSource     *source,
     {
       enum ei_event_type event_type = ei_event_get_type (event);
 
-      VALENT_NOTE ("Received event type %s",
-                   ei_event_type_to_string (event_type));
+      VALENT_NOTE ("Event %s", ei_event_type_to_string (event_type));
 
       switch ((enum ei_event_type)event_type)
         {
@@ -325,8 +324,6 @@ ei_source_dispatch (GSource     *source,
           {
             struct ei_device *device = ei_event_get_device (event);
 
-            VALENT_NOTE ("Device '%s' added", ei_device_get_name (device));
-
             if (ei_device_has_capability (device, EI_DEVICE_CAP_KEYBOARD))
               {
                 g_autoptr (GError) error = NULL;
@@ -369,8 +366,6 @@ ei_source_dispatch (GSource     *source,
           {
             struct ei_device *device = ei_event_get_device (event);
 
-            VALENT_NOTE ("Device '%s' removed", ei_device_get_name (device));
-
             if (device == self->ei_keyboard)
               g_clear_pointer (&self->ei_keyboard, ei_device_unref);
             if (device == self->ei_pointer)
@@ -387,8 +382,6 @@ ei_source_dispatch (GSource     *source,
           {
             struct ei_device *device = ei_event_get_device (event);
 
-            VALENT_NOTE ("Device '%s' resumed", ei_device_get_name (device));
-
             if (device == self->ei_pointer)
               ei_device_start_emulating (self->ei_pointer, ++self->ei_sequence);
             if (device == self->ei_pointer_abs)
@@ -402,14 +395,6 @@ ei_source_dispatch (GSource     *source,
           }
 
         case EI_EVENT_DEVICE_PAUSED:
-          {
-            struct ei_device *device = ei_event_get_device (event);
-
-            VALENT_NOTE ("Device '%s' paused", ei_device_get_name (device));
-
-            break;
-          }
-
         case EI_EVENT_KEYBOARD_MODIFIERS:
         case EI_EVENT_PONG:
         case EI_EVENT_SYNC:
