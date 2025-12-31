@@ -40,6 +40,7 @@ on_session_closed (ValentXdpInput *self)
 {
   g_clear_object (&self->delegate);
   g_clear_object (&self->session);
+  self->session_starting = FALSE;
   self->started = FALSE;
 }
 
@@ -56,7 +57,8 @@ on_session_started (XdpSession   *session,
   if (!self->started)
     {
       g_warning ("%s(): %s", G_STRFUNC, error->message);
-      g_clear_object (&self->session);
+      on_session_closed (self);
+      return;
     }
 
 #ifdef HAVE_LIBEI
@@ -95,11 +97,10 @@ on_session_created (XdpPortal    *portal,
   self->session = xdp_portal_create_remote_desktop_session_finish (portal,
                                                                    result,
                                                                    &error);
-
   if (self->session == NULL)
     {
       g_warning ("%s(): %s", G_STRFUNC, error->message);
-      self->session_starting = FALSE;
+      on_session_closed (self);
       return;
     }
 
@@ -290,8 +291,7 @@ valent_xdp_input_destroy (ValentObject *object)
   if (self->session != NULL)
     xdp_session_close (self->session);
 
-  if (self->delegate != NULL)
-    g_clear_object (&self->delegate);
+  on_session_closed (self);
 
   VALENT_OBJECT_CLASS (valent_xdp_input_parent_class)->destroy (object);
 }
