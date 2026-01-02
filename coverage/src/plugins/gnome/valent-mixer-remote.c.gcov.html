@@ -1,0 +1,416 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - Code Coverage - src/plugins/gnome/valent-mixer-remote.c</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">src/plugins/gnome</a> - valent-mixer-remote.c<span style="font-size: 80%;"> (source / <a href="valent-mixer-remote.c.func-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">Code Coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryLo">35.7&nbsp;%</td>
+            <td class="headerCovTableEntry">126</td>
+            <td class="headerCovTableEntry">45</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2026-01-02 21:11:20</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryLo">64.3&nbsp;%</td>
+            <td class="headerCovTableEntry">14</td>
+            <td class="headerCovTableEntry">9</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+            | Branches:
+            <span class="coverLegendCov">+</span> taken
+            <span class="coverLegendNoCov">-</span> not taken
+            <span class="coverLegendNoCov">#</span> not executed
+</td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntryLo">23.7&nbsp;%</td>
+            <td class="headerCovTableEntry">38</td>
+            <td class="headerCovTableEntry">9</td>
+          </tr>
+                  <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">             Branch data     Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>                 :             : // SPDX-License-Identifier: GPL-3.0-or-later</span>
+<span id="L2"><span class="lineNum">       2</span>                 :             : // SPDX-FileCopyrightText: Andy Holmes &lt;andrew.g.r.holmes@gmail.com&gt;</span>
+<span id="L3"><span class="lineNum">       3</span>                 :             : </span>
+<span id="L4"><span class="lineNum">       4</span>                 :             : #define G_LOG_DOMAIN &quot;valent-mixer-remote&quot;</span>
+<span id="L5"><span class="lineNum">       5</span>                 :             : </span>
+<span id="L6"><span class="lineNum">       6</span>                 :             : #include &quot;config.h&quot;</span>
+<span id="L7"><span class="lineNum">       7</span>                 :             : </span>
+<span id="L8"><span class="lineNum">       8</span>                 :             : #include &lt;adwaita.h&gt;</span>
+<span id="L9"><span class="lineNum">       9</span>                 :             : #include &lt;glib/gi18n-lib.h&gt;</span>
+<span id="L10"><span class="lineNum">      10</span>                 :             : #include &lt;gtk/gtk.h&gt;</span>
+<span id="L11"><span class="lineNum">      11</span>                 :             : #include &lt;pango/pango.h&gt;</span>
+<span id="L12"><span class="lineNum">      12</span>                 :             : #include &lt;valent.h&gt;</span>
+<span id="L13"><span class="lineNum">      13</span>                 :             : </span>
+<span id="L14"><span class="lineNum">      14</span>                 :             : #include &quot;valent-mixer-remote.h&quot;</span>
+<span id="L15"><span class="lineNum">      15</span>                 :             : #include &quot;valent-ui-utils-private.h&quot;</span>
+<span id="L16"><span class="lineNum">      16</span>                 :             : </span>
+<span id="L17"><span class="lineNum">      17</span>                 :             : struct _ValentMixerRemote</span>
+<span id="L18"><span class="lineNum">      18</span>                 :             : {</span>
+<span id="L19"><span class="lineNum">      19</span>                 :             :   AdwBreakpointBin    parent_instance;</span>
+<span id="L20"><span class="lineNum">      20</span>                 :             : </span>
+<span id="L21"><span class="lineNum">      21</span>                 :             :   ValentMixerAdapter *adapter;</span>
+<span id="L22"><span class="lineNum">      22</span>                 :             : </span>
+<span id="L23"><span class="lineNum">      23</span>                 :             :   /* template */</span>
+<span id="L24"><span class="lineNum">      24</span>                 :             :   GtkListBox         *stream_list;</span>
+<span id="L25"><span class="lineNum">      25</span>                 :             :   GListModel         *model;</span>
+<span id="L26"><span class="lineNum">      26</span>                 :             :   GtkFilter          *filter;</span>
+<span id="L27"><span class="lineNum">      27</span>                 :             :   GtkStringSorter    *sorter;</span>
+<span id="L28"><span class="lineNum">      28</span>                 :             :   GtkWidget          *group;</span>
+<span id="L29"><span class="lineNum">      29</span>                 :             : };</span>
+<span id="L30"><span class="lineNum">      30</span>                 :             : </span>
+<span id="L31"><span class="lineNum">      31</span>   [<span class="tlaGBC" title="Branch 0 was taken 17 times"> + </span><span class="tlaGBC" title="Branch 1 was taken 3 times"> + </span><span class="tlaGBC" title="Branch 2 was taken 17 times"> + </span><span class="tlaUNC" title="Branch 3 was not taken"> - </span>]:<span class="tlaGNC tlaBgGNC">          37 : G_DEFINE_FINAL_TYPE (ValentMixerRemote, valent_mixer_remote, ADW_TYPE_BREAKPOINT_BIN)</span></span>
+<span id="L32"><span class="lineNum">      32</span>                 :             : </span>
+<span id="L33"><span class="lineNum">      33</span>                 :             : typedef enum {</span>
+<span id="L34"><span class="lineNum">      34</span>                 :             :   PROP_MIXER = 1,</span>
+<span id="L35"><span class="lineNum">      35</span>                 :             : } ValentMixerRemoteProperty;</span>
+<span id="L36"><span class="lineNum">      36</span>                 :             : </span>
+<span id="L37"><span class="lineNum">      37</span>                 :             : static GParamSpec *properties[PROP_MIXER + 1] = { NULL, };</span>
+<span id="L38"><span class="lineNum">      38</span>                 :             : </span>
+<span id="L39"><span class="lineNum">      39</span>                 :             : static gboolean</span>
+<span id="L40"><span class="lineNum">      40</span>                 :<span class="tlaUNC tlaBgUNC">           0 : valent_mixer_output_filter (gpointer item,</span></span>
+<span id="L41"><span class="lineNum">      41</span>                 :             :                             gpointer user_data)</span>
+<span id="L42"><span class="lineNum">      42</span>                 :             : {</span>
+<span id="L43"><span class="lineNum">      43</span>                 :<span class="tlaUNC">           0 :   ValentMixerStream *stream = VALENT_MIXER_STREAM (item);</span></span>
+<span id="L44"><span class="lineNum">      44</span>                 :             : </span>
+<span id="L45"><span class="lineNum">      45</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :   if (valent_mixer_stream_get_direction (stream) == VALENT_MIXER_OUTPUT)</span></span>
+<span id="L46"><span class="lineNum">      46</span>                 :<span class="tlaUNC">           0 :     return TRUE;</span></span>
+<span id="L47"><span class="lineNum">      47</span>                 :             : </span>
+<span id="L48"><span class="lineNum">      48</span>                 :             :   return FALSE;</span>
+<span id="L49"><span class="lineNum">      49</span>                 :             : }</span>
+<span id="L50"><span class="lineNum">      50</span>                 :             : </span>
+<span id="L51"><span class="lineNum">      51</span>                 :             : static gboolean</span>
+<span id="L52"><span class="lineNum">      52</span>                 :<span class="tlaUNC">           0 : on_change_value (GtkRange          *range,</span></span>
+<span id="L53"><span class="lineNum">      53</span>                 :             :                  GtkScrollType      scroll,</span>
+<span id="L54"><span class="lineNum">      54</span>                 :             :                  double             value,</span>
+<span id="L55"><span class="lineNum">      55</span>                 :             :                  ValentMixerStream *stream)</span>
+<span id="L56"><span class="lineNum">      56</span>                 :             : {</span>
+<span id="L57"><span class="lineNum">      57</span>                 :<span class="tlaUNC">           0 :   GtkAdjustment *adjustment;</span></span>
+<span id="L58"><span class="lineNum">      58</span>                 :<span class="tlaUNC">           0 :   double lower, upper, page_size;</span></span>
+<span id="L59"><span class="lineNum">      59</span>                 :             : </span>
+<span id="L60"><span class="lineNum">      60</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :   g_assert (VALENT_IS_MIXER_STREAM (stream));</span></span>
+<span id="L61"><span class="lineNum">      61</span>                 :             : </span>
+<span id="L62"><span class="lineNum">      62</span>                 :<span class="tlaUNC">           0 :   adjustment = gtk_range_get_adjustment (range);</span></span>
+<span id="L63"><span class="lineNum">      63</span>                 :<span class="tlaUNC">           0 :   lower = gtk_adjustment_get_lower (adjustment);</span></span>
+<span id="L64"><span class="lineNum">      64</span>                 :<span class="tlaUNC">           0 :   upper = gtk_adjustment_get_upper (adjustment);</span></span>
+<span id="L65"><span class="lineNum">      65</span>                 :<span class="tlaUNC">           0 :   page_size = gtk_adjustment_get_page_size (adjustment);</span></span>
+<span id="L66"><span class="lineNum">      66</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :   value = CLAMP (value, lower, (upper - page_size));</span></span>
+<span id="L67"><span class="lineNum">      67</span>                 :             : </span>
+<span id="L68"><span class="lineNum">      68</span>                 :<span class="tlaUNC">           0 :   gtk_adjustment_set_value (adjustment, value);</span></span>
+<span id="L69"><span class="lineNum">      69</span>                 :<span class="tlaUNC">           0 :   valent_mixer_stream_set_level (stream, (unsigned int)round (value));</span></span>
+<span id="L70"><span class="lineNum">      70</span>                 :             : </span>
+<span id="L71"><span class="lineNum">      71</span>                 :<span class="tlaUNC">           0 :   return GDK_EVENT_STOP;</span></span>
+<span id="L72"><span class="lineNum">      72</span>                 :             : }</span>
+<span id="L73"><span class="lineNum">      73</span>                 :             : </span>
+<span id="L74"><span class="lineNum">      74</span>                 :             : static void</span>
+<span id="L75"><span class="lineNum">      75</span>                 :<span class="tlaUNC">           0 : update_icon_cb (ValentMixerStream *stream,</span></span>
+<span id="L76"><span class="lineNum">      76</span>                 :             :                 GParamSpec        *pspec,</span>
+<span id="L77"><span class="lineNum">      77</span>                 :             :                 GtkButton         *button)</span>
+<span id="L78"><span class="lineNum">      78</span>                 :             : {</span>
+<span id="L79"><span class="lineNum">      79</span>                 :<span class="tlaUNC">           0 :   unsigned int level = 0;</span></span>
+<span id="L80"><span class="lineNum">      80</span>                 :             : </span>
+<span id="L81"><span class="lineNum">      81</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :   if (valent_mixer_stream_get_muted (stream))</span></span>
+<span id="L82"><span class="lineNum">      82</span>                 :             :     {</span>
+<span id="L83"><span class="lineNum">      83</span>                 :<span class="tlaUNC">           0 :       gtk_button_set_icon_name (button, &quot;audio-volume-muted-symbolic&quot;);</span></span>
+<span id="L84"><span class="lineNum">      84</span>                 :<span class="tlaUNC">           0 :       return;</span></span>
+<span id="L85"><span class="lineNum">      85</span>                 :             :     }</span>
+<span id="L86"><span class="lineNum">      86</span>                 :             : </span>
+<span id="L87"><span class="lineNum">      87</span>                 :<span class="tlaUNC">           0 :   level = valent_mixer_stream_get_level (stream);</span></span>
+<span id="L88"><span class="lineNum">      88</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :   if (level &gt;= 70)</span></span>
+<span id="L89"><span class="lineNum">      89</span>                 :<span class="tlaUNC">           0 :     gtk_button_set_icon_name (button, &quot;audio-volume-high-symbolic&quot;);</span></span>
+<span id="L90"><span class="lineNum">      90</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :   else if (level &gt;= 30)</span></span>
+<span id="L91"><span class="lineNum">      91</span>                 :<span class="tlaUNC">           0 :     gtk_button_set_icon_name (button, &quot;audio-volume-medium-symbolic&quot;);</span></span>
+<span id="L92"><span class="lineNum">      92</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :   else if (level &gt; 0)</span></span>
+<span id="L93"><span class="lineNum">      93</span>                 :<span class="tlaUNC">           0 :     gtk_button_set_icon_name (button, &quot;audio-volume-low-symbolic&quot;);</span></span>
+<span id="L94"><span class="lineNum">      94</span>                 :             :   else</span>
+<span id="L95"><span class="lineNum">      95</span>                 :<span class="tlaUNC">           0 :     gtk_button_set_icon_name (button, &quot;audio-volume-muted-symbolic&quot;);</span></span>
+<span id="L96"><span class="lineNum">      96</span>                 :             : }</span>
+<span id="L97"><span class="lineNum">      97</span>                 :             : </span>
+<span id="L98"><span class="lineNum">      98</span>                 :             : static void</span>
+<span id="L99"><span class="lineNum">      99</span>                 :<span class="tlaUNC">           0 : on_stream_selected (GtkCheckButton    *button,</span></span>
+<span id="L100"><span class="lineNum">     100</span>                 :             :                     GParamSpec        *pspec,</span>
+<span id="L101"><span class="lineNum">     101</span>                 :             :                     ValentMixerRemote *self)</span>
+<span id="L102"><span class="lineNum">     102</span>                 :             : {</span>
+<span id="L103"><span class="lineNum">     103</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :   if (gtk_check_button_get_active (button))</span></span>
+<span id="L104"><span class="lineNum">     104</span>                 :             :     {</span>
+<span id="L105"><span class="lineNum">     105</span>                 :<span class="tlaUNC">           0 :       ValentMixerStream *stream = NULL;</span></span>
+<span id="L106"><span class="lineNum">     106</span>                 :             : </span>
+<span id="L107"><span class="lineNum">     107</span>                 :<span class="tlaUNC">           0 :       stream = g_object_get_data (G_OBJECT (button), &quot;valent-mixer-stream&quot;);</span></span>
+<span id="L108"><span class="lineNum">     108</span>                 :<span class="tlaUNC">           0 :       valent_mixer_adapter_set_default_output (self-&gt;adapter, stream);</span></span>
+<span id="L109"><span class="lineNum">     109</span>                 :             :     }</span>
+<span id="L110"><span class="lineNum">     110</span>                 :<span class="tlaUNC">           0 : }</span></span>
+<span id="L111"><span class="lineNum">     111</span>                 :             : </span>
+<span id="L112"><span class="lineNum">     112</span>                 :             : /*</span>
+<span id="L113"><span class="lineNum">     113</span>                 :             :  * ValentMixerRemote</span>
+<span id="L114"><span class="lineNum">     114</span>                 :             :  */</span>
+<span id="L115"><span class="lineNum">     115</span>                 :             : static GtkWidget *</span>
+<span id="L116"><span class="lineNum">     116</span>                 :<span class="tlaUNC">           0 : stream_list_create (gpointer item,</span></span>
+<span id="L117"><span class="lineNum">     117</span>                 :             :                     gpointer user_data)</span>
+<span id="L118"><span class="lineNum">     118</span>                 :             : {</span>
+<span id="L119"><span class="lineNum">     119</span>                 :<span class="tlaUNC">           0 :   ValentMixerRemote *self = VALENT_MIXER_REMOTE (user_data);</span></span>
+<span id="L120"><span class="lineNum">     120</span>                 :<span class="tlaUNC">           0 :   ValentMixerStream *stream = VALENT_MIXER_STREAM (item);</span></span>
+<span id="L121"><span class="lineNum">     121</span>                 :<span class="tlaUNC">           0 :   ValentMixerStream *default_output = NULL;</span></span>
+<span id="L122"><span class="lineNum">     122</span>                 :<span class="tlaUNC">           0 :   GtkAdjustment *adjustment;</span></span>
+<span id="L123"><span class="lineNum">     123</span>                 :<span class="tlaUNC">           0 :   GtkWidget *row;</span></span>
+<span id="L124"><span class="lineNum">     124</span>                 :<span class="tlaUNC">           0 :   GtkWidget *grid;</span></span>
+<span id="L125"><span class="lineNum">     125</span>                 :<span class="tlaUNC">           0 :   GtkWidget *radio;</span></span>
+<span id="L126"><span class="lineNum">     126</span>                 :<span class="tlaUNC">           0 :   GtkWidget *button;</span></span>
+<span id="L127"><span class="lineNum">     127</span>                 :<span class="tlaUNC">           0 :   GtkWidget *label;</span></span>
+<span id="L128"><span class="lineNum">     128</span>                 :<span class="tlaUNC">           0 :   GtkWidget *slider;</span></span>
+<span id="L129"><span class="lineNum">     129</span>                 :             : </span>
+<span id="L130"><span class="lineNum">     130</span>                 :<span class="tlaUNC">           0 :   default_output = valent_mixer_adapter_get_default_output (self-&gt;adapter);</span></span>
+<span id="L131"><span class="lineNum">     131</span>                 :             : </span>
+<span id="L132"><span class="lineNum">     132</span>                 :<span class="tlaUNC">           0 :   grid = g_object_new (GTK_TYPE_GRID,</span></span>
+<span id="L133"><span class="lineNum">     133</span>                 :             :                        &quot;row-spacing&quot;, 8,</span>
+<span id="L134"><span class="lineNum">     134</span>                 :             :                        NULL);</span>
+<span id="L135"><span class="lineNum">     135</span>                 :             : </span>
+<span id="L136"><span class="lineNum">     136</span>                 :<span class="tlaUNC">           0 :   radio = g_object_new (GTK_TYPE_CHECK_BUTTON,</span></span>
+<span id="L137"><span class="lineNum">     137</span>                 :             :                         &quot;active&quot;, (default_output == stream),</span>
+<span id="L138"><span class="lineNum">     138</span>                 :             :                         &quot;group&quot;,  self-&gt;group,</span>
+<span id="L139"><span class="lineNum">     139</span>                 :             :                         &quot;valign&quot;, GTK_ALIGN_CENTER,</span>
+<span id="L140"><span class="lineNum">     140</span>                 :             :                         NULL);</span>
+<span id="L141"><span class="lineNum">     141</span>                 :<span class="tlaUNC">           0 :   g_signal_connect_object (radio,</span></span>
+<span id="L142"><span class="lineNum">     142</span>                 :             :                            &quot;toggled&quot;,</span>
+<span id="L143"><span class="lineNum">     143</span>                 :             :                            G_CALLBACK (on_stream_selected),</span>
+<span id="L144"><span class="lineNum">     144</span>                 :             :                            self,</span>
+<span id="L145"><span class="lineNum">     145</span>                 :             :                            G_CONNECT_DEFAULT);</span>
+<span id="L146"><span class="lineNum">     146</span>                 :<span class="tlaUNC">           0 :   g_object_set_data (G_OBJECT (radio), &quot;valent-mixer-stream&quot;, stream);</span></span>
+<span id="L147"><span class="lineNum">     147</span>                 :<span class="tlaUNC">           0 :   gtk_grid_attach (GTK_GRID (grid), radio, 0, 0, 2, 1);</span></span>
+<span id="L148"><span class="lineNum">     148</span>                 :             : </span>
+<span id="L149"><span class="lineNum">     149</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :   if (self-&gt;group == NULL)</span></span>
+<span id="L150"><span class="lineNum">     150</span>                 :<span class="tlaUNC">           0 :     self-&gt;group = radio;</span></span>
+<span id="L151"><span class="lineNum">     151</span>                 :             : </span>
+<span id="L152"><span class="lineNum">     152</span>                 :<span class="tlaUNC">           0 :   label = g_object_new (GTK_TYPE_LABEL,</span></span>
+<span id="L153"><span class="lineNum">     153</span>                 :             :                         &quot;label&quot;,     valent_mixer_stream_get_description (stream),</span>
+<span id="L154"><span class="lineNum">     154</span>                 :             :                         &quot;ellipsize&quot;, PANGO_ELLIPSIZE_END,</span>
+<span id="L155"><span class="lineNum">     155</span>                 :             :                         &quot;xalign&quot;,    0.0,</span>
+<span id="L156"><span class="lineNum">     156</span>                 :             :                         NULL);</span>
+<span id="L157"><span class="lineNum">     157</span>                 :<span class="tlaUNC">           0 :   g_object_bind_property (stream, &quot;description&quot;,</span></span>
+<span id="L158"><span class="lineNum">     158</span>                 :             :                           label,  &quot;label&quot;,</span>
+<span id="L159"><span class="lineNum">     159</span>                 :             :                           G_BINDING_DEFAULT);</span>
+<span id="L160"><span class="lineNum">     160</span>                 :<span class="tlaUNC">           0 :   gtk_check_button_set_child (GTK_CHECK_BUTTON (radio), label);</span></span>
+<span id="L161"><span class="lineNum">     161</span>                 :             : </span>
+<span id="L162"><span class="lineNum">     162</span>                 :<span class="tlaUNC">           0 :   button = g_object_new (GTK_TYPE_TOGGLE_BUTTON,</span></span>
+<span id="L163"><span class="lineNum">     163</span>                 :             :                          &quot;active&quot;,    valent_mixer_stream_get_muted (stream),</span>
+<span id="L164"><span class="lineNum">     164</span>                 :             :                          &quot;icon-name&quot;, &quot;audio-volume-medium-symbolic&quot;,</span>
+<span id="L165"><span class="lineNum">     165</span>                 :             :                          NULL);</span>
+<span id="L166"><span class="lineNum">     166</span>                 :<span class="tlaUNC">           0 :   gtk_widget_add_css_class (button, &quot;circular&quot;);</span></span>
+<span id="L167"><span class="lineNum">     167</span>                 :<span class="tlaUNC">           0 :   gtk_widget_add_css_class (button, &quot;flat&quot;);</span></span>
+<span id="L168"><span class="lineNum">     168</span>                 :<span class="tlaUNC">           0 :   g_signal_connect_object (stream,</span></span>
+<span id="L169"><span class="lineNum">     169</span>                 :             :                            &quot;notify::muted&quot;,</span>
+<span id="L170"><span class="lineNum">     170</span>                 :             :                            G_CALLBACK (update_icon_cb),</span>
+<span id="L171"><span class="lineNum">     171</span>                 :             :                            button,</span>
+<span id="L172"><span class="lineNum">     172</span>                 :             :                            G_CONNECT_DEFAULT);</span>
+<span id="L173"><span class="lineNum">     173</span>                 :<span class="tlaUNC">           0 :   g_object_bind_property (stream, &quot;muted&quot;,</span></span>
+<span id="L174"><span class="lineNum">     174</span>                 :             :                           button, &quot;active&quot;,</span>
+<span id="L175"><span class="lineNum">     175</span>                 :             :                           G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);</span>
+<span id="L176"><span class="lineNum">     176</span>                 :<span class="tlaUNC">           0 :   gtk_grid_attach (GTK_GRID (grid), button, 0, 1, 1, 1);</span></span>
+<span id="L177"><span class="lineNum">     177</span>                 :             : </span>
+<span id="L178"><span class="lineNum">     178</span>                 :<span class="tlaUNC">           0 :   adjustment = gtk_adjustment_new (valent_mixer_stream_get_level (stream),</span></span>
+<span id="L179"><span class="lineNum">     179</span>                 :             :                                    0.0, 110.0,</span>
+<span id="L180"><span class="lineNum">     180</span>                 :             :                                    1.0,   // step increment</span>
+<span id="L181"><span class="lineNum">     181</span>                 :             :                                    2.0,   // page increment</span>
+<span id="L182"><span class="lineNum">     182</span>                 :             :                                    10.0); // page size</span>
+<span id="L183"><span class="lineNum">     183</span>                 :<span class="tlaUNC">           0 :   g_object_bind_property (stream,     &quot;level&quot;,</span></span>
+<span id="L184"><span class="lineNum">     184</span>                 :             :                           adjustment, &quot;value&quot;,</span>
+<span id="L185"><span class="lineNum">     185</span>                 :             :                           G_BINDING_DEFAULT);</span>
+<span id="L186"><span class="lineNum">     186</span>                 :<span class="tlaUNC">           0 :   g_signal_connect_object (stream,</span></span>
+<span id="L187"><span class="lineNum">     187</span>                 :             :                            &quot;notify::level&quot;,</span>
+<span id="L188"><span class="lineNum">     188</span>                 :             :                            G_CALLBACK (update_icon_cb),</span>
+<span id="L189"><span class="lineNum">     189</span>                 :             :                            button,</span>
+<span id="L190"><span class="lineNum">     190</span>                 :             :                            G_CONNECT_DEFAULT);</span>
+<span id="L191"><span class="lineNum">     191</span>                 :<span class="tlaUNC">           0 :   slider = g_object_new (GTK_TYPE_SCALE,</span></span>
+<span id="L192"><span class="lineNum">     192</span>                 :             :                         &quot;adjustment&quot;, adjustment,</span>
+<span id="L193"><span class="lineNum">     193</span>                 :             :                         &quot;hexpand&quot;,    TRUE,</span>
+<span id="L194"><span class="lineNum">     194</span>                 :             :                         NULL);</span>
+<span id="L195"><span class="lineNum">     195</span>                 :<span class="tlaUNC">           0 :   g_signal_connect_object (slider,</span></span>
+<span id="L196"><span class="lineNum">     196</span>                 :             :                            &quot;change-value&quot;,</span>
+<span id="L197"><span class="lineNum">     197</span>                 :             :                            G_CALLBACK (on_change_value),</span>
+<span id="L198"><span class="lineNum">     198</span>                 :             :                            stream,</span>
+<span id="L199"><span class="lineNum">     199</span>                 :             :                            G_CONNECT_DEFAULT);</span>
+<span id="L200"><span class="lineNum">     200</span>                 :<span class="tlaUNC">           0 :   gtk_grid_attach (GTK_GRID (grid), slider, 1, 1, 1, 1);</span></span>
+<span id="L201"><span class="lineNum">     201</span>                 :             : </span>
+<span id="L202"><span class="lineNum">     202</span>                 :<span class="tlaUNC">           0 :   row = g_object_new (GTK_TYPE_LIST_BOX_ROW,</span></span>
+<span id="L203"><span class="lineNum">     203</span>                 :             :                       &quot;activatable&quot;, FALSE,</span>
+<span id="L204"><span class="lineNum">     204</span>                 :             :                       &quot;selectable&quot;,  FALSE,</span>
+<span id="L205"><span class="lineNum">     205</span>                 :             :                       &quot;child&quot;,       grid,</span>
+<span id="L206"><span class="lineNum">     206</span>                 :             :                       NULL);</span>
+<span id="L207"><span class="lineNum">     207</span>                 :<span class="tlaUNC">           0 :   gtk_widget_add_css_class (row, &quot;valent-mixer-row&quot;);</span></span>
+<span id="L208"><span class="lineNum">     208</span>                 :<span class="tlaUNC">           0 :   gtk_accessible_update_relation (GTK_ACCESSIBLE (row),</span></span>
+<span id="L209"><span class="lineNum">     209</span>                 :             :                                   GTK_ACCESSIBLE_RELATION_DESCRIBED_BY, label, NULL,</span>
+<span id="L210"><span class="lineNum">     210</span>                 :             :                                   -1);</span>
+<span id="L211"><span class="lineNum">     211</span>                 :             : </span>
+<span id="L212"><span class="lineNum">     212</span>                 :<span class="tlaUNC">           0 :   return row;</span></span>
+<span id="L213"><span class="lineNum">     213</span>                 :             : }</span>
+<span id="L214"><span class="lineNum">     214</span>                 :             : </span>
+<span id="L215"><span class="lineNum">     215</span>                 :             : static void</span>
+<span id="L216"><span class="lineNum">     216</span>                 :<span class="tlaGNC tlaBgGNC">           2 : valent_mixer_remote_set_mixer (ValentMixerRemote  *self,</span></span>
+<span id="L217"><span class="lineNum">     217</span>                 :             :                                ValentMixerAdapter *mixer)</span>
+<span id="L218"><span class="lineNum">     218</span>                 :             : {</span>
+<span id="L219"><span class="lineNum">     219</span>         [<span class="tlaUNC" title="Branch 0 was not taken"> - </span><span class="tlaGBC" title="Branch 1 was taken 2 times"> + </span>]:<span class="tlaGNC">           2 :   g_assert (VALENT_IS_MIXER_REMOTE (self));</span></span>
+<span id="L220"><span class="lineNum">     220</span>   [<span class="tlaUNC" title="Branch 0 was not taken"> - </span><span class="tlaGBC" title="Branch 1 was taken 2 times"> + </span><span class="tlaUNC" title="Branch 2 was not taken"> - </span><span class="tlaUNC" title="Branch 3 was not taken"> - </span>]:<span class="tlaGNC">           2 :   g_assert (mixer == NULL || VALENT_IS_MIXER_ADAPTER (mixer));</span></span>
+<span id="L221"><span class="lineNum">     221</span>                 :             : </span>
+<span id="L222"><span class="lineNum">     222</span>         [<span class="tlaUNC" title="Branch 0 was not taken"> - </span><span class="tlaGBC" title="Branch 1 was taken 2 times"> + </span>]:<span class="tlaGNC">           2 :   if (g_set_object (&amp;self-&gt;adapter, mixer))</span></span>
+<span id="L223"><span class="lineNum">     223</span>                 :             :     {</span>
+<span id="L224"><span class="lineNum">     224</span>                 :<span class="tlaUNC tlaBgUNC">           0 :       self-&gt;group = NULL;</span></span>
+<span id="L225"><span class="lineNum">     225</span>                 :<span class="tlaUNC">           0 :       g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_MIXER]);</span></span>
+<span id="L226"><span class="lineNum">     226</span>                 :             :     }</span>
+<span id="L227"><span class="lineNum">     227</span>                 :<span class="tlaGNC tlaBgGNC">           2 : }</span></span>
+<span id="L228"><span class="lineNum">     228</span>                 :             : </span>
+<span id="L229"><span class="lineNum">     229</span>                 :             : /*</span>
+<span id="L230"><span class="lineNum">     230</span>                 :             :  * GObject</span>
+<span id="L231"><span class="lineNum">     231</span>                 :             :  */</span>
+<span id="L232"><span class="lineNum">     232</span>                 :             : static void</span>
+<span id="L233"><span class="lineNum">     233</span>                 :<span class="tlaGNC">           1 : valent_mixer_remote_dispose (GObject *object)</span></span>
+<span id="L234"><span class="lineNum">     234</span>                 :             : {</span>
+<span id="L235"><span class="lineNum">     235</span>                 :<span class="tlaGNC">           1 :   ValentMixerRemote *self = VALENT_MIXER_REMOTE (object);</span></span>
+<span id="L236"><span class="lineNum">     236</span>                 :             : </span>
+<span id="L237"><span class="lineNum">     237</span>         [<span class="tlaUNC" title="Branch 0 was not taken"> - </span><span class="tlaGBC" title="Branch 1 was taken 1 time"> + </span>]:<span class="tlaGNC">           1 :   if (self-&gt;adapter != NULL)</span></span>
+<span id="L238"><span class="lineNum">     238</span>                 :             :     {</span>
+<span id="L239"><span class="lineNum">     239</span>                 :<span class="tlaUNC tlaBgUNC">           0 :       g_signal_handlers_disconnect_by_data (self-&gt;adapter, self);</span></span>
+<span id="L240"><span class="lineNum">     240</span>         [<span class="tlaUNC" title="Branch 0 was not executed"> # </span><span class="tlaUNC" title="Branch 1 was not executed"> # </span>]:<span class="tlaUNC">           0 :       g_clear_object (&amp;self-&gt;adapter);</span></span>
+<span id="L241"><span class="lineNum">     241</span>                 :             :     }</span>
+<span id="L242"><span class="lineNum">     242</span>                 :             : </span>
+<span id="L243"><span class="lineNum">     243</span>                 :<span class="tlaGNC tlaBgGNC">           1 :   G_OBJECT_CLASS (valent_mixer_remote_parent_class)-&gt;dispose (object);</span></span>
+<span id="L244"><span class="lineNum">     244</span>                 :<span class="tlaGNC">           1 : }</span></span>
+<span id="L245"><span class="lineNum">     245</span>                 :             : </span>
+<span id="L246"><span class="lineNum">     246</span>                 :             : static void</span>
+<span id="L247"><span class="lineNum">     247</span>                 :<span class="tlaGNC">           1 : valent_mixer_remote_get_property (GObject    *object,</span></span>
+<span id="L248"><span class="lineNum">     248</span>                 :             :                                   guint       prop_id,</span>
+<span id="L249"><span class="lineNum">     249</span>                 :             :                                   GValue     *value,</span>
+<span id="L250"><span class="lineNum">     250</span>                 :             :                                   GParamSpec *pspec)</span>
+<span id="L251"><span class="lineNum">     251</span>                 :             : {</span>
+<span id="L252"><span class="lineNum">     252</span>                 :<span class="tlaGNC">           1 :   ValentMixerRemote *self = VALENT_MIXER_REMOTE (object);</span></span>
+<span id="L253"><span class="lineNum">     253</span>                 :             : </span>
+<span id="L254"><span class="lineNum">     254</span>         [<span class="tlaGBC" title="Branch 0 was taken 1 time"> + </span><span class="tlaUNC" title="Branch 1 was not taken"> - </span>]:<span class="tlaGNC">           1 :   switch ((ValentMixerRemoteProperty)prop_id)</span></span>
+<span id="L255"><span class="lineNum">     255</span>                 :             :     {</span>
+<span id="L256"><span class="lineNum">     256</span>                 :<span class="tlaGNC">           1 :     case PROP_MIXER:</span></span>
+<span id="L257"><span class="lineNum">     257</span>                 :<span class="tlaGNC">           1 :       g_value_set_object (value, self-&gt;adapter);</span></span>
+<span id="L258"><span class="lineNum">     258</span>                 :<span class="tlaGNC">           1 :       break;</span></span>
+<span id="L259"><span class="lineNum">     259</span>                 :             : </span>
+<span id="L260"><span class="lineNum">     260</span>                 :<span class="tlaUNC tlaBgUNC">           0 :     default:</span></span>
+<span id="L261"><span class="lineNum">     261</span>                 :<span class="tlaUNC">           0 :       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);</span></span>
+<span id="L262"><span class="lineNum">     262</span>                 :             :     }</span>
+<span id="L263"><span class="lineNum">     263</span>                 :<span class="tlaGNC tlaBgGNC">           1 : }</span></span>
+<span id="L264"><span class="lineNum">     264</span>                 :             : </span>
+<span id="L265"><span class="lineNum">     265</span>                 :             : static void</span>
+<span id="L266"><span class="lineNum">     266</span>                 :<span class="tlaGNC">           2 : valent_mixer_remote_set_property (GObject      *object,</span></span>
+<span id="L267"><span class="lineNum">     267</span>                 :             :                                   guint         prop_id,</span>
+<span id="L268"><span class="lineNum">     268</span>                 :             :                                   const GValue *value,</span>
+<span id="L269"><span class="lineNum">     269</span>                 :             :                                   GParamSpec   *pspec)</span>
+<span id="L270"><span class="lineNum">     270</span>                 :             : {</span>
+<span id="L271"><span class="lineNum">     271</span>                 :<span class="tlaGNC">           2 :   ValentMixerRemote *self = VALENT_MIXER_REMOTE (object);</span></span>
+<span id="L272"><span class="lineNum">     272</span>                 :             : </span>
+<span id="L273"><span class="lineNum">     273</span>         [<span class="tlaGBC" title="Branch 0 was taken 2 times"> + </span><span class="tlaUNC" title="Branch 1 was not taken"> - </span>]:<span class="tlaGNC">           2 :   switch ((ValentMixerRemoteProperty)prop_id)</span></span>
+<span id="L274"><span class="lineNum">     274</span>                 :             :     {</span>
+<span id="L275"><span class="lineNum">     275</span>                 :<span class="tlaGNC">           2 :     case PROP_MIXER:</span></span>
+<span id="L276"><span class="lineNum">     276</span>                 :<span class="tlaGNC">           2 :       valent_mixer_remote_set_mixer (self, g_value_get_object (value));</span></span>
+<span id="L277"><span class="lineNum">     277</span>                 :<span class="tlaGNC">           2 :       break;</span></span>
+<span id="L278"><span class="lineNum">     278</span>                 :             : </span>
+<span id="L279"><span class="lineNum">     279</span>                 :<span class="tlaUNC tlaBgUNC">           0 :     default:</span></span>
+<span id="L280"><span class="lineNum">     280</span>                 :<span class="tlaUNC">           0 :       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);</span></span>
+<span id="L281"><span class="lineNum">     281</span>                 :             :     }</span>
+<span id="L282"><span class="lineNum">     282</span>                 :<span class="tlaGNC tlaBgGNC">           2 : }</span></span>
+<span id="L283"><span class="lineNum">     283</span>                 :             : </span>
+<span id="L284"><span class="lineNum">     284</span>                 :             : static void</span>
+<span id="L285"><span class="lineNum">     285</span>                 :<span class="tlaGNC">           1 : valent_mixer_remote_class_init (ValentMixerRemoteClass *klass)</span></span>
+<span id="L286"><span class="lineNum">     286</span>                 :             : {</span>
+<span id="L287"><span class="lineNum">     287</span>                 :<span class="tlaGNC">           1 :   GObjectClass *object_class = G_OBJECT_CLASS (klass);</span></span>
+<span id="L288"><span class="lineNum">     288</span>                 :<span class="tlaGNC">           1 :   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);</span></span>
+<span id="L289"><span class="lineNum">     289</span>                 :             : </span>
+<span id="L290"><span class="lineNum">     290</span>                 :<span class="tlaGNC">           1 :   object_class-&gt;dispose = valent_mixer_remote_dispose;</span></span>
+<span id="L291"><span class="lineNum">     291</span>                 :<span class="tlaGNC">           1 :   object_class-&gt;get_property = valent_mixer_remote_get_property;</span></span>
+<span id="L292"><span class="lineNum">     292</span>                 :<span class="tlaGNC">           1 :   object_class-&gt;set_property = valent_mixer_remote_set_property;</span></span>
+<span id="L293"><span class="lineNum">     293</span>                 :             : </span>
+<span id="L294"><span class="lineNum">     294</span>                 :<span class="tlaGNC">           1 :   gtk_widget_class_set_template_from_resource (widget_class, &quot;/plugins/gnome/valent-mixer-remote.ui&quot;);</span></span>
+<span id="L295"><span class="lineNum">     295</span>                 :<span class="tlaGNC">           1 :   gtk_widget_class_bind_template_child (widget_class, ValentMixerRemote, stream_list);</span></span>
+<span id="L296"><span class="lineNum">     296</span>                 :<span class="tlaGNC">           1 :   gtk_widget_class_bind_template_child (widget_class, ValentMixerRemote, filter);</span></span>
+<span id="L297"><span class="lineNum">     297</span>                 :<span class="tlaGNC">           1 :   gtk_widget_class_bind_template_child (widget_class, ValentMixerRemote, model);</span></span>
+<span id="L298"><span class="lineNum">     298</span>                 :             : </span>
+<span id="L299"><span class="lineNum">     299</span>                 :<span class="tlaGNC">           2 :   properties [PROP_MIXER] =</span></span>
+<span id="L300"><span class="lineNum">     300</span>                 :<span class="tlaGNC">           1 :     g_param_spec_object (&quot;mixer&quot;, NULL, NULL,</span></span>
+<span id="L301"><span class="lineNum">     301</span>                 :             :                          VALENT_TYPE_MIXER_ADAPTER,</span>
+<span id="L302"><span class="lineNum">     302</span>                 :             :                          (G_PARAM_READWRITE |</span>
+<span id="L303"><span class="lineNum">     303</span>                 :             :                           G_PARAM_EXPLICIT_NOTIFY |</span>
+<span id="L304"><span class="lineNum">     304</span>                 :             :                           G_PARAM_STATIC_STRINGS));</span>
+<span id="L305"><span class="lineNum">     305</span>                 :             : </span>
+<span id="L306"><span class="lineNum">     306</span>                 :<span class="tlaGNC">           1 :   g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);</span></span>
+<span id="L307"><span class="lineNum">     307</span>                 :<span class="tlaGNC">           1 : }</span></span>
+<span id="L308"><span class="lineNum">     308</span>                 :             : </span>
+<span id="L309"><span class="lineNum">     309</span>                 :             : static void</span>
+<span id="L310"><span class="lineNum">     310</span>                 :<span class="tlaGNC">           1 : valent_mixer_remote_init (ValentMixerRemote *self)</span></span>
+<span id="L311"><span class="lineNum">     311</span>                 :             : {</span>
+<span id="L312"><span class="lineNum">     312</span>                 :<span class="tlaGNC">           1 :   gtk_widget_init_template (GTK_WIDGET (self));</span></span>
+<span id="L313"><span class="lineNum">     313</span>                 :             : </span>
+<span id="L314"><span class="lineNum">     314</span>                 :<span class="tlaGNC">           1 :   gtk_custom_filter_set_filter_func (GTK_CUSTOM_FILTER (self-&gt;filter),</span></span>
+<span id="L315"><span class="lineNum">     315</span>                 :             :                                      valent_mixer_output_filter,</span>
+<span id="L316"><span class="lineNum">     316</span>                 :             :                                      self,</span>
+<span id="L317"><span class="lineNum">     317</span>                 :             :                                      NULL);</span>
+<span id="L318"><span class="lineNum">     318</span>                 :<span class="tlaGNC">           1 :   gtk_list_box_bind_model (self-&gt;stream_list,</span></span>
+<span id="L319"><span class="lineNum">     319</span>                 :<span class="tlaGNC">           1 :                            G_LIST_MODEL (self-&gt;model),</span></span>
+<span id="L320"><span class="lineNum">     320</span>                 :             :                            stream_list_create,</span>
+<span id="L321"><span class="lineNum">     321</span>                 :             :                            self,</span>
+<span id="L322"><span class="lineNum">     322</span>                 :             :                            NULL);</span>
+<span id="L323"><span class="lineNum">     323</span>                 :<span class="tlaGNC">           1 : }</span></span>
+<span id="L324"><span class="lineNum">     324</span>                 :             : </span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.0-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

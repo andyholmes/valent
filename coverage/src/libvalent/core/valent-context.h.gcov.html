@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - Code Coverage - src/libvalent/core/valent-context.h</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">src/libvalent/core</a> - valent-context.h<span style="font-size: 80%;"> (source / <a href="valent-context.h.func-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">Code Coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2026-01-02 21:11:20</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+            | Branches:
+            <span class="coverLegendCov">+</span> taken
+            <span class="coverLegendNoCov">-</span> not taken
+            <span class="coverLegendNoCov">#</span> not executed
+</td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntryMed">80.0&nbsp;%</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntry">8</td>
+          </tr>
+                  <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">             Branch data     Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>                 :             : // SPDX-License-Identifier: GPL-3.0-or-later</span>
+<span id="L2"><span class="lineNum">       2</span>                 :             : // SPDX-FileCopyrightText: Andy Holmes &lt;andrew.g.r.holmes@gmail.com&gt;</span>
+<span id="L3"><span class="lineNum">       3</span>                 :             : </span>
+<span id="L4"><span class="lineNum">       4</span>                 :             : #pragma once</span>
+<span id="L5"><span class="lineNum">       5</span>                 :             : </span>
+<span id="L6"><span class="lineNum">       6</span>                 :             : #if !defined (VALENT_INSIDE) &amp;&amp; !defined (VALENT_COMPILATION)</span>
+<span id="L7"><span class="lineNum">       7</span>                 :             : # error &quot;Only &lt;valent.h&gt; can be included directly.&quot;</span>
+<span id="L8"><span class="lineNum">       8</span>                 :             : #endif</span>
+<span id="L9"><span class="lineNum">       9</span>                 :             : </span>
+<span id="L10"><span class="lineNum">      10</span>                 :             : #include &lt;libpeas.h&gt;</span>
+<span id="L11"><span class="lineNum">      11</span>                 :             : </span>
+<span id="L12"><span class="lineNum">      12</span>                 :             : #include &quot;valent-object.h&quot;</span>
+<span id="L13"><span class="lineNum">      13</span>                 :             : </span>
+<span id="L14"><span class="lineNum">      14</span>                 :             : G_BEGIN_DECLS</span>
+<span id="L15"><span class="lineNum">      15</span>                 :             : </span>
+<span id="L16"><span class="lineNum">      16</span>                 :             : #define VALENT_TYPE_CONTEXT (valent_context_get_type())</span>
+<span id="L17"><span class="lineNum">      17</span>                 :             : </span>
+<span id="L18"><span class="lineNum">      18</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L19"><span class="lineNum">      19</span>   [<span class="tlaGBC" title="Branch 0 was taken 2062 times"> + </span><span class="tlaGBC" title="Branch 1 was taken 97 times"> + </span><span class="tlaGBC" title="Branch 2 was taken 2067 times"> + </span><span class="tlaUNC" title="Branch 3 was not taken"> - </span> :<span class="tlaGNC tlaBgGNC">        2616 : G_DECLARE_FINAL_TYPE (ValentContext, valent_context, VALENT, CONTEXT, ValentObject)</span></span>
+<span class="lineNum">        </span> <span class="tlaGBC" title="Branch 4 was taken 162 times"> + </span><span class="tlaGBC" title="Branch 5 was taken 1839 times"> + </span><span class="tlaGBC" title="Branch 6 was taken 81 times"> + </span><span class="tlaGBC" title="Branch 7 was taken 114 times"> + </span><span class="tlaUNC" title="Branch 8 was not taken"> - </span> 
+<span class="lineNum">        </span>             <span class="tlaGBC" title="Branch 9 was taken 2 times"> + </span>]
+<span id="L20"><span class="lineNum">      20</span>                 :             : </span>
+<span id="L21"><span class="lineNum">      21</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L22"><span class="lineNum">      22</span>                 :             : ValentContext * valent_context_new                 (ValentContext  *parent,</span>
+<span id="L23"><span class="lineNum">      23</span>                 :             :                                                     const char     *domain,</span>
+<span id="L24"><span class="lineNum">      24</span>                 :             :                                                     const char     *id);</span>
+<span id="L25"><span class="lineNum">      25</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L26"><span class="lineNum">      26</span>                 :             : GFile         * valent_context_get_cache_file      (ValentContext  *context,</span>
+<span id="L27"><span class="lineNum">      27</span>                 :             :                                                     const char     *filename);</span>
+<span id="L28"><span class="lineNum">      28</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L29"><span class="lineNum">      29</span>                 :             : GFile         * valent_context_get_config_file     (ValentContext  *context,</span>
+<span id="L30"><span class="lineNum">      30</span>                 :             :                                                     const char     *filename);</span>
+<span id="L31"><span class="lineNum">      31</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L32"><span class="lineNum">      32</span>                 :             : GFile         * valent_context_get_data_file       (ValentContext  *context,</span>
+<span id="L33"><span class="lineNum">      33</span>                 :             :                                                     const char     *filename);</span>
+<span id="L34"><span class="lineNum">      34</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L35"><span class="lineNum">      35</span>                 :             : const char    * valent_context_get_domain          (ValentContext  *context);</span>
+<span id="L36"><span class="lineNum">      36</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L37"><span class="lineNum">      37</span>                 :             : const char    * valent_context_get_id              (ValentContext  *context);</span>
+<span id="L38"><span class="lineNum">      38</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L39"><span class="lineNum">      39</span>                 :             : ValentContext * valent_context_get_parent          (ValentContext  *context);</span>
+<span id="L40"><span class="lineNum">      40</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L41"><span class="lineNum">      41</span>                 :             : const char    * valent_context_get_path            (ValentContext  *context);</span>
+<span id="L42"><span class="lineNum">      42</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L43"><span class="lineNum">      43</span>                 :             : ValentContext * valent_context_get_plugin_context  (ValentContext  *context,</span>
+<span id="L44"><span class="lineNum">      44</span>                 :             :                                                     PeasPluginInfo *plugin_info);</span>
+<span id="L45"><span class="lineNum">      45</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L46"><span class="lineNum">      46</span>                 :             : GSettings     * valent_context_get_plugin_settings (ValentContext  *context,</span>
+<span id="L47"><span class="lineNum">      47</span>                 :             :                                                     PeasPluginInfo *plugin_info,</span>
+<span id="L48"><span class="lineNum">      48</span>                 :             :                                                     const char     *plugin_key);</span>
+<span id="L49"><span class="lineNum">      49</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L50"><span class="lineNum">      50</span>                 :             : void            valent_context_clear_cache         (ValentContext  *context);</span>
+<span id="L51"><span class="lineNum">      51</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L52"><span class="lineNum">      52</span>                 :             : void            valent_context_clear               (ValentContext  *context);</span>
+<span id="L53"><span class="lineNum">      53</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L54"><span class="lineNum">      54</span>                 :             : GSettings     * valent_context_create_settings     (ValentContext  *context,</span>
+<span id="L55"><span class="lineNum">      55</span>                 :             :                                                     const char     *schema_id);</span>
+<span id="L56"><span class="lineNum">      56</span>                 :             : </span>
+<span id="L57"><span class="lineNum">      57</span>                 :             : G_END_DECLS</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.0-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

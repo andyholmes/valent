@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - Code Coverage - src/libvalent/messages/valent-messages-adapter.h</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../index.html">top level</a> - <a href="index.html">src/libvalent/messages</a> - valent-messages-adapter.h<span style="font-size: 80%;"> (source / <a href="valent-messages-adapter.h.func-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">Code Coverage</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2026-01-02 21:11:20</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">100.0&nbsp;%</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">1</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Legend:</td>
+            <td class="headerValueLeg">            Lines:
+            <span class="coverLegendCov">hit</span>
+            <span class="coverLegendNoCov">not hit</span>
+            | Branches:
+            <span class="coverLegendCov">+</span> taken
+            <span class="coverLegendNoCov">-</span> not taken
+            <span class="coverLegendNoCov">#</span> not executed
+</td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntryMed">75.0&nbsp;%</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntry">9</td>
+          </tr>
+                  <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">             Branch data     Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>                 :             : // SPDX-License-Identifier: GPL-3.0-or-later</span>
+<span id="L2"><span class="lineNum">       2</span>                 :             : // SPDX-FileCopyrightText: Andy Holmes &lt;andrew.g.r.holmes@gmail.com&gt;</span>
+<span id="L3"><span class="lineNum">       3</span>                 :             : </span>
+<span id="L4"><span class="lineNum">       4</span>                 :             : #pragma once</span>
+<span id="L5"><span class="lineNum">       5</span>                 :             : </span>
+<span id="L6"><span class="lineNum">       6</span>                 :             : #if !defined (VALENT_INSIDE) &amp;&amp; !defined (VALENT_COMPILATION)</span>
+<span id="L7"><span class="lineNum">       7</span>                 :             : # error &quot;Only &lt;valent.h&gt; can be included directly.&quot;</span>
+<span id="L8"><span class="lineNum">       8</span>                 :             : #endif</span>
+<span id="L9"><span class="lineNum">       9</span>                 :             : </span>
+<span id="L10"><span class="lineNum">      10</span>                 :             : #include &lt;gio/gio.h&gt;</span>
+<span id="L11"><span class="lineNum">      11</span>                 :             : </span>
+<span id="L12"><span class="lineNum">      12</span>                 :             : #include &quot;../core/valent-extension.h&quot;</span>
+<span id="L13"><span class="lineNum">      13</span>                 :             : #include &quot;valent-message.h&quot;</span>
+<span id="L14"><span class="lineNum">      14</span>                 :             : </span>
+<span id="L15"><span class="lineNum">      15</span>                 :             : G_BEGIN_DECLS</span>
+<span id="L16"><span class="lineNum">      16</span>                 :             : </span>
+<span id="L17"><span class="lineNum">      17</span>                 :             : #define VALENT_TYPE_MESSAGES_ADAPTER (valent_messages_adapter_get_type())</span>
+<span id="L18"><span class="lineNum">      18</span>                 :             : </span>
+<span id="L19"><span class="lineNum">      19</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L20"><span class="lineNum">      20</span>   [<span class="tlaGBC" title="Branch 0 was taken 9 times"> + </span><span class="tlaGBC" title="Branch 1 was taken 1 time"> + </span><span class="tlaGBC" title="Branch 2 was taken 17 times"> + </span><span class="tlaGBC" title="Branch 3 was taken 1 time"> + </span> :<span class="tlaGNC tlaBgGNC">      184570 : G_DECLARE_DERIVABLE_TYPE (ValentMessagesAdapter, valent_messages_adapter, VALENT, MESSAGES_ADAPTER, ValentExtension)</span></span>
+<span class="lineNum">        </span> <span class="tlaGBC" title="Branch 4 was taken 17 times"> + </span><span class="tlaGBC" title="Branch 5 was taken 1 time"> + </span><span class="tlaGBC" title="Branch 6 was taken 184535 times"> + </span><span class="tlaUNC" title="Branch 7 was not taken"> - </span><span class="tlaGBC" title="Branch 8 was taken 184534 times"> + </span> 
+<span class="lineNum">        </span>       <span class="tlaUNC" title="Branch 9 was not taken"> - </span><span class="tlaGBC" title="Branch 10 was taken 184534 times"> + </span><span class="tlaUNC" title="Branch 11 was not taken"> - </span>]
+<span id="L21"><span class="lineNum">      21</span>                 :             : </span>
+<span id="L22"><span class="lineNum">      22</span>                 :             : struct _ValentMessagesAdapterClass</span>
+<span id="L23"><span class="lineNum">      23</span>                 :             : {</span>
+<span id="L24"><span class="lineNum">      24</span>                 :             :   ValentExtensionClass  parent_class;</span>
+<span id="L25"><span class="lineNum">      25</span>                 :             : </span>
+<span id="L26"><span class="lineNum">      26</span>                 :             :   /* virtual functions */</span>
+<span id="L27"><span class="lineNum">      27</span>                 :             :   void                  (*send_message)        (ValentMessagesAdapter  *adapter,</span>
+<span id="L28"><span class="lineNum">      28</span>                 :             :                                                 ValentMessage          *message,</span>
+<span id="L29"><span class="lineNum">      29</span>                 :             :                                                 GCancellable           *cancellable,</span>
+<span id="L30"><span class="lineNum">      30</span>                 :             :                                                 GAsyncReadyCallback     callback,</span>
+<span id="L31"><span class="lineNum">      31</span>                 :             :                                                 gpointer                user_data);</span>
+<span id="L32"><span class="lineNum">      32</span>                 :             :   gboolean              (*send_message_finish) (ValentMessagesAdapter  *adapter,</span>
+<span id="L33"><span class="lineNum">      33</span>                 :             :                                                 GAsyncResult           *result,</span>
+<span id="L34"><span class="lineNum">      34</span>                 :             :                                                 GError                **error);</span>
+<span id="L35"><span class="lineNum">      35</span>                 :             : </span>
+<span id="L36"><span class="lineNum">      36</span>                 :             :   /*&lt; private &gt;*/</span>
+<span id="L37"><span class="lineNum">      37</span>                 :             :   gpointer              padding[8];</span>
+<span id="L38"><span class="lineNum">      38</span>                 :             : };</span>
+<span id="L39"><span class="lineNum">      39</span>                 :             : </span>
+<span id="L40"><span class="lineNum">      40</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L41"><span class="lineNum">      41</span>                 :             : void       valent_messages_adapter_send_message        (ValentMessagesAdapter  *adapter,</span>
+<span id="L42"><span class="lineNum">      42</span>                 :             :                                                         ValentMessage          *message,</span>
+<span id="L43"><span class="lineNum">      43</span>                 :             :                                                         GCancellable           *cancellable,</span>
+<span id="L44"><span class="lineNum">      44</span>                 :             :                                                         GAsyncReadyCallback     callback,</span>
+<span id="L45"><span class="lineNum">      45</span>                 :             :                                                         gpointer                user_data);</span>
+<span id="L46"><span class="lineNum">      46</span>                 :             : VALENT_AVAILABLE_IN_1_0</span>
+<span id="L47"><span class="lineNum">      47</span>                 :             : gboolean   valent_messages_adapter_send_message_finish (ValentMessagesAdapter  *adapter,</span>
+<span id="L48"><span class="lineNum">      48</span>                 :             :                                                         GAsyncResult           *result,</span>
+<span id="L49"><span class="lineNum">      49</span>                 :             :                                                         GError                **error);</span>
+<span id="L50"><span class="lineNum">      50</span>                 :             : </span>
+<span id="L51"><span class="lineNum">      51</span>                 :             : G_END_DECLS</span>
+<span id="L52"><span class="lineNum">      52</span>                 :             : </span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.0-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>
