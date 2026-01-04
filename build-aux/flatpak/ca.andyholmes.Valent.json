@@ -296,7 +296,8 @@
                         "project-id": 350087,
                         "stable-only": true,
                         "tag-template": "$version"
-                    }
+                    },
+                    "commit": "19b64535408aa47abbc8151bc2c925afd6583851"
                 }
             ]
         },
