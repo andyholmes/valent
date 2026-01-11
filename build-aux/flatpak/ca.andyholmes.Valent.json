@@ -160,8 +160,8 @@
                         {
                             "type": "git",
                             "url": "https://github.com/abseil/abseil-cpp.git",
-                            "commit": "d38452e1ee03523a208362186fd42248ff2609f6",
-                            "tag": "20250814.1",
+                            "commit": "d407ef122a08203648451e0fec77b3f868b71112",
+                            "tag": "20260107.0",
                             "x-checker-data": {
                                 "type": "anitya",
                                 "project-id": 115295,
@@ -296,7 +296,8 @@
                         "project-id": 350087,
                         "stable-only": true,
                         "tag-template": "$version"
-                    }
+                    },
+                    "commit": "19b64535408aa47abbc8151bc2c925afd6583851"
                 }
             ]
         },
