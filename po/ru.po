@@ -8,241 +8,249 @@ msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
 "POT-Creation-Date: 2025-11-07 13:04-0800\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2026-02-13 16:09+0000\n"
+"Last-Translator: Xapitonov <sergejharitonov001@gmail.com>\n"
+"Language-Team: Russian <https://hosted.weblate.org/projects/valent/"
+"application/ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Weblate 5.16-dev\n"
 
 #: data/ca.andyholmes.Valent.desktop.in.in:2
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
 #: src/plugins/gnome/valent-window.c:220 src/plugins/gnome/valent-window.ui:8
 #: src/plugins/gnome/valent-window.ui:45
 msgid "Valent"
-msgstr ""
+msgstr "Valent"
 
 #: data/ca.andyholmes.Valent.desktop.in.in:3
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
 msgid "Connect, control and sync devices"
-msgstr ""
+msgstr "Подключение, управление и синхронизация устройств"
 
 #: data/ca.andyholmes.Valent.gschema.xml:10
 #: src/plugins/gnome/valent-preferences-command-editor.ui:41
 msgid "Name"
-msgstr ""
+msgstr "Имя"
 
 #: data/ca.andyholmes.Valent.gschema.xml:11
 msgid "The display name for the local device."
-msgstr ""
+msgstr "Отображаемое имя локального устройства."
 
 #: data/ca.andyholmes.Valent.gschema.xml:15
 #: src/plugins/gnome/valent-preferences-dialog.ui:93
 msgid "Device Addresses"
-msgstr ""
+msgstr "Адреса устройств"
 
 #: data/ca.andyholmes.Valent.gschema.xml:16
 #: src/plugins/gnome/valent-preferences-dialog.ui:63
 msgid "Add devices by hostname or IP address"
-msgstr ""
+msgstr "Добавьте устройства по имени хоста или IP-адресу"
 
 #: data/ca.andyholmes.Valent.gschema.xml:22
 msgid "Plugin State"
-msgstr ""
+msgstr "Состояние плагина"
 
 #: data/ca.andyholmes.Valent.gschema.xml:23
 msgid "Whether the plugin is enabled or not."
-msgstr ""
+msgstr "Включён плагин или нет."
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:15
 msgid ""
 "Securely connect your devices to open files and links where you need them, "
 "get notifications when you need them, stay in control of your media and more."
 msgstr ""
+"Безопасно подключайте устройства, чтобы открывать файлы и ссылки там, где "
+"нужно, получать уведомления вовремя, управлять медиа и многое другое."
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:19
 msgid "Features:"
-msgstr ""
+msgstr "Возможности:"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:23
 msgid "Sync contacts, notifications and clipboard content"
-msgstr ""
+msgstr "Синхронизация контактов, уведомлений и содержимого буфера обмена"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:24
 msgid "Control media players and volume"
-msgstr ""
+msgstr "Управление медиаплеерами и громкостью"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:25
 msgid "Share files, links and text"
-msgstr ""
+msgstr "Обмен файлами, ссылками и текстом"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:26
 msgid "Virtual touchpad and keyboard"
-msgstr ""
+msgstr "Виртуальный тачпад и клавиатура"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:27
 msgid "Call and text notification"
-msgstr ""
+msgstr "Уведомления о звонках и SMS"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:28
 msgid "Execute custom commands"
-msgstr ""
+msgstr "Выполнение пользовательских команд"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:29
 msgid "More…"
-msgstr ""
+msgstr "Ещё…"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:31
 msgid ""
 "Valent is an implementation of the KDE Connect protocol, built on GNOME "
 "platform libraries."
 msgstr ""
+"Valent — реализация протокола KDE Connect, построенная на библиотеках "
+"платформы GNOME."
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:42
 msgid "Support connecting to devices by IP address"
-msgstr ""
+msgstr "Поддержка подключения к устройствам по IP-адресу"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:43
 msgid "Support compose mode and grab release for input remote"
-msgstr ""
+msgstr "Поддержка режима compose и grab release для удалённого ввода"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:44
 msgid "Support mounting specific SFTP volumes"
-msgstr ""
+msgstr "Поддержка монтирования конкретных SFTP-томов"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:45
 msgid ""
 "Improve async operations for device connections, file transfers and mDNS"
-msgstr ""
+msgstr "Улучшение асинхронных операций для подключений, передачи файлов и mDNS"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:46
 msgid "Improve cross-platform support for launching URIs"
-msgstr ""
+msgstr "Улучшение кроссплатформенной поддержки запуска URI"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:47
 msgid "Various protocol updates"
-msgstr ""
+msgstr "Различные обновления протокола"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:48
 msgid "Fixes for certificates and devices IDs"
-msgstr ""
+msgstr "Исправления для сертификатов и ID устройств"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:49
 msgid "Fixes for modemmanager and signal strengths"
-msgstr ""
+msgstr "Исправления для modemmanager и уровня сигнала"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:50
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:61
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:76
 msgid "Translation updates"
-msgstr ""
+msgstr "Обновления переводов"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:58
 msgid "Support v8 of the KDE Connect protocol"
-msgstr ""
+msgstr "Поддержка версии 8 протокола KDE Connect"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:59
 msgid "The Contacts plugin has been rewritten with TinySPARQL"
-msgstr ""
+msgstr "Плагин контактов переписан с использованием TinySPARQL"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:60
 msgid "Drop the Mutter input adapter in favour of the XDG portal"
-msgstr ""
+msgstr "Удалён адаптер ввода Mutter в пользу XDG portal"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:69
 msgid "PipeWire support added"
-msgstr ""
+msgstr "Добавлена поддержка PipeWire"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:70
 msgid "The user interface has been absorbed by the `gnome` plugin"
-msgstr ""
+msgstr "Пользовательский интерфейс интегрирован в плагин `gnome`"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:71
 msgid "The SMS plugin has been rewritten with TinySPARQL"
-msgstr ""
+msgstr "Плагин SMS переписан с использованием TinySPARQL"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:72
 msgid "The share dialog has been redesigned"
-msgstr ""
+msgstr "Диалог обмена переработан"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:73
 msgid "The media dialog has been refactored, with some UI improvements"
-msgstr ""
+msgstr "Диалог медиа рефакторирован с улучшениями интерфейса"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:74
 msgid "Port to libawaita-1.5"
-msgstr ""
+msgstr "Порт на libawaita-1.5"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:75
 msgid ""
 "Updates to protocol implementation; certificates, device metadata, security"
 msgstr ""
+"Обновления реализации протокола: сертификаты, метаданные устройств, "
+"безопасность"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:83
 msgid "Initial release."
-msgstr ""
+msgstr "Первая версия."
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:90
 msgid "Connect to devices on your network"
-msgstr ""
+msgstr "Подключение к устройствам в сети"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:94
 msgid "Securely pair devices"
-msgstr ""
+msgstr "Безопасная привязка устройств"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:98
 msgid "Monitor and control remote devices"
-msgstr ""
+msgstr "Мониторинг и управление удалёнными устройствами"
 
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:116
 msgid "Andy Holmes"
-msgstr ""
+msgstr "Andy Holmes"
 
 #: src/libvalent/device/valent-device.c:734
 #, c-format
 msgid "Pairing request from “%s”"
-msgstr ""
+msgstr "Запрос на привязку от «%s»"
 
 #: src/libvalent/device/valent-device.c:744
 #: src/plugins/gnome/valent-device-page.ui:118
 msgid "Reject"
-msgstr ""
+msgstr "Отклонить"
 
 #: src/libvalent/device/valent-device.c:749
 #: src/plugins/gnome/valent-device-page.ui:132
 msgid "Accept"
-msgstr ""
+msgstr "Принять"
 
 #: src/plugins/battery/battery.plugin.desktop.in:6
 #: src/plugins/gnome/valent-device-page.ui:217
 #: src/plugins/gnome/valent-device-row.ui:124
 #: src/plugins/gnome/valent-preferences-status-page.ui:15
 msgid "Battery"
-msgstr ""
+msgstr "Аккумулятор"
 
 #: src/plugins/battery/battery.plugin.desktop.in:7
 msgid "Monitor battery level and charging state"
-msgstr ""
+msgstr "Мониторинг уровня заряда и состояния зарядки"
 
 #. TRANSLATORS: This is <device name>: Fully Charged
 #: src/plugins/battery/valent-battery-plugin.c:266
 #, c-format
 msgid "%s: Fully Charged"
-msgstr ""
+msgstr "%s: полностью заряжен"
 
 #. TRANSLATORS: When the battery level is at maximum
 #: src/plugins/battery/valent-battery-plugin.c:268
 msgid "Battery Fully Charged"
-msgstr ""
+msgstr "Аккумулятор полностью заряжен"
 
 #. TRANSLATORS: This is <device name>: Battery Low
 #: src/plugins/battery/valent-battery-plugin.c:295
 #, c-format
 msgid "%s: Battery Low"
-msgstr ""
+msgstr "%s: низкий заряд"
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
@@ -252,33 +260,33 @@ msgstr ""
 #: src/plugins/gnome/valent-device-row.c:156
 #, c-format
 msgid "%g%% (%d∶%02d Remaining)"
-msgstr ""
+msgstr "%g%% (%02d:%02d осталось)"
 
 #: src/plugins/bluez/bluez.plugin.desktop.in:6
 msgid "Bluez"
-msgstr ""
+msgstr "Bluez"
 
 #: src/plugins/bluez/bluez.plugin.desktop.in:7
 msgid "Connect devices over Bluetooth"
-msgstr ""
+msgstr "Подключение устройств по Bluetooth"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:6
 #: src/plugins/gnome/valent-preferences-dialog.c:610
 #: src/plugins/gnome/valent-preferences-sync-page.ui:15
 msgid "Clipboard"
-msgstr ""
+msgstr "Буфер обмена"
 
 #: src/plugins/clipboard/clipboard.plugin.desktop.in:7
 msgid "Sync the clipboard between devices"
-msgstr ""
+msgstr "Синхронизация буфера обмена между устройствами"
 
 #: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:6
 msgid "Connectivity"
-msgstr ""
+msgstr "Подключение"
 
 #: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
 msgid "Monitor mobile connectivity status"
-msgstr ""
+msgstr "Мониторинг статуса мобильной связи"
 
 #. TRANSLATORS: When the mobile network signal is available
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:163
@@ -286,35 +294,35 @@ msgstr ""
 #: src/plugins/gnome/valent-device-row.ui:116
 #: src/plugins/gnome/valent-preferences-status-page.ui:112
 msgid "Mobile Network"
-msgstr ""
+msgstr "Мобильная сеть"
 
 #. TRANSLATORS: The mobile network signal strength (e.g. "Signal Strength (25%)")
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:165
 #, c-format
 msgid "Signal Strength %f%%"
-msgstr ""
+msgstr "Уровень сигнала %f%%"
 
 #. TRANSLATORS: When no mobile service is available
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:171
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:178
 msgid "No Service"
-msgstr ""
+msgstr "Нет услуги"
 
 #. TRANSLATORS: When no mobile network signal is available
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:173
 msgid "No mobile network service"
-msgstr ""
+msgstr "Нет сервиса мобильной сети"
 
 #. TRANSLATORS: When the device is missing a SIM card
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:180
 msgid "No SIM"
-msgstr ""
+msgstr "Нет SIM"
 
 #. TRANSLATORS: The connectivity notification title (e.g. "PinePhone: No Service")
 #: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:311
 #, c-format
 msgid "%s: %s"
-msgstr ""
+msgstr "%s: %s"
 
 #: src/plugins/contacts/contacts.plugin.desktop.in:6
 #: src/plugins/gnome/valent-contact-page.ui:8
@@ -325,58 +333,58 @@ msgstr ""
 #: src/plugins/gnome/valent-preferences-dialog.c:617
 #: src/plugins/gnome/valent-preferences-sync-page.ui:36
 msgid "Contacts"
-msgstr ""
+msgstr "Контакты"
 
 #: src/plugins/contacts/contacts.plugin.desktop.in:7
 msgid "Sync contacts between devices"
-msgstr ""
+msgstr "Синхронизация контактов между устройствами"
 
 #: src/plugins/eds/eds.plugin.desktop.in:6
 msgid "Evolution Data Server"
-msgstr ""
+msgstr "Evolution Data Server"
 
 #: src/plugins/eds/eds.plugin.desktop.in:7
 msgid "Integration with Evolution Data Server"
-msgstr ""
+msgstr "Интеграция с Evolution Data Server"
 
 #: src/plugins/fdo/fdo.plugin.desktop.in:6
 msgid "freedesktop.org"
-msgstr ""
+msgstr "freedesktop.org"
 
 #: src/plugins/fdo/fdo.plugin.desktop.in:7
 msgid "Freedesktop.org Based Modules"
-msgstr ""
+msgstr "Модули на базе freedesktop.org"
 
 #: src/plugins/findmyphone/findmyphone.plugin.desktop.in:6
 msgid "Find My Phone"
-msgstr ""
+msgstr "Найти телефон"
 
 #: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
 msgid "Find a device by making it ring"
-msgstr ""
+msgstr "Найти устройство звонком"
 
 #: src/plugins/findmyphone/valent-findmyphone-plugin.c:127
 msgid "Ring"
-msgstr ""
+msgstr "Звонить"
 
 #: src/plugins/findmyphone/valent-findmyphone-ringer.c:125
 msgid "Find My Device"
-msgstr ""
+msgstr "Найти устройство"
 
 #: src/plugins/gnome/gnome.plugin.desktop.in:6
 msgid "GNOME"
-msgstr ""
+msgstr "GNOME"
 
 #: src/plugins/gnome/gnome.plugin.desktop.in:7
 msgid "Integration with GNOME"
-msgstr ""
+msgstr "Интеграция с GNOME"
 
 #. TRANSLATORS: dynamic string for phone number input (e.g. "Send to 911")
 #.
 #: src/plugins/gnome/valent-contact-page.c:158
 #, c-format
 msgid "Send to %s"
-msgstr ""
+msgstr "Отправить на %s"
 
 #: src/plugins/gnome/valent-contact-page.c:237
 #: src/plugins/gnome/valent-messages-window.c:136
@@ -384,52 +392,53 @@ msgstr ""
 msgid "%s and %u more…"
 msgid_plural "%s and %u more…"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "%s и ещё %u…"
+msgstr[2] "%s и ещё %u…"
 
 #: src/plugins/gnome/valent-contact-page.c:328
 #: src/plugins/gnome/valent-messages-window.c:435
 msgid "Work"
-msgstr ""
+msgstr "Работа"
 
 #: src/plugins/gnome/valent-contact-page.c:330
 #: src/plugins/gnome/valent-messages-window.c:437
 msgid "Mobile"
-msgstr ""
+msgstr "Мобильный"
 
 #: src/plugins/gnome/valent-contact-page.c:332
 #: src/plugins/gnome/valent-messages-window.c:439
 #: src/plugins/sftp/valent-sftp-plugin.c:660
 msgid "Home"
-msgstr ""
+msgstr "Дом"
 
 #: src/plugins/gnome/valent-contact-page.c:334
 #: src/plugins/gnome/valent-messages-window.c:441
 #: src/plugins/gnome/valent-preferences-other-page.ui:9
 msgid "Other"
-msgstr ""
+msgstr "Другое"
 
 #: src/plugins/gnome/valent-contact-page.ui:18
 msgid "Type a phone number or name"
-msgstr ""
+msgstr "Введите номер телефона или имя"
 
 #: src/plugins/gnome/valent-contact-page.ui:50
 msgid "No contacts"
-msgstr ""
+msgstr "Нет контактов"
 
 #: src/plugins/gnome/valent-contact-page.ui:71
 #: src/plugins/gnome/valent-messages-window.ui:289
 msgid "Select destination"
-msgstr ""
+msgstr "Выберите получателя"
 
 #: src/plugins/gnome/valent-contact-page.ui:96
 #: src/plugins/gnome/valent-messages-window.ui:314
 msgid "Phone Numbers"
-msgstr ""
+msgstr "Номера телефонов"
 
 #: src/plugins/gnome/valent-conversation-page.c:407
 #: src/plugins/gnome/valent-messages-window.c:544
 msgid "Unknown"
-msgstr ""
+msgstr "Неизвестно"
 
 #. TRANSLATORS: This is announced to AT devices (i.e. screen readers)
 #. * when a new message is received.
@@ -437,7 +446,7 @@ msgstr ""
 #: src/plugins/gnome/valent-conversation-page.c:414
 #, c-format
 msgid "New message from %s"
-msgstr ""
+msgstr "Новое сообщение от %s"
 
 #. TRANSLATORS: This is announced to AT devices (i.e. screen readers)
 #. * when a new message is received with attachments.
@@ -446,14 +455,15 @@ msgstr ""
 #, c-format
 msgid "New message from %s, with %d attachment"
 msgid_plural "New message from %s, with %d attachments"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Новое сообщение от %s, с %d вложением"
+msgstr[1] "Новое сообщение от %s, с %d вложениями"
+msgstr[2] ""
 
 #: src/plugins/gnome/valent-conversation-page.c:947
 #: src/plugins/gnome/valent-conversation-page.c:1094
 #: src/plugins/gnome/valent-conversation-page.ui:77
 msgid "Attach Files"
-msgstr ""
+msgstr "Прикрепить файлы"
 
 #: src/plugins/gnome/valent-conversation-page.c:948
 #: src/plugins/gnome/valent-conversation-page.c:1095
@@ -461,72 +471,72 @@ msgstr ""
 #: src/plugins/gnome/valent-presenter-remote.c:90
 #: src/plugins/gnome/valent-presenter-remote.ui:100
 msgid "Open"
-msgstr ""
+msgstr "Открыть"
 
 #: src/plugins/gnome/valent-conversation-page.c:1001
 #: src/plugins/share/valent-share-plugin.c:1137
 msgid "Save"
-msgstr ""
+msgstr "Сохранить"
 
 #: src/plugins/gnome/valent-conversation-page.ui:8
 msgid "Conversation"
-msgstr ""
+msgstr "Диалог"
 
 #: src/plugins/gnome/valent-conversation-page.ui:22
 msgid "Conversation Menu"
-msgstr ""
+msgstr "Меню диалога"
 
 #: src/plugins/gnome/valent-conversation-page.ui:88
 msgid "Type a message"
-msgstr ""
+msgstr "Напишите сообщение"
 
 #: src/plugins/gnome/valent-conversation-page.ui:97
 msgid "Send Message"
-msgstr ""
+msgstr "Отправить сообщение"
 
 #: src/plugins/gnome/valent-conversation-page.ui:122
 #: src/plugins/gnome/valent-messages-window.ui:335
 msgid "Search Messages…"
-msgstr ""
+msgstr "Поиск сообщений…"
 
 #: src/plugins/gnome/valent-conversation-page.ui:128
 #: src/plugins/gnome/valent-conversation-page.ui:135
 #: src/plugins/gnome/valent-conversation-page.ui:143
 msgid "Details"
-msgstr ""
+msgstr "Подробности"
 
 #: src/plugins/gnome/valent-conversation-page.ui:156
 #: src/plugins/gnome/valent-conversation-page.ui:226
 msgid "Media"
-msgstr ""
+msgstr "Медиа"
 
 #: src/plugins/gnome/valent-conversation-page.ui:187
 msgid "Add people…"
-msgstr ""
+msgstr "Добавить участников…"
 
 #: src/plugins/gnome/valent-conversation-page.ui:206
 msgid "People in this conversation"
-msgstr ""
+msgstr "Участники диалога"
 
 #: src/plugins/gnome/valent-conversation-page.ui:237
 msgid "Attachments"
-msgstr ""
+msgstr "Вложения"
 
 #: src/plugins/gnome/valent-conversation-page.ui:238
 msgid "Files in this conversation"
-msgstr ""
+msgstr "Файлы в диалоге"
 
 #: src/plugins/gnome/valent-conversation-page.ui:246
 msgid "No attachments found"
-msgstr ""
+msgstr "Вложения не найдены"
 
 #: src/plugins/gnome/valent-conversation-row.ui:185
 msgid "Copy text"
-msgstr ""
+msgstr "Копировать текст"
 
 #: src/plugins/gnome/valent-date-label.c:84
 msgid "Just now"
-msgstr ""
+msgstr "Только что"
 
 #. TRANSLATORS: Time duration in minutes, abbreviated (eg. 15 mins)
 #.
@@ -534,8 +544,9 @@ msgstr ""
 #, c-format
 msgid "%d min"
 msgid_plural "%d mins"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Новое сообщение от %s, с %d вложением"
+msgstr[1] "Новое сообщение от %s, с %d вложениями"
+msgstr[2] "Новое сообщение от %s, с %d вложениями"
 
 #. TRANSLATORS: Time duration in minutes (eg. 15 minutes)
 #.
@@ -544,37 +555,38 @@ msgstr[1] ""
 msgid "%d minute"
 msgid_plural "%d minutes"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "%d минута"
+msgstr[2] "%d минут"
 
 #. TRANSLATORS: Yesterday, but less than 24 hours (eg. Yesterday · 11:45 PM)
 #.
 #: src/plugins/gnome/valent-date-label.c:119
 #, c-format
 msgid "Yesterday · %s"
-msgstr ""
+msgstr "Вчера · %s"
 
 #: src/plugins/gnome/valent-date-label.c:132
 #: src/plugins/gnome/valent-date-label.c:143
 #, c-format
 msgid "%s · %s"
-msgstr ""
+msgstr "%s · %s"
 
 #: src/plugins/gnome/valent-device-page.c:88
 #, c-format
 msgid "Please confirm the verification key below matches the one on “%s”"
-msgstr ""
+msgstr "Подтвердите, что ключ проверки ниже совпадает с ключом на «%s»"
 
 #: src/plugins/gnome/valent-device-page.c:95
 #, c-format
 msgid "Open the app on your “%s” to request or accept pairing."
-msgstr ""
+msgstr "Откройте приложение на «%s», чтобы запросить или принять привязку."
 
 #. TRANSLATORS: When the battery level is 100%
 #.
 #: src/plugins/gnome/valent-device-page.c:154
 #: src/plugins/gnome/valent-device-row.c:118
 msgid "Fully Charged"
-msgstr ""
+msgstr "Полностью заряжен"
 
 #. TRANSLATORS: This is <percentage> (Estimating…)
 #.
@@ -582,7 +594,7 @@ msgstr ""
 #: src/plugins/gnome/valent-device-row.c:143
 #, c-format
 msgid "%g%% (Estimating…)"
-msgstr ""
+msgstr "%g%% (Оценка…)"
 
 #. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
 #.
@@ -590,47 +602,47 @@ msgstr ""
 #: src/plugins/gnome/valent-device-row.c:149
 #, c-format
 msgid "%g%% (%d∶%02d Until Full)"
-msgstr ""
+msgstr "%g%% (%d∶%02d до полной зарядки)"
 
 #: src/plugins/gnome/valent-device-page.ui:30
 msgid "Device Menu"
-msgstr ""
+msgstr "Меню устройства"
 
 #: src/plugins/gnome/valent-device-page.ui:49
 #: src/plugins/gnome/valent-device-row.c:241
 msgid "Disconnected"
-msgstr ""
+msgstr "Отключено"
 
 #: src/plugins/gnome/valent-device-page.ui:50
 msgid "This device is currently unavailable"
-msgstr ""
+msgstr "Устройство недоступно"
 
 #: src/plugins/gnome/valent-device-page.ui:63
 #: src/plugins/gnome/valent-device-row.c:236
 msgid "Unpaired"
-msgstr ""
+msgstr "Не привязано"
 
 #: src/plugins/gnome/valent-device-page.ui:74
 msgid "verification key"
-msgstr ""
+msgstr "Ключ проверки"
 
 #: src/plugins/gnome/valent-device-page.ui:100
 msgid "Request Pairing"
-msgstr ""
+msgstr "Запросить привязку"
 
 #: src/plugins/gnome/valent-device-page.ui:259
 #: src/plugins/lock/lock.plugin.desktop.in:6
 msgid "Lock"
-msgstr ""
+msgstr "Блокировка"
 
 #: src/plugins/gnome/valent-device-page.ui:291
 #: src/plugins/gnome/valent-window.ui:142
 msgid "Preferences"
-msgstr ""
+msgstr "Настройки"
 
 #: src/plugins/gnome/valent-device-page.ui:297
 msgid "Unpair"
-msgstr ""
+msgstr "Отвязать"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:40
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:45
@@ -638,293 +650,294 @@ msgstr ""
 #: src/plugins/gnome/valent-preferences-dialog.ui:110
 #: src/plugins/gnome/valent-preferences-dialog.ui:114
 msgid "Plugins"
-msgstr ""
+msgstr "Плагины"
 
 #: src/plugins/gnome/valent-device-preferences-dialog.ui:53
 #: src/plugins/gnome/valent-preferences-dialog.ui:122
 msgid "No Plugins"
-msgstr ""
+msgstr "Нет плагинов"
 
 #: src/plugins/gnome/valent-device-row.c:246
 msgid "Connected"
-msgstr ""
+msgstr "Подключено"
 
 #: src/plugins/gnome/valent-input-remote.ui:8
 #: src/plugins/gnome/valent-window.ui:123
 msgid "Input Remote"
-msgstr ""
+msgstr "Удалённый ввод"
 
 #: src/plugins/gnome/valent-input-remote.ui:123
 msgid "Capture Keyboard"
-msgstr ""
+msgstr "Захват клавиатуры"
 
 #: src/plugins/gnome/valent-input-remote.ui:124
 msgid "Press left Control + Alt to release"
-msgstr ""
+msgstr "Нажмите левый Control + Alt для освобождения"
 
 #: src/plugins/gnome/valent-input-remote.ui:135
 msgid "Touchpad"
-msgstr ""
+msgstr "Тачпад"
 
 #: src/plugins/gnome/valent-input-remote.ui:206
 msgid "Drag one finger to move"
-msgstr ""
+msgstr "Перетаскивайте одним пальцем для перемещения"
 
 #: src/plugins/gnome/valent-input-remote.ui:215
 msgid "Drag two fingers to scroll"
-msgstr ""
+msgstr "Перетаскивайте двумя пальцами для прокрутки"
 
 #: src/plugins/gnome/valent-input-remote.ui:224
 msgid "Tap one finger to click"
-msgstr ""
+msgstr "Касание одним пальцем — клик"
 
 #: src/plugins/gnome/valent-input-remote.ui:234
 msgid "Tap two fingers to right click"
-msgstr ""
+msgstr "Касание двумя пальцами — правый клик"
 
 #: src/plugins/gnome/valent-input-remote.ui:243
 msgid "Tap three fingers to middle click"
-msgstr ""
+msgstr "Касание тремя пальцами — средний клик"
 
 #: src/plugins/gnome/valent-input-remote.ui:252
 msgid "Hold one finger to grab"
-msgstr ""
+msgstr "Удерживайте палец для захвата"
 
 #: src/plugins/gnome/valent-input-remote.ui:262
 msgid "Tap one finger to release"
-msgstr ""
+msgstr "Касание одним пальцем для освобождения"
 
 #: src/plugins/gnome/valent-input-remote.ui:338
 msgid "Clear"
-msgstr ""
+msgstr "Очистить"
 
 #: src/plugins/gnome/valent-input-remote.ui:347
 msgid "Send"
-msgstr ""
+msgstr "Отправить"
 
 #: src/plugins/gnome/valent-media-remote.c:234
 msgid "Pause"
-msgstr ""
+msgstr "Пауза"
 
 #: src/plugins/gnome/valent-media-remote.c:245
 #: src/plugins/gnome/valent-media-remote.ui:234
 msgid "Play"
-msgstr ""
+msgstr "Воспроизвести"
 
 #: src/plugins/gnome/valent-media-remote.ui:214
 #: src/plugins/gnome/valent-preferences-status-page.ui:70
 #: src/plugins/gnome/valent-preferences-status-page.ui:91
 msgid "Volume"
-msgstr ""
+msgstr "Громкость"
 
 #: src/plugins/gnome/valent-media-remote.ui:222
 #: src/plugins/gnome/valent-menu-list.c:668
 #: src/plugins/gnome/valent-presenter-remote.ui:146
 msgid "Previous"
-msgstr ""
+msgstr "Предыдущий"
 
 #: src/plugins/gnome/valent-media-remote.ui:249
 #: src/plugins/gnome/valent-presenter-remote.ui:173
 msgid "Next"
-msgstr ""
+msgstr "Следующий"
 
 #: src/plugins/gnome/valent-media-remote.ui:265
 msgid "Playback Options"
-msgstr ""
+msgstr "Параметры воспроизведения"
 
 #: src/plugins/gnome/valent-media-remote.ui:285
 msgid "_None"
-msgstr ""
+msgstr "_Без повторения"
 
 #: src/plugins/gnome/valent-media-remote.ui:290
 msgid "Repeat _One"
-msgstr ""
+msgstr "Повтор_ять один"
 
 #: src/plugins/gnome/valent-media-remote.ui:295
 msgid "Repeat _All"
-msgstr ""
+msgstr "Повтор_ять все"
 
 #: src/plugins/gnome/valent-media-remote.ui:302
 msgid "_Shuffle"
-msgstr ""
+msgstr "_В случайном порядке"
 
 #: src/plugins/gnome/valent-media-window.ui:8
 #: src/plugins/gnome/valent-window.ui:127
 msgid "Media Remote"
-msgstr ""
+msgstr "Удалённое управление медиа"
 
 #: src/plugins/gnome/valent-media-window.ui:87
 msgid "Player"
-msgstr ""
+msgstr "Проигрыватель"
 
 #: src/plugins/gnome/valent-media-window.ui:163
 msgid "Control Media"
-msgstr ""
+msgstr "Управление медиа"
 
 #: src/plugins/gnome/valent-media-window.ui:164
 msgid "Open a media player on a connected device"
-msgstr ""
+msgstr "Открыть медиаплеер на подключённом устройстве"
 
 #: src/plugins/gnome/valent-menu-list.c:532
 msgid "No Actions"
-msgstr ""
+msgstr "Нет действий"
 
 #: src/plugins/gnome/valent-message-row.c:56
 #, c-format
 msgid "You: %s"
-msgstr ""
+msgstr "Вы: %s"
 
 #: src/plugins/gnome/valent-messages-window.c:232
 #: src/plugins/gnome/valent-messages-window.ui:154
 msgid "Conversations"
-msgstr ""
+msgstr "Диалоги"
 
 #: src/plugins/gnome/valent-messages-window.c:545
 msgid "Unknown sender"
-msgstr ""
+msgstr "Неизвестный отправитель"
 
 #: src/plugins/gnome/valent-messages-window.ui:13
 #: src/plugins/gnome/valent-messages-window.ui:51
 #: src/plugins/gnome/valent-window.ui:131
 msgid "Messages"
-msgstr ""
+msgstr "Сообщения"
 
 #: src/plugins/gnome/valent-messages-window.ui:61
 msgid "New Conversation"
-msgstr ""
+msgstr "Новый диалог"
 
 #: src/plugins/gnome/valent-messages-window.ui:126
 #: src/plugins/gnome/valent-window.ui:68
 msgid "Main Menu"
-msgstr ""
+msgstr "Главное меню"
 
 #: src/plugins/gnome/valent-messages-window.ui:146
 msgid "No Conversations"
-msgstr ""
+msgstr "Нет диалогов"
 
 #: src/plugins/gnome/valent-messages-window.ui:210
 msgid "No conversation selected"
-msgstr ""
+msgstr "Диалог не выбран"
 
 #: src/plugins/gnome/valent-messages-window.ui:211
 msgid "Select or start a conversation"
-msgstr ""
+msgstr "Выберите или начните диалог"
 
 #: src/plugins/gnome/valent-messages-window.ui:223
 #: src/plugins/gnome/valent-preferences-sync-page.ui:204
 msgid "Search"
-msgstr ""
+msgstr "Поиск"
 
 #: src/plugins/gnome/valent-messages-window.ui:231
 msgid "Search messages…"
-msgstr ""
+msgstr "Поиск сообщений…"
 
 #: src/plugins/gnome/valent-messages-window.ui:258
 msgid "No results found"
-msgstr ""
+msgstr "Результаты не найдены"
 
 #: src/plugins/gnome/valent-messages-window.ui:341
 msgid "Keyboard Shortcuts"
-msgstr ""
+msgstr "Комбинации клавиш"
 
 #: src/plugins/gnome/valent-messages-window.ui:346
 msgid "Help"
-msgstr ""
+msgstr "Справка"
 
 #: src/plugins/gnome/valent-messages-window.ui:353
 msgid "Close"
-msgstr ""
+msgstr "Закрыть"
 
 #: src/plugins/gnome/valent-plugin-row.ui:79
 msgid "Authors"
-msgstr ""
+msgstr "Авторы"
 
 #: src/plugins/gnome/valent-plugin-row.ui:112
 msgid "Version"
-msgstr ""
+msgstr "Версия"
 
 #: src/plugins/gnome/valent-plugin-row.ui:143
 msgid "Website"
-msgstr ""
+msgstr "Сайт"
 
 #: src/plugins/gnome/valent-preferences-command-editor.ui:8
 #: src/plugins/gnome/valent-preferences-other-page.c:84
 msgid "Edit Command"
-msgstr ""
+msgstr "Редактировать команду"
 
 #: src/plugins/gnome/valent-preferences-command-editor.ui:19
 msgid "_Cancel"
-msgstr ""
+msgstr "_Отмена"
 
 #: src/plugins/gnome/valent-preferences-command-editor.ui:26
 msgid "_Save"
-msgstr ""
+msgstr "_Сохранить"
 
 #: src/plugins/gnome/valent-preferences-command-editor.ui:54
 msgid "Command Line"
-msgstr ""
+msgstr "Командная строка"
 
 #: src/plugins/gnome/valent-preferences-command-editor.ui:72
 #: src/plugins/gnome/valent-preferences-dialog.c:366
 msgid "Remove"
-msgstr ""
+msgstr "Удалить"
 
 #. TRANSLATORS: %s is a list of forbidden characters
 #: src/plugins/gnome/valent-preferences-dialog.c:495
 #, c-format
 msgid "The device name must not contain punctuation or brackets, including %s"
 msgstr ""
+"Имя устройства не должно содержать знаки препинания или скобки, включая %s"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:596
 msgid "Application"
-msgstr ""
+msgstr "Приложение"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:603
 msgid "Device Connections"
-msgstr ""
+msgstr "Подключения устройств"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:624
 msgid "Mouse and Keyboard"
-msgstr ""
+msgstr "Мышь и клавиатура"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:631
 msgid "Media Players"
-msgstr ""
+msgstr "Медиаплееры"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:638
 msgid "Volume Control"
-msgstr ""
+msgstr "Управление громкостью"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:645
 #: src/plugins/gnome/valent-preferences-sync-page.ui:58
 #: src/plugins/notification/notification.plugin.desktop.in:6
 msgid "Notifications"
-msgstr ""
+msgstr "Уведомления"
 
 #: src/plugins/gnome/valent-preferences-dialog.c:652
 msgid "Session Manager"
-msgstr ""
+msgstr "Диспетчер сеансов"
 
 #: src/plugins/gnome/valent-preferences-dialog.ui:13
 msgid "General"
-msgstr ""
+msgstr "Общие"
 
 #: src/plugins/gnome/valent-preferences-dialog.ui:20
 msgid "Device Name"
-msgstr ""
+msgstr "Имя устройства"
 
 #: src/plugins/gnome/valent-preferences-dialog.ui:62
 msgid "Manual Device Setup"
-msgstr ""
+msgstr "Ручная настройка устройств"
 
 #: src/plugins/gnome/valent-preferences-dialog.ui:67
 #: src/plugins/gnome/valent-preferences-dialog.ui:140
 msgid "Add Device"
-msgstr ""
+msgstr "Добавить устройство"
 
 #: src/plugins/gnome/valent-preferences-dialog.ui:85
 msgid "No configured addresses"
-msgstr ""
+msgstr "Нет настроенных адресов"
 
 #: src/plugins/gnome/valent-preferences-dialog.ui:153
 #: src/plugins/share/valent-share-plugin.c:136
@@ -932,310 +945,310 @@ msgstr ""
 #: src/plugins/share/valent-share-plugin.c:369
 #: src/plugins/share/valent-share-plugin.c:516
 msgid "Cancel"
-msgstr ""
+msgstr "Отмена"
 
 #: src/plugins/gnome/valent-preferences-dialog.ui:159
 msgid "Add"
-msgstr ""
+msgstr "Добавить"
 
 #: src/plugins/gnome/valent-preferences-dialog.ui:179
 msgid "Hostname or IP address"
-msgstr ""
+msgstr "Имя хоста или IP-адрес"
 
 #: src/plugins/gnome/valent-preferences-other-page.c:250
 msgid "Select download folder"
-msgstr ""
+msgstr "Выберите папку для загрузки"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:15
 #: src/plugins/share/share.plugin.desktop.in:6
 msgid "Sharing"
-msgstr ""
+msgstr "Обмен"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:18
 msgid "Download Directory"
-msgstr ""
+msgstr "Папка загрузки"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:19
 msgid "Where to store received files"
-msgstr ""
+msgstr "Куда сохранять полученные файлы"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:53
 #: src/plugins/gnome/valent-preferences-other-page.ui:82
 #: src/plugins/runcommand/runcommand.plugin.desktop.in:6
 msgid "Commands"
-msgstr ""
+msgstr "Команды"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:54
 msgid "Define commands that can be executed by remote devices"
-msgstr ""
+msgstr "Определите команды для выполнения удалёнными устройствами"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:61
 msgid "Add command"
-msgstr ""
+msgstr "Добавить команду"
 
 #: src/plugins/gnome/valent-preferences-other-page.ui:75
 msgid "No commands"
-msgstr ""
+msgstr "Нет команд"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:9
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:18
 msgid "Full Battery Notification"
-msgstr ""
+msgstr "Уведомление о полной зарядке"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:19
 msgid "Notify when the remote battery is full"
-msgstr ""
+msgstr "Уведомлять при полной зарядке удалённого аккумулятора"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:24
 #: src/plugins/gnome/valent-preferences-status-page.ui:44
 msgid "Level Threshold"
-msgstr ""
+msgstr "Порог уровня"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:38
 msgid "Low Battery Notification"
-msgstr ""
+msgstr "Уведомление о низком заряде"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:39
 msgid "Notify when the remote battery is low"
-msgstr ""
+msgstr "Уведомлять при низком заряде удалённого аккумулятора"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:62
 #: src/plugins/telephony/telephony.plugin.desktop.in:6
 msgid "Telephony"
-msgstr ""
+msgstr "Телефония"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:65
 msgid "Incoming Calls"
-msgstr ""
+msgstr "Входящие звонки"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:66
 msgid "What to do when the phone rings"
-msgstr ""
+msgstr "Что делать при звонке"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:79
 #: src/plugins/gnome/valent-preferences-status-page.ui:105
 msgid "Pause Media"
-msgstr ""
+msgstr "Приостановить медиа"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:86
 msgid "Ongoing Calls"
-msgstr ""
+msgstr "Активные звонки"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:87
 msgid "What to do when the phone is answered"
-msgstr ""
+msgstr "Что делать при ответе на звонок"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:100
 msgid "Mute Microphone"
-msgstr ""
+msgstr "Отключить микрофон"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:113
 msgid "Notify if the device loses connectivity"
-msgstr ""
+msgstr "Уведомлять при потере подключения"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:122
 msgid "Nothing"
-msgstr ""
+msgstr "Ничего"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:123
 msgid "Lower"
-msgstr ""
+msgstr "Уменьшить"
 
 #: src/plugins/gnome/valent-preferences-status-page.ui:124
 #: src/plugins/telephony/valent-telephony-plugin.c:398
 msgid "Mute"
-msgstr ""
+msgstr "Отключить звук"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:9
 msgid "Sync"
-msgstr ""
+msgstr "Синхронизация"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:18
 msgid "Remote Clipboard"
-msgstr ""
+msgstr "Удалённый буфер обмена"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:19
 msgid "Copy changes to the local clipboard"
-msgstr ""
+msgstr "Копировать изменения в локальный буфер"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:25
 msgid "Local Clipboard"
-msgstr ""
+msgstr "Локальный буфер обмена"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:26
 msgid "Report changes to the remote device"
-msgstr ""
+msgstr "Сообщать об изменениях удалённому устройству"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:39
 msgid "Remote Contacts"
-msgstr ""
+msgstr "Удалённые контакты"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:40
 msgid "Import contacts from the remote device"
-msgstr ""
+msgstr "Импортировать контакты с удалённого устройства"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:46
 msgid "Local Contacts"
-msgstr ""
+msgstr "Локальные контакты"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:47
 msgid "Share contacts with the remote device"
-msgstr ""
+msgstr "Делиться контактами с удалённым устройством"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:61
 msgid "Local Notifications"
-msgstr ""
+msgstr "Локальные уведомления"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:62
 msgid "Forward notifications to the remote device"
-msgstr ""
+msgstr "Пересылать уведомления на удалённое устройство"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:67
 msgid "Intelligent Sync"
-msgstr ""
+msgstr "Умная синхронизация"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:68
 msgid "Notifications follow the active device"
-msgstr ""
+msgstr "Уведомления следуют за активным устройством"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:74
 msgid "Filter by Application"
-msgstr ""
+msgstr "Фильтр по приложениям"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:98
 #: src/plugins/sftp/sftp.plugin.desktop.in:6
 msgid "Files"
-msgstr ""
+msgstr "Файлы"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:101
 msgid "Automatically Mount"
-msgstr ""
+msgstr "Автомонтирование"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:102
 msgid "Mount shared folders when the device connects"
-msgstr ""
+msgstr "Монтировать общие папки при подключении"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:108
 msgid "Local Files"
-msgstr ""
+msgstr "Локальные файлы"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:109
 msgid "Share local files and directories"
-msgstr ""
+msgstr "Делиться локальными файлами и папками"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:114
 msgid "Port"
-msgstr ""
+msgstr "Порт"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:178
 msgid "Filter applications"
-msgstr ""
+msgstr "Фильтровать приложения"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:217
 msgid "Reset"
-msgstr ""
+msgstr "Сбросить"
 
 #: src/plugins/gnome/valent-preferences-sync-page.ui:232
 msgid "No Applications"
-msgstr ""
+msgstr "Нет приложений"
 
 #: src/plugins/gnome/valent-presenter-remote.c:89
 msgid "Select Presentation"
-msgstr ""
+msgstr "Выберите презентацию"
 
 #: src/plugins/gnome/valent-presenter-remote.c:98
 msgid "Presentations"
-msgstr ""
+msgstr "Презентации"
 
 #: src/plugins/gnome/valent-presenter-remote.c:105
 msgid "All Files"
-msgstr ""
+msgstr "Все файлы"
 
 #: src/plugins/gnome/valent-presenter-remote.ui:8
 msgid "Presentation Remote"
-msgstr ""
+msgstr "Удалённое управление презентацией"
 
 #: src/plugins/gnome/valent-presenter-remote.ui:81
 msgid "Start"
-msgstr ""
+msgstr "Запустить"
 
 #: src/plugins/gnome/valent-presenter-remote.ui:121
 msgid "Stop"
-msgstr ""
+msgstr "Остановить"
 
 #: src/plugins/gnome/valent-presenter-remote.ui:196
 msgid "Pointer"
-msgstr ""
+msgstr "Указатель"
 
 #: src/plugins/gnome/valent-share-dialog.c:107
 #, c-format
 msgid "Size: %s"
-msgstr ""
+msgstr "Размер: %s"
 
 #: src/plugins/gnome/valent-share-dialog.c:121
 #, c-format
 msgid "Total size: %s"
-msgstr ""
+msgstr "Общий размер: %s"
 
 #: src/plugins/gnome/valent-share-dialog.c:252
 #, c-format
 msgid "%u files and links"
-msgstr ""
+msgstr "%u файлов и ссылок"
 
 #: src/plugins/gnome/valent-share-dialog.c:254
 #, c-format
 msgid "%u files"
-msgstr ""
+msgstr "%u файлов"
 
 #: src/plugins/gnome/valent-share-dialog.c:256
 #, c-format
 msgid "%u links"
-msgstr ""
+msgstr "%u ссылок"
 
 #: src/plugins/gnome/valent-share-dialog.ui:8
 #: src/plugins/gnome/valent-share-dialog.ui:29
 #: src/plugins/gnome/valent-share-dialog.ui:40
 #: src/plugins/gnome/valent-share-dialog.ui:112
 msgid "Share"
-msgstr ""
+msgstr "Поделиться"
 
 #: src/plugins/gnome/valent-share-dialog.ui:41
 msgid "Select files, enter a link or paste text"
-msgstr ""
+msgstr "Выберите файлы, введите ссылку или вставьте текст"
 
 #: src/plugins/gnome/valent-share-dialog.ui:50
 msgid "Pick Files"
-msgstr ""
+msgstr "Выбрать файлы"
 
 #: src/plugins/gnome/valent-share-dialog.ui:75
 msgid "Enter URL"
-msgstr ""
+msgstr "Ввести URL"
 
 #: src/plugins/gnome/valent-share-dialog.ui:161
 #: src/plugins/gnome/valent-share-dialog.ui:178
 #: src/plugins/gnome/valent-window.ui:86 src/plugins/gnome/valent-window.ui:101
 msgid "Devices"
-msgstr ""
+msgstr "Устройства"
 
 #: src/plugins/gnome/valent-share-dialog.ui:165
 msgid "Share with multiple devices"
-msgstr ""
+msgstr "Поделиться с несколькими устройствами"
 
 #: src/plugins/gnome/valent-share-dialog.ui:192
 msgid "Searching…"
-msgstr ""
+msgstr "Поиск…"
 
 #: src/plugins/gnome/valent-share-dialog.ui:215
 msgid "_Share"
-msgstr ""
+msgstr "_Поделиться"
 
 #. translators: Unknown time
 #: src/plugins/gnome/valent-time-helpers.c:51
 msgid "--:--"
-msgstr ""
+msgstr "--:--"
 
 #. hour:minutes:seconds
 #. Translators: This is a time format, like "9:05:02" for 9
@@ -1247,7 +1260,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d"
-msgstr ""
+msgstr "%d:%02d:%02d"
 
 #. hour:minutes:seconds.msecs
 #. Translators: This is a time format, like "9:05:02.050" for 9
@@ -1259,7 +1272,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "%d:%02d:%02d.%03d"
-msgstr ""
+msgstr "%d:%02d:%02d.%03d"
 
 #. -hour:minutes:seconds
 #. Translators: This is a time format, like "-9:05:02" for 9
@@ -1271,7 +1284,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d"
-msgstr ""
+msgstr "-%d:%02d:%02d"
 
 #. -hour:minutes:seconds.msecs
 #. Translators: This is a time format, like "-9:05:02.050" for 9
@@ -1283,7 +1296,7 @@ msgstr ""
 #, c-format
 msgctxt "long time format"
 msgid "-%d:%02d:%02d.%03d"
-msgstr ""
+msgstr "-%d:%02d:%02d.%03d"
 
 #. -minutes:seconds
 #. Translators: This is a time format, like "-5:02" for 5
@@ -1295,7 +1308,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d"
-msgstr ""
+msgstr "-%d:%02d"
 
 #. -minutes:seconds.msec
 #. Translators: This is a time format, like "-5:02.050" for 5
@@ -1307,7 +1320,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "-%d:%02d.%03d"
-msgstr ""
+msgstr "-%d:%02d.%03d"
 
 #. minutes:seconds.msec
 #. Translators: This is a time format, like "5:02" for 5
@@ -1319,7 +1332,7 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d.%03d"
-msgstr ""
+msgstr "%d:%02d.%03d"
 
 #. minutes:seconds
 #. Translators: This is a time format, like "5:02" for 5
@@ -1331,153 +1344,153 @@ msgstr ""
 #, c-format
 msgctxt "short time format"
 msgid "%d:%02d"
-msgstr ""
+msgstr "%d:%02d"
 
 #: src/plugins/gnome/valent-window.c:230
 msgid "translator-credits"
-msgstr ""
+msgstr "translator-credits"
 
 #: src/plugins/gnome/valent-window.c:235
 msgid "Sponsors"
-msgstr ""
+msgstr "Спонсоры"
 
 #: src/plugins/gnome/valent-window.ui:56
 msgid "Refresh"
-msgstr ""
+msgstr "Обновить"
 
 #: src/plugins/gnome/valent-window.ui:57
 msgid "Scan for new devices"
-msgstr ""
+msgstr "Поиск новых устройств"
 
 #: src/plugins/gnome/valent-window.ui:94
 msgid "Searching for devices…"
-msgstr ""
+msgstr "Поиск устройств…"
 
 #: src/plugins/gnome/valent-window.ui:135
 msgid "Share…"
-msgstr ""
+msgstr "Поделиться…"
 
 #: src/plugins/gnome/valent-window.ui:146
 msgid "About Valent"
-msgstr ""
+msgstr "О программе Valent"
 
 #: src/plugins/gnome/valent-window.ui:152
 msgid "Quit"
-msgstr ""
+msgstr "Выход"
 
 #: src/plugins/gtk/gtk.plugin.desktop.in:6
 msgid "GTK"
-msgstr ""
+msgstr "GTK"
 
 #: src/plugins/gtk/gtk.plugin.desktop.in:7
 msgid "Integration with GTK4"
-msgstr ""
+msgstr "Интеграция с GTK4"
 
 #: src/plugins/lan/lan.plugin.desktop.in:6
 msgid "LAN"
-msgstr ""
+msgstr "LAN"
 
 #: src/plugins/lan/lan.plugin.desktop.in:7
 msgid "Connect devices over LAN"
-msgstr ""
+msgstr "Подключение устройств по LAN"
 
 #: src/plugins/lock/lock.plugin.desktop.in:7
 msgid "Lock and unlock"
-msgstr ""
+msgstr "Блокировка и разблокировка"
 
 #: src/plugins/mousepad/mousepad.plugin.desktop.in:6
 msgid "Mousepad"
-msgstr ""
+msgstr "Трекпад"
 
 #: src/plugins/mousepad/mousepad.plugin.desktop.in:7
 msgid "Control the mouse and keyboard"
-msgstr ""
+msgstr "Управление мышью и клавиатурой"
 
 #: src/plugins/mpris/mpris.plugin.desktop.in:6
 msgid "MPRIS"
-msgstr ""
+msgstr "MPRIS"
 
 #: src/plugins/mpris/mpris.plugin.desktop.in:7
 msgid "Share control of MPRISv2 players"
-msgstr ""
+msgstr "Общий контроль плееров MPRISv2"
 
 #: src/plugins/notification/notification.plugin.desktop.in:7
 msgid "Sync notifications"
-msgstr ""
+msgstr "Синхронизация уведомлений"
 
 #: src/plugins/ping/ping.plugin.desktop.in:6
 #: src/plugins/ping/valent-ping-plugin.c:157
 msgid "Ping"
-msgstr ""
+msgstr "Пинг"
 
 #: src/plugins/ping/ping.plugin.desktop.in:7
 msgid "Send and receive pings"
-msgstr ""
+msgstr "Отправка и приём пингов"
 
 #: src/plugins/ping/valent-ping-plugin.c:37
 msgid "Ping!"
-msgstr ""
+msgstr "Пинг!"
 
 #: src/plugins/pipewire/pipewire.plugin.desktop.in:6
 msgid "PipeWire"
-msgstr ""
+msgstr "PipeWire"
 
 #: src/plugins/pipewire/pipewire.plugin.desktop.in:7
 msgid "Integration with PipeWire"
-msgstr ""
+msgstr "Интеграция с PipeWire"
 
 #: src/plugins/presenter/presenter.plugin.desktop.in:6
 msgid "Presenter"
-msgstr ""
+msgstr "Презентер"
 
 #: src/plugins/presenter/presenter.plugin.desktop.in:7
 msgid "Control presentations"
-msgstr ""
+msgstr "Управление презентациями"
 
 #: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:6
 msgid "PulseAudio"
-msgstr ""
+msgstr "PulseAudio"
 
 #: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
 msgid "Integration with PulseAudio"
-msgstr ""
+msgstr "Интеграция с PulseAudio"
 
 #: src/plugins/runcommand/runcommand.plugin.desktop.in:7
 msgid "Execute commands remotely"
-msgstr ""
+msgstr "Выполнение команд удалённо"
 
 #: src/plugins/runcommand/valent-runcommand-plugin.c:317
 msgid "Run Command"
-msgstr ""
+msgstr "Запустить команду"
 
 #: src/plugins/sftp/sftp.plugin.desktop.in:7
 msgid "Share files and directories with SFTP"
-msgstr ""
+msgstr "Обмен файлами и папками по SFTP"
 
 #: src/plugins/sftp/valent-sftp-plugin.c:666
 msgid "Permission denied"
-msgstr ""
+msgstr "Доступ запрещён"
 
 #: src/plugins/sftp/valent-sftp-plugin.c:791
 msgid "Browse Folders"
-msgstr ""
+msgstr "Просмотр папок"
 
 #: src/plugins/sftp/valent-sftp-plugin.c:808
 msgid "Unmount"
-msgstr ""
+msgstr "Размонтировать"
 
 #: src/plugins/sftp/valent-sftp-plugin.c:818
 msgid "Mount"
-msgstr ""
+msgstr "Смонтировать"
 
 #: src/plugins/share/share.plugin.desktop.in:7
 msgid "Direct file, link and text sharing"
-msgstr ""
+msgstr "Прямой обмен файлами, ссылками и текстом"
 
 #: src/plugins/share/valent-share-plugin.c:102
 #: src/plugins/share/valent-share-plugin.c:482
 msgid "Transferring Files"
-msgstr ""
+msgstr "Передача файлов"
 
 #: src/plugins/share/valent-share-plugin.c:103
 #: src/plugins/share/valent-share-plugin.c:121
@@ -1485,59 +1498,61 @@ msgstr ""
 msgid "Receiving one file from %1$s"
 msgid_plural "Receiving %2$d files from %1$s"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "Получение 1 файла от %1$s"
+msgstr[2] "Получение %2$d файлов от %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:111
 #: src/plugins/share/valent-share-plugin.c:350
 #: src/plugins/share/valent-share-plugin.c:491
 msgid "Transfer Complete"
-msgstr ""
+msgstr "Передача завершена"
 
 #: src/plugins/share/valent-share-plugin.c:112
 #, c-format
 msgid "Received one file from %1$s"
 msgid_plural "Received %2$d files from %1$s"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "Получен 1 файл от %1$s"
+msgstr[2] "Получено %2$d файлов от %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:120
 #: src/plugins/share/valent-share-plugin.c:253
 #: src/plugins/share/valent-share-plugin.c:356
 #: src/plugins/share/valent-share-plugin.c:500
 msgid "Transfer Failed"
-msgstr ""
+msgstr "Ошибка передачи"
 
 #: src/plugins/share/valent-share-plugin.c:154
 #: src/plugins/share/valent-share-plugin.c:761
 msgid "Open Folder"
-msgstr ""
+msgstr "Открыть папку"
 
 #: src/plugins/share/valent-share-plugin.c:165
 #: src/plugins/share/valent-share-plugin.c:766
 msgid "Open File"
-msgstr ""
+msgstr "Открыть файл"
 
 #: src/plugins/share/valent-share-plugin.c:243
 #: src/plugins/share/valent-share-plugin.c:344
 msgid "Transferring File"
-msgstr ""
+msgstr "Передача файла"
 
 #: src/plugins/share/valent-share-plugin.c:244
 #: src/plugins/share/valent-share-plugin.c:254
 #, c-format
 msgid "Opening “%s” from “%s”"
-msgstr ""
+msgstr "Открытие «%s» с «%s»"
 
 #: src/plugins/share/valent-share-plugin.c:345
 #: src/plugins/share/valent-share-plugin.c:357
 #, c-format
 msgid "Opening “%s” on “%s”"
-msgstr ""
+msgstr "Открытие «%s» на «%s»"
 
 #: src/plugins/share/valent-share-plugin.c:351
 #, c-format
 msgid "Opened “%s” on “%s”"
-msgstr ""
+msgstr "Открыт «%s» на «%s»"
 
 #: src/plugins/share/valent-share-plugin.c:483
 #: src/plugins/share/valent-share-plugin.c:501
@@ -1545,19 +1560,21 @@ msgstr ""
 msgid "Sending one file to %1$s"
 msgid_plural "Sending %2$d files to %1$s"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "Отправка 1 файла на %1$s"
+msgstr[2] "Отправка %2$d файлов на %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:492
 #, c-format
 msgid "Sent one file to %1$s"
 msgid_plural "Sent %2$d files to %1$s"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "Отправлен 1 файл на %1$s"
+msgstr[2] "Отправлено %2$d файлов на %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:754
 #, c-format
 msgid "Text from “%s” saved to “%s”"
-msgstr ""
+msgstr "Текст от «%s» сохранён в «%s»"
 
 #. TRANSLATORS: this is a filename used for text shared by a device, where
 #. * the first "%s" is the date and the second "%s" is the device name, e.g.
@@ -1566,74 +1583,74 @@ msgstr ""
 #: src/plugins/share/valent-share-plugin.c:809
 #, c-format
 msgid "Text from %s (%s).txt"
-msgstr ""
+msgstr "Текст от %s (%s).txt"
 
 #: src/plugins/share/valent-share-plugin.c:1131
 #, c-format
 msgid "Text from “%s”"
-msgstr ""
+msgstr "Текст от «%s»"
 
 #: src/plugins/share/valent-share-plugin.c:1142
 msgid "Copy"
-msgstr ""
+msgstr "Копировать"
 
 #: src/plugins/sms/sms.plugin.desktop.in:6
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #: src/plugins/sms/sms.plugin.desktop.in:7
 msgid "Send and receive SMS messages"
-msgstr ""
+msgstr "Отправка и приём SMS-сообщений"
 
 #: src/plugins/systemvolume/systemvolume.plugin.desktop.in:6
 msgid "System Volume"
-msgstr ""
+msgstr "Системная громкость"
 
 #: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
 msgid "Monitor volume levels and microphones"
-msgstr ""
+msgstr "Мониторинг уровней громкости и микрофонов"
 
 #: src/plugins/telephony/telephony.plugin.desktop.in:7
 msgid "Be notified of incoming and ongoing calls"
-msgstr ""
+msgstr "Уведомления о входящих и активных звонках"
 
 #. TRANSLATORS: An unknown caller, with no name or phone number
 #: src/plugins/telephony/valent-telephony-plugin.c:367
 msgctxt "contact identity"
 msgid "Unknown"
-msgstr ""
+msgstr "Неизвестно"
 
 #. TRANSLATORS: The phone is ringing
 #: src/plugins/telephony/valent-telephony-plugin.c:394
 msgid "Incoming call"
-msgstr ""
+msgstr "Входящий звонок"
 
 #. TRANSLATORS: The phone has been answered
 #: src/plugins/telephony/valent-telephony-plugin.c:407
 msgid "Ongoing call"
-msgstr ""
+msgstr "Активный звонок"
 
 #: src/plugins/xdp/valent-xdp-background.c:52
 msgid "Syncing Devices"
-msgstr ""
+msgstr "Синхронизация устройств"
 
 #: src/plugins/xdp/valent-xdp-background.c:82
 msgid "Valent wants to run as a service"
-msgstr ""
+msgstr "Valent хочет запускаться как служба"
 
 #: src/plugins/xdp/xdp.plugin.desktop.in:6
 msgid "Portals"
-msgstr ""
+msgstr "Portals"
 
 #: src/plugins/xdp/xdp.plugin.desktop.in:7
 msgid "Integration with desktop portals"
-msgstr ""
+msgstr "Интеграция с порталами рабочего стола"
 
 #. translators:
 #. * The device has been disabled
 #: subprojects/gvc/gvc-mixer-control.c:1872
 msgid "Disabled"
-msgstr ""
+msgstr "Отключено"
 
 #. translators:
 #. * The number of sound outputs on a particular device
@@ -1642,7 +1659,8 @@ msgstr ""
 msgid "%u Output"
 msgid_plural "%u Outputs"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "%u выход"
+msgstr[2] "%u выходов"
 
 #. translators:
 #. * The number of sound inputs on a particular device
@@ -1651,8 +1669,9 @@ msgstr[1] ""
 msgid "%u Input"
 msgid_plural "%u Inputs"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "%u вход"
+msgstr[2] "%u входов"
 
 #: subprojects/gvc/gvc-mixer-control.c:2872
 msgid "System Sounds"
-msgstr ""
+msgstr "Системные звуки"
