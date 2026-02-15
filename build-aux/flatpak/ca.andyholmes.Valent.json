@@ -130,8 +130,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/google/libphonenumber.git",
-                    "commit": "3b7cd902d9928110251c0d5c567ea76b6feabf16",
-                    "tag": "v9.0.21",
+                    "commit": "59a8b2c90a2d99a0bf0e2d0beaf64d53df707984",
+                    "tag": "v9.0.24",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 89344,
@@ -160,8 +160,8 @@
                         {
                             "type": "git",
                             "url": "https://github.com/abseil/abseil-cpp.git",
-                            "commit": "d38452e1ee03523a208362186fd42248ff2609f6",
-                            "tag": "20250814.1",
+                            "commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+                            "tag": "20260107.1",
                             "x-checker-data": {
                                 "type": "anitya",
                                 "project-id": 115295,
@@ -263,8 +263,8 @@
                 {
                     "type": "git",
                     "url": "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit": "9963c57f77a2ac305881d6b54b881c93118c3f84",
-                    "tag": "3.58.2",
+                    "commit": "4d025ea6b9d5fb34ac7fa1ddaedc6de5a3e0e540",
+                    "tag": "3.58.3",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 10935,
@@ -296,7 +296,8 @@
                         "project-id": 350087,
                         "stable-only": true,
                         "tag-template": "$version"
-                    }
+                    },
+                    "commit": "19b64535408aa47abbc8151bc2c925afd6583851"
                 }
             ]
         },
