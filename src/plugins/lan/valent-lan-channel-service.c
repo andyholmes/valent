@@ -7,6 +7,7 @@
 
 #include <gio/gio.h>
 #include <gio/gunixinputstream.h>
+#include <libdex.h>
 #include <valent.h>
 
 #include "valent-lan-channel.h"
@@ -98,29 +99,17 @@ on_channel_destroyed (ValentLanChannelService *self,
  * protocol v8 requires re-exchanging identity packets over the encrypted
  * connection.
  */
-typedef enum
-{
-  HANDSHAKE_ENCRYPTED =     (1 << 0),
-  HANDSHAKE_IDENTITY_READ = (1 << 1),
-  HANDSHAKE_IDENTITY_SENT = (1 << 2),
-  HANDSHAKE_FAILED =        (1 << 3),
-  HANDSHAKE_COMPLETE =      (HANDSHAKE_ENCRYPTED |
-                             HANDSHAKE_IDENTITY_READ |
-                             HANDSHAKE_IDENTITY_SENT),
-} HandshakeFlags;
-
 typedef struct
 {
-  GIOStream       *connection;
-  JsonNode        *peer_identity;
-  char            *host;
-  uint16_t         port;
-  int64_t          protocol_version;
-  HandshakeFlags  flags;
-  GCancellable    *cancellable;
-  unsigned long    cancellable_id;
-  GCancellable    *task_cancellable;
-  GSource         *timeout;
+  ValentChannelService *service;
+  GIOStream            *connection;
+  JsonNode             *peer_identity;
+  char                 *host;
+  uint16_t              port;
+  GCancellable         *cancellable;
+  unsigned long         cancellable_id;
+  GCancellable         *task_cancellable;
+  GSource              *timeout;
 } HandshakeData;
 
 static void
@@ -143,17 +132,24 @@ handshake_timeout_cb (gpointer data)
 }
 
 static HandshakeData *
-handshake_data_new (GCancellable *cancellable)
+handshake_data_new (ValentChannelService *service)
 {
   HandshakeData *ret = NULL;
   g_autoptr (GMainContext) context = NULL;
 
-  g_assert (G_IS_CANCELLABLE (cancellable));
+  g_assert (VALENT_IS_CHANNEL_SERVICE (service));
 
   context = g_main_context_ref_thread_default ();
 
   ret = g_new0 (HandshakeData, 1);
+  ret->service = g_object_ref (service);
+
   ret->task_cancellable = g_cancellable_new ();
+  ret->cancellable = valent_object_ref_cancellable (VALENT_OBJECT (service));
+  ret->cancellable_id = g_cancellable_connect (ret->cancellable,
+                                               G_CALLBACK (handshake_cancelled_cb),
+                                               g_object_ref (ret->task_cancellable),
+                                               g_object_unref);
 
   ret->timeout = g_timeout_source_new (HANDSHAKE_TIMEOUT_MS);
   g_source_set_priority (ret->timeout, G_PRIORITY_HIGH);
@@ -163,15 +159,6 @@ handshake_data_new (GCancellable *cancellable)
                          g_object_ref (ret->task_cancellable),
                          g_object_unref);
   g_source_attach (ret->timeout, context);
-
-  if (cancellable != NULL)
-    {
-      ret->cancellable = g_object_ref (cancellable);
-      ret->cancellable_id = g_cancellable_connect (ret->cancellable,
-                                                   G_CALLBACK (handshake_cancelled_cb),
-                                                   g_object_ref (ret->task_cancellable),
-                                                   g_object_unref);
-    }
 
   return ret;
 }
@@ -193,6 +180,7 @@ handshake_data_free (gpointer user_data)
       g_clear_pointer (&data->timeout, g_source_unref);
     }
 
+  g_clear_object (&data->service);
   g_clear_object (&data->connection);
   g_clear_pointer (&data->peer_identity, json_node_unref);
   g_clear_pointer (&data->host, g_free);
@@ -201,335 +189,250 @@ handshake_data_free (gpointer user_data)
 }
 
 static void
-handshake_data_cb (GObject      *object,
-                   GAsyncResult *result,
-                   gpointer      user_data)
-{
-  HandshakeData *data = g_task_get_task_data (G_TASK (result));
-  g_autoptr (GError) error = NULL;
-
-  if (!g_task_propagate_boolean (G_TASK (result), &error))
-    {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("%s(): %s", G_STRFUNC, error->message);
-      else if (!g_cancellable_is_cancelled (data->cancellable))
-        g_warning ("%s(): timed out waiting for peer", G_STRFUNC);
-    }
-}
-
-static void
-handshake_task_complete (GTask *task)
-{
-  ValentChannelService *service = g_task_get_source_object (task);
-  HandshakeData *data = g_task_get_task_data (task);
-  g_autoptr (ValentChannel) channel = NULL;
-  g_autoptr (JsonNode) identity = NULL;
-  GTlsCertificate *certificate = NULL;
-  GTlsCertificate *peer_certificate = NULL;
-
-  identity = valent_channel_service_ref_identity (service);
-  certificate = g_tls_connection_get_certificate (G_TLS_CONNECTION (data->connection));
-  peer_certificate = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (data->connection));
-  channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
-                          "base-stream",      data->connection,
-                          "certificate",      certificate,
-                          "identity",         identity,
-                          "peer-certificate", peer_certificate,
-                          "peer-identity",    data->peer_identity,
-                          "host",             data->host,
-                          "port",             data->port,
-                          NULL);
-
-  valent_channel_service_channel (service, channel);
-
-  g_task_return_boolean (task, TRUE);
-}
-
-static void
-handshake_read_identity_cb (GInputStream *stream,
-                            GAsyncResult *result,
-                            gpointer      user_data)
-{
-  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  HandshakeData *data = g_task_get_task_data (task);
-  g_autoptr (JsonNode) secure_identity = NULL;
-  int64_t protocol_version;
-  const char *device_id;
-  const char *secure_id;
-  GError *error = NULL;
-
-  secure_identity = valent_packet_from_stream_finish (stream, result, &error);
-  if (secure_identity == NULL)
-    {
-      if ((data->flags & HANDSHAKE_FAILED) == 0)
-        {
-          data->flags |= HANDSHAKE_FAILED;
-          g_task_return_error (task, g_steal_pointer (&error));
-        }
-
-      return;
-    }
-
-  if (!valent_packet_get_int (secure_identity, "protocolVersion", &protocol_version))
-    {
-      g_task_return_new_error (task,
-                               VALENT_PACKET_ERROR,
-                               VALENT_PACKET_ERROR_MISSING_FIELD,
-                               "expected \"protocolVersion\" field holding an integer");
-      return;
-    }
-
-  if (data->protocol_version != protocol_version)
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_SUPPORTED,
-                               "Unexpected protocol version \"%u\"; "
-                               "handshake began with version \"%u\"",
-                               (uint8_t)protocol_version,
-                               (uint8_t)data->protocol_version);
-      return;
-    }
-
-  valent_packet_get_string (data->peer_identity, "deviceId", &device_id);
-  if (!valent_packet_get_string (secure_identity, "deviceId", &secure_id))
-    {
-      g_task_return_new_error (task,
-                               VALENT_PACKET_ERROR,
-                               VALENT_PACKET_ERROR_MISSING_FIELD,
-                               "expected \"deviceId\" field holding an integer");
-      return;
-    }
-
-  if (!g_str_equal (device_id, secure_id))
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_SUPPORTED,
-                               "Unexpected device ID \"%s\"; "
-                               "handshake began with ID \"%s\"",
-                               secure_id,
-                               device_id);
-      return;
-    }
-
-  g_clear_pointer (&data->peer_identity, json_node_unref);
-  data->peer_identity = g_steal_pointer (&secure_identity);
-
-  data->flags |= HANDSHAKE_IDENTITY_READ;
-  if (data->flags == HANDSHAKE_COMPLETE)
-    handshake_task_complete (task);
-}
-
-static void
-handshake_write_identity_cb (GOutputStream *stream,
-                             GAsyncResult  *result,
-                             gpointer       user_data)
-{
-  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  HandshakeData *data = g_task_get_task_data (task);
-  GError *error = NULL;
-
-  if (!valent_packet_to_stream_finish (stream, result, &error))
-    {
-      if ((data->flags & HANDSHAKE_FAILED) == 0)
-        {
-          data->flags |= HANDSHAKE_FAILED;
-          g_task_return_error (task, g_steal_pointer (&error));
-        }
-
-      return;
-    }
-
-  data->flags |= HANDSHAKE_IDENTITY_SENT;
-  if (data->flags == HANDSHAKE_COMPLETE)
-    handshake_task_complete (task);
-}
-
-static void
-valent_lan_connection_handshake_cb (GSocketConnection *connection,
-                                    GAsyncResult      *result,
-                                    gpointer           user_data)
-{
-  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  ValentChannelService *service = g_task_get_source_object (task);
-  HandshakeData *data = g_task_get_task_data (task);
-  GCancellable *cancellable = g_task_get_cancellable (task);
-  g_autoptr (GIOStream) ret = NULL;
-  g_autoptr (JsonNode) identity = NULL;
-  GError *error = NULL;
-
-  ret = valent_lan_connection_handshake_finish (connection, result, &error);
-  if (ret == NULL)
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  g_clear_object (&data->connection);
-  data->connection = g_steal_pointer (&ret);
-  data->flags |= HANDSHAKE_ENCRYPTED;
-
-  if (!valent_packet_get_int (data->peer_identity,
-                              "protocolVersion",
-                              &data->protocol_version))
-    {
-      g_task_return_new_error (task,
-                               VALENT_PACKET_ERROR,
-                               VALENT_PACKET_ERROR_MISSING_FIELD,
-                               "expected \"protocolVersion\" field holding an integer");
-      return;
-    }
-
-  if (data->protocol_version > VALENT_NETWORK_PROTOCOL_MAX ||
-      data->protocol_version < VALENT_NETWORK_PROTOCOL_MIN)
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_SUPPORTED,
-                               "Unsupported protocol version \"%u\"",
-                               (uint8_t)data->protocol_version);
-      return;
-    }
-
-  if (data->protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
-    {
-      identity = valent_channel_service_ref_identity (service);
-      valent_packet_to_stream (g_io_stream_get_output_stream (data->connection),
-                               identity,
-                               cancellable,
-                               (GAsyncReadyCallback)handshake_write_identity_cb,
-                               g_object_ref (task));
-      valent_packet_from_stream (g_io_stream_get_input_stream (data->connection),
-                                 IDENTITY_BUFFER_MAX,
-                                 cancellable,
-                                 (GAsyncReadyCallback)handshake_read_identity_cb,
-                                 g_object_ref (task));
-    }
-  else
-    {
-      data->flags = HANDSHAKE_COMPLETE;
-      handshake_task_complete (task);
-    }
-}
-
-static void
-valent_packet_from_stream_cb (GInputStream *stream,
-                              GAsyncResult *result,
-                              gpointer      user_data)
-{
-  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  ValentChannelService *service = g_task_get_source_object (task);
-  HandshakeData *data = g_task_get_task_data (task);
-  GCancellable *cancellable = g_task_get_cancellable (task);
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  const char *device_id = NULL;
-  g_autoptr (GIOStream) ret = NULL;
-  GError *error = NULL;
-
-  data->peer_identity = valent_packet_from_stream_finish (stream, result, &error);
-  if (data->peer_identity == NULL)
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  if (!valent_packet_get_string (data->peer_identity, "deviceId", &device_id))
-    {
-      g_task_return_new_error (task,
-                               VALENT_PACKET_ERROR,
-                               VALENT_PACKET_ERROR_MISSING_FIELD,
-                               "expected \"deviceId\" field holding a string");
-      return;
-    }
-
-  if (!valent_device_validate_id (device_id))
-    {
-      g_task_return_new_error (task,
-                               G_IO_ERROR,
-                               G_IO_ERROR_NOT_SUPPORTED,
-                               "Invalid device ID \"%s\"",
-                               device_id);
-      return;
-    }
-
-  VALENT_JSON (data->peer_identity, data->host);
-
-  /* NOTE: When negotiating the primary connection, a KDE Connect device
-   *       acts as the TLS client when accepting TCP connections
-   */
-  certificate = valent_channel_service_ref_certificate (service);
-  valent_lan_connection_handshake_async (G_SOCKET_CONNECTION (data->connection),
-                                         certificate,
-                                         NULL,  /* trusted */
-                                         TRUE, /* is_client */
-                                         cancellable,
-                                         (GAsyncReadyCallback)valent_lan_connection_handshake_cb,
-                                         g_object_ref (task));
-}
-
-static void
-valent_packet_to_stream_cb (GOutputStream *stream,
-                            GAsyncResult  *result,
-                            gpointer       user_data)
-{
-  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  ValentChannelService *service = g_task_get_source_object (task);
-  HandshakeData *data = g_task_get_task_data (task);
-  GCancellable *cancellable = g_task_get_cancellable (task);
-  g_autoptr (GTlsCertificate) certificate = NULL;
-  GError *error = NULL;
-
-  if (!valent_packet_to_stream_finish (stream, result, &error))
-    {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
-    }
-
-  /* NOTE: When negotiating the primary connection, a KDE Connect device
-   *       acts as the TLS server when opening TCP connections
-   */
-  certificate = valent_channel_service_ref_certificate (service);
-  valent_lan_connection_handshake_async (G_SOCKET_CONNECTION (data->connection),
-                                         certificate,
-                                         NULL,  /* trusted */
-                                         FALSE, /* is_client */
-                                         cancellable,
-                                         (GAsyncReadyCallback)valent_lan_connection_handshake_cb,
-                                         g_object_ref (task));
-}
-
-static void
 g_socket_client_connect_to_host_cb (GSocketClient *client,
                                     GAsyncResult  *result,
                                     gpointer       user_data)
 {
-  g_autoptr (GTask) task = G_TASK (g_steal_pointer (&user_data));
-  ValentChannelService *service = g_task_get_source_object (task);
-  HandshakeData *data = g_task_get_task_data (task);
-  GCancellable *cancellable = g_task_get_cancellable (task);
+  g_autoptr (DexPromise) promise = DEX_PROMISE (g_steal_pointer (&user_data));
   g_autoptr (GSocketConnection) connection = NULL;
-  g_autoptr (JsonNode) identity = NULL;
-  GError *error = NULL;
+  g_autoptr (GError) error = NULL;
 
   connection = g_socket_client_connect_to_host_finish (client, result, &error);
   if (connection == NULL)
+    dex_promise_reject (promise, g_steal_pointer (&error));
+  else
+    dex_promise_resolve_object (promise, g_steal_pointer (&connection));
+}
+
+static DexFuture *
+_dex_socket_client_connect_to_host (const char   *host,
+                                    guint16       port,
+                                    GCancellable *cancellable)
+{
+  DexPromise *promise = dex_promise_new_cancellable ();
+  g_autoptr (GSocketClient) client = NULL;
+
+  client = g_object_new (G_TYPE_SOCKET_CLIENT,
+                         "enable-proxy", FALSE,
+                         NULL);
+  g_socket_client_connect_to_host_async (client,
+                                         host,
+                                         port,
+                                         cancellable,
+                                         (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
+                                         dex_ref (promise));
+  return DEX_FUTURE (g_steal_pointer (&promise));
+}
+
+static DexFuture *
+handshake_fiber (gpointer user_data)
+{
+  HandshakeData *data = (HandshakeData *)user_data;
+  ValentChannelService *service = data->service;
+  GCancellable *cancellable = data->task_cancellable;
+  g_autoptr (ValentChannel) channel = NULL;
+  g_autoptr (GIOStream) connection = NULL;
+  g_autoptr (JsonNode) identity = NULL;
+  g_autoptr (GTlsCertificate) certificate = NULL;
+  GTlsCertificate *cert = NULL;
+  GTlsCertificate *peer_cert = NULL;
+  const char *device_id = NULL;
+  int64_t protocol_version = VALENT_NETWORK_PROTOCOL_MAX;
+  gboolean is_incoming;
+  g_autoptr (GError) error = NULL;
+
+  g_assert (G_IS_IO_STREAM (data->connection) ||
+            VALENT_IS_PACKET (data->peer_identity));
+
+  certificate = valent_channel_service_ref_certificate (service);
+  identity = valent_channel_service_ref_identity (service);
+  is_incoming = (data->connection != NULL);
+
+  /* If this an incoming connection, it is in response to a broadcast from the
+   * local device, so the remote device must send its identity.
+   *
+   * Otherwise, in response to a broadcast from the remote device, the local
+   * device must open an outgoing connection and send its identity.
+   */
+  if (is_incoming)
     {
-      g_task_return_error (task, g_steal_pointer (&error));
-      return;
+      g_autoptr (JsonNode) peer_identity = NULL;
+
+      peer_identity = dex_await_boxed (valent_packet_from_stream_future (g_io_stream_get_input_stream (data->connection),
+                                                                         IDENTITY_BUFFER_MAX,
+                                                                         cancellable),
+                                       &error);
+      if (peer_identity == NULL)
+        goto fail;
+
+      data->peer_identity = g_steal_pointer (&peer_identity);
+    }
+  else
+    {
+      data->connection = dex_await_object (_dex_socket_client_connect_to_host (data->host,
+                                                                               data->port,
+                                                                               cancellable),
+                                           &error);
+      if (data->connection == NULL)
+        goto fail;
+
+      if (!dex_await (valent_packet_to_stream_future (g_io_stream_get_output_stream (data->connection),
+                                                      identity,
+                                                      cancellable),
+                      &error))
+        goto fail;
     }
 
-  g_set_object (&data->connection, G_IO_STREAM (connection));
+  if (!valent_packet_get_string (data->peer_identity, "deviceId", &device_id))
+    {
+      g_set_error (&error,
+                   VALENT_PACKET_ERROR,
+                   VALENT_PACKET_ERROR_MISSING_FIELD,
+                   "expected \"deviceId\" field holding a string");
+      goto fail;
+    }
 
-  /* The outgoing connection is in response to the remote device's broadcast,
-   * so the local device must send its identity before TLS negotiation.
+  if (!valent_device_validate_id (device_id))
+    {
+      g_set_error (&error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_NOT_SUPPORTED,
+                   "Invalid device ID \"%s\"",
+                   device_id);
+      goto fail;
+    }
+
+  VALENT_JSON (data->peer_identity, data->host);
+
+  /* When negotiating the primary connection, a KDE Connect client acts as the
+   * TLS server when opening connections (TCP client) and the TLS client when
+   * accepting connections (TCP server).
    */
-  identity = valent_channel_service_ref_identity (service);
-  valent_packet_to_stream (g_io_stream_get_output_stream (data->connection),
-                           identity,
-                           cancellable,
-                           (GAsyncReadyCallback)valent_packet_to_stream_cb,
-                           g_object_ref (task));
+  connection = dex_await_object (valent_lan_connection_handshake_future (G_SOCKET_CONNECTION (data->connection),
+                                                                         certificate,
+                                                                         NULL, /* trusted */
+                                                                         is_incoming,
+                                                                         cancellable),
+                                 &error);
+  if (connection == NULL)
+    goto fail;
+
+  g_clear_object (&data->connection);
+  data->connection = g_steal_pointer (&connection);
+
+  if (!valent_packet_get_int (data->peer_identity, "protocolVersion", &protocol_version))
+    {
+      g_set_error (&error,
+                   VALENT_PACKET_ERROR,
+                   VALENT_PACKET_ERROR_MISSING_FIELD,
+                   "expected \"protocolVersion\" field holding an integer");
+      goto fail;
+    }
+
+  if (protocol_version > VALENT_NETWORK_PROTOCOL_MAX ||
+      protocol_version < VALENT_NETWORK_PROTOCOL_MIN)
+    {
+      g_set_error (&error,
+                   G_IO_ERROR,
+                   G_IO_ERROR_NOT_SUPPORTED,
+                   "Unsupported protocol version \"%u\"",
+                   (uint8_t) protocol_version);
+      goto fail;
+    }
+
+  /* In protocol v8, identities are re-exchanged over the encrypted connection
+   */
+  if (protocol_version >= VALENT_NETWORK_PROTOCOL_V8)
+    {
+      g_autoptr (JsonNode) secure_identity = NULL;
+      DexFuture *send = NULL;
+      DexFuture *recv = NULL;
+      const char *secure_id = NULL;
+      int64_t secure_protocol = VALENT_NETWORK_PROTOCOL_MAX;
+
+      send = valent_packet_to_stream_future (g_io_stream_get_output_stream (data->connection),
+                                             identity,
+                                             cancellable);
+      recv = valent_packet_from_stream_future (g_io_stream_get_input_stream (data->connection),
+                                               IDENTITY_BUFFER_MAX,
+                                               cancellable);
+      if (!dex_await (dex_future_all (send, dex_ref (recv), NULL), &error))
+        goto fail;
+
+      secure_identity = dex_await_boxed (recv, &error);
+      if (secure_identity == NULL)
+        goto fail;
+
+      if (!valent_packet_get_int (secure_identity,
+                                  "protocolVersion",
+                                  &secure_protocol))
+        {
+          g_set_error (&error,
+                       VALENT_PACKET_ERROR,
+                       VALENT_PACKET_ERROR_MISSING_FIELD,
+                       "expected \"protocolVersion\" field holding an integer");
+          goto fail;
+        }
+
+      if (secure_protocol != protocol_version)
+        {
+          g_set_error (&error,
+                       G_IO_ERROR,
+                       G_IO_ERROR_FAILED,
+                       "Unexpected protocol version \"%u\"; "
+                       "handshake began with version \"%u\"",
+                       (uint8_t)secure_protocol,
+                       (uint8_t)protocol_version);
+          goto fail;
+        }
+
+      valent_packet_get_string (data->peer_identity, "deviceId", &device_id);
+      if (!valent_packet_get_string (secure_identity, "deviceId", &secure_id))
+        {
+          g_set_error (&error,
+                       VALENT_PACKET_ERROR,
+                       VALENT_PACKET_ERROR_MISSING_FIELD,
+                       "expected \"deviceId\" field holding a string");
+          goto fail;
+        }
+
+      if (!g_str_equal (secure_id, device_id))
+        {
+          g_set_error (&error,
+                       G_IO_ERROR,
+                       G_IO_ERROR_FAILED,
+                       "Unexpected device ID \"%s\"; "
+                       "handshake began with ID \"%s\"",
+                       secure_id,
+                       device_id);
+          goto fail;
+        }
+
+      g_clear_pointer (&data->peer_identity, json_node_unref);
+      data->peer_identity = g_steal_pointer (&secure_identity);
+    }
+
+  cert = g_tls_connection_get_certificate (G_TLS_CONNECTION (data->connection));
+  peer_cert = g_tls_connection_get_peer_certificate (G_TLS_CONNECTION (data->connection));
+  channel = g_object_new (VALENT_TYPE_LAN_CHANNEL,
+                          "base-stream",      data->connection,
+                          "certificate",      cert,
+                          "identity",         identity,
+                          "peer-certificate", peer_cert,
+                          "peer-identity",    data->peer_identity,
+                          "host",             data->host,
+                          "port",             data->port,
+                          NULL);
+  valent_channel_service_channel (service, channel);
+  return dex_future_new_for_boolean (TRUE);
+
+fail:
+  if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+    g_warning ("%s(): %s", G_STRFUNC, error->message);
+  else if (data->cancellable != NULL && !g_cancellable_is_cancelled (data->cancellable))
+    g_warning ("%s(): timed out waiting for peer", G_STRFUNC);
+
+  return dex_future_new_for_boolean (FALSE);
 }
 
 /*
@@ -541,7 +444,7 @@ on_incoming_connection (ValentChannelService *service,
                         GCancellable         *cancellable,
                         GSocketService       *listener)
 {
-  g_autoptr (GTask) task = NULL;
+  DexFuture *handshake = NULL;
   HandshakeData *data = NULL;
   g_autoptr (GSocketAddress) s_addr = NULL;
   GInetAddress *i_addr = NULL;
@@ -551,23 +454,17 @@ on_incoming_connection (ValentChannelService *service,
   s_addr = g_socket_connection_get_remote_address (connection, NULL);
   i_addr = g_inet_socket_address_get_address (G_INET_SOCKET_ADDRESS (s_addr));
 
-  data = handshake_data_new (cancellable);
+  data = handshake_data_new (service);
   data->connection = g_object_ref (G_IO_STREAM (connection));
   data->host = g_inet_address_to_string (i_addr);
   data->port = VALENT_LAN_PROTOCOL_PORT;
 
-  task = g_task_new (service, data->task_cancellable, handshake_data_cb, NULL);
-  g_task_set_source_tag (task, on_incoming_connection);
-  g_task_set_task_data (task, data, handshake_data_free);
-
-  /* The incoming connection is in response to the local device's broadcast,
-   * so the remote device must send its identity before TLS negotiation.
-   */
-  valent_packet_from_stream (g_io_stream_get_input_stream (data->connection),
-                             IDENTITY_BUFFER_MAX,
-                             data->task_cancellable,
-                             (GAsyncReadyCallback)valent_packet_from_stream_cb,
-                             g_object_ref (task));
+  handshake = dex_scheduler_spawn (dex_scheduler_get_thread_default (),
+                                   0, /* stack size */
+                                   handshake_fiber,
+                                   g_steal_pointer (&data),
+                                   handshake_data_free);
+  dex_future_disown (g_steal_pointer (&handshake));
 
   return TRUE;
 }
@@ -586,12 +483,11 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
   gssize read = 0;
   char buffer[IDENTITY_BUFFER_MAX + 1] = { 0, };
   g_autoptr (GSocketAddress) incoming = NULL;
-  g_autoptr (GSocketClient) client = NULL;
   GInetAddress *addr = NULL;
   g_autoptr (JsonNode) peer_identity = NULL;
   const char *device_id;
   g_autofree char *local_id = NULL;
-  g_autoptr (GTask) task = NULL;
+  DexFuture *handshake = NULL;
   HandshakeData *data = NULL;
   g_autoptr (GError) warning = NULL;
   int64_t port = VALENT_LAN_PROTOCOL_PORT;
@@ -675,26 +571,17 @@ valent_lan_channel_service_socket_recv (GSocket      *socket,
       VALENT_RETURN (G_SOURCE_CONTINUE);
     }
 
-  data = handshake_data_new (cancellable);
+  data = handshake_data_new (service);
   data->peer_identity = json_node_ref (peer_identity);
   data->host = g_inet_address_to_string (addr);
   data->port = (uint16_t)port;
 
-  task = g_task_new (service, data->task_cancellable, handshake_data_cb, NULL);
-  g_task_set_source_tag (task, valent_lan_channel_service_socket_recv);
-  g_task_set_task_data (task, data, handshake_data_free);
-
-  /* Open a connection to the host at the expected port
-   */
-  client = g_object_new (G_TYPE_SOCKET_CLIENT,
-                         "enable-proxy", FALSE,
-                         NULL);
-  g_socket_client_connect_to_host_async (client,
-                                         data->host,
-                                         data->port,
-                                         data->task_cancellable,
-                                         (GAsyncReadyCallback)g_socket_client_connect_to_host_cb,
-                                         g_object_ref (task));
+  handshake = dex_scheduler_spawn (dex_scheduler_get_thread_default (),
+                                   0, /* stack size */
+                                   handshake_fiber,
+                                   g_steal_pointer (&data),
+                                   handshake_data_free);
+  dex_future_disown (g_steal_pointer (&handshake));
 
   VALENT_RETURN (G_SOURCE_CONTINUE);
 }
