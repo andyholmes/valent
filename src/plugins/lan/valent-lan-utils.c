@@ -7,6 +7,7 @@
 
 #include <gio/gio.h>
 #include <gio/gnetworking.h>
+#include <libdex.h>
 #include <valent.h>
 
 #include "valent-lan-utils.h"
@@ -387,5 +388,132 @@ valent_lan_connection_handshake_finish (GSocketConnection  *connection,
   g_assert (error == NULL || *error == NULL);
 
   return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static void
+valent_lan_connection_handshake_cb (GSocketConnection *connection,
+                                    GAsyncResult      *result,
+                                    gpointer           user_data)
+{
+  g_autoptr (DexPromise) promise = DEX_PROMISE (g_steal_pointer (&user_data));
+  g_autoptr (GIOStream) ret = NULL;
+  g_autoptr (GError) error = NULL;
+
+  ret = valent_lan_connection_handshake_finish (connection, result, &error);
+  if (ret == NULL)
+    dex_promise_reject (promise, g_steal_pointer (&error));
+  else
+    dex_promise_resolve_object (promise, g_steal_pointer (&ret));
+}
+
+DexFuture *
+valent_lan_connection_handshake_future (GSocketConnection *connection,
+                                        GTlsCertificate   *certificate,
+                                        GTlsCertificate   *trusted,
+                                        gboolean           is_client,
+                                        GCancellable      *cancellable)
+{
+  DexPromise *promise = dex_promise_new_cancellable ();
+
+  g_assert (G_IS_SOCKET_CONNECTION (connection));
+  g_assert (G_IS_TLS_CERTIFICATE (certificate));
+  g_assert (trusted == NULL || G_IS_TLS_CERTIFICATE (trusted));
+  g_assert (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+
+  valent_lan_connection_handshake_async (connection,
+                                         certificate,
+                                         trusted,
+                                         is_client,
+                                         cancellable,
+                                         (GAsyncReadyCallback)valent_lan_connection_handshake_cb,
+                                         dex_ref (promise));
+  return DEX_FUTURE (g_steal_pointer (&promise));
+}
+
+static void
+valent_packet_from_stream_cb (GInputStream *stream,
+                              GAsyncResult *result,
+                              gpointer      user_data)
+{
+  g_autoptr (DexPromise) promise = DEX_PROMISE (g_steal_pointer (&user_data));
+  g_autoptr (GError) error = NULL;
+  JsonNode *node = NULL;
+
+  node = valent_packet_from_stream_finish (stream, result, &error);
+  if (node == NULL)
+    dex_promise_reject (promise, g_steal_pointer (&error));
+  else
+    dex_promise_resolve_boxed (promise, JSON_TYPE_NODE, node);
+}
+
+/**
+ * valent_packet_from_stream_future:
+ * @stream: a `GInputStream`
+ * @max_len: the maximum number bytes to read, or `-1` for no limit
+ * @cancellable: (nullable): a `GCancellable`
+ *
+ * A convenience function for writing a KDE Connect packet to an output stream.
+ *
+ * Returns: (transfer full): a `DexFuture` for the operation
+ */
+DexFuture *
+valent_packet_from_stream_future (GInputStream *stream,
+                                  gssize        max_len,
+                                  GCancellable *cancellable)
+{
+  DexPromise *promise = dex_promise_new_cancellable ();
+
+  g_return_val_if_fail (G_IS_INPUT_STREAM (stream), NULL);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+
+  valent_packet_from_stream (stream,
+                             max_len,
+                             cancellable,
+                             (GAsyncReadyCallback)valent_packet_from_stream_cb,
+                             dex_ref (promise));
+  return DEX_FUTURE (g_steal_pointer (&promise));
+}
+
+static void
+valent_packet_to_stream_cb (GOutputStream *stream,
+                            GAsyncResult  *result,
+                            gpointer       user_data)
+{
+  g_autoptr (DexPromise) promise = DEX_PROMISE (g_steal_pointer (&user_data));
+  g_autoptr (GError) error = NULL;
+
+  if (!valent_packet_to_stream_finish (stream, result, &error))
+    dex_promise_reject (promise, g_steal_pointer (&error));
+  else
+    dex_promise_resolve_boolean (promise, TRUE);
+}
+
+/**
+ * valent_packet_to_stream_future:
+ * @stream: a `GOutputStream`
+ * @packet: a KDE Connect packet
+ * @cancellable: (nullable): a `GCancellable`
+ *
+ * A convenience function for writing a KDE Connect packet to an output stream.
+ *
+ * Returns: (transfer full): a `DexFuture` for the operation
+ */
+DexFuture *
+valent_packet_to_stream_future (GOutputStream *stream,
+                                JsonNode      *packet,
+                                GCancellable  *cancellable)
+{
+  DexPromise *promise = dex_promise_new_cancellable ();
+
+  g_return_val_if_fail (G_IS_OUTPUT_STREAM (stream), NULL);
+  g_return_val_if_fail (packet != NULL, NULL);
+  g_return_val_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable), NULL);
+
+  valent_packet_to_stream (stream,
+                           packet,
+                           cancellable,
+                           (GAsyncReadyCallback)valent_packet_to_stream_cb,
+                           dex_ref (promise));
+  return DEX_FUTURE (g_steal_pointer (&promise));
 }
 

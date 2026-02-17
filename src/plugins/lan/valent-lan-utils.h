@@ -4,6 +4,7 @@
 #pragma once
 
 #include <gio/gio.h>
+#include <libdex.h>
 
 G_BEGIN_DECLS
 
@@ -69,6 +70,17 @@ void        valent_lan_connection_handshake_async  (GSocketConnection    *connec
 GIOStream * valent_lan_connection_handshake_finish (GSocketConnection    *connection,
                                                     GAsyncResult         *result,
                                                     GError              **error);
+DexFuture * valent_lan_connection_handshake_future (GSocketConnection    *connection,
+                                                    GTlsCertificate      *certificate,
+                                                    GTlsCertificate      *trusted,
+                                                    gboolean              is_client,
+                                                    GCancellable         *cancellable);
+DexFuture * valent_packet_from_stream_future       (GInputStream         *stream,
+                                                    gssize                max_len,
+                                                    GCancellable         *cancellable);
+DexFuture * valent_packet_to_stream_future         (GOutputStream        *stream,
+                                                    JsonNode             *packet,
+                                                    GCancellable         *cancellable);
 
 G_END_DECLS
 
