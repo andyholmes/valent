@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: valent\n"
 "Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
 "POT-Creation-Date: 2025-11-07 13:04-0800\n"
-"PO-Revision-Date: 2026-02-13 16:09+0000\n"
+"PO-Revision-Date: 2026-02-24 19:09+0000\n"
 "Last-Translator: Xapitonov <sergejharitonov001@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/valent/"
 "application/ru/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Weblate 5.16-dev\n"
+"X-Generator: Weblate 5.16.1-dev\n"
 
 #: data/ca.andyholmes.Valent.desktop.in.in:2
 #: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
@@ -391,7 +391,7 @@ msgstr "Отправить на %s"
 #, c-format
 msgid "%s and %u more…"
 msgid_plural "%s and %u more…"
-msgstr[0] ""
+msgstr[0] "%s и ещё %u…"
 msgstr[1] "%s и ещё %u…"
 msgstr[2] "%s и ещё %u…"
 
@@ -457,7 +457,7 @@ msgid "New message from %s, with %d attachment"
 msgid_plural "New message from %s, with %d attachments"
 msgstr[0] "Новое сообщение от %s, с %d вложением"
 msgstr[1] "Новое сообщение от %s, с %d вложениями"
-msgstr[2] ""
+msgstr[2] "Новое сообщение от %s с %d вложениями"
 
 #: src/plugins/gnome/valent-conversation-page.c:947
 #: src/plugins/gnome/valent-conversation-page.c:1094
@@ -544,9 +544,9 @@ msgstr "Только что"
 #, c-format
 msgid "%d min"
 msgid_plural "%d mins"
-msgstr[0] "Новое сообщение от %s, с %d вложением"
-msgstr[1] "Новое сообщение от %s, с %d вложениями"
-msgstr[2] "Новое сообщение от %s, с %d вложениями"
+msgstr[0] "%d мин"
+msgstr[1] "%d мин"
+msgstr[2] "%d мин"
 
 #. TRANSLATORS: Time duration in minutes (eg. 15 minutes)
 #.
@@ -554,8 +554,8 @@ msgstr[2] "Новое сообщение от %s, с %d вложениями"
 #, c-format
 msgid "%d minute"
 msgid_plural "%d minutes"
-msgstr[0] ""
-msgstr[1] "%d минута"
+msgstr[0] "%d минута"
+msgstr[1] "%d минуты"
 msgstr[2] "%d минут"
 
 #. TRANSLATORS: Yesterday, but less than 24 hours (eg. Yesterday · 11:45 PM)
@@ -1348,7 +1348,7 @@ msgstr "%d:%02d"
 
 #: src/plugins/gnome/valent-window.c:230
 msgid "translator-credits"
-msgstr "translator-credits"
+msgstr "Xapitonov"
 
 #: src/plugins/gnome/valent-window.c:235
 msgid "Sponsors"
@@ -1497,8 +1497,8 @@ msgstr "Передача файлов"
 #, c-format
 msgid "Receiving one file from %1$s"
 msgid_plural "Receiving %2$d files from %1$s"
-msgstr[0] ""
-msgstr[1] "Получение 1 файла от %1$s"
+msgstr[0] "Получение одного файла от %1$s"
+msgstr[1] "Получение %2$d файлов от %1$s"
 msgstr[2] "Получение %2$d файлов от %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:111
@@ -1511,8 +1511,8 @@ msgstr "Передача завершена"
 #, c-format
 msgid "Received one file from %1$s"
 msgid_plural "Received %2$d files from %1$s"
-msgstr[0] ""
-msgstr[1] "Получен 1 файл от %1$s"
+msgstr[0] "Получен один файл от %1$s"
+msgstr[1] "Получено %2$d файлов от %1$s"
 msgstr[2] "Получено %2$d файлов от %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:120
@@ -1559,17 +1559,17 @@ msgstr "Открыт «%s» на «%s»"
 #, c-format
 msgid "Sending one file to %1$s"
 msgid_plural "Sending %2$d files to %1$s"
-msgstr[0] ""
-msgstr[1] "Отправка 1 файла на %1$s"
-msgstr[2] "Отправка %2$d файлов на %1$s"
+msgstr[0] "Отправка одного файла %1$s"
+msgstr[1] "Отправка %2$d файлов %1$s"
+msgstr[2] "Отправка %2$d файлов %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:492
 #, c-format
 msgid "Sent one file to %1$s"
 msgid_plural "Sent %2$d files to %1$s"
-msgstr[0] ""
-msgstr[1] "Отправлен 1 файл на %1$s"
-msgstr[2] "Отправлено %2$d файлов на %1$s"
+msgstr[0] "Отправлен один файл %1$s"
+msgstr[1] "Отправлено %2$d файлов %1$s"
+msgstr[2] "Отправлено %2$d файлов %1$s"
 
 #: src/plugins/share/valent-share-plugin.c:754
 #, c-format
@@ -1658,8 +1658,8 @@ msgstr "Отключено"
 #, c-format
 msgid "%u Output"
 msgid_plural "%u Outputs"
-msgstr[0] ""
-msgstr[1] "%u выход"
+msgstr[0] "%u выход"
+msgstr[1] "%u выхода"
 msgstr[2] "%u выходов"
 
 #. translators:
@@ -1668,8 +1668,8 @@ msgstr[2] "%u выходов"
 #, c-format
 msgid "%u Input"
 msgid_plural "%u Inputs"
-msgstr[0] ""
-msgstr[1] "%u вход"
+msgstr[0] "%u вход"
+msgstr[1] "%u входа"
 msgstr[2] "%u входов"
 
 #: subprojects/gvc/gvc-mixer-control.c:2872
