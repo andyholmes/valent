@@ -50,7 +50,7 @@ jobs:
 
       - name: Login
         if: ${{ github.ref_name == github.event.repository.default_branch }}
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
