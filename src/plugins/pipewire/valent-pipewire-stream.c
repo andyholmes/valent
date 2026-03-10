@@ -72,6 +72,9 @@ valent_pipewire_stream_set_level (ValentMixerStream *stream,
   if (self->level == level || self->adapter == NULL)
     return;
 
+  self->level = level;
+  g_object_notify (G_OBJECT (stream), "level");
+
   valent_pipewire_mixer_set_stream_state (self->adapter,
                                           self->device_id,
                                           self->node_id,
@@ -99,6 +102,9 @@ valent_pipewire_stream_set_muted (ValentMixerStream *stream,
 
   if (self->muted == state || self->adapter == NULL)
     return;
+
+  self->muted = state;
+  g_object_notify (G_OBJECT (stream), "muted");
 
   valent_pipewire_mixer_set_stream_state (self->adapter,
                                           self->device_id,
