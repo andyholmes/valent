@@ -257,6 +257,8 @@ handshake_fiber (gpointer user_data)
   if (is_incoming)
     {
       g_autoptr (JsonNode) peer_identity = NULL;
+      const char *target_device_id = NULL;
+      int64_t target_protocol_version = 0;
 
       peer_identity = dex_await_boxed (valent_packet_from_stream_future (g_io_stream_get_input_stream (data->connection),
                                                                          IDENTITY_BUFFER_MAX,
@@ -265,10 +267,45 @@ handshake_fiber (gpointer user_data)
       if (peer_identity == NULL)
         goto fail;
 
+      /* When accepting a TCP connection, the identity packet may indicate its
+       * intended target, allowing the local device to mitigate amplification
+       * attacks from a spoofed UDP address.
+       */
+      if (valent_packet_get_string (peer_identity, "targetDeviceId", &target_device_id))
+        {
+          g_autofree char *local_id = valent_channel_service_dup_id (service);
+
+          if (g_strcmp0 (target_device_id, local_id) != 0)
+            {
+              g_set_error (&error,
+                           G_IO_ERROR,
+                           G_IO_ERROR_FAILED,
+                           "expected \"targetDeviceId\" field holding \"%s\"",
+                           local_id);
+              goto fail;
+            }
+        }
+
+      if (valent_packet_get_int (peer_identity, "targetProtocolVersion", &target_protocol_version) &&
+          target_protocol_version != VALENT_NETWORK_PROTOCOL_MAX)
+        {
+          g_set_error (&error,
+                       G_IO_ERROR,
+                       G_IO_ERROR_FAILED,
+                       "expected \"targetProtocolVersion\" field holding \"%u\"",
+                       VALENT_NETWORK_PROTOCOL_MAX);
+          goto fail;
+        }
+
       data->peer_identity = g_steal_pointer (&peer_identity);
     }
   else
     {
+      JsonObject *body;
+      gboolean success;
+      const char *target_device_id = NULL;
+      int64_t target_protocol_version = 0;
+
       data->connection = dex_await_object (_dex_socket_client_connect_to_host (data->host,
                                                                                data->port,
                                                                                cancellable),
@@ -276,10 +313,26 @@ handshake_fiber (gpointer user_data)
       if (data->connection == NULL)
         goto fail;
 
-      if (!dex_await (valent_packet_to_stream_future (g_io_stream_get_output_stream (data->connection),
-                                                      identity,
-                                                      cancellable),
-                      &error))
+      /* When responding to a UDP broadcast, mark the identity packet for its
+       * intended target, allowing the remote device to abort if the broadcast
+       * address was spoofed.
+       */
+      valent_packet_get_string (data->peer_identity, "deviceId", &target_device_id);
+      valent_packet_get_int (data->peer_identity, "protocolVersion", &target_protocol_version);
+
+      body = valent_packet_get_body (identity);
+      json_object_set_string_member (body, "targetDeviceId", target_device_id);
+      json_object_set_int_member (body, "targetProtocolVersion", target_protocol_version);
+
+      success = dex_await (valent_packet_to_stream_future (g_io_stream_get_output_stream (data->connection),
+                                                           identity,
+                                                           cancellable),
+                           &error);
+      // TODO: operate on a deep-copy instead?
+      json_object_remove_member (body, "targetDeviceId");
+      json_object_remove_member (body, "targetProtocolVersion");
+
+      if (!success)
         goto fail;
     }
 

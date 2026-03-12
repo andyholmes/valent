@@ -36,6 +36,8 @@
 #define TEST_OUTGOING_TLS_CERTIFICATE   "/plugins/lan/outgoing-tls-certificate"
 #define TEST_INCOMING_TLS_IDENTITY      "/plugins/lan/incoming-tls-common-name"
 #define TEST_OUTGOING_TLS_IDENTITY      "/plugins/lan/outgoing-tls-common-name"
+#define TEST_UDP_SPOOFED_ADDRESS_1      "/plugins/lan/udp-spoofed-address-1"
+#define TEST_UDP_SPOOFED_ADDRESS_2      "/plugins/lan/udp-spoofed-address-2"
 
 
 typedef struct
@@ -706,6 +708,16 @@ static LanTestCase compliance_tests[] = {
     .errmsg = "*device ID does not match certificate common name*",
     .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
   },
+  {
+    .name = TEST_UDP_SPOOFED_ADDRESS_1,
+    .errmsg = "*expected \"targetDeviceId\" field holding*",
+    .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
+  {
+    .name = TEST_UDP_SPOOFED_ADDRESS_2,
+    .errmsg = "*expected \"targetProtocolVersion\" field holding*",
+    .func = (LanFixtureFunc)test_lan_service_outgoing_broadcast,
+  },
 };
 
 static void
@@ -774,6 +786,14 @@ test_lan_service_compliance_test (gconstpointer user_data)
            */
           g_clear_object (&fixture->peer_certificate);
           fixture->peer_certificate = valent_certificate_new_sync (NULL, NULL);
+        }
+      else if (g_strcmp0 (test_name, TEST_UDP_SPOOFED_ADDRESS_1) == 0)
+        {
+          json_object_set_string_member (body, "targetDeviceId", "27456e3cfe5c420896a7c0caeec5e5a0");
+        }
+      else if (g_strcmp0 (test_name, TEST_UDP_SPOOFED_ADDRESS_2) == 0)
+        {
+          json_object_set_int_member (body, "targetProtocolVersion", 7);
         }
 
       test_case->func (fixture, test_case);
