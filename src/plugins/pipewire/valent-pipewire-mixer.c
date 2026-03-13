@@ -592,11 +592,11 @@ on_node_param (void                 *object,
   struct node_data *ndata = (struct node_data *)object;
   ValentPipewireMixer *self = VALENT_PIPEWIRE_MIXER (ndata->adapter);
   gboolean notify = FALSE;
-  bool mute = false;
+  bool mute = ndata->mute;
   uint32_t csize, ctype;
-  uint32_t n_channels = 0;
+  uint32_t n_channels = ndata->n_channels;
   float *volumes = NULL;
-  float volume = 0.0;
+  float volume = ndata->volume;
 
   if (valent_object_in_destruction (VALENT_OBJECT (self)))
     return;
@@ -605,12 +605,12 @@ on_node_param (void                 *object,
     return;
 
   if (spa_pod_parse_object (param, SPA_TYPE_OBJECT_Props, NULL,
-                            SPA_PROP_mute,           SPA_POD_Bool (&mute),
-                            SPA_PROP_volume,         SPA_POD_Float (&volume),
-                            SPA_PROP_channelVolumes, SPA_POD_Array (&csize,
-                                                                    &ctype,
-                                                                    &n_channels,
-                                                                    &volumes)) < 0)
+                            SPA_PROP_mute,           SPA_POD_OPT_Bool (&mute),
+                            SPA_PROP_volume,         SPA_POD_OPT_Float (&volume),
+                            SPA_PROP_channelVolumes, SPA_POD_OPT_Array (&csize,
+                                                                        &ctype,
+                                                                        &n_channels,
+                                                                        &volumes)) < 0)
     return;
 
   if (ndata->mute != mute)
@@ -619,7 +619,7 @@ on_node_param (void                 *object,
       notify = TRUE;
     }
 
-  if (n_channels > 0)
+  if (volumes != NULL && n_channels > 0)
     {
       volume = 0.0;
 
