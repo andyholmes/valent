@@ -72,6 +72,7 @@ valent_pipewire_stream_set_level (ValentMixerStream *stream,
   if (self->level == level || self->adapter == NULL)
     return;
 
+  // TODO: fix property update listener instead
   self->level = level;
   g_object_notify (G_OBJECT (stream), "level");
 
