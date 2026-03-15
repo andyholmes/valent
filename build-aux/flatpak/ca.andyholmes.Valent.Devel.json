@@ -119,8 +119,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/google/libphonenumber.git",
-                    "commit": "3b7cd902d9928110251c0d5c567ea76b6feabf16",
-                    "tag": "v9.0.21"
+                    "commit": "07817b005926c648c5d7a29e2bf3ca844e0f7d68",
+                    "tag": "v9.0.26"
                 }
             ],
             "modules": [
@@ -143,8 +143,8 @@
                         {
                             "type": "git",
                             "url": "https://github.com/abseil/abseil-cpp.git",
-                            "commit": "d38452e1ee03523a208362186fd42248ff2609f6",
-                            "tag": "20250814.1"
+                            "commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
+                            "tag": "20260107.1"
                         }
                     ]
                 },
