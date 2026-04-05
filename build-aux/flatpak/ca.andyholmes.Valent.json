@@ -130,8 +130,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/google/libphonenumber.git",
-                    "commit": "07817b005926c648c5d7a29e2bf3ca844e0f7d68",
-                    "tag": "v9.0.26",
+                    "commit": "5f3d1d79faa242fb2948b714021f35b4603c86d8",
+                    "tag": "v9.0.27",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 89344,
