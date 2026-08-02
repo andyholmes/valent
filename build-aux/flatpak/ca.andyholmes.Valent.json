@@ -96,8 +96,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/libical/libical.git",
-                    "commit": "57ce34025066935f356fd539e6deb7a7a9952618",
-                    "tag": "v3.0.20",
+                    "commit": "c7d638169f9b32ba2713d35ac863471762d28df3",
+                    "tag": "v4.0.4",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 1637,
@@ -130,8 +130,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/google/libphonenumber.git",
-                    "commit": "07817b005926c648c5d7a29e2bf3ca844e0f7d68",
-                    "tag": "v9.0.26",
+                    "commit": "eba87f5b1f76960b6f704588370d5bd708065214",
+                    "tag": "v9.0.36",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 89344,
@@ -160,8 +160,8 @@
                         {
                             "type": "git",
                             "url": "https://github.com/abseil/abseil-cpp.git",
-                            "commit": "255c84dadd029fd8ad25c5efb5933e47beaa00c7",
-                            "tag": "20260107.1",
+                            "commit": "5650e9cf76d3be4318d5fa3af38ee483ddfd5e4a",
+                            "tag": "20260526.0",
                             "x-checker-data": {
                                 "type": "anitya",
                                 "project-id": 115295,
@@ -187,8 +187,8 @@
                     "sources": [
                         {
                             "type": "archive",
-                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.90.0/boost-1.90.0-b2-nodocs.tar.xz",
-                            "sha256": "9e6bee9ab529fb2b0733049692d57d10a72202af085e553539a05b4204211a6f",
+                            "url": "https://github.com/boostorg/boost/releases/download/boost-1.91.0-1/boost-1.91.0-1-b2-nodocs.tar.xz",
+                            "sha256": "7334bb672b9c7aa135da88bcc3111a64a198be9a7d44eb5151d9248e7cfd43ef",
                             "x-checker-data": {
                                 "type": "anitya",
                                 "project-id": 6845,
@@ -263,8 +263,8 @@
                 {
                     "type": "git",
                     "url": "https://gitlab.gnome.org/GNOME/evolution-data-server.git",
-                    "commit": "9d0ce9fee8c88fb2f7c19b1df311f844bdab710f",
-                    "tag": "3.60.0",
+                    "commit": "c63344d7f4891503c108eda5faf50621ccb2602d",
+                    "tag": "3.60.2",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 10935,
@@ -290,8 +290,8 @@
                 {
                     "type": "git",
                     "url": "https://gitlab.freedesktop.org/libinput/libei.git",
-                    "tag": "1.5.0",
-                    "commit": "19b64535408aa47abbc8151bc2c925afd6583851",
+                    "tag": "1.6.0",
+                    "commit": "8a46bf3d4b6af7f25a61be53386cf618218114ef",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 350087,
@@ -341,8 +341,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/flatpak/libportal.git",
-                    "commit": "8f5dc8d192f6e31dafe69e35219e3b707bde71ce",
-                    "tag": "0.9.1",
+                    "commit": "c23024018c8eb076549a1517fcb2d7f80d3e2ed5",
+                    "tag": "0.10.0",
                     "x-checker-data": {
                         "type": "anitya",
                         "project-id": 230124,
