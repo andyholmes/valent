@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Spell Check
-        uses: streetsidesoftware/cspell-action@v8
+        uses: streetsidesoftware/cspell-action@v9
 
   commitlint:
     name: Commitlint
