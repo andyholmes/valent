@@ -257,7 +257,7 @@ jobs:
         suite: [test, asan, tsan, unstable]
         include:
           - suite: test
-            runtime: gnome:49
+            runtime: gnome:51
             files: |
               build-aux/flatpak/ca.andyholmes.Valent.json
             test-config-opts: |
@@ -265,7 +265,7 @@ jobs:
             test-modules: |
               ca.andyholmes.Valent.Tests.json
           - suite: asan
-            runtime: gnome:49
+            runtime: gnome:51
             files: |
               build-aux/flatpak/ca.andyholmes.Valent.json
             test-config-opts: |
@@ -276,7 +276,7 @@ jobs:
             test-modules: |
               ca.andyholmes.Valent.Tests.json
           - suite: tsan
-            runtime: gnome:49
+            runtime: gnome:51
             files: |
               build-aux/flatpak/ca.andyholmes.Valent.json
             test-config-opts: |
@@ -320,4 +320,3 @@ jobs:
         with:
           name: Flatpak (${{ matrix.suite }})
           path: .flatpak-builder/build/valent/_flatpak_build/meson-logs
-
