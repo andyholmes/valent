@@ -743,11 +743,8 @@ valent_messages_adapter_destroy (ValentObject *object)
       g_clear_object (&priv->notifier);
     }
 
-  if (priv->connection != NULL)
-    {
-      tracker_sparql_connection_close (priv->connection);
-      g_clear_object (&priv->connection);
-    }
+  /* Cursors and message threads may still be using the connection. */
+  g_clear_object (&priv->connection);
 
   VALENT_OBJECT_CLASS (valent_messages_adapter_parent_class)->destroy (object);
 }
