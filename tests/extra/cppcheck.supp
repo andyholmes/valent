@@ -5,6 +5,8 @@
 preprocessorErrorDirective:src/libvalent/core/valent-global.c:35
 
 # src/libvalent/notifications/
+# Buttons transfer ownership to the pointer array after either construction path.
+memleak:src/libvalent/notifications/valent-notification.c:697
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:85
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:86
 leakNoVarFunctionCall:src/libvalent/notifications/valent-notification.c:758
