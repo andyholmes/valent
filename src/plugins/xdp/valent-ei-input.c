@@ -279,7 +279,10 @@ ei_source_dispatch (GSource     *source,
 
       VALENT_NOTE ("Event %s", ei_event_type_to_string (event_type));
 
-      switch ((enum ei_event_type)event_type)
+      /* Only lifecycle events are relevant to this sender.
+       * Ignore input events, including those added by newer libei versions.
+       */
+      switch ((unsigned int)event_type)
         {
         case EI_EVENT_CONNECT:
           {
