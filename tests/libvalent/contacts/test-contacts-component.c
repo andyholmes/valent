@@ -81,6 +81,70 @@ test_contacts_component_adapter (ContactsComponentFixture *fixture,
 }
 
 static void
+contacts_adapter_cursor_next_cb (TrackerSparqlCursor *cursor,
+                                 GAsyncResult        *result,
+                                 gpointer             user_data)
+{
+  gboolean *done = user_data;
+  g_autoptr (GError) error = NULL;
+
+  g_assert_false (tracker_sparql_cursor_next_finish (cursor, result, &error));
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+  tracker_sparql_cursor_close (cursor);
+  *done = TRUE;
+}
+
+static void
+test_contacts_component_adapter_destroy (ContactsComponentFixture *fixture,
+                                         gconstpointer             user_data)
+{
+  PeasEngine *engine = valent_get_plugin_engine ();
+  PeasPluginInfo *plugin_info = peas_engine_get_plugin_info (engine, "mock");
+  g_autoptr (ValentContext) context = valent_context_new (NULL, "plugin", "mock");
+
+  /* Reopen the populated cache to exercise the initial contact-list query. */
+  for (unsigned int i = 0; i < 2; i++)
+    {
+      GObject *adapter = NULL;
+      TrackerSparqlConnection *connection = NULL;
+      g_autoptr (TrackerSparqlCursor) cursor = NULL;
+      g_autoptr (GCancellable) cancellable = NULL;
+      g_autoptr (GError) error = NULL;
+      gboolean done = FALSE;
+
+      adapter = peas_engine_create_extension (engine,
+                                              plugin_info,
+                                              VALENT_TYPE_CONTACTS_ADAPTER,
+                                              "iri",     "urn:valent:contacts:mock",
+                                              "context", context,
+                                              NULL);
+      g_object_get (adapter, "connection", &connection, NULL);
+
+      cursor = tracker_sparql_connection_query (connection,
+                                                "SELECT ?list WHERE { GRAPH <valent:contacts> {"
+                                                " ?list a nco:ContactList } }",
+                                                NULL,
+                                                &error);
+      g_assert_no_error (error);
+      g_assert_true (tracker_sparql_cursor_next (cursor, NULL, &error));
+      g_assert_no_error (error);
+
+      cancellable = valent_object_ref_cancellable (VALENT_OBJECT (adapter));
+      tracker_sparql_cursor_next_async (cursor,
+                                        cancellable,
+                                        (GAsyncReadyCallback) contacts_adapter_cursor_next_cb,
+                                        &done);
+      g_clear_object (&cursor);
+
+      /* Cancellation must not invalidate the cursor before its callback. */
+      valent_object_destroy (VALENT_OBJECT (adapter));
+      valent_test_await_boolean (&done);
+      v_await_finalize_object (adapter);
+      v_await_finalize_object (connection);
+    }
+}
+
+static void
 test_contacts_component_contact_list (ContactsComponentFixture *fixture,
                                       gconstpointer             user_data)
 {
@@ -180,6 +244,12 @@ main (int   argc,
               ContactsComponentFixture, NULL,
               contacts_component_fixture_set_up,
               test_contacts_component_contact_list,
+              contacts_component_fixture_tear_down);
+
+  g_test_add ("/libvalent/contacts/adapter-destroy",
+              ContactsComponentFixture, NULL,
+              contacts_component_fixture_set_up,
+              test_contacts_component_adapter_destroy,
               contacts_component_fixture_tear_down);
 
   g_test_add ("/libvalent/contacts/self",

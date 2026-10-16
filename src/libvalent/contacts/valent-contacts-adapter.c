@@ -161,7 +161,7 @@ cursor_get_contact_lists_cb (TrackerSparqlCursor *cursor,
           unsigned int position;
 
           position = priv->items->len;
-          g_ptr_array_add (priv->items, g_object_ref (contacts));
+          g_ptr_array_add (priv->items, g_steal_pointer (&contacts));
           g_list_model_items_changed (G_LIST_MODEL (self), position, 0, 1);
         }
 
@@ -391,11 +391,8 @@ valent_contacts_adapter_destroy (ValentObject *object)
   g_clear_pointer (&priv->iri_pattern, g_regex_unref);
   g_clear_object (&priv->cancellable);
 
-  if (priv->connection != NULL)
-    {
-      tracker_sparql_connection_close (priv->connection);
-      g_clear_object (&priv->connection);
-    }
+  /* Cursors and contact lists may still be using the connection. */
+  g_clear_object (&priv->connection);
 
   VALENT_OBJECT_CLASS (valent_contacts_adapter_parent_class)->destroy (object);
 }
