@@ -8,6 +8,7 @@
 #include <gtk/gtk.h>
 #endif /* HAVE_GTK4 */
 #include <libportal/portal.h>
+#include <libdex.h>
 #include <valent.h>
 
 
@@ -51,6 +52,7 @@ main (int   argc,
   textdomain (GETTEXT_PACKAGE);
 
   /* Initialize Valent */
+  dex_init ();
   valent_debug_init ();
   valent_plugin_init ();
 
