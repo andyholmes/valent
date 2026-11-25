@@ -1,0 +1,1667 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the valent package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: valent\n"
+"Report-Msgid-Bugs-To: https://github.com/andyholmes/valent/issues\n"
+"POT-Creation-Date: 2025-11-07 13:04-0800\n"
+"PO-Revision-Date: 2026-09-19 06:51+0000\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <https://hosted.weblate.org/projects/valent/"
+"application/ka/>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2026.10.dev0\n"
+
+#: data/ca.andyholmes.Valent.desktop.in.in:2
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:11
+#: src/plugins/gnome/valent-window.c:220 src/plugins/gnome/valent-window.ui:8
+#: src/plugins/gnome/valent-window.ui:45
+msgid "Valent"
+msgstr "Valent"
+
+#: data/ca.andyholmes.Valent.desktop.in.in:3
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:12
+msgid "Connect, control and sync devices"
+msgstr "მოწყობილობების დაკავშირება, კონტროლი და სინქრონიზაცია"
+
+#: data/ca.andyholmes.Valent.gschema.xml:10
+#: src/plugins/gnome/valent-preferences-command-editor.ui:41
+msgid "Name"
+msgstr "სახელი"
+
+#: data/ca.andyholmes.Valent.gschema.xml:11
+msgid "The display name for the local device."
+msgstr "საჩვენებელი სახელი ლოკალური მოწყობილობისთვის."
+
+#: data/ca.andyholmes.Valent.gschema.xml:15
+#: src/plugins/gnome/valent-preferences-dialog.ui:93
+msgid "Device Addresses"
+msgstr "მოწყობილობის მისამართები"
+
+#: data/ca.andyholmes.Valent.gschema.xml:16
+#: src/plugins/gnome/valent-preferences-dialog.ui:63
+msgid "Add devices by hostname or IP address"
+msgstr "დაამატეთ მოწყობილობები ჰოსტის სახელით, ან IP მოწყობილობით"
+
+#: data/ca.andyholmes.Valent.gschema.xml:22
+msgid "Plugin State"
+msgstr "დამატების მდგომარეობა"
+
+#: data/ca.andyholmes.Valent.gschema.xml:23
+msgid "Whether the plugin is enabled or not."
+msgstr "ჩართულია დამატება, თუ არა."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:15
+msgid ""
+"Securely connect your devices to open files and links where you need them, "
+"get notifications when you need them, stay in control of your media and more."
+msgstr ""
+"დააკავშირეთ თქვენი მოწყობილობები და გახსენით ფაილები და ბმულები, როცა ისინი "
+"გჭირდებათ, მიიღეთ გაფრთხილებები, როცა გჭირდებათ, აკონტროლეთ თქვენი მედია და "
+"სხვ."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:19
+msgid "Features:"
+msgstr "თვისებები:"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:23
+msgid "Sync contacts, notifications and clipboard content"
+msgstr "კონტაქტების, შეტყობინებების და ბუფერის შემცველობის სინქრონიზაცია"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:24
+msgid "Control media players and volume"
+msgstr "აკონტროლეთ მედიის დამკვრელები და ხმის დონე"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:25
+msgid "Share files, links and text"
+msgstr "ფაილების, ბმულებისა და ტექსტის გაზიარება"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:26
+msgid "Virtual touchpad and keyboard"
+msgstr "ვირტუალური სენსორული პანელი და კლავიატურა"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:27
+msgid "Call and text notification"
+msgstr "ზარი და ტექსტური შეტყობინება"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:28
+msgid "Execute custom commands"
+msgstr "მორგებული ბრძანებების შესრულება"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:29
+msgid "More…"
+msgstr "მეტი…"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:31
+msgid ""
+"Valent is an implementation of the KDE Connect protocol, built on GNOME "
+"platform libraries."
+msgstr ""
+"Valent არის KDE Connect პროტოკოლის განხორციელება, რომელიც აგებულია GNOME "
+"პლატფორმის ბიბლიოთეკებზე."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:42
+msgid "Support connecting to devices by IP address"
+msgstr "მოწყობილობებთან IP მისამართით დაკავშირების მხარდაჭერა"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:43
+msgid "Support compose mode and grab release for input remote"
+msgstr ""
+"შედგენის რეჟიმის მხარდაჭერა და შეყვანის დისტანციური მართვის ჩაჭერა და გაშვება"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:44
+msgid "Support mounting specific SFTP volumes"
+msgstr "კონკრეტული SFTP ტომების მიმაგრების მხარდაჭერა"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:45
+msgid ""
+"Improve async operations for device connections, file transfers and mDNS"
+msgstr ""
+"გაუმჯობესდა ასინქრონული ოპერაციები მოწყობილობის კავშირებისთვის, ფაილის "
+"გადაცემებისთვის და mDNS-ისთვის"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:46
+msgid "Improve cross-platform support for launching URIs"
+msgstr "გაუმჯობესდა URI-ების გაშვების პლატფორმათაშორისობის მხარდაჭერა"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:47
+msgid "Various protocol updates"
+msgstr "განახლდა სხვადასხვა პროტოკოლები"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:48
+msgid "Fixes for certificates and devices IDs"
+msgstr "შესწორდა სერტიფიკატები და მოწყობილობის ID-ები"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:49
+msgid "Fixes for modemmanager and signal strengths"
+msgstr "შესწორდა modemmanager-ის მხარდაჭერა და სიგნალის სიძლიერეები"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:50
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:61
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:76
+msgid "Translation updates"
+msgstr "თარგმანის განახლებები"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:58
+msgid "Support v8 of the KDE Connect protocol"
+msgstr "KDE Connect-ის პროტოკოლის v78-ის მხარდაჭერა"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:59
+msgid "The Contacts plugin has been rewritten with TinySPARQL"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:60
+msgid "Drop the Mutter input adapter in favour of the XDG portal"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:69
+msgid "PipeWire support added"
+msgstr "დაემატა PipeWire-ის მხარდაჭერა"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:70
+msgid "The user interface has been absorbed by the `gnome` plugin"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:71
+msgid "The SMS plugin has been rewritten with TinySPARQL"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:72
+msgid "The share dialog has been redesigned"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:73
+msgid "The media dialog has been refactored, with some UI improvements"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:74
+msgid "Port to libawaita-1.5"
+msgstr "გადასვლა libadwaita-1.5-ზე"
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:75
+msgid ""
+"Updates to protocol implementation; certificates, device metadata, security"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:83
+msgid "Initial release."
+msgstr "საწყისი რელიზი."
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:90
+msgid "Connect to devices on your network"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:94
+msgid "Securely pair devices"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:98
+msgid "Monitor and control remote devices"
+msgstr ""
+
+#: data/metainfo/ca.andyholmes.Valent.metainfo.xml.in.in:116
+msgid "Andy Holmes"
+msgstr "ენდი ჰოლმსი"
+
+#: src/libvalent/device/valent-device.c:734
+#, c-format
+msgid "Pairing request from “%s”"
+msgstr ""
+
+#: src/libvalent/device/valent-device.c:744
+#: src/plugins/gnome/valent-device-page.ui:118
+msgid "Reject"
+msgstr "უარყოფა"
+
+#: src/libvalent/device/valent-device.c:749
+#: src/plugins/gnome/valent-device-page.ui:132
+msgid "Accept"
+msgstr "დასტური"
+
+#: src/plugins/battery/battery.plugin.desktop.in:6
+#: src/plugins/gnome/valent-device-page.ui:217
+#: src/plugins/gnome/valent-device-row.ui:124
+#: src/plugins/gnome/valent-preferences-status-page.ui:15
+msgid "Battery"
+msgstr "ელემენტი"
+
+#: src/plugins/battery/battery.plugin.desktop.in:7
+msgid "Monitor battery level and charging state"
+msgstr ""
+
+#. TRANSLATORS: This is <device name>: Fully Charged
+#: src/plugins/battery/valent-battery-plugin.c:266
+#, c-format
+msgid "%s: Fully Charged"
+msgstr "%s: სრულად დამუხტული"
+
+#. TRANSLATORS: When the battery level is at maximum
+#: src/plugins/battery/valent-battery-plugin.c:268
+msgid "Battery Fully Charged"
+msgstr "ელემენტი სრულად დაიტენა"
+
+#. TRANSLATORS: This is <device name>: Battery Low
+#: src/plugins/battery/valent-battery-plugin.c:295
+#, c-format
+msgid "%s: Battery Low"
+msgstr "%s: ელემენტი ჯდება"
+
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Remaining)
+#.
+#: src/plugins/battery/valent-battery-plugin.c:297
+#: src/plugins/gnome/valent-device-page.c:192
+#: src/plugins/gnome/valent-device-row.c:156
+#, c-format
+msgid "%g%% (%d∶%02d Remaining)"
+msgstr "%g%% (%d∶%02d დარჩენილია)"
+
+#: src/plugins/bluez/bluez.plugin.desktop.in:6
+msgid "Bluez"
+msgstr "Bluez"
+
+#: src/plugins/bluez/bluez.plugin.desktop.in:7
+msgid "Connect devices over Bluetooth"
+msgstr ""
+
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:6
+#: src/plugins/gnome/valent-preferences-dialog.c:610
+#: src/plugins/gnome/valent-preferences-sync-page.ui:15
+msgid "Clipboard"
+msgstr "გაცვლის ბუფერი"
+
+#: src/plugins/clipboard/clipboard.plugin.desktop.in:7
+msgid "Sync the clipboard between devices"
+msgstr ""
+
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:6
+msgid "Connectivity"
+msgstr "შეერთება"
+
+#: src/plugins/connectivity_report/connectivity_report.plugin.desktop.in:7
+msgid "Monitor mobile connectivity status"
+msgstr ""
+
+#. TRANSLATORS: When the mobile network signal is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:163
+#: src/plugins/gnome/valent-device-page.ui:243
+#: src/plugins/gnome/valent-device-row.ui:116
+#: src/plugins/gnome/valent-preferences-status-page.ui:112
+msgid "Mobile Network"
+msgstr "მობილური ქსელის"
+
+#. TRANSLATORS: The mobile network signal strength (e.g. "Signal Strength (25%)")
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:165
+#, c-format
+msgid "Signal Strength %f%%"
+msgstr "სიგნალის სიძლიერე %f%%"
+
+#. TRANSLATORS: When no mobile service is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:171
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:178
+msgid "No Service"
+msgstr "სერვისის გარეშე"
+
+#. TRANSLATORS: When no mobile network signal is available
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:173
+msgid "No mobile network service"
+msgstr ""
+
+#. TRANSLATORS: When the device is missing a SIM card
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:180
+msgid "No SIM"
+msgstr "SIM კარტა ვერ მოინახა"
+
+#. TRANSLATORS: The connectivity notification title (e.g. "PinePhone: No Service")
+#: src/plugins/connectivity_report/valent-connectivity_report-plugin.c:311
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/plugins/contacts/contacts.plugin.desktop.in:6
+#: src/plugins/gnome/valent-contact-page.ui:8
+#: src/plugins/gnome/valent-contact-page.ui:54
+#: src/plugins/gnome/valent-conversation-page.ui:181
+#: src/plugins/gnome/valent-conversation-page.ui:205
+#: src/plugins/gnome/valent-messages-window.c:249
+#: src/plugins/gnome/valent-preferences-dialog.c:617
+#: src/plugins/gnome/valent-preferences-sync-page.ui:36
+msgid "Contacts"
+msgstr "კონტაქტები"
+
+#: src/plugins/contacts/contacts.plugin.desktop.in:7
+msgid "Sync contacts between devices"
+msgstr ""
+
+#: src/plugins/eds/eds.plugin.desktop.in:6
+msgid "Evolution Data Server"
+msgstr ""
+
+#: src/plugins/eds/eds.plugin.desktop.in:7
+msgid "Integration with Evolution Data Server"
+msgstr ""
+
+#: src/plugins/fdo/fdo.plugin.desktop.in:6
+msgid "freedesktop.org"
+msgstr ""
+
+#: src/plugins/fdo/fdo.plugin.desktop.in:7
+msgid "Freedesktop.org Based Modules"
+msgstr "Freedesktop.org-ზე დაფუძნებული მოდულები"
+
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:6
+msgid "Find My Phone"
+msgstr "იპოვე ჩემი ტელეფონი"
+
+#: src/plugins/findmyphone/findmyphone.plugin.desktop.in:7
+msgid "Find a device by making it ring"
+msgstr ""
+
+#: src/plugins/findmyphone/valent-findmyphone-plugin.c:127
+msgid "Ring"
+msgstr "ზარი"
+
+#: src/plugins/findmyphone/valent-findmyphone-ringer.c:125
+msgid "Find My Device"
+msgstr "იპოვე ჩემი მოწყობილობა"
+
+#: src/plugins/gnome/gnome.plugin.desktop.in:6
+msgid "GNOME"
+msgstr "GNOME"
+
+#: src/plugins/gnome/gnome.plugin.desktop.in:7
+msgid "Integration with GNOME"
+msgstr "ინტეგრაცია GNOME-თან"
+
+#. TRANSLATORS: dynamic string for phone number input (e.g. "Send to 911")
+#.
+#: src/plugins/gnome/valent-contact-page.c:158
+#, c-format
+msgid "Send to %s"
+msgstr "%s-ზე გაგზავნა"
+
+#: src/plugins/gnome/valent-contact-page.c:237
+#: src/plugins/gnome/valent-messages-window.c:136
+#, c-format
+msgid "%s and %u more…"
+msgid_plural "%s and %u more…"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/plugins/gnome/valent-contact-page.c:328
+#: src/plugins/gnome/valent-messages-window.c:435
+msgid "Work"
+msgstr "სამუშაო"
+
+#: src/plugins/gnome/valent-contact-page.c:330
+#: src/plugins/gnome/valent-messages-window.c:437
+msgid "Mobile"
+msgstr "მობილური"
+
+#: src/plugins/gnome/valent-contact-page.c:332
+#: src/plugins/gnome/valent-messages-window.c:439
+#: src/plugins/sftp/valent-sftp-plugin.c:660
+msgid "Home"
+msgstr "საწყისი"
+
+#: src/plugins/gnome/valent-contact-page.c:334
+#: src/plugins/gnome/valent-messages-window.c:441
+#: src/plugins/gnome/valent-preferences-other-page.ui:9
+msgid "Other"
+msgstr "სხვა"
+
+#: src/plugins/gnome/valent-contact-page.ui:18
+msgid "Type a phone number or name"
+msgstr "აკრიფეთ ტელეფონის ნომერი, ან სახელი"
+
+#: src/plugins/gnome/valent-contact-page.ui:50
+msgid "No contacts"
+msgstr "კონტაქტების გარეშე"
+
+#: src/plugins/gnome/valent-contact-page.ui:71
+#: src/plugins/gnome/valent-messages-window.ui:289
+msgid "Select destination"
+msgstr "აირჩიეთ სამიზნე"
+
+#: src/plugins/gnome/valent-contact-page.ui:96
+#: src/plugins/gnome/valent-messages-window.ui:314
+msgid "Phone Numbers"
+msgstr "ტელეფონის ნომრები"
+
+#: src/plugins/gnome/valent-conversation-page.c:407
+#: src/plugins/gnome/valent-messages-window.c:544
+msgid "Unknown"
+msgstr "უცნობი"
+
+#. TRANSLATORS: This is announced to AT devices (i.e. screen readers)
+#. * when a new message is received.
+#.
+#: src/plugins/gnome/valent-conversation-page.c:414
+#, c-format
+msgid "New message from %s"
+msgstr "ახალი შეტყობინება %s-სგან"
+
+#. TRANSLATORS: This is announced to AT devices (i.e. screen readers)
+#. * when a new message is received with attachments.
+#.
+#: src/plugins/gnome/valent-conversation-page.c:421
+#, c-format
+msgid "New message from %s, with %d attachment"
+msgid_plural "New message from %s, with %d attachments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/plugins/gnome/valent-conversation-page.c:947
+#: src/plugins/gnome/valent-conversation-page.c:1094
+#: src/plugins/gnome/valent-conversation-page.ui:77
+msgid "Attach Files"
+msgstr "ფაილების მიმაგრება"
+
+#: src/plugins/gnome/valent-conversation-page.c:948
+#: src/plugins/gnome/valent-conversation-page.c:1095
+#: src/plugins/gnome/valent-preferences-other-page.c:251
+#: src/plugins/gnome/valent-presenter-remote.c:90
+#: src/plugins/gnome/valent-presenter-remote.ui:100
+msgid "Open"
+msgstr "გახსნა"
+
+#: src/plugins/gnome/valent-conversation-page.c:1001
+#: src/plugins/share/valent-share-plugin.c:1137
+msgid "Save"
+msgstr "შენახვა"
+
+#: src/plugins/gnome/valent-conversation-page.ui:8
+msgid "Conversation"
+msgstr "საუბარი"
+
+#: src/plugins/gnome/valent-conversation-page.ui:22
+msgid "Conversation Menu"
+msgstr "საუბრის მენიუ"
+
+#: src/plugins/gnome/valent-conversation-page.ui:88
+msgid "Type a message"
+msgstr "აკრიფეთ შეტყობინება"
+
+#: src/plugins/gnome/valent-conversation-page.ui:97
+msgid "Send Message"
+msgstr "შეტყობინების გაგზავნა"
+
+#: src/plugins/gnome/valent-conversation-page.ui:122
+#: src/plugins/gnome/valent-messages-window.ui:335
+msgid "Search Messages…"
+msgstr "შეტყობინებებში ძებნა…"
+
+#: src/plugins/gnome/valent-conversation-page.ui:128
+#: src/plugins/gnome/valent-conversation-page.ui:135
+#: src/plugins/gnome/valent-conversation-page.ui:143
+msgid "Details"
+msgstr "დეტალები"
+
+#: src/plugins/gnome/valent-conversation-page.ui:156
+#: src/plugins/gnome/valent-conversation-page.ui:226
+msgid "Media"
+msgstr "მედია"
+
+#: src/plugins/gnome/valent-conversation-page.ui:187
+msgid "Add people…"
+msgstr "ხალხის დამატება…"
+
+#: src/plugins/gnome/valent-conversation-page.ui:206
+msgid "People in this conversation"
+msgstr "ხალხი ამ საუბარში"
+
+#: src/plugins/gnome/valent-conversation-page.ui:237
+msgid "Attachments"
+msgstr "მიმაგრებული ფაილები"
+
+#: src/plugins/gnome/valent-conversation-page.ui:238
+msgid "Files in this conversation"
+msgstr "ფაილები ამ საუბარში"
+
+#: src/plugins/gnome/valent-conversation-page.ui:246
+msgid "No attachments found"
+msgstr "მიმაგრებული ფაილების გარეშე"
+
+#: src/plugins/gnome/valent-conversation-row.ui:185
+msgid "Copy text"
+msgstr "ტექსტის კოპირება"
+
+#: src/plugins/gnome/valent-date-label.c:84
+msgid "Just now"
+msgstr "ახლა"
+
+#. TRANSLATORS: Time duration in minutes, abbreviated (eg. 15 mins)
+#.
+#: src/plugins/gnome/valent-date-label.c:96
+#, c-format
+msgid "%d min"
+msgid_plural "%d mins"
+msgstr[0] "%d წთ"
+msgstr[1] "%d წთ"
+
+#. TRANSLATORS: Time duration in minutes (eg. 15 minutes)
+#.
+#: src/plugins/gnome/valent-date-label.c:103
+#, c-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d წუთი"
+msgstr[1] "%d წუთი"
+
+#. TRANSLATORS: Yesterday, but less than 24 hours (eg. Yesterday · 11:45 PM)
+#.
+#: src/plugins/gnome/valent-date-label.c:119
+#, c-format
+msgid "Yesterday · %s"
+msgstr "გუშინ · %s"
+
+#: src/plugins/gnome/valent-date-label.c:132
+#: src/plugins/gnome/valent-date-label.c:143
+#, c-format
+msgid "%s · %s"
+msgstr "%s · %s"
+
+#: src/plugins/gnome/valent-device-page.c:88
+#, c-format
+msgid "Please confirm the verification key below matches the one on “%s”"
+msgstr ""
+
+#: src/plugins/gnome/valent-device-page.c:95
+#, c-format
+msgid "Open the app on your “%s” to request or accept pairing."
+msgstr ""
+
+#. TRANSLATORS: When the battery level is 100%
+#.
+#: src/plugins/gnome/valent-device-page.c:154
+#: src/plugins/gnome/valent-device-row.c:118
+msgid "Fully Charged"
+msgstr "სრულად დატენილი"
+
+#. TRANSLATORS: This is <percentage> (Estimating…)
+#.
+#: src/plugins/gnome/valent-device-page.c:179
+#: src/plugins/gnome/valent-device-row.c:143
+#, c-format
+msgid "%g%% (Estimating…)"
+msgstr "%g%% (შეფასება...)"
+
+#. TRANSLATORS: This is <percentage> (<hours>:<minutes> Until Full)
+#.
+#: src/plugins/gnome/valent-device-page.c:185
+#: src/plugins/gnome/valent-device-row.c:149
+#, c-format
+msgid "%g%% (%d∶%02d Until Full)"
+msgstr "%g%% (%d∶%02d სრულად დატენვამდე)"
+
+#: src/plugins/gnome/valent-device-page.ui:30
+msgid "Device Menu"
+msgstr "მოწყობილობის მენიუ"
+
+#: src/plugins/gnome/valent-device-page.ui:49
+#: src/plugins/gnome/valent-device-row.c:241
+msgid "Disconnected"
+msgstr "გათიშულია"
+
+#: src/plugins/gnome/valent-device-page.ui:50
+msgid "This device is currently unavailable"
+msgstr "ეს მოწყობილობა, ამჟამად, ხელმისაწვდომი არაა"
+
+#: src/plugins/gnome/valent-device-page.ui:63
+#: src/plugins/gnome/valent-device-row.c:236
+msgid "Unpaired"
+msgstr "დაწყვილება გაუქმებულია"
+
+#: src/plugins/gnome/valent-device-page.ui:74
+msgid "verification key"
+msgstr "გადამოწმების გასაღები"
+
+#: src/plugins/gnome/valent-device-page.ui:100
+msgid "Request Pairing"
+msgstr "დაწყვილების მოთხოვნა"
+
+#: src/plugins/gnome/valent-device-page.ui:259
+#: src/plugins/lock/lock.plugin.desktop.in:6
+msgid "Lock"
+msgstr "ჩაკეტვა"
+
+#: src/plugins/gnome/valent-device-page.ui:291
+#: src/plugins/gnome/valent-window.ui:142
+msgid "Preferences"
+msgstr "მორგება"
+
+#: src/plugins/gnome/valent-device-page.ui:297
+msgid "Unpair"
+msgstr "დაწყვილების მოხსნა"
+
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:40
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:45
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:60
+#: src/plugins/gnome/valent-preferences-dialog.ui:110
+#: src/plugins/gnome/valent-preferences-dialog.ui:114
+msgid "Plugins"
+msgstr "დამატებები"
+
+#: src/plugins/gnome/valent-device-preferences-dialog.ui:53
+#: src/plugins/gnome/valent-preferences-dialog.ui:122
+msgid "No Plugins"
+msgstr "დამატებების გარეშე"
+
+#: src/plugins/gnome/valent-device-row.c:246
+msgid "Connected"
+msgstr "დაკავშირებულია"
+
+#: src/plugins/gnome/valent-input-remote.ui:8
+#: src/plugins/gnome/valent-window.ui:123
+msgid "Input Remote"
+msgstr "დაშორებული შეყვანა"
+
+#: src/plugins/gnome/valent-input-remote.ui:123
+msgid "Capture Keyboard"
+msgstr "კლავიატურის ჩაჭერა"
+
+#: src/plugins/gnome/valent-input-remote.ui:124
+msgid "Press left Control + Alt to release"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:135
+msgid "Touchpad"
+msgstr "თაჩპედი"
+
+#: src/plugins/gnome/valent-input-remote.ui:206
+msgid "Drag one finger to move"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:215
+msgid "Drag two fingers to scroll"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:224
+msgid "Tap one finger to click"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:234
+msgid "Tap two fingers to right click"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:243
+msgid "Tap three fingers to middle click"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:252
+msgid "Hold one finger to grab"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:262
+msgid "Tap one finger to release"
+msgstr ""
+
+#: src/plugins/gnome/valent-input-remote.ui:338
+msgid "Clear"
+msgstr "გასუფთავება"
+
+#: src/plugins/gnome/valent-input-remote.ui:347
+msgid "Send"
+msgstr "გაგზავნა"
+
+#: src/plugins/gnome/valent-media-remote.c:234
+msgid "Pause"
+msgstr "შეჩერება"
+
+#: src/plugins/gnome/valent-media-remote.c:245
+#: src/plugins/gnome/valent-media-remote.ui:234
+msgid "Play"
+msgstr "დაკვრა"
+
+#: src/plugins/gnome/valent-media-remote.ui:214
+#: src/plugins/gnome/valent-preferences-status-page.ui:70
+#: src/plugins/gnome/valent-preferences-status-page.ui:91
+msgid "Volume"
+msgstr "ხმის სიმაღლე"
+
+#: src/plugins/gnome/valent-media-remote.ui:222
+#: src/plugins/gnome/valent-menu-list.c:668
+#: src/plugins/gnome/valent-presenter-remote.ui:146
+msgid "Previous"
+msgstr "წინა"
+
+#: src/plugins/gnome/valent-media-remote.ui:249
+#: src/plugins/gnome/valent-presenter-remote.ui:173
+msgid "Next"
+msgstr "შემდეგი"
+
+#: src/plugins/gnome/valent-media-remote.ui:265
+msgid "Playback Options"
+msgstr "დაკვრის პარამეტრები"
+
+#: src/plugins/gnome/valent-media-remote.ui:285
+msgid "_None"
+msgstr "არ_ცერთი"
+
+#: src/plugins/gnome/valent-media-remote.ui:290
+msgid "Repeat _One"
+msgstr "ერთის გამე_ორება"
+
+#: src/plugins/gnome/valent-media-remote.ui:295
+msgid "Repeat _All"
+msgstr "ყველ_ას გამეორება"
+
+#: src/plugins/gnome/valent-media-remote.ui:302
+msgid "_Shuffle"
+msgstr "_შემთხვევით"
+
+#: src/plugins/gnome/valent-media-window.ui:8
+#: src/plugins/gnome/valent-window.ui:127
+msgid "Media Remote"
+msgstr "მედიის დაშორებული კონტროლი"
+
+#: src/plugins/gnome/valent-media-window.ui:87
+msgid "Player"
+msgstr "დამკვრელი"
+
+#: src/plugins/gnome/valent-media-window.ui:163
+msgid "Control Media"
+msgstr "მედიის მართვა"
+
+#: src/plugins/gnome/valent-media-window.ui:164
+msgid "Open a media player on a connected device"
+msgstr ""
+
+#: src/plugins/gnome/valent-menu-list.c:532
+msgid "No Actions"
+msgstr "ქმედებების გარეშე"
+
+#: src/plugins/gnome/valent-message-row.c:56
+#, c-format
+msgid "You: %s"
+msgstr "თქვენ: %s"
+
+#: src/plugins/gnome/valent-messages-window.c:232
+#: src/plugins/gnome/valent-messages-window.ui:154
+msgid "Conversations"
+msgstr "საუბრები"
+
+#: src/plugins/gnome/valent-messages-window.c:545
+msgid "Unknown sender"
+msgstr "უცნობი გამომგზავნი"
+
+#: src/plugins/gnome/valent-messages-window.ui:13
+#: src/plugins/gnome/valent-messages-window.ui:51
+#: src/plugins/gnome/valent-window.ui:131
+msgid "Messages"
+msgstr "შეტყობინებები"
+
+#: src/plugins/gnome/valent-messages-window.ui:61
+msgid "New Conversation"
+msgstr "ახალი საუბარი"
+
+#: src/plugins/gnome/valent-messages-window.ui:126
+#: src/plugins/gnome/valent-window.ui:68
+msgid "Main Menu"
+msgstr "მთავარი მენიუ"
+
+#: src/plugins/gnome/valent-messages-window.ui:146
+msgid "No Conversations"
+msgstr "საუბრების გარეშე"
+
+#: src/plugins/gnome/valent-messages-window.ui:210
+msgid "No conversation selected"
+msgstr "საუბარი არჩეული არაა"
+
+#: src/plugins/gnome/valent-messages-window.ui:211
+msgid "Select or start a conversation"
+msgstr "აირჩიეთ, ან დაიწყეთ საუბარი"
+
+#: src/plugins/gnome/valent-messages-window.ui:223
+#: src/plugins/gnome/valent-preferences-sync-page.ui:204
+msgid "Search"
+msgstr "ძებნა"
+
+#: src/plugins/gnome/valent-messages-window.ui:231
+msgid "Search messages…"
+msgstr "შეტყობინებებში ძებნა…"
+
+#: src/plugins/gnome/valent-messages-window.ui:258
+msgid "No results found"
+msgstr "შედეგების გარეშე"
+
+#: src/plugins/gnome/valent-messages-window.ui:341
+msgid "Keyboard Shortcuts"
+msgstr "კლავიატურის მალსახმობები"
+
+#: src/plugins/gnome/valent-messages-window.ui:346
+msgid "Help"
+msgstr "დახმარება"
+
+#: src/plugins/gnome/valent-messages-window.ui:353
+msgid "Close"
+msgstr "დახურვა"
+
+#: src/plugins/gnome/valent-plugin-row.ui:79
+msgid "Authors"
+msgstr "ავტორები"
+
+#: src/plugins/gnome/valent-plugin-row.ui:112
+msgid "Version"
+msgstr "ვერსია"
+
+#: src/plugins/gnome/valent-plugin-row.ui:143
+msgid "Website"
+msgstr "ვებგვერდი"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:8
+#: src/plugins/gnome/valent-preferences-other-page.c:84
+msgid "Edit Command"
+msgstr "ბრძანების ჩასწორება"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:19
+msgid "_Cancel"
+msgstr "გაუ_ქმება"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:26
+msgid "_Save"
+msgstr "_შენახვა"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:54
+msgid "Command Line"
+msgstr "ბრძანების სტრიქონი"
+
+#: src/plugins/gnome/valent-preferences-command-editor.ui:72
+#: src/plugins/gnome/valent-preferences-dialog.c:366
+msgid "Remove"
+msgstr "წაშლა"
+
+#. TRANSLATORS: %s is a list of forbidden characters
+#: src/plugins/gnome/valent-preferences-dialog.c:495
+#, c-format
+msgid "The device name must not contain punctuation or brackets, including %s"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.c:596
+msgid "Application"
+msgstr "აპლიკაცია"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:603
+msgid "Device Connections"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.c:624
+msgid "Mouse and Keyboard"
+msgstr "თაგუნა და კლავიატურა"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:631
+msgid "Media Players"
+msgstr "მედიადამკვრელები"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:638
+msgid "Volume Control"
+msgstr "ხმის კონტროლი"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:645
+#: src/plugins/gnome/valent-preferences-sync-page.ui:58
+#: src/plugins/notification/notification.plugin.desktop.in:6
+msgid "Notifications"
+msgstr "გაფრთხილებები"
+
+#: src/plugins/gnome/valent-preferences-dialog.c:652
+msgid "Session Manager"
+msgstr "სესიების მმართველი"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:13
+msgid "General"
+msgstr "ზოგადი"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:20
+msgid "Device Name"
+msgstr "მოწყობილობის სახელი"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:62
+msgid "Manual Device Setup"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:67
+#: src/plugins/gnome/valent-preferences-dialog.ui:140
+msgid "Add Device"
+msgstr "მოწყობილობის დამატება"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:85
+msgid "No configured addresses"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:153
+#: src/plugins/share/valent-share-plugin.c:136
+#: src/plugins/share/valent-share-plugin.c:266
+#: src/plugins/share/valent-share-plugin.c:369
+#: src/plugins/share/valent-share-plugin.c:516
+msgid "Cancel"
+msgstr "გაუქმება"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:159
+msgid "Add"
+msgstr "დამატება"
+
+#: src/plugins/gnome/valent-preferences-dialog.ui:179
+msgid "Hostname or IP address"
+msgstr "ჰოსტის სახელი ან IP მისამართი"
+
+#: src/plugins/gnome/valent-preferences-other-page.c:250
+msgid "Select download folder"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:15
+#: src/plugins/share/share.plugin.desktop.in:6
+msgid "Sharing"
+msgstr "გაზიარება"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:18
+msgid "Download Directory"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:19
+msgid "Where to store received files"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:53
+#: src/plugins/gnome/valent-preferences-other-page.ui:82
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:6
+msgid "Commands"
+msgstr "ბრძანებები"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:54
+msgid "Define commands that can be executed by remote devices"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:61
+msgid "Add command"
+msgstr "ბრძანების დამატება"
+
+#: src/plugins/gnome/valent-preferences-other-page.ui:75
+msgid "No commands"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:9
+msgid "Status"
+msgstr "სტატუსი"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:18
+msgid "Full Battery Notification"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:19
+msgid "Notify when the remote battery is full"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:24
+#: src/plugins/gnome/valent-preferences-status-page.ui:44
+msgid "Level Threshold"
+msgstr "ზღვრული დონე"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:38
+msgid "Low Battery Notification"
+msgstr "ელემენტის დაბალი მუხტის შეტყობინება"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:39
+msgid "Notify when the remote battery is low"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:62
+#: src/plugins/telephony/telephony.plugin.desktop.in:6
+msgid "Telephony"
+msgstr "ტელეფონია"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:65
+msgid "Incoming Calls"
+msgstr "შემომავალი ზარები"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:66
+msgid "What to do when the phone rings"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:79
+#: src/plugins/gnome/valent-preferences-status-page.ui:105
+msgid "Pause Media"
+msgstr "მედიის შეჩერება"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:86
+msgid "Ongoing Calls"
+msgstr "გამავალი ზარები"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:87
+msgid "What to do when the phone is answered"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:100
+msgid "Mute Microphone"
+msgstr "მიკროფონის დადუმება"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:113
+msgid "Notify if the device loses connectivity"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:122
+msgid "Nothing"
+msgstr "არაფერი"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:123
+msgid "Lower"
+msgstr "დაწევა"
+
+#: src/plugins/gnome/valent-preferences-status-page.ui:124
+#: src/plugins/telephony/valent-telephony-plugin.c:398
+msgid "Mute"
+msgstr "დადუმება"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:9
+msgid "Sync"
+msgstr "სინქრონიზაცია"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:18
+msgid "Remote Clipboard"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:19
+msgid "Copy changes to the local clipboard"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:25
+msgid "Local Clipboard"
+msgstr "ლოკალური ბუფერი"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:26
+msgid "Report changes to the remote device"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:39
+msgid "Remote Contacts"
+msgstr "დაშორებული კონტაქტები"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:40
+msgid "Import contacts from the remote device"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:46
+msgid "Local Contacts"
+msgstr "ლოკალური კონტაქტები"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:47
+msgid "Share contacts with the remote device"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:61
+msgid "Local Notifications"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:62
+msgid "Forward notifications to the remote device"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:67
+msgid "Intelligent Sync"
+msgstr "ჭკვიანი სინქრონიზაცია"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:68
+msgid "Notifications follow the active device"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:74
+msgid "Filter by Application"
+msgstr "გაფილტვრა აპლიკაციით"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:98
+#: src/plugins/sftp/sftp.plugin.desktop.in:6
+msgid "Files"
+msgstr "ფაილები"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:101
+msgid "Automatically Mount"
+msgstr "ავტომატური მიმაგრება"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:102
+msgid "Mount shared folders when the device connects"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:108
+msgid "Local Files"
+msgstr "ლოკალური ფაილები"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:109
+msgid "Share local files and directories"
+msgstr ""
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:114
+msgid "Port"
+msgstr "პორტი"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:178
+msgid "Filter applications"
+msgstr "პროგრამების გაფილტვრა"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:217
+msgid "Reset"
+msgstr "ჩამოყრა"
+
+#: src/plugins/gnome/valent-preferences-sync-page.ui:232
+msgid "No Applications"
+msgstr "აპლიკაციების გარეშე"
+
+#: src/plugins/gnome/valent-presenter-remote.c:89
+msgid "Select Presentation"
+msgstr ""
+
+#: src/plugins/gnome/valent-presenter-remote.c:98
+msgid "Presentations"
+msgstr "პრეზენტაციები"
+
+#: src/plugins/gnome/valent-presenter-remote.c:105
+msgid "All Files"
+msgstr "ყველა ფაილი"
+
+#: src/plugins/gnome/valent-presenter-remote.ui:8
+msgid "Presentation Remote"
+msgstr "დაშორებული პრეზენტაცია"
+
+#: src/plugins/gnome/valent-presenter-remote.ui:81
+msgid "Start"
+msgstr "დაწყება"
+
+#: src/plugins/gnome/valent-presenter-remote.ui:121
+msgid "Stop"
+msgstr "გაჩერება"
+
+#: src/plugins/gnome/valent-presenter-remote.ui:196
+msgid "Pointer"
+msgstr "კურსორი"
+
+#: src/plugins/gnome/valent-share-dialog.c:107
+#, c-format
+msgid "Size: %s"
+msgstr "ზომა: %s"
+
+#: src/plugins/gnome/valent-share-dialog.c:121
+#, c-format
+msgid "Total size: %s"
+msgstr "ჯამური ზომა : %s"
+
+#: src/plugins/gnome/valent-share-dialog.c:252
+#, c-format
+msgid "%u files and links"
+msgstr "%u ფაილი და ბმული"
+
+#: src/plugins/gnome/valent-share-dialog.c:254
+#, c-format
+msgid "%u files"
+msgstr "%u ფაილი"
+
+#: src/plugins/gnome/valent-share-dialog.c:256
+#, c-format
+msgid "%u links"
+msgstr "%u ბმული"
+
+#: src/plugins/gnome/valent-share-dialog.ui:8
+#: src/plugins/gnome/valent-share-dialog.ui:29
+#: src/plugins/gnome/valent-share-dialog.ui:40
+#: src/plugins/gnome/valent-share-dialog.ui:112
+msgid "Share"
+msgstr "გაზიარება"
+
+#: src/plugins/gnome/valent-share-dialog.ui:41
+msgid "Select files, enter a link or paste text"
+msgstr ""
+
+#: src/plugins/gnome/valent-share-dialog.ui:50
+msgid "Pick Files"
+msgstr "აირჩიეთ ფაილები"
+
+#: src/plugins/gnome/valent-share-dialog.ui:75
+msgid "Enter URL"
+msgstr "შეიყვანეთ URL"
+
+#: src/plugins/gnome/valent-share-dialog.ui:161
+#: src/plugins/gnome/valent-share-dialog.ui:178
+#: src/plugins/gnome/valent-window.ui:86 src/plugins/gnome/valent-window.ui:101
+msgid "Devices"
+msgstr "მოწყობილობები"
+
+#: src/plugins/gnome/valent-share-dialog.ui:165
+msgid "Share with multiple devices"
+msgstr ""
+
+#: src/plugins/gnome/valent-share-dialog.ui:192
+msgid "Searching…"
+msgstr "ძებნა…"
+
+#: src/plugins/gnome/valent-share-dialog.ui:215
+msgid "_Share"
+msgstr "_გაზიარება"
+
+#. translators: Unknown time
+#: src/plugins/gnome/valent-time-helpers.c:51
+msgid "--:--"
+msgstr ""
+
+#. hour:minutes:seconds
+#. Translators: This is a time format, like "9:05:02" for 9
+#. * hours, 5 minutes, and 2 seconds. You may change ":" to
+#. * the separator that your locale uses or use "%Id" instead
+#. * of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:87
+#, c-format
+msgctxt "long time format"
+msgid "%d:%02d:%02d"
+msgstr "%d:%02d:%02d"
+
+#. hour:minutes:seconds.msecs
+#. Translators: This is a time format, like "9:05:02.050" for 9
+#. * hours, 5 minutes, 2 seconds and 50 milliseconds. You may change ":" to
+#. * the separator that your locale uses or use "%Id" instead
+#. * of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:95
+#, c-format
+msgctxt "long time format"
+msgid "%d:%02d:%02d.%03d"
+msgstr "%d:%02d:%02d.%03d"
+
+#. -hour:minutes:seconds
+#. Translators: This is a time format, like "-9:05:02" for 9
+#. * hours, 5 minutes, and 2 seconds playback remaining. You may
+#. * change ":" to the separator that your locale uses or use
+#. * "%Id" instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:105
+#, c-format
+msgctxt "long time format"
+msgid "-%d:%02d:%02d"
+msgstr "-%d:%02d:%02d"
+
+#. -hour:minutes:seconds.msecs
+#. Translators: This is a time format, like "-9:05:02.050" for 9
+#. * hours, 5 minutes, 2 seconds and 50 milliseconds playback remaining. You may
+#. * change ":" to the separator that your locale uses or use
+#. * "%Id" instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:113
+#, c-format
+msgctxt "long time format"
+msgid "-%d:%02d:%02d.%03d"
+msgstr "-%d:%02d:%02d.%03d"
+
+#. -minutes:seconds
+#. Translators: This is a time format, like "-5:02" for 5
+#. * minutes and 2 seconds playback remaining. You may change
+#. * ":" to the separator that your locale uses or use "%Id"
+#. * instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:126
+#, c-format
+msgctxt "short time format"
+msgid "-%d:%02d"
+msgstr "-%d:%02d"
+
+#. -minutes:seconds.msec
+#. Translators: This is a time format, like "-5:02.050" for 5
+#. * minutes 2 seconds and 50 milliseconds playback remaining. You may change
+#. * ":" to the separator that your locale uses or use "%Id"
+#. * instead of "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:134
+#, c-format
+msgctxt "short time format"
+msgid "-%d:%02d.%03d"
+msgstr "-%d:%02d.%03d"
+
+#. minutes:seconds.msec
+#. Translators: This is a time format, like "5:02" for 5
+#. * minutes 2 seconds and 50 milliseconds. You may change ":" to the
+#. * separator that your locale uses or use "%Id" instead of
+#. * "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:145
+#, c-format
+msgctxt "short time format"
+msgid "%d:%02d.%03d"
+msgstr "%d:%02d.%03d"
+
+#. minutes:seconds
+#. Translators: This is a time format, like "5:02" for 5
+#. * minutes and 2 seconds. You may change ":" to the
+#. * separator that your locale uses or use "%Id" instead of
+#. * "%d" if your locale uses localized digits.
+#.
+#: src/plugins/gnome/valent-time-helpers.c:154
+#, c-format
+msgctxt "short time format"
+msgid "%d:%02d"
+msgstr "%d:%02d"
+
+#: src/plugins/gnome/valent-window.c:230
+msgid "translator-credits"
+msgstr "ეკატერინე პაპავა"
+
+#: src/plugins/gnome/valent-window.c:235
+msgid "Sponsors"
+msgstr "სპონსორები"
+
+#: src/plugins/gnome/valent-window.ui:56
+msgid "Refresh"
+msgstr "განახლება"
+
+#: src/plugins/gnome/valent-window.ui:57
+msgid "Scan for new devices"
+msgstr "ახალი მოწყობილობების სკანირება"
+
+#: src/plugins/gnome/valent-window.ui:94
+msgid "Searching for devices…"
+msgstr "მოწყობილობების ძებნა…"
+
+#: src/plugins/gnome/valent-window.ui:135
+msgid "Share…"
+msgstr "გაზიარება…"
+
+#: src/plugins/gnome/valent-window.ui:146
+msgid "About Valent"
+msgstr "Valent-ის შესახებ"
+
+#: src/plugins/gnome/valent-window.ui:152
+msgid "Quit"
+msgstr "გასვლა"
+
+#: src/plugins/gtk/gtk.plugin.desktop.in:6
+msgid "GTK"
+msgstr "GTK"
+
+#: src/plugins/gtk/gtk.plugin.desktop.in:7
+msgid "Integration with GTK4"
+msgstr ""
+
+#: src/plugins/lan/lan.plugin.desktop.in:6
+msgid "LAN"
+msgstr "LAN"
+
+#: src/plugins/lan/lan.plugin.desktop.in:7
+msgid "Connect devices over LAN"
+msgstr ""
+
+#: src/plugins/lock/lock.plugin.desktop.in:7
+msgid "Lock and unlock"
+msgstr ""
+
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:6
+msgid "Mousepad"
+msgstr "თაგუნას ხალიჩა"
+
+#: src/plugins/mousepad/mousepad.plugin.desktop.in:7
+msgid "Control the mouse and keyboard"
+msgstr ""
+
+#: src/plugins/mpris/mpris.plugin.desktop.in:6
+msgid "MPRIS"
+msgstr "MPRIS"
+
+#: src/plugins/mpris/mpris.plugin.desktop.in:7
+msgid "Share control of MPRISv2 players"
+msgstr ""
+
+#: src/plugins/notification/notification.plugin.desktop.in:7
+msgid "Sync notifications"
+msgstr "გაფრთხილებების სინქრონიზაცია"
+
+#: src/plugins/ping/ping.plugin.desktop.in:6
+#: src/plugins/ping/valent-ping-plugin.c:157
+msgid "Ping"
+msgstr "პინგი"
+
+#: src/plugins/ping/ping.plugin.desktop.in:7
+msgid "Send and receive pings"
+msgstr "პინგების მიღების და გაგზავნა"
+
+#: src/plugins/ping/valent-ping-plugin.c:37
+msgid "Ping!"
+msgstr "პინგ!"
+
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:6
+msgid "PipeWire"
+msgstr "PipeWire"
+
+#: src/plugins/pipewire/pipewire.plugin.desktop.in:7
+msgid "Integration with PipeWire"
+msgstr ""
+
+#: src/plugins/presenter/presenter.plugin.desktop.in:6
+msgid "Presenter"
+msgstr "წარმომდგენი"
+
+#: src/plugins/presenter/presenter.plugin.desktop.in:7
+msgid "Control presentations"
+msgstr ""
+
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:6
+msgid "PulseAudio"
+msgstr "PulseAudio"
+
+#: src/plugins/pulseaudio/pulseaudio.plugin.desktop.in:7
+msgid "Integration with PulseAudio"
+msgstr ""
+
+#: src/plugins/runcommand/runcommand.plugin.desktop.in:7
+msgid "Execute commands remotely"
+msgstr ""
+
+#: src/plugins/runcommand/valent-runcommand-plugin.c:317
+msgid "Run Command"
+msgstr "გაშვების ბრძანება"
+
+#: src/plugins/sftp/sftp.plugin.desktop.in:7
+msgid "Share files and directories with SFTP"
+msgstr ""
+
+#: src/plugins/sftp/valent-sftp-plugin.c:666
+msgid "Permission denied"
+msgstr "წვდომა აკრძალულია"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:791
+msgid "Browse Folders"
+msgstr "საქაღალდეების ძებნა"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:808
+msgid "Unmount"
+msgstr "მოხსნა"
+
+#: src/plugins/sftp/valent-sftp-plugin.c:818
+msgid "Mount"
+msgstr "მიმაგრება"
+
+#: src/plugins/share/share.plugin.desktop.in:7
+msgid "Direct file, link and text sharing"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:102
+#: src/plugins/share/valent-share-plugin.c:482
+msgid "Transferring Files"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:103
+#: src/plugins/share/valent-share-plugin.c:121
+#, c-format
+msgid "Receiving one file from %1$s"
+msgid_plural "Receiving %2$d files from %1$s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/plugins/share/valent-share-plugin.c:111
+#: src/plugins/share/valent-share-plugin.c:350
+#: src/plugins/share/valent-share-plugin.c:491
+msgid "Transfer Complete"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:112
+#, c-format
+msgid "Received one file from %1$s"
+msgid_plural "Received %2$d files from %1$s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/plugins/share/valent-share-plugin.c:120
+#: src/plugins/share/valent-share-plugin.c:253
+#: src/plugins/share/valent-share-plugin.c:356
+#: src/plugins/share/valent-share-plugin.c:500
+msgid "Transfer Failed"
+msgstr "გადაცემა ჩავარდა"
+
+#: src/plugins/share/valent-share-plugin.c:154
+#: src/plugins/share/valent-share-plugin.c:761
+msgid "Open Folder"
+msgstr "საქაღალდის გახსნა"
+
+#: src/plugins/share/valent-share-plugin.c:165
+#: src/plugins/share/valent-share-plugin.c:766
+msgid "Open File"
+msgstr "ფაილის გახსნა"
+
+#: src/plugins/share/valent-share-plugin.c:243
+#: src/plugins/share/valent-share-plugin.c:344
+msgid "Transferring File"
+msgstr "ფაილის გადაცემა"
+
+#: src/plugins/share/valent-share-plugin.c:244
+#: src/plugins/share/valent-share-plugin.c:254
+#, c-format
+msgid "Opening “%s” from “%s”"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:345
+#: src/plugins/share/valent-share-plugin.c:357
+#, c-format
+msgid "Opening “%s” on “%s”"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:351
+#, c-format
+msgid "Opened “%s” on “%s”"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:483
+#: src/plugins/share/valent-share-plugin.c:501
+#, c-format
+msgid "Sending one file to %1$s"
+msgid_plural "Sending %2$d files to %1$s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/plugins/share/valent-share-plugin.c:492
+#, c-format
+msgid "Sent one file to %1$s"
+msgid_plural "Sent %2$d files to %1$s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/plugins/share/valent-share-plugin.c:754
+#, c-format
+msgid "Text from “%s” saved to “%s”"
+msgstr ""
+
+#. TRANSLATORS: this is a filename used for text shared by a device, where
+#. * the first "%s" is the date and the second "%s" is the device name, e.g.
+#. * "Text from 07-12-2024 10:00:46 PM (OnePlus 6)"
+#. *
+#: src/plugins/share/valent-share-plugin.c:809
+#, c-format
+msgid "Text from %s (%s).txt"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:1131
+#, c-format
+msgid "Text from “%s”"
+msgstr ""
+
+#: src/plugins/share/valent-share-plugin.c:1142
+msgid "Copy"
+msgstr "კოპირება"
+
+#: src/plugins/sms/sms.plugin.desktop.in:6
+msgid "SMS"
+msgstr "SMS"
+
+#: src/plugins/sms/sms.plugin.desktop.in:7
+msgid "Send and receive SMS messages"
+msgstr ""
+
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:6
+msgid "System Volume"
+msgstr "სისტემური საცავი"
+
+#: src/plugins/systemvolume/systemvolume.plugin.desktop.in:7
+msgid "Monitor volume levels and microphones"
+msgstr ""
+
+#: src/plugins/telephony/telephony.plugin.desktop.in:7
+msgid "Be notified of incoming and ongoing calls"
+msgstr ""
+
+#. TRANSLATORS: An unknown caller, with no name or phone number
+#: src/plugins/telephony/valent-telephony-plugin.c:367
+msgctxt "contact identity"
+msgid "Unknown"
+msgstr "უცნობი"
+
+#. TRANSLATORS: The phone is ringing
+#: src/plugins/telephony/valent-telephony-plugin.c:394
+msgid "Incoming call"
+msgstr "შემომავალი ზარი"
+
+#. TRANSLATORS: The phone has been answered
+#: src/plugins/telephony/valent-telephony-plugin.c:407
+msgid "Ongoing call"
+msgstr "მიმდინარე ზარი"
+
+#: src/plugins/xdp/valent-xdp-background.c:52
+msgid "Syncing Devices"
+msgstr "მოწყობილობების სინქრონიზაცია"
+
+#: src/plugins/xdp/valent-xdp-background.c:82
+msgid "Valent wants to run as a service"
+msgstr ""
+
+#: src/plugins/xdp/xdp.plugin.desktop.in:6
+msgid "Portals"
+msgstr "პორტალები"
+
+#: src/plugins/xdp/xdp.plugin.desktop.in:7
+msgid "Integration with desktop portals"
+msgstr ""
+
+#. translators:
+#. * The device has been disabled
+#: subprojects/gvc/gvc-mixer-control.c:1872
+msgid "Disabled"
+msgstr "გამორთულია"
+
+#. translators:
+#. * The number of sound outputs on a particular device
+#: subprojects/gvc/gvc-mixer-control.c:1879
+#, c-format
+msgid "%u Output"
+msgid_plural "%u Outputs"
+msgstr[0] "%u გამოტანა"
+msgstr[1] "%u გამოტანა"
+
+#. translators:
+#. * The number of sound inputs on a particular device
+#: subprojects/gvc/gvc-mixer-control.c:1889
+#, c-format
+msgid "%u Input"
+msgid_plural "%u Inputs"
+msgstr[0] "%u შეტანა"
+msgstr[1] "%u შეტანა"
+
+#: subprojects/gvc/gvc-mixer-control.c:2872
+msgid "System Sounds"
+msgstr "სისტემური ხმები"
